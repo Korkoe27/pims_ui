@@ -8,27 +8,27 @@ import { Dispensary } from '../pages';
 
 export const Sidebar_links = [
     {
-        name: 'Dashboard',
+        name: 'dashboard',
         icon: <RxDashboard/>,
         path: '/',
     },
     {
-        name: 'Patients',
+        name: 'patients',
         icon: <LuUsers2/>,
         path: '/patients',
     },
     {
-        name: 'Appointments',
+        name: 'appointments',
         icon: <IoCalendarClearOutline/>,
         path: '/appointments',
     },
     {
-        name: 'Inventory',
+        name: 'inventory',
         icon: <BsBoxSeam/>,
         path: '/inventory',
     },
     {
-        name: 'Dispensary',
+        name: 'dispensary',
         icon: <MdOutlineRestorePage/>,
         path: '/dispensary',
     },

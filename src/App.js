@@ -8,9 +8,10 @@ const App = () => {
   return (
     <div>
       <BrowserRouter>
-      <div>
-        <div className='w-1/6 fixed bg-white dark:bg-secondary-dark-bg  h-full'>
+      <div className='flex flex-row'>
+        <div className=' bg-white dark:bg-secondary-dark-bg  h-full'>
           <Sidebar />
+          {/* <Dashboard/> */}
         </div>
 
 

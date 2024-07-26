@@ -24,7 +24,7 @@ const Sidebar = () => {
   return (
 
     
-    <div className=" shadow-lg h-screen md:overflow-hidden overflow-auto md:hover:overflow-auto pb-10">
+    <div className="w-[270px] bg-white shadow-lg h-screen md:overflow-hidden overflow-auto md:hover:overflow-auto pb-10">
       <div className="">
       <Link to="/" onClick={() => {}} className="items-center text-xl gap-3 ml-3 mt-4">
       <Logo displayType='flex'/>
