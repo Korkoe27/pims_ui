@@ -1,6 +1,6 @@
 import React from 'react'
 import { CiSearch } from "react-icons/ci";
-import { CiClock2 } from "react-icons/ci";
+import { LuClock3 } from "react-icons/lu";
 import { FiUserCheck } from "react-icons/fi";
 import { LuUsers2 } from "react-icons/lu";
 import { IoMdAdd } from "react-icons/io";
@@ -12,7 +12,7 @@ const Dashboard = () => {
       
       <div className="dashboard_header grid  items-center grid-cols-12 h-[10%] ">
         <div className='col-span-6'>
-          <h2 className='text-2xl font-bold grid-'>Good {`${new Date().getHours() < 12 ? "morning" : new Date().getHours() < 18 ? "afternoon" : "evening"}`}, <span>Korkoe</span>👋🏾</h2>
+          <h2 className='text-2xl font-bold grid-'>Good {`${new Date().getHours() < 12 ? "Morning" : new Date().getHours() < 18 ? "Afternoon" : "Evening"}`}, <span>Korkoe</span>👋🏾</h2>
         </div>
         
 
@@ -33,6 +33,34 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
+
+      <div className='flex justify-between'>
+        <div className='bg-[#ececf9] p-[16px] h-[138px] w-[340px]'>
+          <h3 className='flex items-center text-[18px] gap-[12px] font-medium'>
+            <LuUsers2/>
+            Today's Appointments
+          </h3>
+          <span className='text-[50px] font-bold text-[#2f3192]'>9</span>
+           
+        </div>
+        <div className='bg-[#fbeae9] p-[16px] h-[138px] w-[340px]'>
+          <h3 className='flex items-center text-[18px] gap-[12px] font-medium'>
+          <LuClock3 />
+            Pending Appointments
+          </h3>
+          <span className='text-[50px] font-bold text-[#d42620]'>5</span>
+           
+        </div>
+        <div className='bg-[#e7f6ec] p-[16px] h-[138px] w-[340px]'>
+          <h3 className='flex items-center text-[18px] gap-[12px] font-medium'>
+            <FiUserCheck/>
+            Completed Appointments
+          </h3>
+          <span className='text-[50px] font-bold text-[#0f973d]'>4</span>
+           
+        </div>
+      </div>
+  
       
     </div>
   )
