@@ -19,7 +19,7 @@ const Sidebar = () => {
 
   const activeLink = 'flex items-center gap-5 pl-4 pt-3 pb-2.5 rounded text-blue-900 font-bold text-md my-2 bg-[#e3effc]';
 
-  const normalLink = 'flex items-center gap-5 pl-4 pt-3 pb-2.5 rounded text-black font-semibold text-md hover:bg-[#e3effc] my-2';
+  const normalLink = 'flex items-center gap-5 pl-4 pt-3 pb-2.5 rounded text-black font-normal text-md hover:bg-[#e3effc] my-2';
 
   return (
 
@@ -30,7 +30,7 @@ const Sidebar = () => {
       <Logo displayType='flex'/>
       </Link>
       </div>
-      <div className='mt-10'>
+      <div className='mt-10 border border-l-0 border-t-0 border-r-0 border-b-[#f0f2f5]'>
         {Sidebar_links.map((item) => (
           <NavLink
            to={item.path}
@@ -43,6 +43,7 @@ const Sidebar = () => {
             <span className='capitalize'>
               {item.name}
             </span>
+            
           </NavLink>
         ))} 
 
