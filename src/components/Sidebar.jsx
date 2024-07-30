@@ -43,9 +43,10 @@ const Sidebar = () => {
             <span className='capitalize'>
               {item.name}
             </span>
-            
+            <span className={`${item.name != "appointments" ? "hidden" : "flex bg-[#f0f2f5] w-[20px] justify-center rounded-[10px] relative font-medium text-[#344054]   text-[12px] right-[-100px] h-[17px]"}`}>9</span>
           </NavLink>
         ))} 
+
 
 
 
