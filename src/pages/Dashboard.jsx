@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react';
 import { CiSearch } from "react-icons/ci";
 import { LuClock3 } from "react-icons/lu";
 import { FiUserCheck } from "react-icons/fi";
@@ -6,10 +6,30 @@ import { LuUsers2 } from "react-icons/lu";
 import { GrAdd } from "react-icons/gr";
 import { FaChevronDown } from "react-icons/fa6";
 import { Link } from 'react-router-dom';
+import PatientModal from "../components/PatientModal";
 
 const Dashboard = () => {
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const openModal = () => setIsModalOpen(true);
+
+  useEffect(() => {
+    const handleEscape = (event) => {
+      if (event.key === 'Escape') {
+        setIsModalOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleEscape);
+
+    return () => {
+      window.removeEventListener('keydown', handleEscape);
+    };
+  }, []);
+
   return (
-    <div className='px-[32px] bg-[#f9fafb] w-full'>
+    <div className="px-[32px] bg-[#f9fafb] w-full">
+     {isModalOpen && <PatientModal setIsModalOpen={setIsModalOpen} />}
       
       <div className="dashboard_header grid  items-center grid-cols-12 h-[10%] ">
         <div className='col-span-4'>
@@ -24,8 +44,14 @@ const Dashboard = () => {
         </div>
         <div className='flex justify-end gap-5 col-span-4 '>
           <div className='flex items-center '>
-            <button className='flex items-center p-[10px] text-white bg-[#2f3192] gap-[10px] rounded-[6px]'><GrAdd/>Add New Patient</button>
-          </div>
+            <button className='flex items-center p-[10px] text-white bg-[#2f3192] gap-[10px] rounded-[6px]'
+            // ref={trigger}
+            onClick={openModal}
+            ><GrAdd/>Add New Patient</button>
+          </div>    
+           
+          
+
           <div className='flex justify-between gap-3 items-center '>
             <div className='bg-[#ffe7cc] p-[9px] rounded-[200px]'>
            <span className='w-[45px] h-[18px] text-[15px] font-[500]'>KD</span>   
@@ -34,6 +60,8 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
+
+
 
       <div className='flex justify-between'>
         <div className='bg-[#ececf9] p-[15px] h-[130px] w-auto'>
