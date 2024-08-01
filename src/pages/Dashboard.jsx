@@ -5,27 +5,28 @@ import { FiUserCheck } from "react-icons/fi";
 import { LuUsers2 } from "react-icons/lu";
 import { GrAdd } from "react-icons/gr";
 import { FaChevronDown } from "react-icons/fa6";
+import { Link } from 'react-router-dom';
 
 const Dashboard = () => {
   return (
     <div className='px-[32px] bg-[#f9fafb] w-full'>
       
       <div className="dashboard_header grid  items-center grid-cols-12 h-[10%] ">
-        <div className='col-span-6'>
+        <div className='col-span-4'>
           <h2 className='text-2xl font-bold grid-'>Good {`${new Date().getHours() < 12 ? "Morning" : new Date().getHours() < 18 ? "Afternoon" : "Evening"}`}, <span>Korkoe</span>👋🏾</h2>
         </div>
         
 
 
-        <div className='flex items-center col-span-4 px-2 border  rounded-[6px] w-[375px] border-[#d0d5dd]'>
+        <div className='flex items-center col-span-4 px-2 border  rounded-[6px] w-full border-[#d0d5dd]'>
           <CiSearch title='Search' className='w-[20px] h-[20px] bg-white cursor-pointer'/>
           <input type="search" name="search" placeholder='Search' className='flex-grow p-4 focus:outline-none' />
         </div>
-        <div className='flex justify-between col-span-2 '>
-          <div className='flex items-center col-span-1'>
+        <div className='flex justify-end gap-5 col-span-4 '>
+          <div className='flex items-center '>
             <button className='flex items-center p-[10px] text-white bg-[#2f3192] gap-[10px] rounded-[6px]'><GrAdd/>Add New Patient</button>
           </div>
-          <div className='flex justify-evenly col-span-1 items-center '>
+          <div className='flex justify-between gap-3 items-center '>
             <div className='bg-[#ffe7cc] p-[9px] rounded-[200px]'>
            <span className='w-[45px] h-[18px] text-[15px] font-[500]'>KD</span>   
             </div>
@@ -35,7 +36,7 @@ const Dashboard = () => {
       </div>
 
       <div className='flex justify-between'>
-        <div className='bg-[#ececf9] p-[15px] h-[130px] w-[340px]'>
+        <div className='bg-[#ececf9] p-[15px] h-[130px] w-auto'>
           <h3 className='flex items-center text-[18px] gap-[12px] font-medium'>
             <LuUsers2/>
             Today's Appointments
@@ -43,7 +44,7 @@ const Dashboard = () => {
           <span className='text-[50px] font-bold text-[#2f3192]'>9</span>
            
         </div>
-        <div className='bg-[#fbeae9] p-[15px] h-[130px] w-[340px]'>
+        <div className='bg-[#fbeae9] p-[15px] h-[130px] w-auto'>
           <h3 className='flex items-center text-[18px] gap-[12px] font-medium'>
           <LuClock3 />
             Pending Appointments
@@ -51,7 +52,7 @@ const Dashboard = () => {
           <span className='text-[50px] font-bold text-[#d42620]'>5</span>
            
         </div>
-        <div className='bg-[#e7f6ec] p-[15px] h-[130px] w-[340px]'>
+        <div className='bg-[#e7f6ec] p-[15px] h-[130px] w-auto'>
           <h3 className='flex items-center text-[18px] gap-[12px] font-medium'>
             <FiUserCheck/>
             Completed Appointments
@@ -87,7 +88,7 @@ const Dashboard = () => {
                 Patient Type
                 </th>
                 <th scope="col" className="px-3 py-3">
-                    <span className="sr-only">Edit</span>
+                    <span className="sr-only"></span>
                 </th>
             </tr>
         </thead>
@@ -106,8 +107,8 @@ const Dashboard = () => {
                 Old
                 </td>
                 <td className="py-3 flex  justify-end gap-[45px] border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9] items-center text-center">
-                    <a href="#" className="font-medium text-[#2f3192] px-[16px] py-[8px] border rounded-[8px] w-[50px] border-[#2f3192]">Edit</a>
-                    <a href="#" className='text-white bg-[#2f3192] px-[16px] py-[8px] rounded-[8px]'>Attend to Patient</a>
+                <Link to="#" className='font-medium text-[#2f3192] px-[16px] flex justify-center py-[8px] border border-solid rounded-[8px] w-[50px] border-[#2f3192]'>Edit</Link>
+                    <Link to='#' className='text-white bg-[#2f3192] px-[16px] py-[8px] rounded-[8px]'>Atten to Patient</Link>
                 </td>
             </tr>
             <tr className="text-left">
@@ -124,8 +125,9 @@ const Dashboard = () => {
                 Old
                 </td>
                 <td className="py-4 flex  justify-end gap-[45px] border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9] items-center text-center">
-                    <a href="#" className="font-medium text-[#2f3192] px-[16px] py-[8px] border rounded-[8px] w-[50px] border-[#2f3192]">Edit</a>
-                    <a href="#" className='text-white bg-[#2f3192] px-[16px] py-[8px] rounded-[8px]'>Attend to Patient</a>
+                    {/* <a href="#" className="font-medium text-[#2f3192] px-[16px] py-[8px] border rounded-[8px] w-[50px] border-[#2f3192]">Edit</a>  */}
+                    <Link to="#" className='font-medium text-[#2f3192] px-[16px] flex justify-center py-[8px] border border-solid rounded-[8px] w-[50px] border-[#2f3192]'>Edit</Link>
+                    <Link to='#' className='text-white bg-[#2f3192] px-[16px] py-[8px] rounded-[8px]'>Atten to Patient</Link>
                 </td>
             </tr>
             <tr className="text-left">
@@ -142,8 +144,8 @@ const Dashboard = () => {
                 New
                 </td>
                 <td className="py-3 flex  justify-end gap-[45px] border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9] items-center text-center">
-                    <a href="#" className="font-medium text-[#2f3192] px-[16px] py-[8px] border rounded-[8px] w-[50px] border-[#2f3192]">Edit</a>
-                    <a href="#" className='text-white bg-[#2f3192] px-[16px] py-[8px] rounded-[8px]'>Attend to Patient</a>
+                <Link to="#" className='font-medium text-[#2f3192] px-[16px] flex justify-center py-[8px] border border-solid rounded-[8px] w-[50px] border-[#2f3192]'>Edit</Link>
+                <Link to='#' className='text-white bg-[#2f3192] px-[16px] py-[8px] rounded-[8px]'>Atten to Patient</Link>
                 </td>
             </tr>
         </tbody>
@@ -244,5 +246,3 @@ export default Dashboard
 
 
 
-
-// 👋🏾
