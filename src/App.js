@@ -11,7 +11,7 @@ const App = () => {
       <div className='flex flex-row  h-full'>
         <div className=' bg-white dark:bg-secondary-dark-bg'>
           <Sidebar />
-          {/* <Dashboard/> */}
+        
         </div>
 
 
