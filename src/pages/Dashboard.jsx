@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState} from 'react';
 import { CiSearch } from "react-icons/ci";
 import { LuClock3 } from "react-icons/lu";
 import { FiUserCheck } from "react-icons/fi";
@@ -14,18 +14,8 @@ const Dashboard = () => {
 
   const openModal = () => setIsModalOpen(true);
 
-  useEffect(() => {
-    const handleEscape = (event) => {
-      if (event.key === 'Escape') {
-        setIsModalOpen(false);
-      }
-    };
-    window.addEventListener('keydown', handleEscape);
 
-    return () => {
-      window.removeEventListener('keydown', handleEscape);
-    };
-  }, []);
+
 
   return (
     <div className="px-[32px] bg-[#f9fafb] w-full">
@@ -184,7 +174,7 @@ const Dashboard = () => {
 
   <div className='flex justify-between my-[15px]'>
     <h2 className='font-bold text-[12px]'>Recent Patient Activity</h2>
-    <a href="#" className='text-[#2f3192] text-right  font-semibold'>See all</a>
+    <Link  className='text-[#2f3192] text-right  font-semibold'>See all</Link>
   </div>
     <table className="w-full">
         

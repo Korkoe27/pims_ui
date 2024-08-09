@@ -1,9 +1,9 @@
-import React from 'react';
+import React, {useRef, useEffect} from 'react';
 import { Link } from 'react-router-dom';
 
 
 const PatientModal = ({setIsModalOpen}) => {
-
+  const specificElementRef = useRef(null);
 
 
     const handleOverlayClick = (event) => {
@@ -11,12 +11,38 @@ const PatientModal = ({setIsModalOpen}) => {
           setIsModalOpen(false);
         }
       };
+
+      useEffect(() => {
+        const handleEscape = (event) => {
+          if (event.key === 'Escape') {
+            setIsModalOpen(false);
+          }
+        };
+    
+        const handleClickOutside = (event) => {
+          if (
+            specificElementRef.current && // Ensure the specific element is referenced
+            !specificElementRef.current.contains(event.target)
+          ) {
+            setIsModalOpen(false);
+          }
+        };
+    
+        window.addEventListener('keydown', handleEscape);
+        window.addEventListener('mousedown', handleClickOutside);
+    
+        return () => {
+          window.removeEventListener('keydown', handleEscape);
+          window.removeEventListener('mousedown', handleClickOutside);
+        };
+      }, [setIsModalOpen]);
   return (
-    <div>
-      <>
+    <div className='fixed inset-0 bg-black bg-opacity-50 backdrop-blur-[2px]'>
        <dialog
-        className="flex flex-col m-auto w-[775px] border h-[450px] justify-center items-center modal-overlay"
+        className="flex flex-col m-auto w-[775px] border h-[450px] justify-center items-center modal-overlay "
         onClick={handleOverlayClick}
+        ref={specificElementRef}
+        
       >
         <h2 className="font-medium mb-20">
           Choose the clinic in which you are attending to this patient
@@ -33,7 +59,6 @@ const PatientModal = ({setIsModalOpen}) => {
           </Link>
         </div>
       </dialog>
-      </>
     </div>
   )
 }
