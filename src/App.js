@@ -6,10 +6,10 @@ import {Dashboard, Appointments, Dispensary, Inventory, Patients} from './pages'
 
 const App = () => {
   return (
-    <div>
+    <div className=''>
       <BrowserRouter>
-      <div className='flex flex-row'>
-        <div className=' bg-white dark:bg-secondary-dark-bg  h-full'>
+      <div className='flex flex-row  h-full'>
+        <div className=' bg-white dark:bg-secondary-dark-bg'>
           <Sidebar />
           {/* <Dashboard/> */}
         </div>

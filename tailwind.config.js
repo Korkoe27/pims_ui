@@ -7,6 +7,7 @@ module.exports = {
     fontFamily:{
       sans: ['Inter', 'sans-serif']
     },
+
     fontSize:{
       sm: '0.8rem',
       base: '1rem',
@@ -18,5 +19,11 @@ module.exports = {
     },
     extend: {},
   },
-  plugins: [],
+//   daisyui: {
+//     themes: false,
+//  },
+
+  // plugins: [
+  //   require('daisyui'),
+  // ],
 }
