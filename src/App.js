@@ -1,17 +1,16 @@
-import React, {useEffect} from 'react';
+import React from 'react';
 import './App.css';
 import {BrowserRouter, Routes, Route} from 'react-router-dom';
-import {Button , Header, Sidebar} from './components';
+import { Sidebar} from './components';
 import {Dashboard, Appointments, Dispensary, Inventory, Patients} from './pages';
 
 const App = () => {
   return (
-    <div className=''>
+    <div className='overflow-hidden'>
       <BrowserRouter>
       <div className='flex flex-row  h-full'>
         <div className=' bg-white dark:bg-secondary-dark-bg'>
           <Sidebar />
-          {/* <Dashboard/> */}
         </div>
 
 

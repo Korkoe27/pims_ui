@@ -7,6 +7,7 @@ import { GrAdd } from "react-icons/gr";
 import { FaChevronDown } from "react-icons/fa6";
 import { Link } from 'react-router-dom';
 import PatientModal from "../components/PatientModal";
+import SearchModalUnfilled from '../components/SearchModalUnfilled';
 
 const Dashboard = () => {
 
@@ -15,11 +16,16 @@ const Dashboard = () => {
   const openModal = () => setIsModalOpen(true);
 
 
-
+  const [isSearchModalVisible, setSearchModalVisibility] = useState(false);
+  const openSearchModal = () => {
+    setSearchModalVisibility(true);
+  };
 
   return (
-    <div className="px-[32px] bg-[#f9fafb] w-full">
+    <div className="px-8 bg-[#f9fafb] w-full">
      {isModalOpen && <PatientModal setIsModalOpen={setIsModalOpen} />}
+     {isSearchModalVisible && <SearchModalUnfilled />}
+
       
       <div className="dashboard_header grid  items-center grid-cols-12 h-[10%] ">
         <div className='col-span-4'>
@@ -28,24 +34,25 @@ const Dashboard = () => {
         
 
 
-        <div className='flex items-center col-span-4 px-2 border  rounded-[6px] w-full border-[#d0d5dd]'>
-          <CiSearch title='Search' className='w-[20px] h-[20px] bg-white cursor-pointer'/>
-          <input type="search" name="search" placeholder='Search' className='flex-grow p-4 focus:outline-none' />
-        </div>
-        <div className='flex justify-end gap-5 col-span-4 '>
-          <div className='flex items-center '>
-            <button className='flex items-center p-[10px] text-white bg-[#2f3192] gap-[10px] rounded-[6px]'
+        <div className='flex items-center justify-start gap-5 px-0 col-span-7 w-full border-[#d0d5dd]'>
+          <div className='flex bg-white items-center text-left gap-0 w-2/3 px-2 border  rounded-md'>
+            <CiSearch title='Search' className='h-5 bg-white cursor-pointer'/>
+          <input type="search" name="search" placeholder='Search' className=' p-4 focus:outline-none' 
+          onClick={openSearchModal}
+          />
+          </div>
+          
+          <div className='flex items-center p-0'>
+            <button className='flex items-center p-5 h-1/3 text-white bg-[#2f3192] gap-2.5 rounded-md'
             // ref={trigger}
             onClick={openModal}
             ><GrAdd/>Add New Patient</button>
-          </div>    
-           
-          
+          </div>   
+        </div>
+        <div className='flex items-end justify-end gap-2 col-span-1 '>
 
-          <div className='flex justify-between gap-3 items-center '>
-            <div className='bg-[#ffe7cc] p-[9px] rounded-[200px]'>
-           <span className='w-[45px] h-[18px] text-[15px] font-[500]'>KD</span>   
-            </div>
+          <div className='flex  justify-end gap-3 items-center '>
+           <span className='bg-[#ffe7cc] p-2.5 w-12  h-12 text-base rounded-[100%] font-[500]'>KD</span>   
             <FaChevronDown title="Menu"className='cursor-pointer font-800 h-[24px]'/>
           </div>
         </div>
@@ -53,8 +60,8 @@ const Dashboard = () => {
 
 
 
-      <div className='flex justify-between'>
-        <div className='bg-[#ececf9] p-[15px] h-[130px] w-auto'>
+      <div className='grid grid-cols-12 gap-9 w-full'>
+        <div className='bg-[#ececf9] p-4 h-40 col-span-4 w-full'>
           <h3 className='flex items-center text-[18px] gap-[12px] font-medium'>
             <LuUsers2/>
             Today's Appointments
@@ -62,15 +69,15 @@ const Dashboard = () => {
           <span className='text-[50px] font-bold text-[#2f3192]'>9</span>
            
         </div>
-        <div className='bg-[#fbeae9] p-[15px] h-[130px] w-auto'>
-          <h3 className='flex items-center text-[18px] gap-[12px] font-medium'>
+        <div className='bg-[#fbeae9] p-4 h-40 w-full col-span-4'>
+          <h3 className='flex items-center text-base gap-[12px] font-normal'>
           <LuClock3 />
             Pending Appointments
           </h3>
           <span className='text-[50px] font-bold text-[#d42620]'>5</span>
            
         </div>
-        <div className='bg-[#e7f6ec] p-[15px] h-[130px] w-auto'>
+        <div className='bg-[#e7f6ec] p-4 h-40 w-full flex flex-col col-span-4'>
           <h3 className='flex items-center text-[18px] gap-[12px] font-medium'>
             <FiUserCheck/>
             Completed Appointments
@@ -86,26 +93,26 @@ const Dashboard = () => {
 <div className="my-[20px]">
 
   <div className='flex justify-between my-[15px]'>
-    <h2 className='font-bold text-[12px]'>Upcoming Appointments</h2>
-    <a href="#" className='text-[#2f3192] text-right  font-semibold'>See all</a>
+    <h2 className='font-bold text-xl'>Upcoming Appointments</h2>
+    <Link href="#" className='text-[#2f3192] text-right  font-semibold'>See all</Link>
   </div>
     <table className="w-full">
         
-        <thead className=" text-black uppercase text-left h-[55px]  bg-[#f0f2f5]">
-            <tr className='rounded-[8px]'>
-                <th scope="col" className="px-3 py-3">
+        <thead className=" text-black uppercase text-left h-16 bg-[#f0f2f5]">
+            <tr className='rounded-lg'>
+                <th scope="col" className="px-3 py-3 text-base font-semibold">
                     Date
                 </th>
-                <th scope="col" className="px-3 py-3">
+                <th scope="col" className="px-3 py-3 text-base font-semibold">
                 Patient’s ID
                 </th>
-                <th scope="col" className="px-3 py-3">
+                <th scope="col" className="px-3 py-3 text-base font-semibold">
                     Name
                 </th>
-                <th scope="col" className="px-3 py-3">
+                <th scope="col" className="px-3 py-3 text-base font-semibold">
                 Patient Type
                 </th>
-                <th scope="col" className="px-3 py-3">
+                <th scope="col" className="px-3 py-3 text-base font-semibold">
                     <span className="sr-only"></span>
                 </th>
             </tr>
@@ -124,9 +131,9 @@ const Dashboard = () => {
                 <td className="px-1 py-3 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">
                 Old
                 </td>
-                <td className="py-3 flex  justify-end gap-[45px] border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9] items-center text-center">
-                <Link to="#" className='font-medium text-[#2f3192] px-[16px] flex justify-center py-[8px] border border-solid rounded-[8px] w-[50px] border-[#2f3192]'>Edit</Link>
-                    <Link to='#' className='text-white bg-[#2f3192] px-[16px] py-[8px] rounded-[8px]'>Atten to Patient</Link>
+                <td className="py-3 flex  justify-end gap-11 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9] items-center text-center">
+                <Link to="#" className='font-medium text-[#2f3192] px-4 flex justify-center py-2 border border-solid rounded-lg w-14 border-[#2f3192]'>Edit</Link>
+                    <Link to='#' className='text-white bg-[#2f3192] px-4 py-2 rounded-lg'>Attend to Patient</Link>
                 </td>
             </tr>
             <tr className="text-left">
@@ -142,10 +149,9 @@ const Dashboard = () => {
                 <td className="px-1 py-3 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">
                 Old
                 </td>
-                <td className="py-4 flex  justify-end gap-[45px] border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9] items-center text-center">
-                    {/* <a href="#" className="font-medium text-[#2f3192] px-[16px] py-[8px] border rounded-[8px] w-[50px] border-[#2f3192]">Edit</a>  */}
-                    <Link to="#" className='font-medium text-[#2f3192] px-[16px] flex justify-center py-[8px] border border-solid rounded-[8px] w-[50px] border-[#2f3192]'>Edit</Link>
-                    <Link to='#' className='text-white bg-[#2f3192] px-[16px] py-[8px] rounded-[8px]'>Atten to Patient</Link>
+                <td className="py-4 flex  justify-end gap-11 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9] items-center text-center">
+                    <Link to="#" className='font-medium text-[#2f3192] px-4 flex justify-center py-2 border border-solid rounded-lg w-14 border-[#2f3192]'>Edit</Link>
+                    <Link to='#' className='text-white bg-[#2f3192] px-4 py-2 rounded-lg'>Attend to Patient</Link>
                 </td>
             </tr>
             <tr className="text-left">
@@ -161,38 +167,38 @@ const Dashboard = () => {
                 <td className="px-1 py-3 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">
                 New
                 </td>
-                <td className="py-3 flex  justify-end gap-[45px] border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9] items-center text-center">
-                <Link to="#" className='font-medium text-[#2f3192] px-[16px] flex justify-center py-[8px] border border-solid rounded-[8px] w-[50px] border-[#2f3192]'>Edit</Link>
-                <Link to='#' className='text-white bg-[#2f3192] px-[16px] py-[8px] rounded-[8px]'>Atten to Patient</Link>
+                <td className="py-3 flex  justify-end gap-11 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9] items-center text-center">
+                <Link to="#" className='font-medium text-[#2f3192] px-4 flex justify-center py-2 border border-solid rounded-lg w-14 border-[#2f3192]'>Edit</Link>
+                <Link to='#' className='text-white bg-[#2f3192] px-4 py-2 rounded-lg'>Attend to Patient</Link>
                 </td>
             </tr>
         </tbody>
     </table>
 </div>
 
-<div className="my-[20px]">
+<div className="my-5">
 
-  <div className='flex justify-between my-[15px]'>
-    <h2 className='font-bold text-[12px]'>Recent Patient Activity</h2>
+  <div className='flex justify-between my-4'>
+    <h2 className='font-bold text-xl'>Recent Patient Activity</h2>
     <Link  className='text-[#2f3192] text-right  font-semibold'>See all</Link>
   </div>
     <table className="w-full">
         
-        <thead className=" text-black uppercase text-left rounded-[8px] h-[55px] bg-[#f0f2f5]">
+        <thead className=" text-black uppercase text-left rounded-[8px] h-16 bg-[#f0f2f5]">
             <tr>
-                <th scope="col" className="px-3 py-3">
+                <th scope="col" className="px-3 py-3 text-base font-semibold">
                     Date
                 </th>
-                <th scope="col" className="px-3 py-3">
+                <th scope="col" className="px-3 py-3 text-base font-semibold">
                 Patient’s ID
                 </th>
-                <th scope="col" className="px-3 py-3">
+                <th scope="col" className="px-3 py-3 text-base font-semibold">
                     Name
                 </th>
-                <th scope="col" className="px-3 py-3">
+                <th scope="col" className="px-3 py-3 text-base font-semibold">
                 Diagnosis
                 </th>
-                <th scope="col" className="px-3 py-3">
+                <th scope="col" className="px-3 py-3 text-base font-semibold">
                     Status
                 </th>
             </tr>
@@ -202,51 +208,51 @@ const Dashboard = () => {
                 <td className="border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">
                 07-05-2024
                 </td>
-                <td className="px-3 py-3 my-[10px] border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">
+                <td className="px-3 py-3 my-3 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">
                 2122/10/22
                 </td>
-                <td className="px-3 py-3 my-[10px] border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">
+                <td className="px-3 py-3 my-3 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">
                 Korkoe A.K Dumashie
                 </td>
-                <td className="px-1 py-3 my-[10px] border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">
+                <td className="px-1 py-3 my-3 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">
                 Allergic Conjunctivitis
                 </td>
-                <td className="px-1 py-3 my-[10px] border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">
-                <span className="bg-[#e7f6ec] text-[#036b26] capitalize text-xs font-medium me-2 py-[4px] px-[12px] rounded-[12px]">completed</span>
+                <td className="px-1 py-3 my-3 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">
+                <span className="bg-[#e7f6ec] text-[#036b26] capitalize text-base font-medium me-2 w-20 py-2 px-3 rounded-xl">completed</span>
                 </td>
             </tr>
             <tr className="text-left">
                 <td className="border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">
                 07-05-2024
                 </td>
-                <td className="px-3 py-3 my-[10px] border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">
+                <td className="px-3 py-3 my-3 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">
                 2122/10/22
                 </td>
-                <td className="px-3 py-3 my-[10px] border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">
+                <td className="px-3 py-3 my-3 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">
                 Korkoe A.K Dumashie
                 </td>
-                <td className="px-1 py-3 my-[10px] border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">
+                <td className="px-1 py-3 my-3 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">
                 Refractive Error
                 </td>
-                <td className="px-1 py-3 my-[10px] border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">
-                <span className="bg-[#e7f6ec] text-[#036b26] capitalize text-xs font-medium me-2 py-[4px] px-[12px] rounded-[12px]">completed</span>
+                <td className="px-1 py-3 my-3 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">
+                <span className="bg-[#e7f6ec] text-[#036b26] capitalize text-base font-medium me-2 py-2 w-20 px-3 rounded-xl">completed</span>
                 </td>
             </tr>
             <tr className="text-left">
                 <td className="border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">
                 07-05-2024
                 </td>
-                <td className="px-3 py-3 my-[10px] border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">
+                <td className="px-3 py-3 my-3 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">
                 2122/10/22
                 </td>
-                <td className="px-3 py-3 my-[10px] border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">
+                <td className="px-3 py-3 my-3 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">
                 Korkoe A.K Dumashie
                 </td>
-                <td className="px-1 py-3 my-[10px] border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">
+                <td className="px-1 py-3 my-3 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">
                 Anterior Uveitis
                 </td>
-                <td className="px-1 py-3 my-[10px] border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">
-                <span className="bg-[#fbeae9] text-[#9e0a05] capitalize text-xs font-medium me-2 py-[4px] px-[12px] rounded-[12px]">referred</span>
+                <td className="px-1 py-3 my-3 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">
+                <span className="bg-[#fbeae9] w-20 text-[#9e0a05] capitalize text-base font-medium me-2 py-[4px] px-[12px] rounded-xl">referred</span>
                 </td>
             </tr>
         </tbody>
