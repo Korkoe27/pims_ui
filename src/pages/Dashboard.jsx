@@ -34,15 +34,15 @@ const Dashboard = () => {
         
 
 
-        <div className='flex items-center justify-start gap-5 px-0 col-span-7 w-full border-[#d0d5dd]'>
+        <div className='flex items-center justify-start h-1/2 gap-5 px-0 col-span-7 w-full border-[#d0d5dd]'>
           <div className='flex bg-white items-center text-left gap-0 w-2/3 px-2 border  rounded-md'>
-            <CiSearch title='Search' className='h-5 bg-white cursor-pointer'/>
+            <CiSearch title='Search' className='h-full bg-white cursor-pointer'/>
           <input type="search" name="search" placeholder='Search' className=' p-4 focus:outline-none' 
           onClick={openSearchModal}
           />
           </div>
           
-          <div className='flex items-center p-0'>
+          <div className='flex items-center p-3'>
             <button className='flex items-center p-5 h-1/3 text-white bg-[#2f3192] gap-2.5 rounded-md'
             // ref={trigger}
             onClick={openModal}
