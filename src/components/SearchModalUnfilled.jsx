@@ -21,7 +21,7 @@ const SearchModalUnfilled = () => {
             </div>
 
             <div className='flex flex-col my-3 pb-4 gap-2 justify-center items-stretch border border-l-0 border-t-0 border-r-0 border-b-[#dee3e7]'>
-                <h3 className='text-[12px] text-left py-2 text-[#00000080]'>Filter results</h3>
+                <h3 className='text-sm text-left py-2 text-[#00000080]'>Filter results</h3>
                 <div className='flex justify-normal gap-4'>
                     <span className='flex items-center gap-1 border rounded-lg w-[78px] p-1 justify-center text-[#667185] border-[#d0d5dd] cursor-pointer'
                     
