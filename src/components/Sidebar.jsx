@@ -16,7 +16,7 @@ const Sidebar = () => {
   return (
 
     
-    <div className="w-[260px] bg-white shadow-lg h-screen md:overflow-hidden overflow-auto md:hover:overflow-auto">
+    <div className="w-80 bg-white shadow-lg h-screen md:overflow-hidden overflow-auto md:hover:overflow-auto">
       <div className="">
       <Link to="/" onClick={() => {}} className="items-center text-xl gap-3 ml-3 mt-4">
       <Logo displayType='flex'/>
@@ -35,7 +35,8 @@ const Sidebar = () => {
             <span className='capitalize'>
               {item.name}
             </span>
-            <span className={`${item.name !== "appointments" ? "hidden" : "flex bg-[#f0f2f5] w-[20px] justify-center items-center rounded-[10px] relative font-medium text-[#344054]   text-[12px] right-[-90px] h-[17px]"}`}>9</span>
+            <span className={`${item.name !== "appointments" ? "hidden" : "flex bg-[#f0f2f5] w-[2rem] h-[1.5rem] justify-center items-center rounded-full font-medium text-[#344054] text-[0.75rem] relative top-0 right-0 transform translate-x-[100%]"}`}>9</span>
+
           </NavLink>
         ))} 
 
