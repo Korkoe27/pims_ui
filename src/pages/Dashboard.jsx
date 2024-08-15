@@ -52,8 +52,8 @@ const Dashboard = () => {
         <div className='flex items-end justify-end gap-2 col-span-1 '>
 
           <div className='flex  justify-end gap-3 items-center '>
-           <span className='bg-[#ffe7cc] p-2.5 w-12  h-12 text-base rounded-[100%] font-[500]'>KD</span>   
-            <FaChevronDown title="Menu"className='cursor-pointer font-800 h-[24px]'/>
+           <span className='bg-[#ffe7cc] px-5 py-2 w-12  h-12  text-[#3e3838] flex justify-center items-center rounded-[100%] font-semibold text-xl'>KD</span>   
+            <FaChevronDown title="Menu"className='cursor-pointer font-800 h-6 w-6'/>
           </div>
         </div>
       </div>
