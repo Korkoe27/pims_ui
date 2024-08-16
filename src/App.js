@@ -6,14 +6,14 @@ import {Dashboard, Appointments, Dispensary, Inventory, Patients} from './pages'
 
 const App = () => {
   return (
-    <div className='overflow-hidden'>
+    <div className='overflow-hidden flex'>
       <BrowserRouter>
       <div className='flex flex-row  h-full'>
         <div className=' bg-white dark:bg-secondary-dark-bg'>
           <Sidebar />
         </div>
 
-
+</div>
         <Routes>
           <Route path='/' element={<Dashboard/>}/>
           <Route path='/dashboard' element={<Dashboard/>}/>
@@ -22,7 +22,7 @@ const App = () => {
           <Route path='/inventory' element={<Inventory/>}/>
           <Route path='/dispensory' element={<Dispensary/>}/>
         </Routes>
-      </div>
+      
       </BrowserRouter>
       
     </div>
