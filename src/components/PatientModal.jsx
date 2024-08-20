@@ -6,12 +6,6 @@ const PatientModal = ({setIsModalOpen}) => {
   const specificElementRef = useRef(null);
 
 
-    const handleOverlayClick = (event) => {
-        if (event.target.classList.contains('modal-overlay')) {
-          setIsModalOpen(false);
-        }
-      };
-
       useEffect(() => {
         const handleEscape = (event) => {
           if (event.key === 'Escape') {
@@ -40,7 +34,6 @@ const PatientModal = ({setIsModalOpen}) => {
     <div className='fixed inset-0 bg-black bg-opacity-50 backdrop-blur-[2px]'>
        <dialog
         className="flex flex-col m-auto w-[775px] border h-[450px] justify-center items-center modal-overlay "
-        onClick={handleOverlayClick}
         ref={specificElementRef}
         
       >

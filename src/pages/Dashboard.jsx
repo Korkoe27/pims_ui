@@ -16,15 +16,16 @@ const Dashboard = () => {
   const openModal = () => setIsModalOpen(true);
 
 
+
   const [isSearchModalVisible, setSearchModalVisibility] = useState(false);
   const openSearchModal = () => {
     setSearchModalVisibility(true);
   };
 
   return (
-    <div className="px-8 bg-[#f9fafb] w-full">
+    <div className="px-8 ml-80 bg-[#f9fafb] w-full">
      {isModalOpen && <PatientModal setIsModalOpen={setIsModalOpen} />}
-     {isSearchModalVisible && <SearchModalUnfilled />}
+     {isSearchModalVisible && <SearchModalUnfilled setSearchModalVisibility={setSearchModalVisibility}/>}
 
       
       <div className="dashboard_header grid  items-center grid-cols-12 h-[10%] ">
@@ -42,8 +43,8 @@ const Dashboard = () => {
           />
           </div>
           
-          <div className='flex items-center p-3'>
-            <button className='flex items-center p-5 h-1/3 text-white bg-[#2f3192] gap-2.5 rounded-md text-sm'
+          <div className='flex items-center'>
+            <button className='flex items-center p-4 h-1/3 text-white bg-[#2f3192] gap-2 rounded-md text-sm'
             // ref={trigger}
             onClick={openModal}
             ><GrAdd/>Add New Patient</button>
