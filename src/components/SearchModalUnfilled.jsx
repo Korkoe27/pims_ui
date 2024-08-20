@@ -49,9 +49,9 @@ const SearchModalUnfilled = ({setSearchModalVisibility}) => {
                 <input type="search" name="" placeholder='Search' className=' border-none p-4 flex-grow w-full h-full focus:outline-none' id="" />
             </div>
 
-            <div className='flex flex-col my-3 pb-4 gap-2 justify-center items-stretch border border-l-0 border-t-0 border-r-0 border-b-[#dee3e7]'>
+            <div className='flex flex-col my-6 pb-4 gap-2 justify-center items-stretch border border-l-0 border-t-0 border-r-0 border-b-[#dee3e7]'>
                 <h3 className='text-sm text-left py-2 text-[#00000080]'>Filter results</h3>
-                <div className='flex justify-normal gap-4'>
+                <div className='flex justify-normal gap-4 mb-6'>
                     <span className='flex items-center gap-1 border rounded-lg w-[78px] p-1 justify-center text-[#667185] border-[#d0d5dd] cursor-pointer'
                     
                     >
@@ -72,6 +72,22 @@ const SearchModalUnfilled = ({setSearchModalVisibility}) => {
                     </span>
                 </div>
 
+            </div>
+
+            <div >
+                <h3 className='text-sm text-[#00000080] my-4'>Recent Searches</h3>
+
+            <div className='flex items-center justify-normal gap-8'>
+                <div className='flex items-center gap-3 justify-center'>
+                    <span className='w-10 h-10 bg-[#ececf9] flex items-center justify-center rounded-full font-semibold text-base text-[#101928]'>KD</span>
+                    <span className='text-black font-normal text-base'>Korkoe Dumashie</span>
+                </div>
+                <div className='flex items-center gap-3 justify-center'>
+                    <span className='w-10 h-10 bg-[#ececf9] flex items-center justify-center rounded-full font-semibold text-base text-[#101928]'>JD</span>
+                    <span className='text-black font-normal text-base'>Jane Doe</span>
+                </div>
+            </div>
+                
             </div>
             
         </dialog>
