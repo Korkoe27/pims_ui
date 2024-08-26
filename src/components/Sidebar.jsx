@@ -1,7 +1,7 @@
 import React from 'react';
 import Logo from './Logo';
 import { Link, NavLink } from 'react-router-dom';
-import { Sidebar_links } from '../extras/data';
+import { Sidebar_links } from '../extras/data.js';
 
 
 
