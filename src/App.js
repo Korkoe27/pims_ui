@@ -2,11 +2,12 @@ import React from 'react';
 import './App.css';
 import {BrowserRouter, Routes, Route} from 'react-router-dom';
 import { Sidebar} from './components';
-import {Dashboard, Appointments, Dispensary, Inventory, Patients} from './pages';
+import {Dashboard, Appointments, Dispensary, Inventory, Patients,Login} from './pages';
 
 const App = () => {
   return (
     <div className='overflow-hidden flex'>
+      
       <BrowserRouter>
       <div className='flex flex-row  h-full'>
         <div className=' bg-white dark:bg-secondary-dark-bg'>
@@ -16,6 +17,7 @@ const App = () => {
 </div>
         <Routes>
           <Route path='/' element={<Dashboard/>}/>
+          <Route path='/login' element={<Login/>}/>
           <Route path='/dashboard' element={<Dashboard/>}/>
           <Route path='/patients' element={<Patients/>}/>
           <Route path='/appointments' element={<Appointments/>}/>
