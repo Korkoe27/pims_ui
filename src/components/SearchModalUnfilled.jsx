@@ -1,15 +1,31 @@
-import React, {useRef, useEffect} from 'react'
+import React, {useRef, useEffect, useState} from 'react'
 import { CiSearch } from "react-icons/ci";
 import { LuUsers2 } from "react-icons/lu";
 import { LuPencil } from "react-icons/lu";
-// import { IoClose } from "react-icons/io5";
+import { IoClose } from "react-icons/io5";
 import { IoCalendarClearOutline } from "react-icons/io5";
 
 const SearchModalUnfilled = ({setSearchModalVisibility}) => {
 
+
+
+    
     const specificElementRef = useRef(null);
 
-
+    const [selectedFilters, setSelectedFilters] = useState({
+        date: false,
+        name: false,
+        diagnosis: false
+      });
+    
+      // Function to toggle the selection of a filter
+      const toggleSelection = (filter) => {
+        setSelectedFilters(prev => ({
+          ...prev,
+          [filter]: !prev[filter]
+        }));
+      };
+    
 
     useEffect(() => {
         const handleEscape = (event) => {
@@ -35,8 +51,7 @@ const SearchModalUnfilled = ({setSearchModalVisibility}) => {
     },
     [setSearchModalVisibility]);
     
-    
-// {/* <IoClose /> */}
+
 
   return (
     <div 
@@ -52,23 +67,29 @@ const SearchModalUnfilled = ({setSearchModalVisibility}) => {
             <div className='flex flex-col my-6 pb-4 gap-2 justify-center items-stretch border border-l-0 border-t-0 border-r-0 border-b-[#dee3e7]'>
                 <h3 className='text-sm text-left py-2 text-[#00000080]'>Filter results</h3>
                 <div className='flex justify-normal gap-4 mb-6'>
-                    <span className='flex items-center gap-1 border rounded-lg w-[78px] p-1 justify-center text-[#667185] border-[#d0d5dd] cursor-pointer'
-                    
+                 <span
+                className={`flex items-center gap-1 border rounded-lg w-30 px-2 py-2 justify-center filters ${selectedFilters.date ? 'border-red-500 text-red-500' : 'text-[#667185] border-[#d0d5dd]'} cursor-pointer`}
+                    onClick={() => toggleSelection('date')}
                     >
-                    <IoCalendarClearOutline/>
+                    <IoCalendarClearOutline />
                     Date
+                    <IoClose className={`ml-1 ${selectedFilters.date ? 'flex' : 'hidden'} closeFilter`} />
                     </span>
-                    <span className='flex items-center gap-1 border rounded-lg w-[86px] p-1 justify-center text-[#667185] border-[#d0d5dd] cursor-pointer'
-                    
-                    >
+                    <span
+                        className={`flex items-center gap-1 border rounded-lg w-30  px-2 py-2 justify-center filters ${selectedFilters.name ? 'border-red-500 text-red-500' : 'text-[#667185] border-[#d0d5dd]'} cursor-pointer`}
+                        onClick={() => toggleSelection('name')}
+                        >
                     <LuUsers2/>
                     Name
+                    <IoClose className={`ml-1 ${selectedFilters.name ? 'flex' : 'hidden'} closeFilter`} />
                     </span>
-                    <span className='flex items-center gap-2 border rounded-lg w-[110px] p-1 justify-center text-[#667185] border-[#d0d5dd] cursor-pointer'
-                    
-                    >
-                    <LuPencil className='text-[#000000] '/>
-                    Daignosis
+                    <span
+                        className={`flex items-center gap-1 border rounded-lg w-30 px-2 py-2 justify-center filters ${selectedFilters.diagnosis ? 'border-red-500 text-red-500' : 'text-[#667185] border-[#d0d5dd]'} cursor-pointer`}
+                        onClick={() => toggleSelection('diagnosis')}
+                        >
+                    <LuPencil/>
+                    Diagnosis
+                    <IoClose className={`ml-1 ${selectedFilters.diagnosis ? 'flex' : 'hidden'} closeFilter`} />
                     </span>
                 </div>
 
