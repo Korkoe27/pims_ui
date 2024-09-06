@@ -1,36 +1,56 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Logo from '../components/Logo';
 import { CiLock } from "react-icons/ci";
 import { PiUserCircle } from "react-icons/pi";
 import { VscEye } from "react-icons/vsc";
+import { FiEyeOff } from "react-icons/fi";
 
 const Login = () => {
+  const [passwordVisible, setPasswordVisible] = useState(false);
+
+  const togglePasswordVisibility = () => {
+    setPasswordVisible(!passwordVisible);
+  };
+
   return (
-    <div className='flex flex-col justify-center items-center h-screen bg-white'>
-      <Logo displayType='block' />
-      <h1 className='font-bold mb-3'>Patient Information Management System</h1>
-      <div className='flex flex-col justify-center items-center bg-white border border-[#D0D5DD] rounded-lg py-[2rem] px-[3rem] my-4'>
-        
-        <h1 className='text-3xl font-extrabold'>Log in</h1>
-        <div>
-          <div className='w-full'>
-          <label htmlFor="username" className='block text-base font-medium text-gray-700 mb-1'>Username</label>
-          <div className='flex border border-gray-300 rounded-lg w-full items-center px-3 py-2'>
-            <PiUserCircle className='text-[#667185] h-[20px] w-[20px' />
-            <input type="text" placeholder='Username' name="username" id="username" className='w-full h-[50px] outline-none' />
+    <div className='flex flex-col gap-12 justify-center items-center h-screen w-screen'>
+      <div className='flex flex-col text-center'>
+        <Logo displayType='block' />
+        <h1 className='text-xl font-bold'>Patient Information Management System</h1>
+      </div>
+      <div className="flex flex-col justify-center items-center rounded-lg p-12 border border-[#d0d5dd]">
+        <h1 className='font-bold text-3xl'>Log in</h1>
+        <form action="" className='flex flex-col gap-8 p-10 justify-center items-center'>
+          <div className="flex flex-col w-96 gap-1">
+            <label htmlFor="username" className='text-[#101928] text-base'>Username</label>
+            <div className="flex justify-between items-start gap-3 rounded-lg border p-4 border-[#d0d5dd] w-full">
+              <PiUserCircle className='w-8 h-8 object-contain text-[#667185]'/>
+              <input type="text" className="w-full outline-none" />
+            </div>
           </div>
-        </div>
-        <div class="my-4">
-          <label htmlFor="password" className='block text-base font-medium text-gray-700 mb-1'>Password</label>
-          <div className='flex border border-gray-300 rounded-lg w-full items-center px-3 py-2'>
-            <CiLock className='text-[#667185] h-[20px] font-extrabold w-[20px]' />
-            <input type="password" placeholder='Password' name="password" id="password" className='w-full h-[50px] outline-none' />
-            <VscEye className='cursor-pointer text-[#667185] ml-2 font-extrabold h-[20px] w-[20px]' />
+          <div className="w-96 gap-1">
+            <label htmlFor="password" className='text-[#101928] text-base'>Password</label>
+            <div className="flex justify-between border rounded-lg p-4 gap-3 border-[#d0d5dd] items-start">
+              <CiLock className='w-8 h-8 object-contain text-[#667185]'/>
+              <input 
+                type={passwordVisible ? "text" : "password"} 
+                className="w-full outline-none"
+              />
+              {passwordVisible ? (
+                <FiEyeOff 
+                  className='w-8 h-8 object-contain cursor-pointer p-0 hover:text-[#000] text-[#667185]'
+                  onClick={togglePasswordVisibility}
+                />
+              ) : (
+                <VscEye 
+                  className='w-8 h-8 object-contain cursor-pointer p-0 hover:text-[#000] text-[#667185]'
+                  onClick={togglePasswordVisibility}
+                />
+              )}
+            </div>
           </div>
-        </div>
-        </div>
-        
-        <button className='bg-[#2F3192] text-white px-4 rounded-lg h-[56px]  w-full'>Log into your account</button>
+          <button className="bg-[#2f3192] text-white p-6 w-96 rounded-lg">Log into your account</button>
+        </form>
       </div>
     </div>
   );
