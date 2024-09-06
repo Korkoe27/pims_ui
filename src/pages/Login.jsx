@@ -13,24 +13,24 @@ const Login = () => {
   };
 
   return (
-    <div className='flex flex-col gap-12 justify-center items-center h-screen w-screen'>
+    <div className='flex flex-col gap-10 justify-center items-center h-screen w-screen'>
       <div className='flex flex-col text-center'>
         <Logo displayType='block' />
         <h1 className='text-xl font-bold'>Patient Information Management System</h1>
       </div>
       <div className="flex flex-col justify-center items-center rounded-lg p-12 border border-[#d0d5dd]">
         <h1 className='font-bold text-3xl'>Log in</h1>
-        <form action="" className='flex flex-col gap-8 p-10 justify-center items-center'>
+        <form action="" className='flex flex-col gap-8 p-9 justify-center items-center'>
           <div className="flex flex-col w-96 gap-1">
             <label htmlFor="username" className='text-[#101928] text-base'>Username</label>
-            <div className="flex justify-between items-start gap-3 rounded-lg border p-4 border-[#d0d5dd] w-full">
+            <div className="flex justify-between items-start gap-3 rounded-lg border p-3 border-[#d0d5dd] w-full">
               <PiUserCircle className='w-8 h-8 object-contain text-[#667185]'/>
               <input type="text" className="w-full outline-none" />
             </div>
           </div>
           <div className="w-96 gap-1">
             <label htmlFor="password" className='text-[#101928] text-base'>Password</label>
-            <div className="flex justify-between border rounded-lg p-4 gap-3 border-[#d0d5dd] items-start">
+            <div className="flex justify-between border rounded-lg p-3 gap-3 border-[#d0d5dd] items-start">
               <CiLock className='w-8 h-8 object-contain text-[#667185]'/>
               <input 
                 type={passwordVisible ? "text" : "password"} 
@@ -49,7 +49,7 @@ const Login = () => {
               )}
             </div>
           </div>
-          <button className="bg-[#2f3192] text-white p-6 w-96 rounded-lg">Log into your account</button>
+          <button className="bg-[#2f3192] text-white p-5 w-96 rounded-lg">Log into your account</button>
         </form>
       </div>
     </div>
