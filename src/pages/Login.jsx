@@ -13,7 +13,7 @@ const Login = () => {
   };
 
   return (
-    <div className='flex flex-col gap-10 justify-center items-center h-screen w-screen'>
+    <div className='flex flex-col gap-10  justify-center items-center h-screen w-screen'>
       <div className='flex flex-col text-center'>
         <Logo displayType='block' />
         <h1 className='text-xl font-bold'>Patient Information Management System</h1>
