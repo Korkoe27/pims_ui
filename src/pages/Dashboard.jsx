@@ -62,7 +62,7 @@ const Dashboard = () => {
 
 
       <div className='grid grid-cols-12 gap-9 w-full'>
-        <div className='bg-[#ececf9] p-4 h-40 col-span-4 w-full'>
+        <div className='bg-[#ececf9] p-4 h- col-span-4 w-full'>
           <h3 className='flex items-center text-base gap-[12px] font-normal'>
             <LuUsers2 className='w-6 h-6'/>
             Today's Appointments
@@ -103,25 +103,25 @@ const Dashboard = () => {
         
         <thead className=" text-black uppercase text-left h-16 bg-[#f0f2f5]">
             <tr className='rounded-lg'>
-                <th scope="col" className="px-3 min-w-40 py-3 text-base font-semibold">
+                <th scope="col" className="px-3 min-w-40 py-3 text-base font-semibold normal-case">
                     Date
                 </th>
-                <th scope="col" className="px-3 min-w-40 py-3 text-base font-semibold">
+                <th scope="col" className="px-3 min-w-40 py-3 text-base font-semibold normal-case">
                 Patient’s ID
                 </th>
-                <th scope="col" className="px-3 min-w-40 py-3 text-base font-semibold">
+                <th scope="col" className="px-3 min-w-40 py-3 text-base font-semibold normal-case">
                     Name
                 </th>
-                <th scope="col" className="px-3 min-w-40 py-3 text-base font-semibold">
+                <th scope="col" className="px-3 min-w-40 py-3 text-base font-semibold normal-case">
                 Patient Type
                 </th>
-                <th scope="col" className="px-3 min-w-40 py-3 text-base font-semibold">
+                <th scope="col" className="px-3 min-w-40 py-3 text-base font-semibold normal-case">
                 </th>
             </tr>
         </thead>
         <tbody>
             <tr className="text-left">
-                <td className="border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">
+                <td className="px-3 py-3 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">
                 07-05-2024
                 </td>
                 <td className="px-3 py-3 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">
@@ -130,7 +130,7 @@ const Dashboard = () => {
                 <td className="px-3 py-3 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">
                 Korkoe A.K Dumashie
                 </td>
-                <td className="px-1 py-3 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">
+                <td className="px-3 py-3 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">
                 Old
                 </td>
                 <td className="py-3 flex  justify-end gap-4 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9] items-center text-center">
@@ -139,7 +139,7 @@ const Dashboard = () => {
                 </td>
             </tr>
             <tr className="text-left">
-                <td className="border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">
+                <td className="px-3 py-3 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">
                 10-07-2024
                 </td>
                 <td className="px-3 py-4 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">
@@ -148,7 +148,7 @@ const Dashboard = () => {
                 <td className="px-3 py-4 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">
                 Kwabena Debrah
                 </td>
-                <td className="px-1 py-3 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">
+                <td className="px-3 py-3 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">
                 Old
                 </td>
                 <td className="py-4 flex  justify-end gap-4 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9] items-center text-center">
@@ -157,7 +157,7 @@ const Dashboard = () => {
                 </td>
             </tr>
             <tr className="text-left">
-                <td className="border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">
+                <td className="px-3 py-3 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">
                 27-07-2024
                 </td>
                 <td className="px-3 py-3 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">
@@ -166,7 +166,7 @@ const Dashboard = () => {
                 <td className="px-3 py-3 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">
                 Frimpong B.O Dapaah
                 </td>
-                <td className="px-1 py-3 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">
+                <td className="px-3 py-3 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">
                 New
                 </td>
                 <td className="py-3 flex  justify-end gap-4 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9] items-center text-center">
@@ -188,26 +188,26 @@ const Dashboard = () => {
         
         <thead className=" text-black uppercase text-left rounded-[8px] h-16 bg-[#f0f2f5]">
             <tr>
-                <th scope="col" className="px-3 min-w-[168px] py-3 text-base font-semibold">
+                <th scope="col" className="px-3 min-w-[168px] py-3 text-base font-semibold normal-case">
                     Date
                 </th>
-                <th scope="col" className="px-3 min-w-[168px] py-3 text-base font-semibold">
+                <th scope="col" className="px-3 min-w-[168px] py-3 text-base font-semibold normal-case">
                 Patient’s ID
                 </th>
-                <th scope="col" className="px-3 py-3 min-w-[168px] text-base font-semibold">
+                <th scope="col" className="px-3 py-3 min-w-[168px] text-base font-semibold normal-case">
                     Name
                 </th>
-                <th scope="col" className="px-3 py-3 min-w-[168px] text-base font-semibold">
+                <th scope="col" className="px-3 py-3 min-w-[168px] text-base font-semibold normal-case">
                 Diagnosis
                 </th>
-                <th scope="col" className="px-3 py-3 min-w-[168px] text-base font-semibold">
+                <th scope="col" className="px-3 py-3 min-w-[168px] text-base font-semibold normal-case">
                     Status
                 </th>
             </tr>
         </thead>
         <tbody>
             <tr className="text-left">
-                <td className="border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">
+                <td className="px-3 py-3 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">
                 07-05-2024
                 </td>
                 <td className="px-3 py-3 my-3 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">
@@ -216,7 +216,7 @@ const Dashboard = () => {
                 <td className="px-3 py-3 my-3 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">
                 Korkoe A.K Dumashie
                 </td>
-                <td className="px-1 py-3 my-3 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">
+                <td className="px-3 py-3 my-3 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">
                 Allergic Conjunctivitis
                 </td>
                 <td className="px-1 py-3 my-3 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">
@@ -224,7 +224,7 @@ const Dashboard = () => {
                 </td>
             </tr>
             <tr className="text-left">
-                <td className="border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">
+                <td className="px-3 py-3 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">
                 07-05-2024
                 </td>
                 <td className="px-3 py-3 my-3 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">
@@ -233,7 +233,7 @@ const Dashboard = () => {
                 <td className="px-3 py-3 my-3 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">
                 Korkoe A.K Dumashie
                 </td>
-                <td className="px-1 py-3 my-3 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">
+                <td className="px-3 py-3 my-3 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">
                 Refractive Error
                 </td>
                 <td className="px-1 py-3 my-3 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">
@@ -241,7 +241,7 @@ const Dashboard = () => {
                 </td>
             </tr>
             <tr className="text-left">
-                <td className="border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">
+                <td className="px-3 py-3 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">
                 07-05-2024
                 </td>
                 <td className="px-3 py-3 my-3 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">
@@ -250,7 +250,7 @@ const Dashboard = () => {
                 <td className="px-3 py-3 my-3 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">
                 Korkoe A.K Dumashie
                 </td>
-                <td className="px-1 py-3 my-3 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">
+                <td className="px-3 py-3 my-3 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">
                 Anterior Uveitis
                 </td>
                 <td className="px-1 py-3 my-3 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">

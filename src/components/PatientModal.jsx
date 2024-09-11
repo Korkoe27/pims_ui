@@ -51,6 +51,7 @@ const PatientModal = ({setIsModalOpen}) => {
             Science
           </Link>
         </div>
+        <button></button>
       </dialog>
     </div>
   )
