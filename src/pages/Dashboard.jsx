@@ -62,7 +62,7 @@ const Dashboard = () => {
 
 
       <div className='grid grid-cols-12 gap-9 w-full'>
-        <div className='bg-[#ececf9] p-4 h- col-span-4 w-full'>
+        <div className='bg-[#ececf9] p-4 h-36 col-span-4 w-full'>
           <h3 className='flex items-center text-base gap-[12px] font-normal'>
             <LuUsers2 className='w-6 h-6'/>
             Today's Appointments
@@ -70,7 +70,7 @@ const Dashboard = () => {
           <span className='text-[50px] font-bold text-[#2f3192]'>9</span>
            
         </div>
-        <div className='bg-[#fbeae9] p-4 h-40 w-full col-span-4'>
+        <div className='bg-[#fbeae9] p-4 h-36 w-full col-span-4'>
           <h3 className='flex items-center text-base gap-[12px] font-normal'>
           <LuClock3 className='w-6 h-6'/>
             Pending Appointments
@@ -78,7 +78,7 @@ const Dashboard = () => {
           <span className='text-[50px] font-bold text-[#d42620]'>5</span>
            
         </div>
-        <div className='bg-[#e7f6ec] p-4 h-40 w-full flex flex-col col-span-4'>
+        <div className='bg-[#e7f6ec] p-4 h-36 w-full flex flex-col col-span-4'>
           <h3 className='flex items-center text-base gap-[12px] font-normal'>
             <FiUserCheck className='w-6 h-6'/>
             Completed Appointments
