@@ -23,20 +23,20 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="px-8 ml-80 bg-[#f9fafb] w-full">
+    <div className="px-8 ml-72 flex flex-col mt-4 gap-8 bg-[#f9fafb] w-full">
      {isModalOpen && <PatientModal setIsModalOpen={setIsModalOpen} />}
      {isSearchModalVisible && <SearchModalUnfilled setSearchModalVisibility={setSearchModalVisibility}/>}
 
       
-      <div className="dashboard_header grid  items-center grid-cols-12 h-[10%] ">
+      <div  className="dashboard_header grid  items-center grid-cols-12 h-[10%] ">
         <div className='col-span-4'>
           <h2 className='text-2xl font-bold grid-'>Good {`${new Date().getHours() < 12 ? "Morning" : new Date().getHours() < 18 ? "Afternoon" : "Evening"}`}, <span>Korkoe</span>👋🏾</h2>
         </div>
         
 
 
-        <div className='flex items-center justify-start h-1/4 gap-5 px-0 col-span-7 w-full border-[#d0d5dd]'>
-          <div className='flex bg-white items-center text-left gap-0 w-2/3 px-2 border  rounded-md'>
+        <div className='flex items-center justify-start h-14 gap-5  col-span-7 w-90 border-[#d0d5dd]'>
+          <div className='flex bg-white items-center text-left gap-0 w-2/3 px-2  border  rounded-md'>
             <CiSearch title='Search' className='h-5 bg-white cursor-pointer'/>
           <input type="search" name="search" placeholder='Search' className=' p-4 focus:outline-none' 
           onClick={openSearchModal}
@@ -44,7 +44,7 @@ const Dashboard = () => {
           </div>
           
           <div className='flex items-center'>
-            <button className='flex items-center p-4 h-1/3 text-white bg-[#2f3192] gap-2 rounded-md text-sm'
+            <button className='flex items-center p-4 h-14 text-white bg-[#2f3192] gap-2 rounded-md text-sm'
             // ref={trigger}
             onClick={openModal}
             ><GrAdd/>Add New Patient</button>
@@ -53,7 +53,7 @@ const Dashboard = () => {
         <div className='flex items-end justify-end gap-2 col-span-1 '>
 
           <div className='flex  justify-end gap-3 items-center '>
-           <span className='bg-[#ffe7cc] px-5 py-2 w-12  h-12  text-[#3e3838] flex justify-center items-center rounded-[100%] font-semibold text-xl'>KD</span>   
+           <span className='bg-[#ffe7cc] px-5 py-2 w-14  h-14  text-[#3e3838] flex justify-center items-center rounded-[100%] font-semibold text-xl'>KD</span>   
             <FaChevronDown title="Menu"className='cursor-pointer font-800 h-6 w-6'/>
           </div>
         </div>
@@ -63,8 +63,8 @@ const Dashboard = () => {
 
       <div className='grid grid-cols-12 gap-9 w-full'>
         <div className='bg-[#ececf9] p-4 h-40 col-span-4 w-full'>
-          <h3 className='flex items-center text-[18px] gap-[12px] font-medium'>
-            <LuUsers2/>
+          <h3 className='flex items-center text-base gap-[12px] font-normal'>
+            <LuUsers2 className='w-6 h-6'/>
             Today's Appointments
           </h3>
           <span className='text-[50px] font-bold text-[#2f3192]'>9</span>
@@ -72,15 +72,15 @@ const Dashboard = () => {
         </div>
         <div className='bg-[#fbeae9] p-4 h-40 w-full col-span-4'>
           <h3 className='flex items-center text-base gap-[12px] font-normal'>
-          <LuClock3 />
+          <LuClock3 className='w-6 h-6'/>
             Pending Appointments
           </h3>
           <span className='text-[50px] font-bold text-[#d42620]'>5</span>
            
         </div>
         <div className='bg-[#e7f6ec] p-4 h-40 w-full flex flex-col col-span-4'>
-          <h3 className='flex items-center text-[18px] gap-[12px] font-medium'>
-            <FiUserCheck/>
+          <h3 className='flex items-center text-base gap-[12px] font-normal'>
+            <FiUserCheck className='w-6 h-6'/>
             Completed Appointments
           </h3>
           <span className='text-[50px] font-bold text-[#0f973d]'>4</span>
@@ -91,7 +91,9 @@ const Dashboard = () => {
       <div>
         
 
-<div className="my-[20px]">
+        <div className='flex flex-col gap-20'>
+          
+<div className="">
 
   <div className='flex justify-between my-[15px]'>
     <h2 className='font-bold text-xl'>Upcoming Appointments</h2>
@@ -101,20 +103,19 @@ const Dashboard = () => {
         
         <thead className=" text-black uppercase text-left h-16 bg-[#f0f2f5]">
             <tr className='rounded-lg'>
-                <th scope="col" className="px-3 py-3 text-base font-semibold">
+                <th scope="col" className="px-3 min-w-40 py-3 text-base font-semibold">
                     Date
                 </th>
-                <th scope="col" className="px-3 py-3 text-base font-semibold">
+                <th scope="col" className="px-3 min-w-40 py-3 text-base font-semibold">
                 Patient’s ID
                 </th>
-                <th scope="col" className="px-3 py-3 text-base font-semibold">
+                <th scope="col" className="px-3 min-w-40 py-3 text-base font-semibold">
                     Name
                 </th>
-                <th scope="col" className="px-3 py-3 text-base font-semibold">
+                <th scope="col" className="px-3 min-w-40 py-3 text-base font-semibold">
                 Patient Type
                 </th>
-                <th scope="col" className="px-3 py-3 text-base font-semibold">
-                    <span className="sr-only"></span>
+                <th scope="col" className="px-3 min-w-40 py-3 text-base font-semibold">
                 </th>
             </tr>
         </thead>
@@ -132,7 +133,7 @@ const Dashboard = () => {
                 <td className="px-1 py-3 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">
                 Old
                 </td>
-                <td className="py-3 flex  justify-end gap-11 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9] items-center text-center">
+                <td className="py-3 flex  justify-end gap-4 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9] items-center text-center">
                 <Link to="#" className='font-medium text-[#2f3192] px-4 flex justify-center py-2 border border-solid rounded-lg w-14 border-[#2f3192]'>Edit</Link>
                     <Link to='#' className='text-white bg-[#2f3192] px-4 py-2 rounded-lg'>Attend to Patient</Link>
                 </td>
@@ -150,7 +151,7 @@ const Dashboard = () => {
                 <td className="px-1 py-3 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">
                 Old
                 </td>
-                <td className="py-4 flex  justify-end gap-11 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9] items-center text-center">
+                <td className="py-4 flex  justify-end gap-4 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9] items-center text-center">
                     <Link to="#" className='font-medium text-[#2f3192] px-4 flex justify-center py-2 border border-solid rounded-lg w-14 border-[#2f3192]'>Edit</Link>
                     <Link to='#' className='text-white bg-[#2f3192] px-4 py-2 rounded-lg'>Attend to Patient</Link>
                 </td>
@@ -168,7 +169,7 @@ const Dashboard = () => {
                 <td className="px-1 py-3 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">
                 New
                 </td>
-                <td className="py-3 flex  justify-end gap-11 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9] items-center text-center">
+                <td className="py-3 flex  justify-end gap-4 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9] items-center text-center">
                 <Link to="#" className='font-medium text-[#2f3192] px-4 flex justify-center py-2 border border-solid rounded-lg w-14 border-[#2f3192]'>Edit</Link>
                 <Link to='#' className='text-white bg-[#2f3192] px-4 py-2 rounded-lg'>Attend to Patient</Link>
                 </td>
@@ -187,19 +188,19 @@ const Dashboard = () => {
         
         <thead className=" text-black uppercase text-left rounded-[8px] h-16 bg-[#f0f2f5]">
             <tr>
-                <th scope="col" className="px-3 py-3 text-base font-semibold">
+                <th scope="col" className="px-3 min-w-[168px] py-3 text-base font-semibold">
                     Date
                 </th>
-                <th scope="col" className="px-3 py-3 text-base font-semibold">
+                <th scope="col" className="px-3 min-w-[168px] py-3 text-base font-semibold">
                 Patient’s ID
                 </th>
-                <th scope="col" className="px-3 py-3 text-base font-semibold">
+                <th scope="col" className="px-3 py-3 min-w-[168px] text-base font-semibold">
                     Name
                 </th>
-                <th scope="col" className="px-3 py-3 text-base font-semibold">
+                <th scope="col" className="px-3 py-3 min-w-[168px] text-base font-semibold">
                 Diagnosis
                 </th>
-                <th scope="col" className="px-3 py-3 text-base font-semibold">
+                <th scope="col" className="px-3 py-3 min-w-[168px] text-base font-semibold">
                     Status
                 </th>
             </tr>
@@ -262,6 +263,8 @@ const Dashboard = () => {
 
       </div>
   
+        </div>
+
       
     </div>
   )
