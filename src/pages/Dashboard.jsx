@@ -35,23 +35,23 @@ const Dashboard = () => {
         
 
 
-        <div className='flex items-center justify-start h-14 gap-5  col-span-4 w-90 border-[#d0d5dd]'>
-          <div className='flex bg-white items-center text-left gap-0 w-full px-2  border  rounded-md'>
+        <div className='flex items-center justify-end gap-5 h-14  col-span-7 w-90 border-[#d0d5dd]'>
+          <div className='flex bg-white items-center text-left gap-0 w-2/3 px-2  border  rounded-md'>
             <CiSearch title='Search' className='h-5 bg-white cursor-pointer'/>
           <input type="search" name="search" placeholder='Search' className=' p-4 focus:outline-none' 
           onClick={openSearchModal}
           />
           </div>
-          
-            
-        </div>
-        <div className='flex items-end justify-end gap-12 col-span-4 '>
-      <div className='flex items-center'>
+          <div className='flex items-center'>
                   <button className='flex items-center p-4 h-14 text-white bg-[#2f3192] gap-2 rounded-md text-sm'
                   // ref={trigger}
                   onClick={openModal}
                   ><GrAdd/>Add New Patient</button>
-                </div> 
+                </div>
+            
+        </div>
+        <div className='flex items-end justify-end gap-12 col-span-1 '>
+       
           <div className='flex  justify-end gap-3 items-center '>
            <span className='bg-[#ffe7cc] px-5 py-2 w-14  h-14  text-[#3e3838] flex justify-center items-center rounded-[100%] font-semibold text-xl'>KD</span>   
             <FaChevronDown title="Menu"className='cursor-pointer font-800 h-6 w-6'/>
