@@ -37,21 +37,25 @@ const PatientModal = ({setIsModalOpen}) => {
         ref={specificElementRef}
         
       >
-        <h2 className="font-medium mb-20">
+        <h2 className="font-bold text-2xl leading-8 w-1/2 text-center mb-20">
           Choose the clinic in which you are attending to this patient
         </h2>
-        <div className="flex justify-between items-center ">
-          <Link className="border border-black p-[50px] mx-10 rounded-[5px]">
-            Old Site
+        <form className="flex flex-col justify-center items-center gap-16">
+          <div className='flex justify-center items-center w-full'>
+          <Link className="border border-black text-xl font-bold p-[50px] mx-10 rounded-[5px]">
+            UCC
           </Link>
-          <Link className="border border-black p-[50px] mx-10 rounded-[5px]">
+          <Link className="border border-black text-xl font-bold p-[50px] mx-10 rounded-[5px]">
             CCTU
           </Link>
-          <Link className="border border-black p-[50px] mx-10 rounded-[5px]">
+          <Link className="border border-black text-xl font-bold p-[50px] mx-10 rounded-[5px]">
             Science
-          </Link>
-        </div>
-        <button></button>
+          </Link>  
+          </div>
+          
+          <button className='h-14 w-72 bg-[#2f3192] text-white p-4 rounded-lg'>Continue</button>
+        </form>
+        
       </dialog>
     </div>
   )

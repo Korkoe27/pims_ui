@@ -13,7 +13,7 @@ const Login = () => {
   };
 
   return (
-    <div className='flex flex-col gap-10  justify-center items-center h-screen w-screen'>
+    <div className='flex flex-col gap-10 justify-center items-center h-screen w-screen'>
       <div className='flex flex-col text-center'>
         <Logo displayType='block' />
         <h1 className='text-xl font-bold'>Patient Information Management System</h1>
@@ -25,7 +25,8 @@ const Login = () => {
             <label htmlFor="username" className='text-[#101928] text-base'>Username</label>
             <div className="flex justify-between items-start gap-3 rounded-lg border p-3 border-[#d0d5dd] w-full">
               <PiUserCircle className='w-8 h-8 object-contain text-[#667185]'/>
-              <input type="text" className="w-full outline-none" />
+              <input type="text" className="w-full outline-none" placeholder='Username'/>
+              
             </div>
           </div>
           <div className="w-96 gap-1">
@@ -34,7 +35,7 @@ const Login = () => {
               <CiLock className='w-8 h-8 object-contain text-[#667185]'/>
               <input 
                 type={passwordVisible ? "text" : "password"} 
-                className="w-full outline-none"
+                className="w-full outline-none" placeholder='Password'
               />
               {passwordVisible ? (
                 <FiEyeOff 
