@@ -33,7 +33,7 @@ const PatientModal = ({setIsModalOpen}) => {
   return (
     <div className='fixed inset-0 bg-black bg-opacity-50 backdrop-blur-[2px]'>
        <dialog
-        className="flex flex-col m-auto w-[775px] border h-[450px] justify-center items-center modal-overlay "
+        className="flex flex-col m-auto w-[1200px] border h-[696px] justify-center items-center modal-overlay "
         ref={specificElementRef}
         
       >
@@ -42,13 +42,13 @@ const PatientModal = ({setIsModalOpen}) => {
         </h2>
         <form className="flex flex-col justify-center items-center gap-16">
           <div className='flex justify-center items-center w-full'>
-          <Link className="border border-black text-xl font-bold p-[50px] mx-10 rounded-[5px]">
+          <Link className="border border-black text-xl font-bold w-80 h-80  items-center flex justify-center mx-10 rounded-md">
             UCC
           </Link>
-          <Link className="border border-black text-xl font-bold p-[50px] mx-10 rounded-[5px]">
+          <Link className="border border-black text-xl font-bold w-80 h-80  items-center flex justify-center mx-10 rounded-md">
             CCTU
           </Link>
-          <Link className="border border-black text-xl font-bold p-[50px] mx-10 rounded-[5px]">
+          <Link className="border border-black text-xl font-bold w-80 h-80  items-center flex justify-center mx-10 rounded-md">
             Science
           </Link>  
           </div>
