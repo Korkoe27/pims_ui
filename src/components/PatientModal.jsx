@@ -1,5 +1,4 @@
 import React, {useRef, useEffect} from 'react';
-import { Link } from 'react-router-dom';
 
 
 const PatientModal = ({setIsModalOpen}) => {
@@ -42,21 +41,19 @@ const PatientModal = ({setIsModalOpen}) => {
         </h2>
         <form className="flex flex-col justify-center items-center gap-16">
           <div className='flex justify-center items-center w-full'>
-          <Link className="border border-black text-xl font-bold w-80 h-80   flex flex-col items-end p-6 gap  mx-10 rounded-md cursor-pointer">
-          <span className='border h-6 w-6 rounded-full mt-0 mr-0 border-[#1b1c1e]'></span>
-            <input type="radio" name="uccHospital" id="uccHospital" className='opacity-0 m-0'/>
-            <label htmlFor="uccHospital" className='cursor-pointer m-auto'>UCC Hospital</label>
-          </Link>
-          <Link className="border border-black text-xl font-bold w-80 h-80   flex flex-col items-end p-6 gap  mx-10 rounded-md cursor-pointer">
-          <span className='border h-6 w-6 rounded-full mt-0 mr-0 border-[#1b1c1e]'></span>
-            <input type="radio" name="science" id="science" className='opacity-0 m-0'/>
-            <label htmlFor="science" className='m-auto cursor-pointer'>Science</label>
-          </Link>
-          <Link className="border border-black text-xl font-bold w-80 h-80   flex flex-col items-end p-6 gap  mx-10 rounded-md cursor-pointer">
-          <span className='border h-6 w-6 rounded-full mt-0 mr-0 border-[#1b1c1e]'></span>
-            <input type="radio" name="cctu" id="cctu" className='opacity-0 m-0'/>
-            <label htmlFor="cctu" className='cursor-pointer m-auto'>CCTU</label>
-          </Link>  
+          <button type='button' data-hospital-type="uccHospital" id='hospitalType' className="border group border-[#1b1c1e] text-xl font-bold w-80 h-80   flex flex-col items-end p-6 focus:border-[#2F3192] focus:bg-[#ececf9] hover:bg-[#ececf9]  mx-10 rounded-md cursor-pointer">
+          <span className='border h-6 w-6 rounded-full group-focus:border-[#2f3192] group-focus:border-4 mt-0 mr-0 border-[#1b1c1e]'></span>
+           <span className='m-auto text-xl group-focus:text-[#2f3192]'>UCC Hospital</span>
+          </button>
+          <button type='button' data-hospital-type="science" id='hospitalType' className="border group border-[#1b1c1e] text-xl font-bold w-80 h-80   flex flex-col items-end p-6 focus:border-[#2F3192] focus:bg-[#ececf9] hover:bg-[#ececf9]  mx-10 rounded-md cursor-pointer">
+          <span className='border h-6 w-6 rounded-full group-focus:border-[#2f3192] group-focus:border-4 mt-0 mr-0 border-[#1b1c1e]'></span>
+            <span className='m-auto text-xl group-focus:text-[#2f3192]'>Sciene</span>
+            <span></span>
+          </button>
+          <button type='button' data-hospital-type="cctu" id='hospitalType' className="border group border-[#1b1c1e] text-xl font-bold w-80 h-80   flex flex-col items-end p-6 focus:border-[#2F3192] focus:bg-[#ececf9] hover:bg-[#ececf9]  mx-10 rounded-md cursor-pointer">
+          <span className='border h-6 w-6 rounded-full group-focus:border-[#2f3192] group-focus:border-4 mt-0 mr-0 border-[#1b1c1e]'></span>
+          <span className='m-auto text-xl group-focus:text-[#2f3192]'>CCTU</span>
+          </button>  
           </div>
           
           <button className='h-14 w-72 bg-[#2f3192] text-white p-4 rounded-lg' type='button'>Continue</button>

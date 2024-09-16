@@ -1,6 +1,6 @@
 import React from 'react'
 
-const Dropdown = ({label,}) => {
+const Dropdown = ({label}) => {
   return (
     <div>
       

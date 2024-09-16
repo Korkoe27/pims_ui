@@ -33,4 +33,10 @@ export const Sidebar_links = [
     },
 ];
 
+export const Clinics = [
+    {
+        
+    }
+]
+
 
