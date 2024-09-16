@@ -43,7 +43,7 @@ const Dashboard = () => {
           />
           </div>
           <div className='flex items-center'>
-                  <button className='flex items-center p-4 h-14 text-white bg-[#2f3192] gap-2 rounded-md text-sm'
+                  <button className='flex items-center p-4 h-14 text-white bg-[#2f3192] gap-2 rounded-md text-sm' type='button'
                   // ref={trigger}
                   onClick={openModal}
                   ><GrAdd/>Add New Patient</button>
