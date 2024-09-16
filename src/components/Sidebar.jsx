@@ -18,7 +18,7 @@ const Sidebar = () => {
     
     <div className="w-72  bg-white fixed shadow-lg h-svh overscroll-contain md:overflow-hidden overflow-auto md:hover:overflow-auto">
       <div className="">
-      <Link to="/" onClick={() => {}} className="items-center text-xl gap-3 ml-3 mt-4">
+      <Link to="" onClick={() => {}} className="items-center text-xl gap-3 ml-3 mt-4">
       <Logo displayType='flex'/>
       </Link>
       </div>
