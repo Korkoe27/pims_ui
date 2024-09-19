@@ -1,29 +1,31 @@
-import React, {useEffect} from 'react';
+import React from 'react';
 import './App.css';
 import {BrowserRouter, Routes, Route} from 'react-router-dom';
-import {Button , Header, Sidebar} from './components';
-import {Dashboard, Appointments, Dispensary, Inventory, Patients} from './pages';
+import { Sidebar, CaseHistory, PersonalInfo, ConsultationTab} from './components';
+import {Dashboard, Appointments, Dispensary, Inventory, Patients,Login} from './pages';
 
 const App = () => {
   return (
-    <div>
+    <div className='overflow-hidden flex'>
+      
       <BrowserRouter>
-      <div className='flex flex-row'>
-        <div className=' bg-white dark:bg-secondary-dark-bg  h-full'>
+      <div className='flex flex-row  h-full'>
+        <div className=' bg-white dark:bg-secondary-dark-bg'>
           <Sidebar />
-          {/* <Dashboard/> */}
         </div>
 
-
+</div>
         <Routes>
           <Route path='/' element={<Dashboard/>}/>
+          <Route path='/login' element={<Login/>}/>
           <Route path='/dashboard' element={<Dashboard/>}/>
-          <Route path='/patients' element={<Patients/>}/>
+          <Route path='/my-patients' element={<Patients/>}/>
           <Route path='/appointments' element={<Appointments/>}/>
           <Route path='/inventory' element={<Inventory/>}/>
           <Route path='/dispensory' element={<Dispensary/>}/>
+          <Route path='/register-patient' element={<PersonalInfo/>}/>
         </Routes>
-      </div>
+      
       </BrowserRouter>
       
     </div>
