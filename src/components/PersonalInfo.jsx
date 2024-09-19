@@ -13,9 +13,9 @@ const PersonalInfo = () => {
 
 
 
-      <form action="" className='w-[846px]'>
+      <form action="" className='bg-green-400 w-[846px]'>
 
-        <section className='flex gap-24 h-[450px] m-0'>
+        <section className='flex gap-24 bg-yellow-300 h-[450px] m-auto py-8'>
 
 
           <aside className='flex flex-col gap-8'>
@@ -97,20 +97,20 @@ const PersonalInfo = () => {
 
     
 
-        <section className='flex gap-24 border m-0 border-t-[#d9d9d9] border-b-0 border-r-0 border-l-0 h-[450px] justify-stretch items-center'>
+        <section className='bg-blue-300 flex gap-24 border m-0 border-t-[#d9d9d9] border-b-0 border-r-0 border-l-0 py-8  justify-stretch items-center'>
 
 
     <aside className='flex flex-col gap-8'>
       <div className="flex flex-col w-[375px]">
           <label htmlFor="surname" className='text-base font-medium text-[#101928]'>Primary Telephone Number</label>
-          <div className="flex w-full gap-2 m-0 border border-[#d0d5dd] h-14 p-4 rounded-lg">
+          <div className="flex w-full gap-2 m-0 border bg-white border-[#d0d5dd] h-14 p-4 rounded-lg">
             <IoPhonePortraitOutline className='w-5 h-5 text-[#98a2b3]'/>
-            <input type="tel" className='outline-none' placeholder='055 555 5555' />
+            <input type="tel" className='bg-white outline-none' placeholder='055 555 5555' />
           </div>
         </div>
         <div className="flex flex-col w-[375px]">
           <label htmlFor="surname" className='text-base font-medium text-[#101928]'>Alternate Telephone Number</label>
-          <div className="flex w-full gap-2 m-0 border border-[#d0d5dd] h-14 p-4 rounded-lg">
+          <div className="flex w-full gap-2 m-0 border bg-white border-[#d0d5dd] h-14 p-4 rounded-lg">
             <IoPhonePortraitOutline className='w-5 h-5 text-[#98a2b3]'/>
             <input type="tel" className='outline-none' placeholder='055 555 5555' />
           </div>
@@ -123,9 +123,9 @@ const PersonalInfo = () => {
         </div>
         <div className="flex flex-col w-[375px]">
           <label htmlFor="surname" className='text-base font-medium text-[#101928]'>Emergency Contact’s Phone Number</label>
-          <div className="flex w-full gap-2 m-0 border border-[#d0d5dd] h-14 p-4 rounded-lg">
+          <div className="flex w-full gap-2 m-0 border bg-white border-[#d0d5dd] h-14 p-4 rounded-lg">
             <IoPhonePortraitOutline className='w-5 h-5 text-[#98a2b3]'/>
-            <input type="tel" className='outline-none' placeholder='055 555 5555' />
+            <input type="tel" className='outline-none ' placeholder='055 555 5555' />
           </div>
           
         </div>
