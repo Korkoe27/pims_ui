@@ -7,6 +7,30 @@
     "lastName": "Dumashie"  
         }
         
+    ],
+    "patients":[
+        {
+            "id":"1",
+            "patientId":"PH/PHA/22/099",
+            "surname": "Dumashie",
+            "firstname":"Korkoe",
+            "otherNames":"Anthony Kwami",
+            "dateOfBirth":"27-03-1999",
+            "gender":"male",
+            "occupation":"Software Developer",
+            "placeOfResidence":"Alajo",
+            "regionOfResidence":"Greater-Accra",
+            "closestLandmark":"",
+            "hometown":"Keta",
+            "patientPatientPhoneNumber1":"0501093481",
+            "patientPatientPhoneNumber2":"0558731186",
+            "emergencyContactName":"Lydia Tetteh",
+            "emergencyContactPhoneNumber":"0240920398",
+            "hospitalId":"CC0249",
+            "firstVisit":"28-03-2020",
+            "healthInsuranceProvider":"NHIS",
+            "healthInsuranceNumber":"NHIA8249374039"
+        }
     ]
     
 }
