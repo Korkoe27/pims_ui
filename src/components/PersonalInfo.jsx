@@ -11,8 +11,8 @@ const PersonalInfo = () => {
           <p className="text-base">Fill out the following details of your new patient</p>
       </div>
       
-       <form action="" className='px-8 w-[846px]'>
-        <section className="flex gap-24 pb-16 justify-between">
+       <form action="" className='px-8 w-fit'>
+        <section className="flex gap-24 pb-16  justify-between">
 
 
           <aside className="flex flex-col gap-8">
@@ -161,7 +161,7 @@ const PersonalInfo = () => {
           </aside>
         </section>
 
-        <div className='flex gap-10 justify-center my-16'>
+        <div className='flex gap-8 justify-center my-16'>
           <button type="submit" className='w-56 p-4 rounded-lg text-[#2f3192] border border-[#2f3192]'>Schedule appointment</button>
           <button type="submit" className='w-56 p-4 rounded-lg text-white bg-[#2f3192]'>Attend to patient now</button>
         </div>
