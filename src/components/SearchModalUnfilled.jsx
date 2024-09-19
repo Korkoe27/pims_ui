@@ -58,7 +58,7 @@ const SearchModalUnfilled = ({setSearchModalVisibility}) => {
     className='fixed inset-0 bg-black bg-opacity-50 backdrop-blur-[2px] '
     >
         <dialog ref={specificElementRef} className=
-         "bg-white flex p-8 rounded-lg flex-col m-auto w-[775px] border h-[616px] justify-start modal-overlay">
+         "bg-white flex p-8 rounded-lg flex-col my-20 m-auto w-[775px] border h-[616px] justify-start modal-overlay">
             <div className='flex rounded-lg justify-start p-4 items-center h-[5rem] w-full border border-[#d0d5dd]'>
             <CiSearch title='Search' className='w-[20px] h-[20px] opacity-30 bg-white cursor-pointer'/>
                 <input type="search" name="" placeholder='Search' className=' border-none p-4 flex-grow w-full h-full focus:outline-none' id="" />
