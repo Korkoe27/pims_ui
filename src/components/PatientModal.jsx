@@ -51,7 +51,7 @@ const PatientModal = ({setIsModalOpen}) => {
   return (
     <div className='fixed inset-0 bg-black bg-opacity-50 backdrop-blur-[2px]'>
        <dialog
-        className="flex flex-col m-auto w-[1200px] border h-[696px] justify-center items-center modal-overlay "
+        className="flex flex-col my-10 m-auto w-[1200px] border h-[696px] justify-center items-center modal-overlay "
         ref={specificElementRef}
         
       >
