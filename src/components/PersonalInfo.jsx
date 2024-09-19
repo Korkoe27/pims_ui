@@ -15,7 +15,7 @@ const PersonalInfo = () => {
 
       <form action="" className='bg-green-400 w-[846px]'>
 
-        <section className='flex gap-24 bg-yellow-300 h-[450px] m-auto py-8'>
+        <section className='flex gap-24 bg-yellow-300 h-[450px] m-auto'>
 
 
           <aside className='flex flex-col gap-8'>
@@ -97,7 +97,7 @@ const PersonalInfo = () => {
 
     
 
-        <section className='bg-blue-300 flex gap-24 border m-0 border-t-[#d9d9d9] border-b-0 border-r-0 border-l-0 py-8  justify-stretch items-center'>
+        <section className='bg-blue-300 flex gap-24 border border-t-[#d9d9d9] border-b-0 border-r-0 border-l-0  justify-stretch items-center'>
 
 
     <aside className='flex flex-col gap-8'>
