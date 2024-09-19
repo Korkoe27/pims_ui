@@ -27,7 +27,7 @@ const Sidebar = () => {
           <NavLink
            to={item.path}
            key={item.name}
-           onClick={() => {}}
+          //  onClick={() => {}}
            className={({ isActive }) =>
           isActive ? activeLink : normalLink}
           >
