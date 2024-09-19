@@ -14,7 +14,7 @@ export const Sidebar_links = [
     {
         name: 'my patients',
         icon: <LuUsers2 className='text-xl font-bold'/>,
-        path: '/patients',
+        path: '/my-patients',
     },
     {
         name: 'appointments',
@@ -31,12 +31,39 @@ export const Sidebar_links = [
         icon: <MdOutlineRestorePage className='text-xl font-bold'/>,
         path: '/dispensary',
     },
+
 ];
 
-export const Clinics = [
+export const Consultation_nav = [
+
     {
-        
-    }
+        name: 'case history',
+        link: '/CaseHistory'
+
+    },
+    {
+        name: 'visual acuity',
+        link: '/Visual-acuity'
+    },
+    {
+        name: 'externals',
+        link: '/externals'
+
+    },
+    {
+        name: 'internals',
+        link: '/internals'
+
+    },
+    {
+        name: 'refraction',
+        link: '/refraction'
+
+    },
+    {
+        name: 'extra tests',
+
+    },
 ]
 
 

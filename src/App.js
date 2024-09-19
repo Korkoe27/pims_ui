@@ -1,7 +1,7 @@
 import React from 'react';
 import './App.css';
 import {BrowserRouter, Routes, Route} from 'react-router-dom';
-import { Sidebar} from './components';
+import { Sidebar, CaseHistory, PersonalInfo, ConsultationTab} from './components';
 import {Dashboard, Appointments, Dispensary, Inventory, Patients,Login} from './pages';
 
 const App = () => {
@@ -19,10 +19,11 @@ const App = () => {
           <Route path='/' element={<Dashboard/>}/>
           <Route path='/login' element={<Login/>}/>
           <Route path='/dashboard' element={<Dashboard/>}/>
-          <Route path='/patients' element={<Patients/>}/>
+          <Route path='/my-patients' element={<Patients/>}/>
           <Route path='/appointments' element={<Appointments/>}/>
           <Route path='/inventory' element={<Inventory/>}/>
           <Route path='/dispensory' element={<Dispensary/>}/>
+          <Route path='/register-patient' element={<PersonalInfo/>}/>
         </Routes>
       
       </BrowserRouter>
