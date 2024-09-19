@@ -97,7 +97,7 @@ const PersonalInfo = () => {
 
     
 
-        <section className='flex gap-24 border m-0 border-t-[#d9d9d9] border-b-0 border-r-0 border-l-0 h-[450px] flex-wrap justify-stretch items-center'>
+        <section className='flex gap-24 border m-0 border-t-[#d9d9d9] border-b-0 border-r-0 border-l-0 h-[450px] justify-stretch items-center'>
 
 
     <aside className='flex flex-col gap-8'>
