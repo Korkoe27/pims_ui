@@ -6,7 +6,7 @@ import { LuUsers2 } from "react-icons/lu";
 import { GrAdd } from "react-icons/gr";
 import { FaChevronDown } from "react-icons/fa6";
 import { Link } from 'react-router-dom';
-import PatientModal from "../components/PatientModal";
+import PatientModal from "../components/SelectClinicModal";
 import SearchModalUnfilled from '../components/SearchModalUnfilled';
 
 const Dashboard = () => {

@@ -38,12 +38,12 @@ export const Consultation_nav = [
 
     {
         name: 'case history',
-        link: '/CaseHistory'
+        link: '/case-history'
 
     },
     {
         name: 'visual acuity',
-        link: '/Visual-acuity'
+        link: '/visual-acuity'
     },
     {
         name: 'externals',
@@ -62,8 +62,9 @@ export const Consultation_nav = [
     },
     {
         name: 'extra tests',
-
+        link: '/extra-tests'
     },
-]
+];
+
 
 

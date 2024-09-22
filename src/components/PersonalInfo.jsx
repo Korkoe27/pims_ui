@@ -1,8 +1,13 @@
 import React from 'react'
 import { IoPhonePortraitOutline } from "react-icons/io5";
+import { useNavigate } from 'react-router-dom';
 
 
 const PersonalInfo = () => {
+  const navigate = useNavigate();
+  const attendToPatient = () => {
+    navigate("/case-history");
+  }
   return (
     <div className='px-72 bg-[#f9fafb] h-full w-full'>
 
@@ -163,7 +168,7 @@ const PersonalInfo = () => {
 
         <div className='flex gap-8 justify-center my-16'>
           <button type="submit" className='w-56 p-4 rounded-lg text-[#2f3192] border border-[#2f3192]'>Schedule appointment</button>
-          <button type="submit" className='w-56 p-4 rounded-lg text-white bg-[#2f3192]'>Attend to patient now</button>
+          <button type="submit" onClick={attendToPatient} className='w-56 p-4 rounded-lg text-white bg-[#2f3192]'>Attend to patient now</button>
         </div>
       </form> 
       
