@@ -1,12 +1,96 @@
 {
-    "admin":[
-        {
-          "username": "admin",
-    "password": "admin",
-    "firstName": "Korkoe",
-    "lastName": "Dumashie"  
-        }
-        
-    ]
-    
+  "admin": [
+    {
+      "username": "admin",
+      "password": "admin",
+      "firstName": "Korkoe",
+      "lastName": "Dumashie"
+    },
+    {
+      "id": "9958",
+      "email": "admin@mail.com",
+      "password": "testing@123"
+    },
+    {
+      "id": "b5f2",
+      "username": "cewura",
+      "password": "Pa$$w0rd!"
+    },
+    {
+      "id": "de03",
+      "username": "cewura",
+      "password": "Pa$$w0rd!"
+    },
+    {
+      "id": "3e5e",
+      "username": "cewura",
+      "password": "Pa$$w0rd!"
+    },
+    {
+      "id": "9f62",
+      "username": "cewura",
+      "password": "Pa$$w0rd!"
+    },
+    {
+      "id": "fcfd",
+      "username": "cewura",
+      "password": "Pa$$w0rd!"
+    },
+    {
+      "id": "021b",
+      "username": "admin",
+      "password": "admin"
+    },
+    {
+      "id": "5fe1",
+      "username": "admin",
+      "password": "admin"
+    },
+    {
+      "id": "9a26",
+      "username": "mesyxovebi@mailinator.com",
+      "password": "Pa$$w0rd!"
+    }
+  ],
+  "users": [
+    {
+      "id": "bc0a",
+      "email": "admin@mail.com",
+      "password": "testing@123"
+    },
+    {
+      "id": "e8dd",
+      "email": "admin@mail.com",
+      "password": "testing@123"
+    },
+    {
+      "id": "ee30",
+      "email": "admin@mail.com",
+      "password": "testing@123"
+    }
+  ],
+  "patients": [
+    {
+      "id": "1",
+      "patientId": "PH/PHA/22/099",
+      "surname": "Dumashie",
+      "firstname": "Korkoe",
+      "otherNames": "Anthony Kwami",
+      "dateOfBirth": "27-03-1999",
+      "gender": "male",
+      "occupation": "Software Developer",
+      "placeOfResidence": "Alajo",
+      "regionOfResidence": "Greater-Accra",
+      "closestLandmark": "",
+      "hometown": "Keta",
+      "patientPatientPhoneNumber1": "0501093481",
+      "patientPatientPhoneNumber2": "0558731186",
+      "emergencyContactName": "Lydia Tetteh",
+      "emergencyContactPhoneNumber": "0240920398",
+      "hospitalId": "CC0249",
+      "firstVisit": "28-03-2020",
+      "healthInsuranceProvider": "NHIS",
+      "healthInsuranceNumber": "NHIA8249374039"
+    }
+  ]
 }

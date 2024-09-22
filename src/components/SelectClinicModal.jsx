@@ -2,7 +2,7 @@ import React, {useRef, useEffect, useState} from 'react';
 import { useNavigate } from "react-router-dom";
 
 
-const PatientModal = ({setIsModalOpen}) => {
+const SelectClinicModal = ({setIsModalOpen}) => {
   const specificElementRef = useRef(null);
 
   const navigate = useNavigate();
@@ -102,4 +102,4 @@ const PatientModal = ({setIsModalOpen}) => {
   )
 }
 
-export default PatientModal
+export default SelectClinicModal
