@@ -1,7 +1,7 @@
 import React , {useState} from 'react';
 import './App.css';
 import {BrowserRouter, Routes, Route} from 'react-router-dom';
-import { CaseHistory, PersonalInfo, VisualAcuity} from './components';
+import { CaseHistory, PersonalInfo, VisualAcuity, Externals, Refraction, ExtraTests} from './components';
 import {Dashboard, Appointments, Dispensary, Inventory, Patients,Login} from './pages';
 import Layout from './pages/Layout';
 import AuthProvider from './hooks/AuthProvider';
@@ -25,6 +25,10 @@ const App = () => {
             <Route path='/register-patient' element={<PersonalInfo/>}/>
             <Route path='/case-history' element={<CaseHistory/>}/>
             <Route path='/visual-acuity' element={<VisualAcuity/>}/>
+            <Route path='/externals' element={<Externals/>}/>
+            {/* <Route path='/internals' element={<Internals/>}/> */}
+            <Route path='/refraction' element={<Refraction/>}/>
+            <Route path='/extra-tests' element={<ExtraTests/>}/>
           </Route>
           
         </Routes>

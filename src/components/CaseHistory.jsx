@@ -6,16 +6,22 @@ import Radios from './Radios';
 import CallToActionButtons from './CallToActionButtons';
 import Inputs from './Inputs';
 import RegularButtons from './RegularButtons';
+import { useNavigate } from 'react-router-dom';
 
 
 
 
   const CaseHistory = () => {
 
+    const navigate = useNavigate();
+    const checkVisualAcuity = () => {
+      navigate("/visual-acuity");
+    }
+
 
 
   return (
-    <div className=' ml-72 my-8 gap-12 flex items flex-col px-4  h-fit w-fit'>
+    <div className=' ml-72 my-8 gap-12 flex items flex-col px-8  h-fit w-fit'>
       <Header/>
       <ProgressBar />
       <NavMenu/>
@@ -128,7 +134,10 @@ import RegularButtons from './RegularButtons';
 
         </aside>
       </section>
-      <RegularButtons  buttonName={'Save and Proceed'}/>
+      <div className='flex gap-8 justify-evenly my-16'>
+          <button type="submit" className='w-56 p-4 rounded-lg text-[#2f3192] border border-[#2f3192]'>Back</button>
+          <button type="submit" onClick={checkVisualAcuity} className='w-56 p-4 rounded-lg text-white bg-[#2f3192]'>Attend to patient now</button>
+        </div>
 </form>
 
     </div>

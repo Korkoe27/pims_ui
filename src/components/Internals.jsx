@@ -1,6 +1,6 @@
 import React from 'react'
 
-const RegularButtons = () => {
+const Internals = () => {
   return (
     <div>
       
@@ -8,4 +8,5 @@ const RegularButtons = () => {
   )
 }
 
-export default RegularButtons
+export default Internals
+
