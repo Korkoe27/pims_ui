@@ -36,7 +36,7 @@ const VisualAcuity = () => {
           <h1 className='text-xl font-bold text-center'>OD</h1>
           <h1 className='text-xl font-bold text-center'>OS</h1>
         </div>
-        <div className='flex gap-4 my-'>
+        <div className='flex gap-4'>
           <div className='flex flex-col'>
             <label htmlFor="" className='text-center font-normal text-base'>Standard
             </label>
@@ -55,6 +55,7 @@ const VisualAcuity = () => {
               <input type="text" className='w-20 h-9 mb-4 rounded-md border border-[#d0d5dd]' />
               <input type="text" className='w-20 h-9 rounded-md border border-[#d0d5dd]' />
           </div>
+
         </div>
           </div>
         </aside>
