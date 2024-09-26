@@ -5,7 +5,6 @@ import Header from './Header';
 import Radios from './Radios';
 import CallToActionButtons from './CallToActionButtons';
 import Inputs from './Inputs';
-import RegularButtons from './RegularButtons';
 import { useNavigate } from 'react-router-dom';
 
 
@@ -136,7 +135,7 @@ import { useNavigate } from 'react-router-dom';
       </section>
       <div className='flex gap-8 justify-evenly my-16'>
           <button type="submit" className='w-56 p-4 rounded-lg text-[#2f3192] border border-[#2f3192]'>Back</button>
-          <button type="submit" onClick={checkVisualAcuity} className='w-56 p-4 rounded-lg text-white bg-[#2f3192]'>Attend to patient now</button>
+          <button type="submit" onClick={checkVisualAcuity} className='w-56 p-4 rounded-lg text-white bg-[#2f3192]'>Save and proceed</button>
         </div>
 </form>
 
