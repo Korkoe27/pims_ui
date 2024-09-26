@@ -153,7 +153,7 @@ const VisualAcuity = () => {
         </div>
 
         <div className='gap-8 justify-end  items-end  flex-col flex'>
-                    <button type="submit" onClick={Externals} className='w-56 p-4 rounded-lg text-white bg-[#2f3192]'>Attend to patient now</button>
+                    <button type="submit" onClick={Externals} className='w-56 p-4 rounded-lg text-white bg-[#2f3192]'>Save and proceed</button>
         </div>
       </section>        
  

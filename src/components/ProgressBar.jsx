@@ -20,7 +20,7 @@ export default function ProgressBar({step}) {
                 <span className="border  bg-[#2f3192] border-[#2f3192] h-[2px] w-28 justify-self-end"></span>  
                 </div>
                 
-                <h1 className="text-center font-medium">Diagnosis</h1>
+                <h1 className="text-center font-medium">Diagnosis and Plan</h1>
 
             </div>
             <div className=" w-64">
