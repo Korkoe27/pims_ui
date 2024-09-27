@@ -122,7 +122,7 @@ const Management = () => {
                             <input type="radio" name="leftEyeMedication" id="" />
                             OS
                         </label>
-                        <label htmlFor="bothEyesMedication" className="flex items-center  gap-1 font-medium text-base">
+                        <label htmlFor="bothEyesMedication" className="flex items-center  gap-1 font-normal text-base">
                             <input type="radio" name="bothEyesMedication" id="" />
                             OU
                         </label>

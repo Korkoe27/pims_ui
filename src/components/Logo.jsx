@@ -11,7 +11,7 @@ const Logo = ({displayType}) => {
   return (
     <div className={containerClass}>
       <img src="logo.png" alt="UCC LOGO" className={imageClass}/>
-      <h5 className={headerClass}>Department of Optometry  & Vision Science</h5>
+      <h5 className={headerClass}>School of Optometry  & Vision Science</h5>
     </div>
   )
 }
