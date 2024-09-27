@@ -6,9 +6,10 @@ import PropTypes from 'prop-types';
 
 const CallToActionButtons = ({displayButton, button1, button2}) => {
 const showButton = displayButton === 'hidden' ? 'hidden' : 'border-0 text-[#2f3192] w-full flex text-[14px] gap-7 justify-left items-center';
+const allButtons = displayButton === 'flex' ? 'flex p-0 justify-between w-fit': 'w-full my-1 gap-2 flex flex-col';
 
 return (
-    <div className='w-full my-1 gap-2 flex flex-col'>
+    <div className={allButtons}>
         <div className='flex w-full gap-7  justify-stretch'>
             <button className='border-0 text-[#2f3192] w-1/2 text-[14px] flex items-center  justify-start gap-4 '>
         <FaPen/>

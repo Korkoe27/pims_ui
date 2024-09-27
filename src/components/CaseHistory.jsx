@@ -49,7 +49,7 @@ import { useNavigate } from 'react-router-dom';
               <Radios label={"Photophobia"} name={"photobia"}/>
 
             </div>
-            <CallToActionButtons displayButton='flex'  button1={'Add a note'} button2={'Add option'}/>
+            <CallToActionButtons displayButton='show'  button1={'Add a note'} button2={'Add option'}/>
             
           </>
           <>

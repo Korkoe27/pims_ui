@@ -11,7 +11,7 @@ const App = () => {
 
  
   return (
-    <div>
+    <div className='bg-[#f9fafb]'>
       
       <BrowserRouter>
       <AuthProvider>

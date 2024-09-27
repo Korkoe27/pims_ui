@@ -4,7 +4,7 @@ import { Sidebar } from '../components'
 
 const Layout = () => {
   return (
-    <div className='flex'>
+    <div className='flex '>
       <Sidebar/>
       <Outlet/>
     </div>
