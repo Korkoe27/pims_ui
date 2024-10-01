@@ -5,7 +5,7 @@ import ProgressBar from './ProgressBar'
 
 const Management = () => {
     return(
-        <div className='ml-72 my-8 px-8 w-fit flex flex-col gap-12'>
+        <div className='ml-72 py-8 px-8 w-fit flex flex-col gap-12'>
         <Header/>
         <ProgressBar />
         <form action="" className='flex flex-col gap-5 w-fit'>
