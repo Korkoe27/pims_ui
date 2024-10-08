@@ -35,7 +35,11 @@ const Login = () => {
       // On successful login, navigation happens within loginAction
     } catch (err) {
       console.error('Login failed:', err);
-      setError('Invalid username or password'); // Display error message
+      if (err.response && err.response.status === 400) {
+        setError('Login Error: Invalid username or password.'); // Specific error message for 400 status
+      } else {
+        setError('An unexpected error occurred. Please try again later.'); // General error message
+      }
     }
   };
 
@@ -87,7 +91,11 @@ const Login = () => {
               )}
             </div>
           </div>
-          {error && <p className="text-red-500">{error}</p>} {/* Display error message */}
+          {error && (
+            <p className="text-red-500 font-bold text-center mt-4">
+              {error}
+            </p>
+          )} {/* Display error message with enhanced styling */}
           <button className="bg-[#2f3192] text-white p-5 w-96 rounded-lg" type='submit'>Log into your account</button>
         </form>
       </div>
