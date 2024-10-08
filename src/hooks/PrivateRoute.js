@@ -1,15 +1,12 @@
-//was trying to implement log in feature
+import React from 'react';
+import { Navigate } from 'react-router-dom';
+import { useAuth } from '../hooks/AuthProvider'; // Use the AuthProvider for context
 
-
-
-import React from "react";
-import { Navigate, Outlet } from "react-router-dom";
-import { useAuth } from "./AuthProvider";
-
-const PrivateRoute = () => {
-  const user = useAuth();
-  if (!user.token) return <Navigate to="/login" />;
-  return <Outlet />;
+const PrivateRoute = ({ children }) => {
+  const { user } = useAuth(); // Check the user state from context
+  
+  // If user is not authenticated, redirect to login page
+  return user ? children : <Navigate to="/login" />;
 };
 
 export default PrivateRoute;

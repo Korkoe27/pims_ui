@@ -1,48 +1,60 @@
-import { useContext, createContext, useState } from "react";
+import { useContext, createContext, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { login, checkSession, logout } from '../services/apiService'; // Import logout function
 
 const AuthContext = createContext();
 
 const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(localStorage.getItem("site") || "");
   const navigate = useNavigate();
+
+  // Check if the user is authenticated when the component mounts
+  // useEffect(() => {
+  //   const fetchSession = async () => {
+  //     try {
+  //       const res = await checkSession();
+  //       if (res && res.user) {
+  //         setUser(res.user);
+  //       } else {
+  //         navigate("/login");
+  //       }
+  //     } catch (err) {
+  //       console.error("Session check failed", err);
+  //       navigate("/login");
+  //     }
+  //   };
+  //   fetchSession();
+  // }, [navigate]);
+
   const loginAction = async (data) => {
     try {
-      const response = await fetch("http://localhost:8000/admin", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      });
-      const res = await response.json();
-      if (res.data) {
-        setUser(res.data.username);
-        setToken(res.token);
-        localStorage.setItem("site", res.token);
-        navigate("/dashboard");
+      const res = await login(data.username, data.password);
+      if (res.user) {
+        setUser(res.user);
+        navigate("/");
         return;
       }
-      throw new Error(res.message);
+      throw new Error(res.message || "Login failed. Please try again.");
     } catch (err) {
-      console.error(err);
+      console.error("Login Error:", err.message || err);
     }
   };
 
-  const logOut = () => {
-    setUser(null);
-    setToken("");
-    localStorage.removeItem("site");
-    navigate("/login");
+  const logOut = async () => {
+    try {
+      await logout(); // Call logout API to clear session on backend
+      setUser(null); // Clear user state
+      navigate("/login"); // Redirect to login page
+    } catch (err) {
+      console.error("Logout Error:", err);
+    }
   };
 
   return (
-    <AuthContext.Provider value={{ token, user, loginAction, logOut }}>
+    <AuthContext.Provider value={{ user, loginAction, logOut }}>
       {children}
     </AuthContext.Provider>
   );
-
 };
 
 export default AuthProvider;
