@@ -12,7 +12,8 @@ import { useAuth } from '../hooks/AuthProvider'; // Use the AuthProvider
 
 const Dashboard = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { user } = useAuth(); // Access the authenticated user
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false); // Track dropdown state
+  const { user, logOut } = useAuth(); // Access the authenticated user and logOut
 
   const openModal = () => setIsModalOpen(true);
 
@@ -20,6 +21,8 @@ const Dashboard = () => {
   const openSearchModal = () => {
     setSearchModalVisibility(true);
   };
+
+  const toggleDropdown = () => setIsDropdownOpen(!isDropdownOpen); // Toggle dropdown
 
   return (
     <div className="px-8 ml-72 flex flex-col mt-4 gap-8 bg-[#f9fafb] w-full">
@@ -50,13 +53,26 @@ const Dashboard = () => {
             </button>
           </div>
         </div>
-        <div className='flex items-end justify-end gap-12 col-span-1'>
+        <div className='relative flex items-end justify-end gap-12 col-span-1'>
           <div className='flex justify-end gap-3 items-center'>
             <span className='bg-[#ffe7cc] px-5 py-2 w-14 h-14 text-[#3e3838] flex justify-center items-center rounded-[100%] font-semibold text-xl'>
               {`${user?.first_name[0] || 'K'}${user?.last_name[0] || 'D'}`} {/* Display user's initials */}
             </span>
-            <FaChevronDown title="Menu" className='cursor-pointer font-800 h-6 w-6'/>
+            <FaChevronDown 
+              title="Menu" 
+              className='cursor-pointer font-800 h-6 w-6'
+              onClick={toggleDropdown} // Toggle the dropdown
+            />
           </div>
+          {/* Dropdown for Logout */}
+          {/* {isDropdownOpen && (
+            <div className="absolute right-0 top-14 bg-white border rounded-lg p-2 shadow-lg">
+              <button className="block px-4 py-2 text-gray-700 hover:bg-gray-200 w-full text-left" 
+                onClick={logOut}>
+                Logout
+              </button>
+            </div>
+          )} */}
         </div>
       </div>
 
