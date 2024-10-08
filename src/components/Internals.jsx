@@ -783,7 +783,7 @@ const Internals = () => {
       </button>
 
 
-      <aside className="flex flex-col py-4 gap-12 w-full ">
+      <aside className="hidden flex-col py-4 gap-12 w-full ">
         <div className="flex justify-between w-full">
           <div className="flex gap-1 flex-col">
             <label htmlFor="iopMeasuringMethod" className="">IOP Measuring Method</label>
