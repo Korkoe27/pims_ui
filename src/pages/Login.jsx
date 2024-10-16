@@ -58,7 +58,7 @@ const Login = () => {
               <PiUserCircle className='w-8 h-8 object-contain text-[#667185]'/>
               <input 
                 type="text"
-                className="w-full outline-none" 
+                className="w-full outline-none h-full p-0 bg-white" 
                 placeholder='Username'
                 name='username'
                 value={username} // Bind the username state
@@ -66,13 +66,13 @@ const Login = () => {
               />
             </div>
           </div>
-          <div className="w-96 gap-1">
+          <div className="w-96 flex flex-col gap-1">
             <label htmlFor="password" className='text-[#101928] text-base'>Password</label>
-            <div className="flex justify-between border rounded-lg p-3 gap-3 border-[#d0d5dd] items-start">
+            <div className="flex justify-between items-start gap-3 rounded-lg border p-3 border-[#d0d5dd] w-full">
               <CiLock className='w-8 h-8 object-contain text-[#667185]'/>
               <input 
                 type={passwordVisible ? "text" : "password"} 
-                className="w-full outline-none" 
+                className="w-full outline-none h-full p-0 bg-white" 
                 placeholder='Password'
                 name='password'
                 value={password} // Bind the password state

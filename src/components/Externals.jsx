@@ -8,11 +8,20 @@ import { GrAdd } from 'react-icons/gr';
 
 const Externals = () => {
 
-  const [isSectionVisible, setSectionVisible] = useState(false);
+const sectionNames = {
+  eyelids: false,
+  conjunctiva: false,
+  cornea: false,
+  pupil: false,
+  anteriorChamber: false,
+}
 
-  const toggleSection = () =>{
-    setSectionVisible(!isSectionVisible);
-  };
+const [dropdowns, setDropdowns] = useState(sectionNames);
+
+const toggleSection = (e) =>{
+  setDropdowns({...dropdowns, [`${e.currentTarget.id}`]: !dropdowns[e.currentTarget.id]});
+}
+
 
   return (
     <div className='ml-72 py-8 w-full px-8 min-h-screen flex flex-col bg-[#f9fafb] gap-12'>
@@ -21,17 +30,17 @@ const Externals = () => {
       <NavMenu/>
     <form action="" className='flex gap-8 flex-col w-fit h-full py-4'>
 
-      <button id='dropDown' className="flex p-4 justify-between w-[800px] 
+      <button id='eyelids' className="flex p-4 justify-between w-[800px] 
       cursor-pointer h-14 rounded-lg items-center bg-white"
       onClick={toggleSection}
       type='button'
       >
         <h2 className='text-base font-semibold'>Eyelids & Eyelashes</h2>
-        {isSectionVisible ? <FaChevronUp className='h-4 w-4' /> : <FaChevronDown className='w-4 h-4' />}
+        {dropdowns.eyelids  ? <FaChevronUp className='h-4 w-4' /> : <FaChevronDown className='w-4 h-4' />}
       </button>
 
-      {isSectionVisible && (
-      <aside className="flex flex-col w-4/5 mx-auto gap-12">
+      {dropdowns.eyelids && (
+      <aside className="flex flex-col w-4/5 mx-auto gap-12" id=''>
         <div className="flex justify-between  px-10">
           <h1 className="font-bold text-2xl">OD</h1>
           <h1 className="font-bold text-2xl">OS</h1>
@@ -330,15 +339,17 @@ const Externals = () => {
       </aside>
       )}
 
-<button id='dropDown' className="flex p-4 justify-between w-[800px] 
+<button id='conjunctiva' className="flex p-4 justify-between w-[800px] 
       cursor-pointer h-14 rounded-lg items-center bg-white"
-      // onClick={toggleSection}
+      onClick={toggleSection}
       type='button'
       >
         <h2 className='text-base font-semibold'>Conjuctiva</h2>
-        {isSectionVisible ? <FaChevronUp className='h-4 w-4' /> : <FaChevronDown className='w-4 h-4' />}
+        {dropdowns.conjunctiva ? <FaChevronUp className='h-4 w-4' /> : <FaChevronDown className='w-4 h-4' />}
       </button>
-      <aside className="hidden flex-col w-4/5 mx-auto gap-12">
+
+      {dropdowns.conjunctiva && (
+      <aside className="flex flex-col w-4/5 mx-auto gap-12">
         <div className="flex justify-between  px-10">
           <h1 className="font-bold text-2xl">OD</h1>
           <h1 className="font-bold text-2xl">OS</h1>
@@ -530,20 +541,20 @@ const Externals = () => {
     </div>
 
       </aside>
-      
+      )}
 
 
-      <button id='dropDown' className="flex p-4 justify-between w-[800px] 
+      <button id='cornea' className="flex p-4 justify-between w-[800px] 
       cursor-pointer h-14 rounded-lg items-center bg-white"
-      // onClick={toggleSection}
+      onClick={toggleSection}
       type='button'
       >
         <h2 className='text-base font-semibold'>Cornea</h2>
-        {isSectionVisible ? <FaChevronUp className='h-4 w-4' /> : <FaChevronDown className='w-4 h-4' />}
+        {dropdowns.cornea ? <FaChevronUp className='h-4 w-4' /> : <FaChevronDown className='w-4 h-4' />}
       </button>
       
-
-      <aside className="hidden flex-col w-4/5 mx-auto gap-12">
+      {dropdowns.cornea && (
+      <aside className="flex flex-col w-4/5 mx-auto gap-12" >
         <div className="flex justify-between  px-10">
           <h1 className="font-bold text-2xl">OD</h1>
           <h1 className="font-bold text-2xl">OS</h1>
@@ -761,20 +772,20 @@ const Externals = () => {
 
       </aside>
 
-
+      )}
       
-      <button id='dropDown' className="flex p-4 justify-between w-[800px] 
+      <button id='pupil' className="flex p-4 justify-between w-[800px] 
       cursor-pointer h-14 rounded-lg items-center bg-white"
-      // onClick={toggleSection}
+      onClick={toggleSection}
       type='button'
       >
         <h2 className='text-base font-semibold'>Pupil</h2>
-        {isSectionVisible ? <FaChevronUp className='h-4 w-4' /> : <FaChevronDown className='w-4 h-4' />}
+        {dropdowns.pupil ? <FaChevronUp className='h-4 w-4' /> : <FaChevronDown className='w-4 h-4' />}
       </button>
 
 
-
-      <aside className="hidden flex-col gap-12 w-4/5 m-auto">
+      {dropdowns.pupil && (
+      <aside className="flex flex-col gap-12 w-fit m-auto" >
         <div className="flex justify-between  px-10">
           <h1 className="font-bold text-2xl">OD</h1>
           <h1 className="font-bold text-2xl">OS</h1>
@@ -836,7 +847,7 @@ const Externals = () => {
             No
           </label>
           </div>
-          <h1 className="text-xl font-semibold">Reactive to Accommodation</h1>
+          <h1 className="text-xl font-semibold text-nowrap">Reactive to Accommodation</h1>
           <div className="flex gap-4">
           <label htmlFor="leftReactiveToAccommodation" className='flex items-center'>
             <input type="radio" value={'yes'} name="leftReactiveToAccommodation" id="" />
@@ -897,21 +908,22 @@ const Externals = () => {
 
       </aside>
 
+)}
 
 
-
-      <button id='dropDown' className="flex p-4 justify-between w-[800px] 
+      <button id='anteriorChamber' className="flex p-4 justify-between w-[800px] 
       cursor-pointer h-14 rounded-lg items-center bg-white"
-      // onClick={toggleSection}
+      // onClick={setDropdowns({...dropdowns,anteriorChamber: !anteriorChamber})}
+      onClick={toggleSection}
       type='button'
       >
         <h2 className='text-base font-semibold'>Anterior Chamber</h2>
-        {isSectionVisible ? <FaChevronUp className='h-4 w-4' /> : <FaChevronDown className='w-4 h-4' />}
+        {dropdowns.anteriorChamber ? <FaChevronUp className='h-4 w-4' /> : <FaChevronDown className='w-4 h-4' />}
       </button>
 
 
-
-      <aside className="hidden flex-col py-4 gap-12 w-4/5 m-auto">
+      {dropdowns.anteriorChamber && (
+      <aside className="flex flex-col py-4 gap-12 w-4/5 m-auto">
 
       <div className="flex justify-between gap-12">
         <div className="flex flex-col w-full">
@@ -1099,7 +1111,7 @@ const Externals = () => {
     </div>
 
       </aside>
-
+)}
       <button type="button" className='mx-auto mr-0 p-4 my-8 rounded-lg bg-[#2f3192] text-white'>Save and Proceed</button>
     </form>
 

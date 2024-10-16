@@ -8,8 +8,6 @@ import { IoCalendarClearOutline } from "react-icons/io5";
 const SearchModalUnfilled = ({setSearchModalVisibility}) => {
 
 
-
-    
     const specificElementRef = useRef(null);
 
     const [selectedFilters, setSelectedFilters] = useState({
@@ -61,7 +59,7 @@ const SearchModalUnfilled = ({setSearchModalVisibility}) => {
          "bg-white flex p-8 rounded-lg flex-col my-20 m-auto w-[775px] border h-[616px] justify-start modal-overlay">
             <div className='flex rounded-lg justify-start p-4 items-center h-[5rem] w-full border border-[#d0d5dd]'>
             <CiSearch title='Search' className='w-[20px] h-[20px] opacity-30 bg-white cursor-pointer'/>
-                <input type="search" name="" placeholder='Search' className=' border-none p-4 flex-grow w-full h-full focus:outline-none' id="" />
+                <input type="search" name="" autoFocus placeholder='Search' className=' border-none p-4 flex-grow w-full h-full focus:outline-none' id="" />
             </div>
 
             <div className='flex flex-col my-6 pb-4 gap-2 justify-center items-stretch border border-l-0 border-t-0 border-r-0 border-b-[#dee3e7]'>
