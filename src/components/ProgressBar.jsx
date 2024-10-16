@@ -1,6 +1,10 @@
-export default function ProgressBar({step}) {
-    return(
-        <div className="flex bg-[#f9fafb]">
+
+
+import React from 'react'
+
+const ProgressBar = ({step}) => {
+  return (
+    <div className="flex bg-[#f9fafb]">
             <div className="w-64">
                 <div className="flex justify-end items-center">
                 <span className={`border border-[#2f3192] w-6 h-6 bg-white  rounded-full ${step > 1 ? 'bg-[#2F3192]' : ''}`}></span>
@@ -36,5 +40,7 @@ export default function ProgressBar({step}) {
 
             </div>
         </div>
-    )
+  )
 }
+
+export default ProgressBar
