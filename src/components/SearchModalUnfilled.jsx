@@ -65,7 +65,7 @@ const SearchModalUnfilled = ({setSearchModalVisibility}) => {
             <div className='flex flex-col my-6 pb-4 gap-2 justify-center items-stretch border border-l-0 border-t-0 border-r-0 border-b-[#dee3e7]'>
                 <h3 className='text-sm text-left py-2 text-[#00000080]'>Filter results</h3>
                 <div className='flex justify-normal gap-4 mb-6'>
-                 <span
+                <span
                 className={`flex items-center gap-1 border rounded-lg w-30 px-2 py-2 justify-center filters ${selectedFilters.date ? 'border-red-500 text-red-500' : 'text-[#667185] border-[#d0d5dd]'} cursor-pointer`}
                     onClick={() => toggleSelection('date')}
                     >
