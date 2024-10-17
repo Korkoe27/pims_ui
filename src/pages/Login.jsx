@@ -54,11 +54,11 @@ const Login = () => {
         <form onSubmit={handleLogin} className='flex flex-col gap-8 p-9 justify-center items-center'>
           <div className="flex flex-col w-96 gap-1">
             <label htmlFor="username" className='text-[#101928] text-base'>Username</label>
-            <div className="flex justify-between items-start gap-3 rounded-lg border p-3 border-[#d0d5dd] w-full">
+            <div className="flex justify-between items-start gap-3 rounded-lg border p-3 border-[#d0d5dd] bg-white w-full">
               <PiUserCircle className='w-8 h-8 object-contain text-[#667185]'/>
               <input 
                 type="text"
-                className="w-full outline-none h-full p-0 bg-white" 
+                className="w-full outline-none  h-full p-0 bg-white" 
                 placeholder='Username'
                 name='username'
                 value={username} // Bind the username state
@@ -68,7 +68,7 @@ const Login = () => {
           </div>
           <div className="w-96 flex flex-col gap-1">
             <label htmlFor="password" className='text-[#101928] text-base'>Password</label>
-            <div className="flex justify-between items-start gap-3 rounded-lg border p-3 border-[#d0d5dd] w-full">
+            <div className="flex justify-between items-start gap-3 rounded-lg border p-3 border-[#d0d5dd] bg-white w-full">
               <CiLock className='w-8 h-8 object-contain text-[#667185]'/>
               <input 
                 type={passwordVisible ? "text" : "password"} 
