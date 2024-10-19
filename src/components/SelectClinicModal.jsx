@@ -1,5 +1,6 @@
 import React, {useRef, useEffect, useState} from 'react';
 import { useNavigate } from "react-router-dom";
+import toast, { Toaster } from 'react-hot-toast';
 
 
 const SelectClinicModal = ({setIsModalOpen}) => {
@@ -20,7 +21,10 @@ const SelectClinicModal = ({setIsModalOpen}) => {
       // console.log('Selected clinic:', selectedClinic);
       navigate("/register-patient");
     } else {
-      alert('Please select a clinic!');
+      // alert('Please select a clinic!');
+      toast.error('Please select a clinic');
+
+      
     }
   };
 
@@ -50,6 +54,7 @@ const SelectClinicModal = ({setIsModalOpen}) => {
       }, [setIsModalOpen]);
   return (
     <div className='fixed inset-0 bg-black bg-opacity-50 backdrop-blur-[2px]'>
+      <Toaster />
        <dialog
         className="flex flex-col my-10 m-auto w-[1200px] border h-[696px] justify-center items-center modal-overlay "
         ref={specificElementRef}
