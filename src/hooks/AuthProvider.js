@@ -1,30 +1,33 @@
 import { useContext, createContext, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { login, checkSession, logout } from '../services/apiService'; // Import logout function
+import { login, checkSession, logout } from '../services/apiService';
 
 const AuthContext = createContext();
 
 const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true); // Loading state to indicate session check
   const navigate = useNavigate();
 
   // Check if the user is authenticated when the component mounts
-  // useEffect(() => {
-  //   const fetchSession = async () => {
-  //     try {
-  //       const res = await checkSession();
-  //       if (res && res.user) {
-  //         setUser(res.user);
-  //       } else {
-  //         navigate("/login");
-  //       }
-  //     } catch (err) {
-  //       console.error("Session check failed", err);
-  //       navigate("/login");
-  //     }
-  //   };
-  //   fetchSession();
-  // }, [navigate]);
+  useEffect(() => {
+    const fetchSession = async () => {
+      try {
+        const res = await checkSession();
+        if (res && res.user) {
+          setUser(res.user);
+        } else {
+          navigate("/login");
+        }
+      } catch (err) {
+        console.error("Session check failed", err);
+        navigate("/login");
+      } finally {
+        setLoading(false); // Set loading to false once session check is complete
+      }
+    };
+    fetchSession();
+  }, [navigate]);
 
   const loginAction = async (data) => {
     try {
@@ -51,8 +54,8 @@ const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loginAction, logOut }}>
-      {children}
+    <AuthContext.Provider value={{ user, loginAction, logOut, loading }}>
+      {!loading && children} {/* Render children only when loading is false */}
     </AuthContext.Provider>
   );
 };
