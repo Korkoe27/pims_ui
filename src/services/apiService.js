@@ -3,8 +3,8 @@ import Cookies from 'js-cookie'; // Import js-cookie to handle cookies
 
 // Set up a base URL for your API
 const apiClient = axios.create({
-  // baseURL: 'http://localhost:8000/accounts/api', // Local 
-  baseURL: 'https://optometryclinic-production.up.railway.app/', // Production 
+  baseURL: 'http://localhost:8000/', // Local 
+  // baseURL: 'https://optometryclinic-production.up.railway.app/', // Production 
   headers: {
     'Content-Type': 'application/json',
   },
@@ -82,16 +82,17 @@ export const getUserProfile = async () => {
   }
 };
 
-
 // Check session API
-// export const checkSession = async () => {
-//   try {
-//     const response = await apiClient.get("accounts/api/check-session/");
-//     return response.data;  // Returns user data if session is valid
-//   } catch (error) {
-//     console.error("Session check failed:", error);
-//     throw error;
-//   }
-// };
+export const checkSession = async () => {
+  console.log("checkSession function called"); // Log when the function is called
+  try {
+    const response = await apiClient.get("accounts/api/check-session/");
+    console.log("Session check response:", response.data); // Log the response data
+    return response.data;  // Returns user data if session is valid
+  } catch (error) {
+    console.error("Session check failed:", error); // Log the error if the request fails
+    throw error;
+  }
+};
 
 export default apiClient;
