@@ -10,24 +10,37 @@ const AuthProvider = ({ children }) => {
   const navigate = useNavigate();
 
   // Check if the user is authenticated when the component mounts
-  useEffect(() => {
-    const fetchSession = async () => {
-      try {
-        const res = await checkSession();
-        if (res && res.user) {
-          setUser(res.user);
-        } else {
-          navigate("/login");
-        }
-      } catch (err) {
-        console.error("Session check failed", err);
-        navigate("/login");
-      } finally {
-        setLoading(false); // Set loading to false once session check is complete
+  const useCheckSession = (setUser) => {
+    const navigate = useNavigate();
+    const [loading, setLoading] = useState(true);
+  
+    useEffect(() => {
+      // Run session check only if user is not already set (i.e., not logged in yet)
+      if (!user) {
+        const fetchSession = async () => {
+          try {
+            const res = await checkSession();
+            if (res && res.user) {
+              setUser(res.user);
+            } else {
+              navigate("/login");
+            }
+          } catch (err) {
+            console.error("Session check failed", err);
+            navigate("/login");
+          } finally {
+            setLoading(false); // Set loading to false once session check is complete
+          }
+        };
+        fetchSession();
+      } else {
+        setLoading(false); // No session check needed if user is already set
       }
-    };
-    fetchSession();
-  }, [navigate]);
+    }, [user, navigate, setUser]);
+  
+    return loading;
+  };
+  
 
   const loginAction = async (data) => {
     try {
