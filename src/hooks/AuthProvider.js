@@ -1,46 +1,38 @@
 import { useContext, createContext, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { login, checkSession, logout } from '../services/apiService';
+import { login, checkSession, logout } from "../services/apiService";
 
 const AuthContext = createContext();
 
 const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true); // Loading state to indicate session check
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   // Check if the user is authenticated when the component mounts
-  const useCheckSession = (setUser) => {
-    const navigate = useNavigate();
-    const [loading, setLoading] = useState(true);
-  
-    useEffect(() => {
-      // Run session check only if user is not already set (i.e., not logged in yet)
-      if (!user) {
-        const fetchSession = async () => {
-          try {
-            const res = await checkSession();
-            if (res && res.user) {
-              setUser(res.user);
-            } else {
-              navigate("/login");
-            }
-          } catch (err) {
-            console.error("Session check failed", err);
-            navigate("/login");
-          } finally {
-            setLoading(false); // Set loading to false once session check is complete
-          }
-        };
-        fetchSession();
-      } else {
-        setLoading(false); // No session check needed if user is already set
+  useEffect(() => {
+    const fetchSession = async () => {
+      try {
+        const res = await checkSession();
+        if (res && res.user) {
+          setUser(res.user);
+        } else {
+          navigate("/login");
+        }
+      } catch (err) {
+        console.error("Session check failed", err);
+        navigate("/login");
+      } finally {
+        setLoading(false); // Set loading to false once session check is complete
       }
-    }, [user, navigate, setUser]);
-  
-    return loading;
-  };
-  
+    };
+
+    if (!user) {
+      fetchSession(); // Only fetch session if user is not set
+    } else {
+      setLoading(false); // If user is already set, no need to check session
+    }
+  }, [user, navigate]);
 
   const loginAction = async (data) => {
     try {
@@ -75,6 +67,4 @@ const AuthProvider = ({ children }) => {
 
 export default AuthProvider;
 
-export const useAuth = () => {
-  return useContext(AuthContext);
-};
+export const useAuth = () => useContext(AuthContext);
