@@ -15,38 +15,55 @@ const AuthProvider = ({ children }) => {
       try {
         const res = await checkSession();
         if (res && res.user) {
-          setUser(res.user);
+          setUser(res.user); // Set user if session is active
         } else {
-          navigate("/login");
+          navigate("/login"); // Redirect to login if no session
         }
       } catch (err) {
         console.error("Session check failed", err);
         navigate("/login");
       } finally {
-        setLoading(false); // Set loading to false once session check is complete
+        setLoading(false); // Stop loading spinner once session check is complete
       }
     };
 
-    if (!user) {
-      fetchSession(); // Only fetch session if user is not set
-    } else {
-      setLoading(false); // If user is already set, no need to check session
-    }
-  }, [user, navigate]);
+    fetchSession(); // Check session on app initialization
+  }, [navigate]);
 
   const loginAction = async (data) => {
+  try {
+    // Check if a session already exists
     try {
-      const res = await login(data.username, data.password);
-      if (res.user) {
-        setUser(res.user);
-        navigate("/");
-        return;
+      const sessionCheck = await checkSession();
+      if (sessionCheck && sessionCheck.user) {
+        setUser(sessionCheck.user); // User is already logged in
+        navigate("/"); // Redirect to dashboard
+        return; // Exit early since the user is already authenticated
       }
-      throw new Error(res.message || "Login failed. Please try again.");
-    } catch (err) {
-      console.error("Login Error:", err.message || err);
+    } catch (sessionError) {
+      // Handle session check failure (e.g., 403 Forbidden)
+      if (sessionError.response && sessionError.response.status === 403) {
+        console.warn("No active session found. Proceeding with login...");
+      } else {
+        console.error("Session check error:", sessionError);
+        throw sessionError; // Re-throw if it's an unexpected error
+      }
     }
-  };
+
+    // If no session exists, proceed with login
+    const res = await login(data.username, data.password);
+    if (res.user) {
+      setUser(res.user);
+      navigate("/"); // Redirect to dashboard
+      return;
+    }
+
+    throw new Error(res.message || "Login failed. Please try again.");
+  } catch (err) {
+    console.error("Login Error:", err.message || err);
+  }
+};
+
 
   const logOut = async () => {
     try {
@@ -60,7 +77,7 @@ const AuthProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider value={{ user, loginAction, logOut, loading }}>
-      {!loading && children} {/* Render children only when loading is false */}
+      {!loading && children} {/* Render children only when loading is complete */}
     </AuthContext.Provider>
   );
 };
