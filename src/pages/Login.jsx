@@ -7,11 +7,32 @@ import { FiEyeOff } from "react-icons/fi";
 import { useAuth } from "../hooks/AuthProvider"; // Use the AuthProvider
 import { useNavigate } from "react-router-dom";
 
+const LoadingSpinner = () => (
+  <div className="flex justify-center items-center h-screen">
+    <div className="loader"></div>
+    <style>{`
+      .loader {
+        border: 8px solid #f3f3f3;
+        border-top: 8px solid #2f3192;
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        animation: spin 1s linear infinite;
+      }
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+    `}</style>
+  </div>
+);
+
 const Login = () => {
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null); // For handling login errors
+  const [loading, setLoading] = useState(false); // Loading state
   const { user, loginAction } = useAuth(); // Get user and loginAction from AuthProvider
   const navigate = useNavigate();
 
@@ -29,6 +50,7 @@ const Login = () => {
   // Handle form submission
   const handleLogin = async (e) => {
     e.preventDefault();
+    setLoading(true); // Set loading to true
     try {
       const data = { username, password };
       await loginAction(data); // Use loginAction from AuthProvider
@@ -40,8 +62,15 @@ const Login = () => {
       } else {
         setError("An unexpected error occurred. Please try again later."); // General error message
       }
+    } finally {
+      setLoading(false); // Set loading to false
     }
   };
+
+  // Display the loading spinner when loading
+  if (loading) {
+    return <LoadingSpinner />;
+  }
 
   return (
     <div className="flex flex-col gap-10 justify-center items-center h-screen w-screen">
