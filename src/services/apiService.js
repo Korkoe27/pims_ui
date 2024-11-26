@@ -87,7 +87,7 @@ export const checkSession = async () => {
   console.log("checkSession function called"); // Log when the function is called
   try {
     const response = await apiClient.get("accounts/api/check-session/");
-    console.log("Session check response:", response.data); // Log the response data
+    // console.log("Session check response:", response.data); // Log the response data
     return response.data;  // Returns user data if session is valid
   } catch (error) {
     console.error("Session check failed:", error); // Log the error if the request fails
