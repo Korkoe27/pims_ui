@@ -54,7 +54,7 @@ const Sidebar = () => {
       </span>
       <span className='flex flex-col gap-1'>
         <h4 className="text-[#101928] text-center text-base font-semibold">{user?.first_name || "User"}</h4>
-        <p className="text-[#475367] text-center text-base font-normal">Optometrist</p>
+        <p className="text-[#475367] text-center text-base font-normal">{user?.role || "Guest"}</p>
       </span>
       <span className="">
           <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
