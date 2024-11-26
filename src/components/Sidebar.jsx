@@ -3,12 +3,15 @@ import Logo from './Logo';
 import { Link, NavLink } from 'react-router-dom';
 import { HiUser } from "react-icons/hi2";
 import { Sidebar_links } from '../extras/data.js';
+import { useAuth } from '../hooks/AuthProvider';
 
 
 
 
 const Sidebar = () => {
 
+
+  const { user, logOut } = useAuth();
 
   const activeLink = 'flex items-center gap-5 pl-4 pt-3 pb-2.5 rounded text-blue-900 font-bold text-md my-2 bg-[#e3effc]';
 
@@ -50,8 +53,8 @@ const Sidebar = () => {
       <HiUser />
       </span>
       <span className='flex flex-col gap-1'>
-        <h4 className="text-[#101928] text-base font-semibold">Korkoe Dumashie</h4>
-        <p className="text-[#475367] text-base font-normal">Student Developer</p>
+        <h4 className="text-[#101928] text-center text-base font-semibold">{user?.first_name || "User"}</h4>
+        <p className="text-[#475367] text-center text-base font-normal">Optometrist</p>
       </span>
       <span className="">
           <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
