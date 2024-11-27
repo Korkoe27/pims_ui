@@ -33,7 +33,7 @@ const Dashboard = () => {
         <div className='col-span-4'>
           <h2 className='text-2xl font-bold grid-'>
             Good {`${new Date().getHours() < 12 ? "Morning" : new Date().getHours() < 18 ? "Afternoon" : "Evening"}`}, 
-            <span>{user?.first_name || "User"}</span> 👋🏾 {/* Display user's first name */}
+            <span>{user?.first_name || "User"}</span> 👋🏾 
           </h2>
         </div>
         
