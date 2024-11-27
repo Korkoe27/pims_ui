@@ -38,7 +38,7 @@ apiClient.interceptors.response.use(
 // Login API
 export const login = async (username, password) => {
   try {
-    const response = await apiClient.post('accounts/api/login/', { username, password });
+    const response = await apiClient.post('auth/api/login/', { username, password });
     return response.data;
   } catch (error) {
     console.error("Login failed:", error);
@@ -54,7 +54,7 @@ export const logout = async () => {
     const csrfToken = Cookies.get('csrftoken');
 
     // Make the logout request and include the CSRF token in the headers
-    const response = await apiClient.post('accounts/api/logout/', {}, {
+    const response = await apiClient.post('auth/api/logout/', {}, {
       headers: {
         'X-CSRFToken': csrfToken,  // Ensure CSRF token is passed in headers
       },
@@ -86,7 +86,7 @@ export const getUserProfile = async () => {
 export const checkSession = async () => {
   console.log("checkSession function called"); // Log when the function is called
   try {
-    const response = await apiClient.get("accounts/api/check-session/");
+    const response = await apiClient.get("auth/api/check-session/");
     // console.log("Session check response:", response.data); // Log the response data
     return response.data;  // Returns user data if session is valid
   } catch (error) {
