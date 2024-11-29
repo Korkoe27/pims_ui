@@ -35,6 +35,9 @@ const proceedToInternals  = ()  =>  {
         <Header/>
       <ProgressBar />
       <NavMenu/>
+
+
+
     <form action="" className='flex gap-8 flex-col w-fit h-full py-4'>
 
       <button id='eyelids' className="flex p-4 justify-between w-[800px] 

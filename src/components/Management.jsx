@@ -1,11 +1,71 @@
-import React from 'react'
+import React, { useState } from 'react'
 import Header from './Header'
 import ProgressBar from './ProgressBar'
+import { useNavigate } from 'react-router-dom'
+import PatientModal from './SelectClinicModal'
 
 
 const Management = () => {
+
+    const [modal, setModal] = useState(false);
+    const navigate = useNavigate();
+    const [isModalOpen, setIsModalOpen] = useState(false);
+  
+    // Close modal function
+    const closeModal = () => setModal(false);
+
+    
+  const openModal = () => setIsModalOpen(true);
+
     return(
         <div className='ml-72 py-8 px-8 w-fit flex flex-col gap-12'>
+            
+     {isModalOpen && <PatientModal setIsModalOpen={setIsModalOpen} />}
+
+      {modal && (
+        <dialog
+          open
+          className='h-fit flex gap-4 w-fit justify-center p-6 rounded-lg border border-t-0 border-r-0 border-l-4 border-b-0 border-[#0F973D] m-auto'
+          onClick={(e) => {
+            // Close modal when clicking outside it
+            if (e.target === e.currentTarget) closeModal();
+          }}
+          onKeyDown={(e) => {
+            // Close modal on Escape key
+            if (e.key === 'Escape') closeModal();
+          }}
+        >
+          <span className='w-8 h-8 rounded-lg bg-green-300'></span>
+          <div className='flex flex-col items-start gap-2 pr-6 border border-l-0 border-r-1 border-b-0 border-t-0 border-r-gray-300'>
+            <h3 className='text-base font-bold'>Success!</h3>
+            <p className='text-base font-medium'>
+              You have finished attending to your patient
+            </p>
+            <div className='flex justify-between gap-4'>
+              <button
+                onClick={() => {
+                  closeModal();
+                  openModal();
+                }}
+                className='bg-[#0F973D] p-2 text-white rounded-lg'
+              >
+                Attend to next patient
+              </button>
+              <button
+                onClick={() => {
+                  closeModal();
+                  navigate('/');
+                }}
+                className='border-gray-600 border rounded-lg p-2'
+              >
+                Go to dashboard
+              </button>
+            </div>
+            
+          </div>
+          <span autoFocus  className='cursor-pointer text-xl font-semibold' >X</span>
+        </dialog>
+      )}
         <Header/>
         <ProgressBar />
         <form action="" className='flex flex-col gap-5 w-fit'>
@@ -152,7 +212,13 @@ const Management = () => {
             </section>
 
             </main>
-            <button className="w-24 h-14 mx-auto mr-0 p-4 rounded-lg bg-[#2f3192] text-white">Finish</button>
+            <button
+          type='button'
+          onClick={() => setModal(true)}
+          className='w-24 h-14 mx-auto mr-0 p-4 rounded-lg bg-[#2f3192] text-white'
+        >
+          Finish
+        </button>
         </form>
         
     </div>
