@@ -8,6 +8,7 @@ import NavMenu from './NavMenu'
 import { FaChevronDown, FaChevronUp } from "react-icons/fa";
 import { FaChartSimple, FaPen } from 'react-icons/fa6';
 import { GrAdd } from 'react-icons/gr';
+import { useNavigate } from 'react-router-dom';
 
 const Internals = () => {
 
@@ -18,6 +19,12 @@ const Internals = () => {
     ophthalmoscopy: false,
     macula: false,
     intraOcularPressure: false
+  }
+
+  const navigate  = useNavigate();
+
+  const proceedToRefraction = ()  =>{
+    navigate('/refraction');
   }
 
   const [dropdowns, setDropdowns] = useState(sectionNames);
@@ -821,7 +828,7 @@ const Internals = () => {
 
       </aside>
 )}
-      <button type="button" className='mx-auto mr-0 p-4 my-8 rounded-lg bg-[#2f3192] text-white'>Save and Proceed</button>
+      <button type="button" onClick={proceedToRefraction} className='mx-auto mr-0 p-4 my-8 rounded-lg bg-[#2f3192] text-white'>Save and Proceed</button>
       </form>
     </main>
   )

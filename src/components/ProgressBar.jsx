@@ -42,5 +42,5 @@ const ProgressBar = ({step}) => {
         </div>
   )
 }
-
+ 
 export default ProgressBar

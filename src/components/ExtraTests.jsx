@@ -3,6 +3,7 @@ import Header from './Header'
 import ProgressBar from './ProgressBar'
 import NavMenu from './NavMenu'
 import ExtraTestsButtons from './ExtraTestsButtons'
+import { useNavigate } from 'react-router-dom'
 
 
 const ExtraTests = () => {
@@ -10,7 +11,10 @@ const ExtraTests = () => {
 
   const [name, setName] = useState(null);
 
-
+  const navigate = useNavigate();
+  const proceedToDiagnosis  = ()  =>{
+    navigate('/diagnosis');
+  }
 
     return (
         <div className='ml-72 my-8 px-8 flex flex-col gap-12'>
@@ -44,7 +48,7 @@ const ExtraTests = () => {
               <ExtraTestsButtons name={'gonioscopy'} title={'Gonioscopy'} />
               <ExtraTestsButtons name={'oct_a'} title={'OCT-A'}/>
             </section>
-            <button className="w-56 h-14 p-4 rounded-lg bg-[#2f3192] text-white ">Proceed to Diagnosis</button>
+            <button className="w-56 h-14 p-4 rounded-lg bg-[#2f3192] text-white " onClick={proceedToDiagnosis}>Proceed to Diagnosis</button>
           </form>
 
 

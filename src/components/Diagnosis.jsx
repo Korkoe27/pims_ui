@@ -2,8 +2,14 @@ import React from 'react'
 import Header from './Header'
 import ProgressBar from './ProgressBar'
 import Inputs from './Inputs'
+import { useNavigate } from 'react-router-dom'
 
 const Diagnosis = () => {
+
+  const navigate = useNavigate();
+  const proceedtoManagement = ()  =>  {
+   navigate("/management") ;
+  }
   return (
     <main className='ml-72 my-8 px-8 w-fit flex flex-col gap-12'>
                     <Header/>
@@ -28,7 +34,7 @@ const Diagnosis = () => {
                             OS: +1.00/-1.25x180' 
                     className='w-[375px] h-48 border rounded-lg border-[#d0d5dd] p-4' id=""></textarea>
         </div>
-        <button type='button' className="bg-[#2f3192] mx-auto mr-0 text-white p-4 w-fit rounded-lg h-14">Proceed to Management</button>
+        <button type='button' onClick={proceedtoManagement} className="bg-[#2f3192] mx-auto mr-0 text-white p-4 w-fit rounded-lg h-14">Proceed to Management</button>
     </form>
     </main>
 

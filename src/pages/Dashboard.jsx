@@ -33,7 +33,7 @@ const Dashboard = () => {
         <div className='col-span-4'>
           <h2 className='text-2xl font-bold grid-'>
             Good {`${new Date().getHours() < 12 ? "Morning" : new Date().getHours() < 18 ? "Afternoon" : "Evening"}`}, 
-            <span>{user?.first_name || "User"}</span> 👋🏾 
+            <span>{user?.first_name  || "User"}</span> 👋🏾 
           </h2>
         </div>
         
@@ -65,14 +65,14 @@ const Dashboard = () => {
             />
           </div>
           {/* Dropdown for Logout */}
-          {/* {isDropdownOpen && (
+          {isDropdownOpen && (
             <div className="absolute right-0 top-14 bg-white border rounded-lg p-2 shadow-lg">
               <button className="block px-4 py-2 text-gray-700 hover:bg-gray-200 w-full text-left" 
                 onClick={logOut}>
                 Logout
               </button>
             </div>
-          )} */}
+          )}
         </div>
       </div>
 

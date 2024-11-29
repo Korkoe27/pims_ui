@@ -3,9 +3,15 @@ import ProgressBar from './ProgressBar'
 import Header from './Header'
 import NavMenu from './NavMenu'
 import { GrAdd } from 'react-icons/gr';
+import { useNavigate } from 'react-router-dom';
 
 const Refraction = () => {
 
+
+    const navigate =    useNavigate();
+    const   proceedToExtraTest  =   ()  =>{
+        navigate('/extra-tests');
+    }
 
 const [view, setDiv] = useState(false);
 const [phoria, displayPhoria] = useState(false);
@@ -232,7 +238,7 @@ const closePhoria = () =>{
             </div>
         </aside>
 
-        <button className="text-white bg-[#2f3192] w-48 h-14 p-4 rounded-lg" type='button'>Save and proceed</button>
+        <button className="text-white bg-[#2f3192] w-48 h-14 p-4 rounded-lg" type='button' onClick={proceedToExtraTest}>Save and proceed</button>
 
 
     </form>
