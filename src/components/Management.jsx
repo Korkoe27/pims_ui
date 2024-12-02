@@ -2,6 +2,8 @@ import React, { useState } from 'react'
 import Header from './Header'
 import ProgressBar from './ProgressBar'
 import { useNavigate } from 'react-router-dom'
+import { IoClose } from "react-icons/io5";
+import { IoIosCheckmarkCircle } from "react-icons/io";
 import PatientModal from './SelectClinicModal'
 
 
@@ -14,6 +16,7 @@ const Management = () => {
     // Close modal function
     const closeModal = () => setModal(false);
 
+
     
   const openModal = () => setIsModalOpen(true);
 
@@ -22,50 +25,59 @@ const Management = () => {
             
      {isModalOpen && <PatientModal setIsModalOpen={setIsModalOpen} />}
 
-      {modal && (
-        <dialog
-          open
-          className='h-fit flex gap-4 w-fit justify-center p-6 rounded-lg border border-t-0 border-r-0 border-l-4 border-b-0 border-[#0F973D] m-auto'
-          onClick={(e) => {
-            // Close modal when clicking outside it
-            if (e.target === e.currentTarget) closeModal();
-          }}
-          onKeyDown={(e) => {
-            // Close modal on Escape key
-            if (e.key === 'Escape') closeModal();
-          }}
-        >
-          <span className='w-8 h-8 rounded-lg bg-green-300'></span>
-          <div className='flex flex-col items-start gap-2 pr-6 border border-l-0 border-r-1 border-b-0 border-t-0 border-r-gray-300'>
-            <h3 className='text-base font-bold'>Success!</h3>
-            <p className='text-base font-medium'>
-              You have finished attending to your patient
-            </p>
-            <div className='flex justify-between gap-4'>
-              <button
-                onClick={() => {
-                  closeModal();
-                  openModal();
-                }}
-                className='bg-[#0F973D] p-2 text-white rounded-lg'
-              >
-                Attend to next patient
-              </button>
-              <button
-                onClick={() => {
-                  closeModal();
-                  navigate('/');
-                }}
-                className='border-gray-600 border rounded-lg p-2'
-              >
-                Go to dashboard
-              </button>
-            </div>
-            
+     {modal && (
+  <div
+    role="dialog"
+    aria-modal="true"
+    className="fixed inset-0 flex items-start justify-center bg-black bg-opacity-15 backdrop-blur-sm"
+    onClick={(e) => {
+      // Close modal when clicking outside it
+      if (e.target === e.currentTarget) closeModal();
+    }}
+  >
+    <div className="relative mt-20 bg-white p-6 rounded-lg border border-t-0 border-r-0 border-l-4 border-b-0 border-[#0F973D] w-fit">
+      <button
+        className="absolute top-4 right-3 text-xl font-semibold cursor-pointer"
+        onClick={closeModal}
+        aria-label="Close"
+      >
+        <IoClose size={20}/>
+      </button>
+      <div className="flex items-start gap-6 pr-8">
+        <span className="w-10 h-10 rounded-lg justify-center items-center p-1.5 bg-green-100">
+          <IoIosCheckmarkCircle size={20} color='green' />
+        </span>
+        <div className="flex flex-col items-start gap-2 pr-6 border border-l-0 border-r border-b-0 border-t-0 border-gray-300">
+          <h3 className="text-base font-bold">Success!</h3>
+          <p className="text-base font-medium">
+            You have finished attending to your patient
+          </p>
+          <div className="flex justify-between gap-4 mt-4">
+            <button
+              onClick={() => {
+                closeModal();
+                openModal();
+              }}
+              className="bg-[#0F973D] text-white px-4 py-2 rounded-lg"
+            >
+              Attend to next patient
+            </button>
+            <button
+              onClick={() => {
+                closeModal();
+                navigate('/');
+              }}
+              className="border border-gray-600 px-4 py-2 rounded-lg"
+            >
+              Go to dashboard
+            </button>
           </div>
-          <span autoFocus  className='cursor-pointer text-xl font-semibold' >X</span>
-        </dialog>
-      )}
+        </div>
+      </div>
+    </div>
+  </div>
+)}
+
         <Header/>
         <ProgressBar />
         <form action="" className='flex flex-col gap-5 w-fit'>

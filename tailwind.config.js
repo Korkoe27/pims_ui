@@ -23,7 +23,10 @@ module.exports = {
 //     themes: false,
 //  },
 
-  // plugins: [
-  //   require('daisyui'),
-  // ],
+  plugins: [
+    // require('@tailwindcss/forms'),
+    // require('@tailwindcss/line-clamp'), // If you want more utilities
+    // require('@tailwindcss/typography'),
+    // require('tailwindcss-filters'),
+  ],
 }
