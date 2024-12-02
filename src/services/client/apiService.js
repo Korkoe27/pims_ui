@@ -1,10 +1,11 @@
 import axios from 'axios';
 import Cookies from 'js-cookie'; // Import js-cookie to handle cookies
+import { baseURL } from './baseurl';
 
 // Set up a base URL for your API
 const apiClient = axios.create({
   // baseURL: 'http://localhost:8000/', // Local 
-  baseURL: 'https://optometryclinic-production.up.railway.app/', // Production 
+  baseURL: baseURL, // Production 
   headers: {
     'Content-Type': 'application/json',
   },

@@ -4,6 +4,7 @@ import { Link, NavLink } from 'react-router-dom';
 import { HiUser } from "react-icons/hi2";
 import { Sidebar_links } from '../extras/data.js';
 import { useAuth } from '../hooks/AuthProvider';
+import { useAppointments } from '../services/queries/appointments-query';
 
 
 
@@ -12,6 +13,9 @@ const Sidebar = () => {
 
 
   const { user, logOut } = useAuth();
+
+  
+  const {data}  = useAppointments();
 
   const activeLink = 'flex items-center gap-5 pl-4 pt-3 pb-2.5 rounded text-blue-900 font-bold text-md my-2 bg-[#e3effc]';
 
@@ -39,7 +43,7 @@ const Sidebar = () => {
             <span className='capitalize'>
               {item.name}
             </span>
-            <span className={`${item.name !== "appointments" ? "hidden" : "flex bg-[#f0f2f5] w-[2rem] h-[1.5rem] justify-center items-center rounded-full font-medium text-[#344054] text-[0.75rem] relative top-0 right-0 transform translate-x-[100%]"}`}>9</span>
+            <span className={`${item.name !== "appointments" ? "hidden" : "flex bg-[#f0f2f5] w-[2rem] h-[1.5rem] justify-center items-center rounded-full font-medium text-[#344054] text-[0.75rem] relative top-0 right-0 transform translate-x-[100%]"}`}>{data?.data?.length}</span>
 
           </NavLink>
         ))} 

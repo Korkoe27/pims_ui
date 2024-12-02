@@ -10,10 +10,20 @@ import PatientModal from "../components/SelectClinicModal";
 import SearchModalUnfilled from '../components/SearchModalUnfilled';
 import { useAuth } from '../hooks/AuthProvider'; // Use the AuthProvider
 
+import { useAppointments } from '../services/queries/appointments-query';
+
 const Dashboard = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false); // Track dropdown state
   const { user, logOut } = useAuth(); // Access the authenticated user and logOut
+
+
+
+  const {data}  = useAppointments();
+
+
+
+
 
   const openModal = () => setIsModalOpen(true);
 
@@ -40,7 +50,7 @@ const Dashboard = () => {
         <div className='flex items-center justify-end gap-5 h-14 col-span-7 w-90 border-[#d0d5dd]'>
           <div className='flex bg-white items-center text-left gap-0 w-2/3 px-2 border rounded-md'>
             <CiSearch title='Search' className='h-5 bg-white cursor-pointer'/>
-            <input type="search" name="search" placeholder='Search' className='p-4 focus:outline-none' 
+            <input type="search" name="search" readOnly placeholder='Search' className='p-4 focus:outline-none' 
               onClick={openSearchModal}
             />
           </div>
@@ -82,7 +92,7 @@ const Dashboard = () => {
             <LuUsers2 className='w-6 h-6'/>
             Today's Appointments
           </h3>
-          <span className='text-[50px] font-bold text-[#2f3192]'>9</span>
+          <span className='text-[50px] font-bold text-[#2f3192]'>{data?.data?.length}</span>
         </div>
         <div className='bg-[#fbeae9] p-4 h-36 w-full col-span-4'>
           <h3 className='flex items-center text-base gap-[12px] font-normal'>
