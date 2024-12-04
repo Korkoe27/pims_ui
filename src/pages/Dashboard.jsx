@@ -8,7 +8,7 @@ import { FaChevronDown } from "react-icons/fa6";
 import { Link } from 'react-router-dom';
 import PatientModal from "../components/SelectClinicModal";
 import SearchModalUnfilled from '../components/SearchModalUnfilled';
-import { useAuth } from '../hooks/AuthProvider'; // Use the AuthProvider
+import { useAuth } from '../hooks/AuthProvider';
 
 import { useAppointments } from '../services/queries/appointments-query';
 
@@ -19,7 +19,26 @@ const Dashboard = () => {
 
 
 
-  const {data}  = useAppointments();
+  const {data:appointments}  = useAppointments();
+
+
+
+
+  // const dates = appointmentsDetails.filter((date)=> date?.appointment_date == today);
+
+ 
+  // const date  
+  // const upcomingDates = appointmentsDetails.filter((date)=> date?.appointment_date > today);
+
+
+  // const todaysAppointments  = appointmentsDetails?.filter((appointment)=>appointment?.appointment_date  === today);
+  // console.log(todaysAppointments);
+
+
+
+
+  // const handleLogout  = async (e) =>  {
+  // }
 
 
 
@@ -77,10 +96,14 @@ const Dashboard = () => {
           {/* Dropdown for Logout */}
           {isDropdownOpen && (
             <div className="absolute right-0 top-14 bg-white border rounded-lg p-2 shadow-lg">
-              <button className="block px-4 py-2 text-gray-700 hover:bg-gray-200 w-full text-left" 
-                onClick={logOut}>
+              <form action="" 
+              // onSubmit={handleLogout}
+              >
+                <button className="block px-4 py-2 text-gray-700 hover:bg-gray-200 w-full text-left" type='submit'>
                 Logout
               </button>
+              </form>
+              
             </div>
           )}
         </div>
@@ -92,21 +115,25 @@ const Dashboard = () => {
             <LuUsers2 className='w-6 h-6'/>
             Today's Appointments
           </h3>
-          <span className='text-[50px] font-bold text-[#2f3192]'>{data?.data?.length}</span>
+          <span className='text-[50px] font-bold text-[#2f3192]'>{appointments?.data?.today_appointments?.count}</span>
         </div>
         <div className='bg-[#fbeae9] p-4 h-36 w-full col-span-4'>
           <h3 className='flex items-center text-base gap-[12px] font-normal'>
             <LuClock3 className='w-6 h-6'/>
             Pending Appointments
           </h3>
-          <span className='text-[50px] font-bold text-[#d42620]'>5</span>
+          <span className='text-[50px] font-bold text-[#d42620]'>
+            {appointments?.data?.pending_appointments}
+          </span>
         </div>
         <div className='bg-[#e7f6ec] p-4 h-36 w-full flex flex-col col-span-4'>
           <h3 className='flex items-center text-base gap-[12px] font-normal'>
             <FiUserCheck className='w-6 h-6'/>
             Completed Appointments
           </h3>
-          <span className='text-[50px] font-bold text-[#0f973d]'>4</span>
+          <span className='text-[50px] font-bold text-[#0f973d]'>
+            {appointments?.data?.completed_appointments}
+          </span>
         </div>
       </div>
 
