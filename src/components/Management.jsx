@@ -45,7 +45,7 @@ const Management = () => {
       </button>
       <div className="flex items-start gap-6 pr-8">
         <span className="w-10 h-10 rounded-lg justify-center items-center p-1.5 bg-green-100">
-          <IoIosCheckmarkCircle size={20} color='green' />
+          <IoIosCheckmarkCircle size={20} color='#0f973d' />
         </span>
         <div className="flex flex-col items-start gap-2 pr-6 border border-l-0 border-r border-b-0 border-t-0 border-gray-300">
           <h3 className="text-base font-bold">Success!</h3>

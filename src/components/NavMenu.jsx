@@ -1,6 +1,7 @@
 import React from 'react'
 import { Consultation_nav } from '../extras/data'
-import { NavLink } from 'react-router-dom'
+import { NavLink } from 'react-router-dom';
+import { IoIosCheckmarkCircle } from "react-icons/io";
 
 const NavMenu = () => {
 
@@ -8,14 +9,17 @@ const NavMenu = () => {
 
   const normalLink = 'text-base text-black font-normal';
   return (
-    <div className='flex ml- items-center gap-16 p-0'>
-      
+    <div className='flex items-center gap-16'>
+
+
         {Consultation_nav.map((item)=>(
           <NavLink
             to={item.link}
             key={item.name}
             onClick={()=>{}}
             className={({isActive}) => isActive ? activeLink : normalLink}>
+              <span className='flex justify-center'>
+              <IoIosCheckmarkCircle size={20} color='#0f973d' /></span>
               <span className='capitalize'>{item.name}</span>
           </NavLink>
         ))}
