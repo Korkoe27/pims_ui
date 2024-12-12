@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+// import React, {useState, useEffect} from 'react';
 import ProgressBar from './ProgressBar';
 import NavMenu from './NavMenu';
 import Header from './Header';
@@ -11,6 +11,37 @@ import { useNavigate } from 'react-router-dom';
 
 
   const CaseHistory = () => {
+
+
+
+
+
+
+
+    // const [formData,  setFormData]  = useState({
+    //   selectedOptions:  "",
+    //   cheifComplaint:  "",
+    //   itching:  "",
+    //   tearing:  "",
+    //   doubleVision:  "",
+    //   discharge:  "",
+    //   patientDrugHistory:  "",
+    //   selectedOptions:  "",
+    // })
+
+
+
+    // const handleChange  = (e) =>  {
+    //   const {name,  value} =  e.target;
+    //   setFormData({
+    //     ...formData,
+    //     [name]:value
+    //   });
+ 
+    //   console.log(formData);
+    // }
+
+
 
     const navigate = useNavigate();
     const checkVisualAcuity = () => {
@@ -32,7 +63,7 @@ import { useNavigate } from 'react-router-dom';
 
           <div className='flex flex-col'>
               <h1 className='text-base font-medium text-black'>Cheif Complaint <span className='text-[#ff0000]'>*</span></h1>
-              <textarea name="cheifComplaint" placeholder='Type in the patient’s chief complaint' className='p-4 border border-[#d0d5dd] rounded-md w-96 h-48' id=""></textarea>
+              <textarea name="cheifComplaint" placeholder='Type in the patient’s chief complaint' className='p-4 border border-[#d0d5dd] resize-none rounded-md w-96 h-48'  id=""></textarea>
           </div>
 
           <>
@@ -118,7 +149,7 @@ import { useNavigate } from 'react-router-dom';
           </>
 
           <>
-          <Inputs type={'text'} label={"Parent's Drug History"} placeholder={"Add another Drug"}/>
+          <Inputs type={'text'} label={"Parent's Drug History"} name={"patientDrugHistory"} placeholder={"Add another Drug"}/>
           <CallToActionButtons displayButton='hidden' button1={'Add another drug'} button2={'Add a note'}/>
           </>
           <>
@@ -134,7 +165,7 @@ import { useNavigate } from 'react-router-dom';
         </aside>
       </section>
       <div className='flex gap-8 justify-evenly my-16'>
-          <button type="submit" className='w-56 p-4 rounded-lg text-[#2f3192] border border-[#2f3192]'>Back</button>
+          <button type="button" className='w-56 p-4 rounded-lg text-[#2f3192] border border-[#2f3192]'>Back</button>
           <button type="submit" onClick={checkVisualAcuity} className='w-56 p-4 rounded-lg text-white bg-[#2f3192]'>Save and proceed</button>
         </div>
 </form>

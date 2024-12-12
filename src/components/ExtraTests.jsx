@@ -9,7 +9,7 @@ import { useNavigate } from 'react-router-dom'
 const ExtraTests = () => {
 
 
-  const [name, setName] = useState(null);
+  const [isModalOpen, setModalOpen] = useState(false);
 
   const navigate = useNavigate();
   const proceedToDiagnosis  = ()  =>{

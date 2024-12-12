@@ -5,7 +5,7 @@ export default function Radios({label,name}){
             <label htmlFor="" className="font-medium text-[14px] text-[#101928]">{label}</label>
             <div className="flex gap-4">
                <label htmlFor="" className="flex gap-2">
-                <input type="radio" name={name} className="" id="" />
+                <input type="radio" name={name} className="" id="" required />
                 Yes
             </label>
             <label htmlFor="" className="flex gap-2">
