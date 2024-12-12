@@ -11,6 +11,7 @@ import SearchModalUnfilled from '../components/SearchModalUnfilled';
 import { useAuth } from '../hooks/AuthProvider';
 
 import { useAppointments } from '../services/queries/appointments-query';
+import LoadingSpinner from "../components/LoadingSpinner";
 
 const Dashboard = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -19,7 +20,7 @@ const Dashboard = () => {
 
 
 
-  const {data:appointments}  = useAppointments();
+  const {data:appointments, isLoading}  = useAppointments();
 
 
 
@@ -115,6 +116,10 @@ const Dashboard = () => {
             <LuUsers2 className='w-6 h-6'/>
             Today's Appointments
           </h3>
+
+          {
+            isLoading &&  <LoadingSpinner />
+          }
           <span className='text-[50px] font-bold text-[#2f3192]'>{appointments?.data?.today_appointments?.count}</span>
         </div>
         <div className='bg-[#fbeae9] p-4 h-36 w-full col-span-4'>
@@ -122,6 +127,10 @@ const Dashboard = () => {
             <LuClock3 className='w-6 h-6'/>
             Pending Appointments
           </h3>
+
+          {
+            isLoading &&  <LoadingSpinner />
+          }
           <span className='text-[50px] font-bold text-[#d42620]'>
             {appointments?.data?.pending_appointments}
           </span>
@@ -131,6 +140,10 @@ const Dashboard = () => {
             <FiUserCheck className='w-6 h-6'/>
             Completed Appointments
           </h3>
+
+          {
+            isLoading &&  <LoadingSpinner />
+          }
           <span className='text-[50px] font-bold text-[#0f973d]'>
             {appointments?.data?.completed_appointments}
           </span>

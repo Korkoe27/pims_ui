@@ -1,51 +1,51 @@
-import React from "react";
-import { useShowPatients } from "../services/queries/patients-query";
-import LoadingSpinner from "../components/LoadingSpinner";
-// import { useAuth } from '../hooks/AuthProvider';
+import React from 'react';
+import LoadingSpinner from '../components/LoadingSpinner';
+import { useAppointments } from '../services/queries/appointments-query';
 
-const Patients = () => {
-  const { data: patients, isLoading } = useShowPatients();
+const Appointments = () => {
+  const { data: appointments, isLoading } = useAppointments();
 
+  console.log(JSON.stringify(appointments, null, 3));
   const isTable = true;
   // console.log(JSON.stringify(patients?.data?.results,null,3));
   return (
     <div className="px-8 ml-72 flex flex-col mt-8 gap-8 bg-[#f9fafb] w-full shadow-md sm:rounded-lg">
       <h1 className="font-extrabold text-xl">My Patients</h1>
       {isLoading && <LoadingSpinner isTable={isTable} />}
-     {patients && patients?.data && 
+     {appointments && appointments?.data?.data && 
       <table className="w-full text-base text-left rtl:text-right text-gray-500 ">
         <thead className="text-base text-gray-700 uppercase bg-gray-50 ">
           <tr>
             <th scope="col" className="px-6 py-3">
-              Patient ID
+              Appointment Date
             </th>
-            <th scope="col" className="px-6 py-3">
+            {/* <th scope="col" className="px-6 py-3">
               Name
+            </th> */}
+            <th scope="col" className="px-6 py-3">
+              Appointment Type
             </th>
             <th scope="col" className="px-6 py-3">
-              Clinic
-            </th>
-            <th scope="col" className="px-6 py-3">
-              Phone Number
+              Appointment Status
             </th>
             <th scope="col" className="px-3 min-w-40 py-3"></th>
           </tr>
         </thead>
         <tbody>
-         {patients?.data?.results.map((patient) => 
+         {appointments?.data?.data?.map((appointment) => 
         
-        <tr key={patient.id} className="bg-white border-b ">
+        <tr key={appointment?.id} className="bg-white border-b ">
         <th scope="row" className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
-            {patient?.patient_id}
+            {appointment?.appointment_date}
         </th>
+        {/* <td className="px-6 py-4">
+            {appointment?.first_name}
+        </td> */}
         <td className="px-6 py-4">
-            {patient?.first_name} {patient?.last_name}
+            {appointment?.appointment_type}
         </td>
         <td className="px-6 py-4">
-            {patient?.clinic}
-        </td>
-        <td className="px-6 py-4">
-            {patient?.primary_phone}
+            {appointment?.status}
         </td>
         <td className="px-6 py-4 flex gap-10">
             <button className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 focus:outline-none dark:focus:ring-blue-800">View</button>
@@ -62,4 +62,4 @@ const Patients = () => {
   );
 };
 
-export default Patients;
+export default Appointments
