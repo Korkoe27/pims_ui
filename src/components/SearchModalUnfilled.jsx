@@ -4,6 +4,7 @@ import { LuUsers2 } from "react-icons/lu";
 import { LuPencil } from "react-icons/lu";
 import { IoClose } from "react-icons/io5";
 import { IoCalendarClearOutline } from "react-icons/io5";
+import { Form } from 'react-router-dom';
 
 const SearchModalUnfilled = ({setSearchModalVisibility}) => {
 
@@ -52,7 +53,7 @@ const SearchModalUnfilled = ({setSearchModalVisibility}) => {
 
 
   return (
-    <div 
+    <Form 
     className='fixed inset-0 bg-black bg-opacity-50 backdrop-blur-[2px] '
     >
         <dialog ref={specificElementRef} className=
@@ -112,7 +113,7 @@ const SearchModalUnfilled = ({setSearchModalVisibility}) => {
         </dialog>
 
 
-    </div>
+    </Form>
   )
 }
 
