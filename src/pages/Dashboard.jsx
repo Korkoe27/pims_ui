@@ -57,6 +57,7 @@ const Dashboard = () => {
   return (
     <div className="px-8 ml-72 flex flex-col mt-4 gap-8 bg-[#f9fafb] w-full">
      {isModalOpen && <PatientModal setIsModalOpen={setIsModalOpen} />}
+     
      {isSearchModalVisible && <SearchModalUnfilled setSearchModalVisibility={setSearchModalVisibility}/>}
 
       <div className="dashboard_header grid items-center grid-cols-12 h-[10%]">
@@ -100,7 +101,7 @@ const Dashboard = () => {
               <form action="" 
               // onSubmit={handleLogout}
               >
-                <button className="block px-4 py-2 text-gray-700 hover:bg-gray-200 w-full text-left" type='submit'>
+                <button className="block px-4 py-2 text-gray-700 hover:bg-gray-200 w-full text-left" type="submit">
                 Logout
               </button>
               </form>
