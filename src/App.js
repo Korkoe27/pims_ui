@@ -1,7 +1,7 @@
 import React from 'react';
 import './App.css';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { CaseHistory, PersonalInfo, VisualAcuity, Internals, Externals, Refraction, ExtraTests, Diagnosis, Management } from './components';
+import { CaseHistory, PersonalInfo, VisualAcuity, Internals, Externals, Refraction, ExtraTests, Diagnosis, Management, CreateAppointment } from './components';
 import { Dashboard, Appointments, Dispensary, Inventory, Patients, Login } from './pages';
 import Layout from './pages/Layout';
 import AuthProvider from './hooks/AuthProvider';
@@ -31,6 +31,7 @@ const App = () => {
               <Route path='/extra-tests' element={<ExtraTests />} />
               <Route path='/diagnosis' element={<Diagnosis />} />
               <Route path='/management' element={<Management />} />
+              <Route path='/createAppointment' element={<CreateAppointment />} />
             </Route>
           </Routes>
         </AuthProvider>

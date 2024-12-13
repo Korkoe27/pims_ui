@@ -11,6 +11,7 @@ export {default as Refraction} from './Refraction';
 export {default as ExtraTests} from './ExtraTests';
 export {default as Diagnosis} from './Diagnosis';
 export {default as Management} from './Management';
+export {default as CreateAppointment} from './CreateAppointment';
 
 
 
