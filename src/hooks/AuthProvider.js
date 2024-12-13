@@ -14,6 +14,7 @@ const AuthProvider = ({ children }) => {
     const fetchSession = async () => {
       try {
         const res = await checkSession();
+        console.log("Session Response:", res); // Check the response
         if (res && res.user) {
           setUser(res.user); // Set user if session is active
         } else {
