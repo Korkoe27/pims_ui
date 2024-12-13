@@ -12,7 +12,7 @@ export const Sidebar_links = [
         path: '/',
     },
     {
-        name: 'my patients',
+        name: 'patients',
         icon: <LuUsers2 className='text-xl font-bold'/>,
         path: '/my-patients',
     },
