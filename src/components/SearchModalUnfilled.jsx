@@ -53,7 +53,7 @@ const SearchModalUnfilled = ({setSearchModalVisibility}) => {
 
 
   return (
-    <Form 
+    <div 
     className='fixed inset-0 bg-black bg-opacity-50 backdrop-blur-[2px] '
     >
         <dialog ref={specificElementRef} className=
@@ -113,7 +113,7 @@ const SearchModalUnfilled = ({setSearchModalVisibility}) => {
         </dialog>
 
 
-    </Form>
+    </div>
   )
 }
 

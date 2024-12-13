@@ -3,7 +3,7 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import { useAppointments } from '../services/queries/appointments-query';
 
 const Appointments = () => {
-  const { data: appointments, isLoading } = useAppointments();
+  const { data:appointments, isLoading } = useAppointments();
 
   // console.log(JSON.stringify(appointments, null, 3));
   const isTable = true;
@@ -12,7 +12,7 @@ const Appointments = () => {
     <div className="px-8 ml-72 flex flex-col mt-8 gap-8 bg-[#f9fafb] w-full shadow-md sm:rounded-lg">
       <h1 className="font-extrabold text-xl">Today's Appointments</h1>
       {isLoading && <LoadingSpinner isTable={isTable} />}
-     {appointments && appointments?.today_appointments?.data && 
+     {appointments && appointments?.today_appointments && 
       <table className="w-full text-base text-left rtl:text-right text-gray-500 ">
         <thead className="text-base text-gray-700 uppercase bg-gray-50 ">
           <tr>
