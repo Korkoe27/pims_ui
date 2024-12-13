@@ -6,6 +6,8 @@ export  const   useAppointments =   ()  =>  {
 
     return result;
 }
+
+
 // export  const   useAllAppointments =   ()  =>  {
 //     const   result  =   useQuery({queryKey:['appointments'],queryFn:()=>    handleAppointments()});
 

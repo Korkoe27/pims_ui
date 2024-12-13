@@ -6,3 +6,8 @@ export const    handleAppointments  =   async   ()  =>   {
     const   url = `${baseURL}${getDashboardStat}`;
     return  await apiClient(url,  {method:    'GET'});
 }
+
+export const    createAppointments  =   async   ()  =>   {
+    const   url = `${baseURL}${getDashboardStat}`;
+    return  await apiClient(url,  {method:    'GET'});
+}

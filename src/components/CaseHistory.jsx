@@ -12,12 +12,6 @@ import { useNavigate } from 'react-router-dom';
 
   const CaseHistory = () => {
 
-
-
-
-
-
-
     // const [formData,  setFormData]  = useState({
     //   selectedOptions:  "",
     //   cheifComplaint:  "",
