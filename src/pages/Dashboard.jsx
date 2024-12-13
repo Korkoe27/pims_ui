@@ -101,7 +101,7 @@ const Dashboard = () => {
               <form action="" 
               // onSubmit={handleLogout}
               >
-                <button className="block px-4 py-2 text-gray-700 hover:bg-gray-200 w-full text-left" type='submit'>
+                <button className="block px-4 py-2 text-gray-700 hover:bg-gray-200 w-full text-left" type="submit">
                 Logout
               </button>
               </form>
