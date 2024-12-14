@@ -5,12 +5,14 @@ import Header from './Header';
 import Radios from './Radios';
 import CallToActionButtons from './CallToActionButtons';
 import Inputs from './Inputs';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import axios from 'axios';
 
 const CaseHistory = ({  }) => {
 
   const { appointmentId } = useParams(); // Retrieve appointmentId from URL
+  const location = useLocation(); // Access state passed with navigate
+  const { patientId } = location.state || {}; // Extract patientId from state
 
   const [formData, setFormData] = useState({
     chiefComplaint: "",
@@ -109,7 +111,7 @@ const CaseHistory = ({  }) => {
 
   return (
     <div className="ml-72 my-8 gap-12 flex items flex-col px-8 h-fit w-fit">
-      <Header />
+      <Header patientId={patientId}/>
       <ProgressBar />
       <NavMenu />
       <form onSubmit={handleSubmit} className=""> 

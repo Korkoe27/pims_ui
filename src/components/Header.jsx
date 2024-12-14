@@ -1,19 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import LoadingSpinner from './LoadingSpinner';
 
 const Header = ({ patientId }) => {
   const [patientDetails, setPatientDetails] = useState(null);
 
   useEffect(() => {
-    // TODO: Move API handling logic to a separate service file for better code organization
-
     const fetchPatientDetails = async () => {
       try {
-        const response = await axios.get(`/clients/api/patients/${patientId}`);
-        setPatientDetails(response.data);
+        console.log("Fetching details for Patient ID:", patientId);
+
+        // Call the `getPatientDetails` function with dynamic URL
+        // const response = await getPatientDetails;
+        // console.log("API Response:", response.data); // Log the full API response
+
+        // setPatientDetails(response.data);
       } catch (error) {
-        console.error("Error fetching patient details:", error);
+        console.error("Error fetching patient details:", error.response || error.message);
       }
     };
 
@@ -24,10 +26,11 @@ const Header = ({ patientId }) => {
 
   return (
     <div>
+      <h1>Patient ID: {patientId}</h1>
       {patientDetails ? (
         <>
-          <h1 className="text-base font-normal">{patientDetails.name}</h1>
-          <h1 className="text-2xl font-semibold">{patientDetails.id}</h1>
+          <h1 className="text-base font-normal">Name: {patientDetails.name}</h1>
+          <h1 className="text-2xl font-semibold">ID: {patientDetails.id}</h1>
         </>
       ) : (
         <LoadingSpinner />

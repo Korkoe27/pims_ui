@@ -10,9 +10,10 @@ const Appointments = () => {
   const navigate = useNavigate();
 
   // Navigates to the consultation page with appointmentId
-  const handleConsult = (appointmentId) => {
-    console.log("Appointment ID:", appointmentId); // Log the appointment ID to verify
-    navigate(`/case-history/${appointmentId}`); // Redirect to CaseHistory with appointment ID
+  const handleConsult = (appointmentId, patientId) => {
+    console.log("Appointment ID:", appointmentId);
+    console.log("Patient ID:", patientId);
+    navigate(`/case-history/${appointmentId}`); // Pass patientId in state
   };
 
 
