@@ -45,6 +45,9 @@ const CaseHistory = ({  }) => {
 
     // Fetch existing case history by appointment ID
     const fetchCaseHistory = async () => {
+
+      // TODO: Move API handling logic to a separate service file for better code organization
+      
       try {
         const response = await axios.get(`/tests/api/case-history/appointment/${appointmentId}`);
         if (response.data) {
