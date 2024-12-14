@@ -133,7 +133,7 @@ const CaseHistory = ({  }) => {
                       <Radios label={"Photophobia"} name={"photobia"}/>
         
                     </div>
-                    <CallToActionButtons displayButton='show'  button1={'Add a note'} button2={'Add option'}/>
+                    {/* <CallToActionButtons displayButton='show'  button1={'Add a note'} button2={'Add option'}/> */}
                     
                   </>
                   <>
@@ -148,7 +148,7 @@ const CaseHistory = ({  }) => {
                       <Radios label={"STD/STI"} name={"stdSti"}/>
         
                     </div>
-                    <CallToActionButtons displayButton='hidden'  button1={'Add a note'} button2={'Add option'}/>
+                    {/* <CallToActionButtons displayButton='hidden'  button1={'Add a note'} button2={'Add option'}/> */}
                     
                   </>
                 </aside>
@@ -167,7 +167,7 @@ const CaseHistory = ({  }) => {
                     <Radios label={"Ocular Trauma"} name={"ocularTrauma"}/>
                     <Radios label={"Glaucoma"} name={"glaucoma"}/>
                   </div>
-                  <CallToActionButtons displayButton='hidden'  button1={'Add a note'} button2={'Add option'}/>
+                  {/* <CallToActionButtons displayButton='hidden'  button1={'Add a note'} button2={'Add option'}/> */}
                   </>
         
         
@@ -183,7 +183,7 @@ const CaseHistory = ({  }) => {
                       <Radios label={"STD/STI"} name={"stdSti"}/>
         
                     </div>
-                    <CallToActionButtons displayButton='hidden'  button1={'Add a note'} button2={'Add option'}/>
+                    {/* <CallToActionButtons displayButton='hidden'  button1={'Add a note'} button2={'Add option'}/> */}
                     
                   </>
         
@@ -197,21 +197,21 @@ const CaseHistory = ({  }) => {
                       <Radios label={"Glaucoma"} name={"familyGlaucoma"}/>
         
                     </div>
-                    <CallToActionButtons displayButton='hidden' button1={'Add a note'} button2={'Add option'}/>
-                    
+                    {/* <CallToActionButtons displayButton='hidden' button1={'Add a note'} button2={'Add option'}/>
+                     */}
                   </>
         
                   <>
                   <Inputs type={'text'} label={"Parent's Drug History"} name={"patientDrugHistory"} placeholder={"Add another Drug"}/>
-                  <CallToActionButtons displayButton='hidden' button1={'Add another drug'} button2={'Add a note'}/>
+                  {/* <CallToActionButtons displayButton='hidden' button1={'Add another drug'} button2={'Add a note'}/> */}
                   </>
                   <>
                   <Inputs type={'text'} label={"Patient’s Allergies"} placeholder={"Enter the name of patient's allergy"}/>
-                  <CallToActionButtons displayButton='hidden'  button1={'Add another drug'} button2={'Add a note'}/>
+                  {/* <CallToActionButtons displayButton='hidden'  button1={'Add another drug'} button2={'Add a note'}/> */}
                   </>
                   <>
                   <Inputs type={'text'} label={"Patient’s Hobbies"} placeholder={"Enter patient’s hobby"}/>
-                  <CallToActionButtons displayButton='hidden'  button1={'Add another hobby'} button2={'Add a note'}/>
+                  {/* <CallToActionButtons displayButton='hidden'  button1={'Add another hobby'} button2={'Add a note'}/> */}
                   </>
                   
         
