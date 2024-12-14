@@ -1,20 +1,13 @@
-import React, {useState, useEffect} from 'react'
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import LoadingSpinner from './LoadingSpinner';
 
-
-
-const Header = (patientId ) => {
-
+const Header = ({ patientId }) => {
   const [patientDetails, setPatientDetails] = useState(null);
-  // const [patientId, setPatientId] = useState('');
-
-  // const generatePatientId = () => {
-  //   const year =  new Date().getFullYear().toString().slice(-2);
-  //   const randomNumber = Math.floor(100 + Math.random() * 900);
-  //   return `PH/PHA/${year}/${randomNumber}`;
-  // }
 
   useEffect(() => {
+    // TODO: Move API handling logic to a separate service file for better code organization
+
     const fetchPatientDetails = async () => {
       try {
         const response = await axios.get(`/clients/api/patients/${patientId}`);
@@ -28,25 +21,19 @@ const Header = (patientId ) => {
       fetchPatientDetails();
     }
   }, [patientId]);
-  
-  // useEffect(() => {
-  //   const id = generatePatientId();
-  //   setPatientId(id);
-  // }, []); 
 
   return (
     <div>
-        {patientDetails ? (
+      {patientDetails ? (
         <>
           <h1 className="text-base font-normal">{patientDetails.name}</h1>
           <h1 className="text-2xl font-semibold">{patientDetails.id}</h1>
         </>
       ) : (
-        <h1 className="text-2xl font-semibold">Loading patient details...</h1>
+        <LoadingSpinner />
       )}
-      
     </div>
-  )
-}
+  );
+};
 
-export default Header
+export default Header;
