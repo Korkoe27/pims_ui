@@ -60,7 +60,7 @@ const Dashboard = () => {
      
      {isSearchModalVisible && <SearchModalUnfilled setSearchModalVisibility={setSearchModalVisibility}/>}
 
-      <div className="dashboard_header grid items-center grid-cols-12 h-[10%]">
+      <div className="dashboard_header grid items-center grid-cols-12 max-h-[10%]">
         <div className='col-span-4'>
           <h2 className='text-2xl font-bold grid-'>
             Good {`${new Date().getHours() < 12 ? "Morning" : new Date().getHours() < 18 ? "Afternoon" : "Evening"}`} , 
@@ -76,7 +76,7 @@ const Dashboard = () => {
             />
           </div>
           <div className='flex items-center'>
-            <button className='flex items-center p-4 h-14 text-white bg-[#2f3192] gap-2 rounded-md text-sm' 
+            <button className='flex items-center p-4 max-h-14 text-white bg-[#2f3192] gap-2 rounded-md text-sm' 
               type='button'
               onClick={openModal}
             >
@@ -112,14 +112,14 @@ const Dashboard = () => {
       </div>
 
       <div className='grid grid-cols-12 gap-9 w-full'>
-        <div className='bg-[#ececf9] p-4 h-36 col-span-4 w-full'>
+        <div className='bg-[#ececf9]  p-4 h-36 col-span-4 w-full'>
           <h3 className='flex items-center text-base gap-[12px] font-normal'>
             <LuUsers2 className='w-6 h-6'/>
             Today's Appointments
           </h3>
 
           {
-            isLoading &&  <LoadingSpinner />
+            isLoading &&  <LoadingSpinner  />
           }
           <span className='text-[50px] font-bold text-[#2f3192]'>{appointments?.data?.today_appointments?.count}</span>
         </div>

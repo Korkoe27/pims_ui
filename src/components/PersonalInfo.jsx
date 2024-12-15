@@ -1,19 +1,74 @@
 import React, { useState } from 'react'
 import { IoPhonePortraitOutline } from "react-icons/io5";
 import { useNavigate } from 'react-router-dom';
-import CreateAppointment from './CreateAppointment';
+import { useClinic } from '../contexts/ClinicProvider';
+import { useCreatePatient } from '../services/mutations/patient-mutation';
 
 
 const PersonalInfo = () => {
   const navigate = useNavigate();
-  const attendToPatient = () => {
-    navigate("/case-history");
+  // const attendToPatient = () => {
+  //   navigate("/case-history");
+  // }
+  // const createAppointment = () => {
+  //   navigate(`/createAppointment`);
+  // }
+
+
+  const {mutateAsync:registerPatient} = useCreatePatient()
+
+  
+    const {selectedClinic}=useClinic();
+  
+  const [formData, setFormData] = useState({
+    
+      first_name  : '',
+      last_name : '',
+      dob : '',
+      clinic  : selectedClinic,
+      address : '',
+      primary_phone : '',
+      confirm_save  : false,
+  
+  
+  });
+
+
+  const handleChange  = (e) =>{
+    const {name,value}  = e.target
+    // setFormData({
+    //   ...formData,
+    //   [name]:type==='radio'?checked:value
+    // })
+
+    setFormData((prevState)=>({
+      ...prevState,[name]:value
+    }))
+      console.log(formData)
+
+  }
+
+
+  const handleSubmit  = (formData) =>  {
+
+
+    try {
+      const response  = registerPatient(formData);
+      console.log(response)
+    } catch (error) {
+      
+    }
+  }
+
+  const attendToPatient = (e) => {
+    e.preventDefault();
+    handleSubmit();
+    // navigate("/case-history");
   }
   const createAppointment = () => {
     navigate(`/createAppointment`);
   }
 
-  const [saveForm, setSaveForm] = useState();
 
   return (
     <div className='px-72 bg-[#f9fafb] h-full w-full'>
@@ -23,22 +78,22 @@ const PersonalInfo = () => {
           <p className="text-base">Fill out the following details of your new patient</p>
       </div>
       
-       <form action="" className='px-8 w-fit'>
+       <form onSubmit={handleSubmit} className='px-8 w-fit'>
         <section className="flex gap-24 pb-16  justify-between">
 
 
           <aside className="flex flex-col gap-8">
 
             <div className="flex flex-col gap-2">
-              <label htmlFor="last_name" className='text-[#101928]'>Surname</label>
-              <input type="text" name='last_name' required className="p-4 w-[375px] border border-[#d0d5dd] h-14 rounded-lg" placeholder='Enter the last name of the patient' />
+              <label htmlFor="last_name" className='text-[#101928]'>Surname <span className='text-red-500'>*</span></label>
+              <input type="text" name='last_name' value={formData.last_name} onChange={handleChange} required className="p-4 w-[375px] border border-[#d0d5dd] h-14 rounded-lg" placeholder='Enter the last name of the patient' />
             </div>
 
             
 
             <div className="flex flex-col gap-2">
-              <label htmlFor="first_name" className='text-[#101928]'>First Name</label>
-              <input type="text" name='first_name' required className="p-4 w-[375px] border border-[#d0d5dd] h-14 rounded-lg" placeholder='Enter the first name of the patient' />
+              <label htmlFor="first_name" className='text-[#101928]'>First Name <span className='text-red-500'>*</span></label>
+              <input type="text" name='first_name' value={formData.first_name} onChange={handleChange} required className="p-4 w-[375px] border border-[#d0d5dd] h-14 rounded-lg" placeholder='Enter the first name of the patient' />
             </div>
 
 
@@ -49,8 +104,8 @@ const PersonalInfo = () => {
 
 
             <div className="flex flex-col gap-2">
-              <label htmlFor="dateOfBirth" className='text-[#101928]'>Date of Birth</label>
-              <input type="date" required className="p-4 w-[375px] border border-[#d0d5dd] h-14 rounded-lg" name='dob' placeholder='Enter the last name of the patient' />
+              <label htmlFor="dateOfBirth" className='text-[#101928]'>Date of Birth <span className="text-red-500">*</span></label>
+              <input type="date" required value={formData.dob} onChange={handleChange} className="p-4 w-[375px] border border-[#d0d5dd] h-14 rounded-lg" name='dob' placeholder='Enter the last name of the patient' />
             </div>
 
 
@@ -58,7 +113,7 @@ const PersonalInfo = () => {
               <label htmlFor="gender" className='text-[#101928]'>Gender</label>
               <div className="flex gap-4">
                 <label htmlFor="male" className='flex items-center gap-1'>
-                  <input type="radio" name="gender" id="male" /> 
+                  <input type="radio"  name="gender" id="male" /> 
                   Male
                 </label>
                 <label htmlFor="female" className='flex items-center gap-1'>
@@ -83,7 +138,7 @@ const PersonalInfo = () => {
 
             <div className="flex flex-col gap-2">
               <label htmlFor="address" className='text-[#101928]'>Place of Residence</label>
-              <input type="text" className="p-4 w-[375px] border border-[#d0d5dd] h-14 rounded-lg" name='address' placeholder='Enter the patient’s town/city name' />
+              <input type="text" className="p-4 w-[375px] border border-[#d0d5dd] h-14 rounded-lg" name='address' required value={formData.address} onChange={handleChange} placeholder='Enter the patient’s town/city name' />
             </div>
 
             
@@ -114,7 +169,7 @@ const PersonalInfo = () => {
               <label htmlFor="primary_phone" className='text-[#101928]'>Primary Telephone Number</label>
               <div className="flex items-center p-4 bg-white gap-2 w-[375px] border border-[#d0d5dd] h-14 rounded-lg">
               <IoPhonePortraitOutline className='h-5 w-5 text-[#98a2b3]'/>
-              <input type="text" name='primary_phone' className="outline-none" required placeholder='055 555 5555' />  
+              <input type="text" name='primary_phone' className="outline-none" onChange={handleChange} value={formData.primary_phone} required placeholder='055 555 5555' />  
               </div>
               
             </div>
