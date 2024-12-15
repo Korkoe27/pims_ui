@@ -18,7 +18,7 @@ const Patients = () => {
 
 {isModalOpen && <PatientModal setIsModalOpen={setIsModalOpen} />}
       <div className="flex justify-between">
-      <h1 className="font-extrabold text-xl">My Patients</h1>
+      <h1 className="font-extrabold text-xl">Patients</h1>
                   <button className='flex items-center p-4 h-14 text-white bg-[#2f3192] gap-2 rounded-md text-sm' 
                     type='button'
                     onClick={openModal}
