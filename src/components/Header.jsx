@@ -1,40 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import LoadingSpinner from './LoadingSpinner';
+import React from "react";
+import LoadingSpinner from "./LoadingSpinner";
 
-const Header = ({ patientId }) => {
-  const [patientDetails, setPatientDetails] = useState(null);
-
-  useEffect(() => {
-    const fetchPatientDetails = async () => {
-      try {
-        console.log("Fetching details for Patient ID:", patientId);
-
-        // Call the `getPatientDetails` function with dynamic URL
-        // const response = await getPatientDetails;
-        // console.log("API Response:", response.data); // Log the full API response
-
-        // setPatientDetails(response.data);
-      } catch (error) {
-        console.error("Error fetching patient details:", error.response || error.message);
-      }
-    };
-
-    if (patientId) {
-      fetchPatientDetails();
-    }
-  }, [patientId]);
+const Header = ({ patient }) => {
+  if (!patient) {
+    return <LoadingSpinner />;
+  }
 
   return (
     <div>
-      <h1>Patient ID: {patientId}</h1>
-      {patientDetails ? (
-        <>
-          <h1 className="text-base font-normal">Name: {patientDetails.name}</h1>
-          <h1 className="text-2xl font-semibold">ID: {patientDetails.id}</h1>
-        </>
-      ) : (
-        <LoadingSpinner />
-      )}
+      <h1 className="text-2xl font-semibold">Patient ID: {patient.patient_id}</h1>
+      <h1 className="text-base font-normal">
+        Name: {patient.first_name} {patient.last_name}
+      </h1>
     </div>
   );
 };

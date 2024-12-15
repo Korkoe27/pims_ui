@@ -9,12 +9,11 @@ const Appointments = () => {
   const { data:appointments, isLoading } = useAppointments();
   const navigate = useNavigate();
 
-  // Navigates to the consultation page with appointmentId
-  const handleConsult = (appointmentId, patientId) => {
-    console.log("Appointment ID:", appointmentId);
-    console.log("Patient ID:", patientId);
-    navigate(`/case-history/${appointmentId}`); // Pass patientId in state
-  };
+  // Navigates to the consultation page with appointment details
+  const handleConsult = (appointment) => {
+    const { id: appointmentId, patient } = appointment;
+    navigate(`/case-history/${appointmentId}`, { state: { patient, appointment } });
+  };  
 
 
   // console.log(JSON.stringify(appointments, null, 3));
@@ -68,7 +67,7 @@ const Appointments = () => {
         </td>
         <td className="px-6 py-4 flex gap-10">
             <button className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 focus:outline-none dark:focus:ring-blue-800">View</button>
-            <button onClick={() => handleConsult(appointment.id)} className="focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800">Consult</button>
+            <button onClick={() => handleConsult(appointment)} className="focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800">Consult</button>
         </td>
         
     </tr>

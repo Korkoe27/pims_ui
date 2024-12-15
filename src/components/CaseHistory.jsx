@@ -12,7 +12,7 @@ const CaseHistory = ({  }) => {
 
   const { appointmentId } = useParams(); // Retrieve appointmentId from URL
   const location = useLocation(); // Access state passed with navigate
-  const { patientId } = location.state || {}; // Extract patientId from state
+  const { patient, appointment } = location.state || {}; // Extract patient and appointment
 
   const [formData, setFormData] = useState({
     chiefComplaint: "",
@@ -111,7 +111,7 @@ const CaseHistory = ({  }) => {
 
   return (
     <div className="ml-72 my-8 gap-12 flex items flex-col px-8 h-fit w-fit">
-      <Header patientId={patientId}/>
+      <Header patient={patient} />
       <ProgressBar />
       <NavMenu />
       <form onSubmit={handleSubmit} className=""> 
