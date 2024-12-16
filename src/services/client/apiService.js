@@ -18,6 +18,12 @@ apiClient.interceptors.request.use((config) => {
   if (csrfToken) {
     config.headers['X-CSRFToken'] = csrfToken; // Include CSRF token in request headers
   }
+
+  if(config.payload){
+    config.data = {
+      ...config.data,payload:config.payload
+    }
+  }
   return config;
 }, (error) => {
   return Promise.reject(error);

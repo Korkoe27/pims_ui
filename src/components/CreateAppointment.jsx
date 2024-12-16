@@ -19,6 +19,12 @@ const CreateAppointment = () => {
             </select>
         </div>
         <div className="flex flex-col gap-2">
+            <label htmlFor="status" className="font-medium text-base">Appointment Status</label>
+            <select name="status" className='p-4 w-[375px] border border-[#d0d5dd] h-14 rounded-lg' id="">
+                <option  value="" selected disabled>Appointment Status</option>
+            </select>
+        </div>
+        <div className="flex flex-col gap-2">
             <label htmlFor="notes" className="font-medium text-base">Notes</label>
             <textarea name="notes" id="" placeholder='Add some notes about the patient' className='h-30 p-4 border resize-none max-w-full' ></textarea>
         </div>

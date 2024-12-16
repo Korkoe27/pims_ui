@@ -1,23 +1,23 @@
-import React from 'react';
-import LoadingSpinner from '../components/LoadingSpinner';
-import { useAppointments } from '../services/queries/appointments-query';
+import React from "react";
+import LoadingSpinner from "../components/LoadingSpinner";
+import { useAppointments } from "../services/queries/appointments-query";
 import { useNavigate } from "react-router-dom";
 
-
 const Appointments = () => {
-
-  const { data:appointments, isLoading } = useAppointments();
+  const { data: appointments, isLoading } = useAppointments();
   const navigate = useNavigate();
 
-  // Navigates to the consultation page  
-  const handleConsult = (appointmentId) => {
-    navigate(`/case-history/`); // Redirect to CaseHistory with appointment ID
+  // Navigates to the consultation page with appointment details
+  const handleConsult = (appointment) => {
+    const { id: appointmentId, patient } = appointment;
+    navigate(`/case-history/${appointmentId}`, {
+      state: { patient, appointment },
+    });
   };
-
 
   // console.log(JSON.stringify(appointments, null, 3));
   const isTable = true;
-  console.log(JSON.stringify(appointments,null,3));
+  console.log(JSON.stringify(appointments, null, 3));
   return (
     <div className="px-8 ml-72 flex flex-col mt-8 gap-8 bg-[#f9fafb] w-full shadow-md sm:rounded-lg">
       <h1 className="font-extrabold text-xl">Today's Appointments</h1>
@@ -29,9 +29,12 @@ const Appointments = () => {
             <th scope="col" className="px-6 py-3">
               Date
             </th>
-            {/* <th scope="col" className="px-6 py-3">
+            <th scope="col" className="px-6 py-3">
+              Patient ID
+            </th>
+            <th scope="col" className="px-6 py-3">
               Name
-            </th> */}
+            </th>
             <th scope="col" className="px-6 py-3">
               Type
             </th>
@@ -50,15 +53,18 @@ const Appointments = () => {
         <th scope="row" className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
             {appointment?.appointment_date}
         </th>
-        {/* <td className="px-6 py-4">
-            {appointment?.first_name}
-        </td> */}
+        <td className="px-6 py-4">
+            {appointment?.patient?.patient_id}
+        </td>
+        <td className="px-6 py-4">
+            {appointment?.patient?.first_name} {appointment?.patient?.last_name}
+        </td>
         <td className="px-6 py-4">
             {appointment?.appointment_type}
         </td>
         <td className='w-fit mx-auto'>
             
-            <span className={`px-6 rounded-full py-3 text-base font-medium text-white w-5 ${checkStatus(appointment?.status)}`}>
+            <span className={`px-6 rounded-full py-2 text-base font-medium text-white w-5 ${checkStatus(appointment?.status)}`}>
               
             {appointment?.status}
             </span>
@@ -79,16 +85,13 @@ const Appointments = () => {
   );
 };
 
-export default Appointments
-
-
-
+export default Appointments;
 
 const checkStatus = (status)  =>{
   switch(status){
-    case  'Completed': return 'bg-green-400';
-    case  'Cancelled': return 'bg-red-400';
+    case  'Completed': return 'bg-green-600';
+    case  'Cancelled': return 'bg-red-600';
 
-    default: case  'Scheduled': return 'bg-yellow-300';
+    default: case  'Scheduled': return 'bg-yellow-400';
   }
-}
+};
