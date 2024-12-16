@@ -1,7 +1,6 @@
 import apiClient from "../apiService";
-import { createCaseHistory, updateCaseHistory, fetchCaseHistory } from '../endpoints';
+
 import { baseURL } from "../baseurl"
-import { createCaseHistory, listPatients } from "../endpoints"
 
 // export const   createCaseHistory  =   async   ()  =>   {
 //     const   url = `${baseURL}${createCaseHistory}`;

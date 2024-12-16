@@ -4,6 +4,7 @@ import NavMenu from "./NavMenu";
 import Header from "./Header";
 import Radios from "./Radios";
 import CallToActionButtons from "./CallToActionButtons";
+import { Toaster } from 'react-hot-toast';
 import Inputs from "./Inputs";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import {
