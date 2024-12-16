@@ -22,17 +22,60 @@ const PersonalInfo = () => {
   
   const [formData, setFormData] = useState({
     
-      first_name  : '',
       last_name : '',
+      first_name  : '',
+      other_names:  '',
       dob : '',
+      gender :  '',
       clinic  : selectedClinic,
+      landmark  : '',
       address : '',
       primary_phone : '',
+      alternate_phone:  '',
+      emergency_contact_name: '',
+      emergency_contact_number: '',
+      date_of_first_visit:  '',
+      insurance_provider: '',
+      insurance_number: '',
       confirm_save  : false,
   
   
   });
 
+
+//   id
+// generated_id_number
+// patient_id
+// patient_type
+// id_type
+// id_number
+// first_name
+// last_name
+// other_names
+// dob
+// gender
+// clinic
+// occupation_category
+// occupation
+// address
+// landmark
+// hometown
+// region
+// primary_phone
+// alternate_phone
+// emergency_contact_name
+// emergency_contact_number
+// email
+// insurance_type
+// insurance_provider
+// insurance_number
+// date_of_first_visit
+// registration_date
+// created_by
+// last_modified_by
+// deleted
+// deleted_by
+// deleted_at
 
   const handleChange  = (e) =>{
     const {name,value}  = e.target
@@ -99,7 +142,7 @@ const PersonalInfo = () => {
 
             <div className="flex flex-col gap-2">
               <label htmlFor="other_names" className='text-[#101928]'>Other names</label>
-              <input type="text" name='other_names' className="p-4 w-[375px] border border-[#d0d5dd] h-14 rounded-lg" placeholder='Enter the other names of the patient' />
+              <input type="text" name='other_names' value={formData.other_names} className="p-4 w-[375px] border border-[#d0d5dd] h-14 rounded-lg" placeholder='Enter the other names of the patient' />
             </div>
 
 
@@ -131,31 +174,31 @@ const PersonalInfo = () => {
 
           <div className="flex flex-col gap-2">
               <label htmlFor="occupation" className='text-[#101928]'>Occupation</label>
-              <select name="occupation" id="occupation" className='p-4 w-[375px] border border-[#d0d5dd] h-14 rounded-lg text-[#98a2b3] placeholder-[#98a2b3]' placeholder='Select an option'></select>
+              <select name="occupation" id="occupation" className='p-4 max-w-[375px] border border-[#d0d5dd] h-14 rounded-lg text-[#98a2b3] placeholder-[#98a2b3]' placeholder='Select an option'></select>
             </div>
 
           
 
             <div className="flex flex-col gap-2">
               <label htmlFor="address" className='text-[#101928]'>Place of Residence</label>
-              <input type="text" className="p-4 w-[375px] border border-[#d0d5dd] h-14 rounded-lg" name='address' required value={formData.address} onChange={handleChange} placeholder='Enter the patient’s town/city name' />
+              <input type="text" className="p-4 max-w-[375px] border border-[#d0d5dd] h-14 rounded-lg" name='address' required value={formData.address} onChange={handleChange} placeholder='Enter the patient’s town/city name' />
             </div>
 
             
           <div className="flex flex-col gap-2">
               <label htmlFor="region" className='text-[#101928]'>Region of Residence</label>
-              <select name="region" id="region" className='p-4 w-[375px] border border-[#d0d5dd] h-14 rounded-lg text-[#98a2b3] placeholder-[#98a2b3]' placeholder='Select an option'></select>
+              <select name="region" id="region" value={formData.region} className='p-4 w-[375px] border border-[#d0d5dd] h-14 rounded-lg text-[#98a2b3] placeholder-[#98a2b3]' placeholder='Select an option'></select>
             </div>
             
             <div className="flex flex-col gap-2">
               <label htmlFor="landmark" className='text-[#101928]'>Closest Landmark</label>
-              <input type="text" name='landmark' className="p-4 w-[375px] border border-[#d0d5dd] h-14 rounded-lg" placeholder='Closest Landmark' />
+              <input type="text" name='landmark' value={formData.landmark} className="p-4 w-[375px] border border-[#d0d5dd] h-14 rounded-lg" placeholder='Closest Landmark' />
             </div>
 
             
             <div className="flex flex-col gap-2">
               <label htmlFor="hometown" className='text-[#101928]'>Hometown</label>
-              <input type="text" className="p-4 w-[375px] border border-[#d0d5dd] h-14 rounded-lg" name='hometown' placeholder='Enter the patient’s hometown name' />
+              <input type="text" value={formData.hometown} className="p-4 w-[375px] border border-[#d0d5dd] h-14 rounded-lg" name='hometown' placeholder='Enter the patient’s hometown name' />
             </div>
 
             
@@ -178,7 +221,7 @@ const PersonalInfo = () => {
               <label htmlFor="alternate_phone" className='text-[#101928]'>Alternate Telephone Number</label>
               <div className="flex items-center p-4 bg-white gap-2 w-[375px] border border-[#d0d5dd] h-14 rounded-lg">
               <IoPhonePortraitOutline className='h-5 w-5 text-[#98a2b3]'/>
-                 <input type="tel" className="outline-none" placeholder='055 555 5555' name='alternate_phone' />
+                 <input type="tel" value={formData.alternate_phone} className="outline-none" placeholder='055 555 5555' name='alternate_phone' />
               </div>
              
             </div>
@@ -186,7 +229,7 @@ const PersonalInfo = () => {
             
             <div className="flex flex-col gap-2">
               <label htmlFor="emergency_contact_name" className='text-[#101928]'>Emergency Contact Name</label>
-              <input type="text" className="p-4 w-[375px] border border-[#d0d5dd] h-14 rounded-lg" name='emergency_contact_name' placeholder='Enter the name of the patient’s emergency contact' />
+              <input type="text" className="p-4 w-[375px] border border-[#d0d5dd] h-14 rounded-lg" value={formData.emergency_contact_name} name='emergency_contact_name' placeholder='Enter the name of the patient’s emergency contact' />
             </div>
 
                         
@@ -194,7 +237,7 @@ const PersonalInfo = () => {
               <label htmlFor="emergency_contact_number" className='text-[#101928]'>Emergency Contact’s Phone Number</label>
               <div className="flex items-center p-4 bg-white gap-2 w-[375px] border border-[#d0d5dd] h-14 rounded-lg">
               <IoPhonePortraitOutline className='h-5 w-5 text-[#98a2b3]'/>
-                 <input type="tel" name='emergency_contact_number' className="outline-none" placeholder='055 555 5555' />
+                 <input type="tel" name='emergency_contact_number' value={formData.emergency_contact_number} className="outline-none" placeholder='055 555 5555' />
               </div>
              
             </div>
@@ -211,19 +254,19 @@ const PersonalInfo = () => {
             
             <div className="flex flex-col gap-2">
               <label htmlFor="date_of_first_visit" className='text-[#101928]'>Date of First Visit</label>
-              <input type="date" name='date_of_first_visit' className="p-4 w-[375px] border border-[#d0d5dd] h-14 rounded-lg" placeholder='Enter the last name of the patient' />
+              <input type="date" name='date_of_first_visit' value={formData.date_of_first_visit}  className="p-4 w-[375px] border border-[#d0d5dd] h-14 rounded-lg" placeholder='Enter the last name of the patient' />
             </div>
 
             
           <div className="flex flex-col gap-2">
               <label htmlFor="insurance_provider" className='text-[#101928]'>Health Insurance Provider</label>
-              <select name="insurance_provider" id="" className='p-4 w-[375px] border border-[#d0d5dd] h-14 rounded-lg text-[#98a2b3] placeholder-[#98a2b3]' placeholder='Select an option'></select>
+              <select name="insurance_provider"  id="" value={formData.insurance_provider} className='p-4 w-[375px] border border-[#d0d5dd] h-14 rounded-lg text-[#98a2b3] placeholder-[#98a2b3]' placeholder='Select an option'></select>
             </div>
               
                         
           <div className="flex flex-col gap-2">
               <label htmlFor="insurance_number" className='text-[#101928]'>Health Insurance Number</label>
-              <input type="text" name='insurance_number' className="p-4 w-[375px] border border-[#d0d5dd] h-14 rounded-lg" placeholder='Health Insurance Number' />
+              <input type="text" name='insurance_number' value={formData.insurance_number} className="p-4 w-[375px] border border-[#d0d5dd] h-14 rounded-lg" placeholder='Health Insurance Number' />
             </div>
           </aside>
         </section>

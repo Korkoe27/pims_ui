@@ -23,6 +23,16 @@ const Dashboard = () => {
   const {data:appointments, isLoading}  = useAppointments();
 
 
+  // console.log(appointments);
+  const pendingAppointments = appointments?.data?.today_appointments?.data?.filter((appointment)=>appointment?.status  === 'Scheduled');
+
+
+  const completedAppointments = appointments?.data?.today_appointments?.data?.filter((appointment)=>appointment?.status  === 'Completed');
+
+
+
+  console.log("Appointments: ❤️❤️❤️❤️", JSON.stringify(pendingAppointments,null,3));
+
   const isTable = true;
 
 
@@ -65,7 +75,7 @@ const Dashboard = () => {
 
       <div className="dashboard_header grid items-center grid-cols-12 max-h-[10%]">
         <div className='col-span-4'>
-          <h2 className='text-2xl font-bold grid-'>
+          <h2 className='text-[1.3vw] font-bold grid-'>
             Good {`${new Date().getHours() < 12 ? "Morning" : new Date().getHours() < 18 ? "Afternoon" : "Evening"}`} , 
             <span>{user?.first_name  || "User"}</span> 👋🏾 
           </h2>
@@ -176,6 +186,9 @@ const Dashboard = () => {
                   <th scope="col" className="px-3 min-w-40 py-3 text-base font-semibold normal-case">
                     Appointment Type
                   </th>
+                  <th scope="col" className="px-3 min-w-40 py-3 text-base font-semibold normal-case">
+                    Status
+                  </th>
                   <th scope="col" className="px-3 min-w-40 py-3 text-base font-semibold normal-case"></th>
                 </tr>
               </thead>
@@ -183,8 +196,8 @@ const Dashboard = () => {
               {
             isLoading &&  <LoadingSpinner isTable={isTable} className='flex justify-center' />
           }
-  {appointments?.data?.today_appointments?.data
-    ?.slice(0, 3) // Extract the first 3 items from the array
+  {pendingAppointments
+    ?.slice(0, 5) // Extract the first 5 items from the array
     .map((appointment) => (
       <tr className="text-left" key={appointment?.id || appointment?.patient?.patient_id}>
         <td className="px-3 py-3 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">
@@ -198,6 +211,12 @@ const Dashboard = () => {
         </td>
         <td className="px-3 py-3 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">
           {appointment?.appointment_type}
+        </td>
+        <td className="px-3 py-3 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">
+        <span className={`px-6 rounded-full py-2 text-base font-medium text-white w-5 ${checkStatus(appointment?.status)}`}>
+          {appointment?.status}
+
+            </span>
         </td>
         <td className="py-3 flex justify-end gap-4 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9] items-center text-center">
           <Link
@@ -219,8 +238,8 @@ const Dashboard = () => {
 
           <div className="my-5">
             <div className='flex justify-between my-4'>
-              <h2 className='font-bold text-xl'>Recent Patient Activity</h2>
-              <Link className='text-[#2f3192] text-right font-semibold'>See all</Link>
+              <h2 className='font-bold text-xl'>Completed Appointments</h2>
+              <Link to='/appointments' className='text-[#2f3192] text-right font-semibold'>See all</Link>
             </div>
             <table className="w-full">
               <thead className="text-black uppercase text-left rounded-[8px] h-16 bg-[#f0f2f5]">
@@ -235,7 +254,7 @@ const Dashboard = () => {
                     Name
                   </th>
                   <th scope="col" className="px-3 py-3 min-w-[168px] text-base font-semibold normal-case">
-                    Diagnosis
+                    Type
                   </th>
                   <th scope="col" className="px-3 py-3 min-w-[168px] text-base font-semibold normal-case">
                     Status
@@ -243,16 +262,27 @@ const Dashboard = () => {
                 </tr>
               </thead>
               <tbody>
+              {
+            isLoading &&  <LoadingSpinner isTable={isTable} className='flex justify-center' />
+          }
+
+{completedAppointments
+    ?.slice(0, 5) // Extract the first 5 items from the array
+    .map((appointment) => (
                 <tr className="text-left">
-                  <td className="px-3 py-3 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">07-05-2024</td>
-                  <td className="px-3 py-3 my-3 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">2122/10/22</td>
-                  <td className="px-3 py-3 my-3 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">Korkoe A.K Dumashie</td>
-                  <td className="px-3 py-3 my-3 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">Allergic Conjunctivitis</td>
-                  <td className="px-1 py-3 my-3 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">
-                    <span className="bg-[#e7f6ec] text-[#036b26] capitalize text-base font-medium me-2 w-20 py-2 px-3 rounded-xl">completed</span>
-                  </td>
+                  <td className="px-3 py-3 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">{appointment?.appointment_date}</td>
+                  <td className="px-3 py-3 my-3 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">{appointment?.patient?.patient_id}</td>
+                  <td className="px-3 py-3 my-3 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">{appointment?.patient?.first_name} {appointment?.patient?.last_name}</td>
+                  <td className="px-3 py-3 my-3 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">{appointment?.appointment_type}</td>
+                  <td className="px-3 py-3 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">
+        <span className={`px-6 rounded-full py-2 text-base font-medium text-white w-5 ${checkStatus(appointment?.status)}`}>
+          {appointment?.status}
+
+            </span>
+        </td>
                 </tr>
-                {/* Add other rows as needed */}
+                
+    ))}
               </tbody>
             </table>
           </div>
@@ -263,3 +293,14 @@ const Dashboard = () => {
 }
 
 export default Dashboard;
+
+
+
+const checkStatus = (status)  =>{
+  switch(status){
+    case  'Completed': return 'bg-green-600';
+    case  'Cancelled': return 'bg-red-600';
+
+    default: case  'Scheduled': return 'bg-yellow-400';
+  }
+};
