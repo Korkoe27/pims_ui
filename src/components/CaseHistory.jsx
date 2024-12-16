@@ -11,7 +11,6 @@ import {
   createCaseHistoryHandler,
   updateCaseHistoryHandler,
   fetchCaseHistoryHandler,
-  testCreateCaseHistoryHandler,
 } from "../services/client/api-handlers/examinations-handler";
 import Cookies from "js-cookie"; // Import js-cookie
 
@@ -100,7 +99,7 @@ const CaseHistory = ({}) => {
       <Toaster />
       <Header patient={patient} />
       <ProgressBar />
-      <NavMenu />
+      <NavMenu appointmentId={appointmentId} />
       <form onSubmit={handleSubmit} className="">
         <section className="flex gap-28">
           <aside className="flex flex-col gap-12">

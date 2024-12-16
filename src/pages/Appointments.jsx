@@ -5,7 +5,6 @@ import { useNavigate } from "react-router-dom";
 
 const Appointments = () => {
   const { data: appointments, isLoading } = useAppointments();
-  console.log(appointments)
   const navigate = useNavigate();
 
   // Navigates to the consultation page with appointment details
