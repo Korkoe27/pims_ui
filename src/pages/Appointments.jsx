@@ -20,17 +20,19 @@ const Appointments = () => {
   // Fetch data using TanStack Query
   const { data, isLoading, isError, error: queryError } = useAppointments();
 
-  console.log("React Query Data:", data); // Debug React Query output
-  console.log("Redux State:", { appointments, loading, error }); // Debug Redux state
-
   // Sync TanStack Query data with Redux
   useEffect(() => {
     if (isLoading) {
       console.log("Fetching Appointments...");
       dispatch(fetchAppointmentsStart());
     } else if (data) {
-      console.log("Appointments Fetched Successfully:", data?.data?.today_appointments?.data);
-      dispatch(fetchAppointmentsSuccess(data?.data?.today_appointments?.data || []));
+      console.log(
+        "Appointments Fetched Successfully:",
+        data?.data?.today_appointments?.data
+      );
+      dispatch(
+        fetchAppointmentsSuccess(data?.data?.today_appointments?.data || [])
+      );
     } else if (isError) {
       console.error("Error Fetching Appointments:", queryError.message);
       dispatch(fetchAppointmentsFailure(queryError.message));
@@ -56,21 +58,36 @@ const Appointments = () => {
         <table className="w-full text-base text-left rtl:text-right text-gray-500 ">
           <thead className="text-base text-gray-700 uppercase bg-gray-50 ">
             <tr>
-              <th scope="col" className="px-6 py-3">Date</th>
-              <th scope="col" className="px-6 py-3">Patient ID</th>
-              <th scope="col" className="px-6 py-3">Name</th>
-              <th scope="col" className="px-6 py-3">Type</th>
-              <th scope="col" className="px-6 py-3">Status</th>
-              <th scope="col" className="px-3 min-w-40 py-3">Action</th>
+              <th scope="col" className="px-6 py-3">
+                Date
+              </th>
+              <th scope="col" className="px-6 py-3">
+                Patient ID
+              </th>
+              <th scope="col" className="px-6 py-3">
+                Name
+              </th>
+              <th scope="col" className="px-6 py-3">
+                Type
+              </th>
+              <th scope="col" className="px-6 py-3">
+                Status
+              </th>
+              <th scope="col" className="px-3 min-w-40 py-3">
+                Action
+              </th>
             </tr>
           </thead>
           <tbody>
             {appointments.map((appointment) => (
               <tr key={appointment.id} className="bg-white border-b">
                 <td className="px-6 py-4">{appointment?.appointment_date}</td>
-                <td className="px-6 py-4">{appointment?.patient?.patient_id}</td>
                 <td className="px-6 py-4">
-                  {appointment?.patient?.first_name} {appointment?.patient?.last_name}
+                  {appointment?.patient?.patient_id}
+                </td>
+                <td className="px-6 py-4">
+                  {appointment?.patient?.first_name}{" "}
+                  {appointment?.patient?.last_name}
                 </td>
                 <td className="px-6 py-4">{appointment?.appointment_type}</td>
                 <td className="w-fit mx-auto">
