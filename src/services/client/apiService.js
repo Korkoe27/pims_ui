@@ -4,7 +4,7 @@ import { baseURL } from './baseurl';
 // Utility to fetch CSRF token from the backend
 const fetchCSRFToken = async () => {
   try {
-    const response = await axios.get(`${baseURL}/auth/api/get-csrf-token/`, {
+    const response = await axios.get(`${baseURL}auth/api/get-csrf-token/`, {
       withCredentials: true,
     });
     return response.data?.csrftoken;
