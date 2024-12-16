@@ -1,14 +1,19 @@
 import React, { useEffect } from "react";
 import LoadingSpinner from "../components/LoadingSpinner";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchAppointments, selectAppointment } from "../redux/slices/appointmentsSlice";
+import {
+  fetchAppointments,
+  selectAppointment,
+} from "../redux/slices/appointmentsSlice";
 import { useNavigate } from "react-router-dom";
 
 const Appointments = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const { appointments, loading, error } = useSelector((state) => state.appointments);
+  const { appointments, loading, error } = useSelector(
+    (state) => state.appointments
+  );
 
   // Fetch Appointments on Mount
   useEffect(() => {
@@ -27,10 +32,6 @@ const Appointments = () => {
   // Handle "Consult" button click
   const handleConsult = (appointment) => {
     const { id: appointmentId, patient } = appointment;
-
-    console.log("Appointment ID:", appointmentId);
-    console.log("Patient Data:", patient);
-
     // Dispatch selected appointment to Redux
     dispatch(selectAppointment({ appointmentId, patient }));
 
@@ -53,21 +54,36 @@ const Appointments = () => {
         <table className="w-full text-base text-left rtl:text-right text-gray-500">
           <thead className="text-base text-gray-700 uppercase bg-gray-50">
             <tr>
-              <th scope="col" className="px-6 py-3">Date</th>
-              <th scope="col" className="px-6 py-3">Patient ID</th>
-              <th scope="col" className="px-6 py-3">Name</th>
-              <th scope="col" className="px-6 py-3">Type</th>
-              <th scope="col" className="px-6 py-3">Status</th>
-              <th scope="col" className="px-3 min-w-40 py-3">Action</th>
+              <th scope="col" className="px-6 py-3">
+                Date
+              </th>
+              <th scope="col" className="px-6 py-3">
+                Patient ID
+              </th>
+              <th scope="col" className="px-6 py-3">
+                Name
+              </th>
+              <th scope="col" className="px-6 py-3">
+                Type
+              </th>
+              <th scope="col" className="px-6 py-3">
+                Status
+              </th>
+              <th scope="col" className="px-3 min-w-40 py-3">
+                Action
+              </th>
             </tr>
           </thead>
           <tbody>
             {appointments.map((appointment) => (
               <tr key={appointment.id} className="bg-white border-b">
                 <td className="px-6 py-4">{appointment?.appointment_date}</td>
-                <td className="px-6 py-4">{appointment?.patient?.patient_id}</td>
                 <td className="px-6 py-4">
-                  {appointment?.patient?.first_name} {appointment?.patient?.last_name}
+                  {appointment?.patient?.patient_id}
+                </td>
+                <td className="px-6 py-4">
+                  {appointment?.patient?.first_name}{" "}
+                  {appointment?.patient?.last_name}
                 </td>
                 <td className="px-6 py-4">{appointment?.appointment_type}</td>
                 <td className="w-fit mx-auto">
