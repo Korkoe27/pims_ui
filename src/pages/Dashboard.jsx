@@ -23,6 +23,7 @@ const Dashboard = () => {
   const {data:appointments, isLoading}  = useAppointments();
 
 
+  const isTable = true;
 
 
   // const dates = appointmentsDetails.filter((date)=> date?.appointment_date == today);
@@ -38,8 +39,10 @@ const Dashboard = () => {
 
 
 
-  // const handleLogout  = async (e) =>  {
-  // }
+  const handleLogout  =  () =>  {
+    // e.preventDefault();
+   logOut();
+  }
 
 
 
@@ -99,9 +102,9 @@ const Dashboard = () => {
           {isDropdownOpen && (
             <div className="absolute right-0 top-14 bg-white border rounded-lg p-2 shadow-lg">
               <form action="" 
-              // onSubmit={handleLogout}
+              onSubmit={handleLogout}
               >
-                <button className="block px-4 py-2 text-gray-700 hover:bg-gray-200 w-full text-left" type="submit">
+                <button className="block px-4 py-2 text-gray-700 hover:bg-gray-200 w-full text-left" type="submit" onClick={handleLogout}>
                 Logout
               </button>
               </form>
@@ -156,7 +159,7 @@ const Dashboard = () => {
           <div className="">
             <div className='flex justify-between my-[15px]'>
               <h2 className='font-bold text-xl'>Upcoming Appointments</h2>
-              <Link href="#" className='text-[#2f3192] text-right font-semibold'>See all</Link>
+              <Link to='/appointments' className='text-[#2f3192] text-right font-semibold'>See all</Link>
             </div>
             <table className="w-full">
               <thead className="text-black uppercase text-left h-16 bg-[#f0f2f5]">
@@ -171,24 +174,46 @@ const Dashboard = () => {
                     Name
                   </th>
                   <th scope="col" className="px-3 min-w-40 py-3 text-base font-semibold normal-case">
-                    Patient Type
+                    Appointment Type
                   </th>
                   <th scope="col" className="px-3 min-w-40 py-3 text-base font-semibold normal-case"></th>
                 </tr>
               </thead>
               <tbody>
-                <tr className="text-left">
-                  <td className="px-3 py-3 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">07-05-2024</td>
-                  <td className="px-3 py-3 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">2122/10/22</td>
-                  <td className="px-3 py-3 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">Korkoe A.K Dumashie</td>
-                  <td className="px-3 py-3 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">Old</td>
-                  <td className="py-3 flex justify-end gap-4 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9] items-center text-center">
-                    <Link to="#" className='font-medium text-[#2f3192] px-4 flex justify-center py-2 border border-solid rounded-lg w-14 border-[#2f3192]'>Edit</Link>
-                    <Link to='#' className='text-white bg-[#2f3192] px-4 py-2 rounded-lg'>Attend to Patient</Link>
-                  </td>
-                </tr>
-                {/* Add other rows as needed */}
-              </tbody>
+              {
+            isLoading &&  <LoadingSpinner isTable={isTable} className='flex justify-center' />
+          }
+  {appointments?.data?.today_appointments?.data
+    ?.slice(0, 3) // Extract the first 3 items from the array
+    .map((appointment) => (
+      <tr className="text-left" key={appointment?.id || appointment?.patient?.patient_id}>
+        <td className="px-3 py-3 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">
+          {appointment?.appointment_date}
+        </td>
+        <td className="px-3 py-3 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">
+          {appointment?.patient?.patient_id}
+        </td>
+        <td className="px-3 py-3 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">
+          {appointment?.patient?.first_name} {appointment?.patient?.last_name}
+        </td>
+        <td className="px-3 py-3 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">
+          {appointment?.appointment_type}
+        </td>
+        <td className="py-3 flex justify-end gap-4 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9] items-center text-center">
+          <Link
+            to="#"
+            className="font-medium text-[#2f3192] px-4 flex justify-center py-2 border border-solid rounded-lg w-14 border-[#2f3192]"
+          >
+            Edit
+          </Link>
+          <Link to="#" className="text-white bg-[#2f3192] px-4 py-2 rounded-lg">
+            Attend to Patient
+          </Link>
+        </td>
+      </tr>
+    ))}
+</tbody>
+
             </table>
           </div>
 
