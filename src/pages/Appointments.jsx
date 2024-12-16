@@ -22,22 +22,28 @@ const Appointments = () => {
     }
   }, [appointments.length, dispatch]);
 
-  // Debug State
   useEffect(() => {
-    console.log("Loading:", loading);
-    console.log("Error:", error);
-    console.log("Appointments:", appointments);
   }, [loading, error, appointments]);
 
-  // Handle "Consult" button click
   const handleConsult = (appointment) => {
     const { id: appointmentId, patient } = appointment;
+  
+    // Debugging
+    console.log("Appointment Object:", appointment);
+    console.log("Patient Data:", patient);
+  
+    if (!patient) {
+      console.error("Patient data is missing in the appointment object.");
+      return;
+    }
+  
     // Dispatch selected appointment to Redux
     dispatch(selectAppointment({ appointmentId, patient }));
-
+  
     // Navigate to Case History
-    navigate(`/case-history/${appointmentId}`);
+    navigate(`/case-history/${appointmentId}`, { state: { patient, appointment } });
   };
+  
 
   return (
     <div className="px-8 ml-72 flex flex-col mt-8 gap-8 bg-[#f9fafb] w-full shadow-md sm:rounded-lg">
