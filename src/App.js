@@ -8,9 +8,14 @@ import AuthProvider from './hooks/AuthProvider';
 import PrivateRoute from './hooks/PrivateRoute';
 import { ClinicProvider } from './contexts/ClinicProvider';
 
+// Import Redux setup
+import { Provider } from 'react-redux';
+import store from './redux/store';
+
 const App = () => {
   return (
     <div className='bg-[#f9fafb]'>
+      <Provider store={store}> {/* Redux Provider */}
       <BrowserRouter>
         <AuthProvider>
           <ClinicProvider>
@@ -39,6 +44,7 @@ const App = () => {
           </ClinicProvider>
         </AuthProvider>
       </BrowserRouter>
+      </Provider>
     </div>
   );
 };

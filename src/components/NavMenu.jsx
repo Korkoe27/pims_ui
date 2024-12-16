@@ -6,19 +6,19 @@ import { IoIosCheckmarkCircle } from "react-icons/io";
 const NavMenu = ({ appointmentId, patient }) => {
   const activeLink =
     "text-[#2f3192] text-base underline decoration-[#2f3192] decoration-[5px] font-bold underline-offset-[5px]";
-
   const normalLink = "text-base text-black font-normal";
+
   return (
     <div className="flex items-center gap-16">
       {Consultation_nav.map((item) => (
         <NavLink
           to={{
-            pathname: `${item.link}/${appointmentId}`, // Append appointmentId dynamically
+            pathname: appointmentId
+              ? `${item.link}/${appointmentId}` // Dynamically append appointmentId
+              : `${item.link}`, // Fallback if appointmentId is undefined
             state: { patient, appointmentId }, // Pass patient and appointmentId via state
           }}
           key={item.name}
-          state={{ patient }}
-          onClick={() => {}}
           className={({ isActive }) => (isActive ? activeLink : normalLink)}
         >
           <span className="flex justify-center">

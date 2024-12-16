@@ -6,6 +6,7 @@ export const listPatients = "clients/api/patients/";
 //Appointment Endpoints
 export const createAppointment = "/tests/clients/api/appointments/";
 export const fetchAppointments = "/tests/clients/api/appointments/";
+export const getAppointmentsDetails = "/tests/clients/api/appointments/${appointmentId}/";
 
 // Patient Examination Endpoints
 export const createCaseHistory = "/tests/api/case-history/";

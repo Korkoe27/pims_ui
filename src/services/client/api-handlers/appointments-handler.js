@@ -7,7 +7,7 @@ export const    handleAppointments  =   async   ()  =>   {
     return  await apiClient(url,  {method:    'GET'});
 }
 
-export const    GETAppointments  =   async   ()  =>   {
+export const fetchAppointmentsDetails  =   async   ()  =>   {
     const   url = `${baseURL}${fetchAppointments}`;
     return  await apiClient(url,  {method:    'GET'});
 }
