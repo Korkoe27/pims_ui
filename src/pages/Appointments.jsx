@@ -5,6 +5,7 @@ import {
   fetchAppointmentsStart,
   fetchAppointmentsSuccess,
   fetchAppointmentsFailure,
+  selectAppointment,
 } from "../redux/reducers/appointments";
 import { useAppointments } from "../services/queries/appointments-query";
 import { useNavigate } from "react-router-dom";
@@ -42,10 +43,18 @@ const Appointments = () => {
   // Handle "Consult" button click
   const handleConsult = (appointment) => {
     const { id: appointmentId, patient } = appointment;
-    navigate(`/case-history/${appointmentId}`, {
-      state: { patient, appointment },
-    });
+  
+    // Log to confirm the data being passed
+    console.log("Appointment ID:", appointmentId);
+    console.log("Patient Data:", patient);
+  
+    // Dispatch selected appointment to Redux
+    dispatch(selectAppointment({ appointmentId, patient }));
+  
+    // Navigate to the CaseHistory page
+    navigate(`/case-history/${appointmentId}`);
   };
+  
 
   return (
     <div className="px-8 ml-72 flex flex-col mt-8 gap-8 bg-[#f9fafb] w-full shadow-md sm:rounded-lg">
