@@ -312,6 +312,13 @@ const Dashboard = () => {
                 </tr>
               </thead>
               <tbody>
+              {
+            isLoading &&  <LoadingSpinner isTable={isTable} className='flex justify-center' />
+          }
+
+{completedAppointments
+    ?.slice(0, 5) // Extract the first 5 items from the array
+    .map((appointment) => (
                 <tr className="text-left">
                   <td className="px-3 py-3 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">
                     07-05-2024
@@ -331,7 +338,8 @@ const Dashboard = () => {
                     </span>
                   </td>
                 </tr>
-                {/* Add other rows as needed */}
+                
+    ))}
               </tbody>
             </table>
           </div>
@@ -342,3 +350,14 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
+
+
+
+const checkStatus = (status)  =>{
+  switch(status){
+    case  'Completed': return 'bg-green-600';
+    case  'Cancelled': return 'bg-red-600';
+
+    default: case  'Scheduled': return 'bg-yellow-400';
+  }
+};
