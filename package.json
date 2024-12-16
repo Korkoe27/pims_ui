@@ -47,14 +47,21 @@
   },
   "jest": {
     "transform": {
-      "^.+\\.[tj]sx?$": "babel-jest" 
+      "^.+\\.[tj]sx?$": "babel-jest"
     },
     "transformIgnorePatterns": [
-      "node_modules/(?!axios)" 
+      "node_modules/(?!axios)"
     ],
-    "testEnvironment": "node", 
-    "moduleFileExtensions": ["js", "jsx", "json", "node"],
-    "setupFilesAfterEnv": ["<rootDir>/jest.setup.js"]
+    "testEnvironment": "node",
+    "moduleFileExtensions": [
+      "js",
+      "jsx",
+      "json",
+      "node"
+    ],
+    "setupFilesAfterEnv": [
+      "<rootDir>/jest.setup.js"
+    ]
   },
   "devDependencies": {
     "@babel/core": "^7.26.0",

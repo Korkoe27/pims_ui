@@ -1,5 +1,6 @@
 import apiClient from "../apiService";
-import { createCaseHistory, updateCaseHistory, fetchCaseHistory } from '../endpoints';
+import { createCaseHistory, updateCaseHistory, fetchCaseHistory, listPatients } from '../endpoints';
+import { baseURL } from "../baseurl"
 
 // Create CaseHistory
 export const createCaseHistoryHandler = async (data) => {
@@ -18,6 +19,12 @@ export const fetchCaseHistoryHandler = async (appointmentId) => {
 const url = fetchCaseHistory(appointmentId); // Use dynamic endpoint
 return await apiClient.get(url);
 };
+
+export const    createPatient  =    async  (payload)  =>   {
+  const   url = `${baseURL}${listPatients}`;
+  return   await apiClient(url,     {method:    'POST',data:payload});
+
+}
 
 export const testCreateCaseHistoryHandler = async () => {
     const staticData = {

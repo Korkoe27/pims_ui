@@ -4,7 +4,6 @@ import NavMenu from "./NavMenu";
 import Header from "./Header";
 import Radios from "./Radios";
 import CallToActionButtons from "./CallToActionButtons";
-import { Toaster } from 'react-hot-toast';
 import Inputs from "./Inputs";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import {
@@ -95,13 +94,24 @@ const CaseHistory = ({}) => {
     }
   };
 
+
+  // Test Function
+  const handleStaticTest = async () => {
+    try {
+      const response = await createCaseHistoryHandler();
+      console.log("Static data response:", response);
+    } catch (error) {
+      console.error("Error testing static data:", error);
+    }
+  };
+  
+
   return (
     <div className="ml-72 my-8 gap-12 flex items flex-col px-8 h-fit w-fit">
-      <Toaster />
       <Header patient={patient} />
       <ProgressBar />
       <NavMenu />
-      <form onSubmit={handleSubmit} className="">
+      <form onSubmit={handleStaticTest} className="">
         <section className="flex gap-28">
           <aside className="flex flex-col gap-12">
             {/* Chief Complaint */}
@@ -298,3 +308,6 @@ const CaseHistory = ({}) => {
 };
 
 export default CaseHistory;
+
+
+
