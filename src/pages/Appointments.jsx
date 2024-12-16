@@ -12,8 +12,10 @@ const Appointments = () => {
 
   // Fetch Appointments on Mount
   useEffect(() => {
-    dispatch(fetchAppointments());
-  }, [dispatch]);
+    if (appointments?.length === 0) {
+      fetchAppointments();
+    }
+  }, [appointments.length, dispatch]);
 
   // Handle "Consult" button click
   const handleConsult = (appointment) => {
