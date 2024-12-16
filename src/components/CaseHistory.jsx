@@ -3,6 +3,7 @@ import ProgressBar from './ProgressBar';
 import NavMenu from './NavMenu';
 import Header from './Header';
 import Radios from './Radios';
+import toast, { Toaster } from 'react-hot-toast';
 import CallToActionButtons from './CallToActionButtons';
 import Inputs from './Inputs';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
@@ -93,24 +94,25 @@ const CaseHistory = ({  }) => {
           ...formData,
           appointment: appointmentId, // Ensure the appointment ID is included
         });
-        alert("Case history updated successfully!");
+        toast.success("Case history updated successfully!");
       } else {
         // Create a new case history
         await axios.post(`/tests/api/case-history/`, {
           ...formData,
           appointment: appointmentId,
         });
-        alert("Case history created successfully!");
+        toast.success("Case history created successfully!");
       }
       navigate("/visual-acuity");
     } catch (error) {
       console.error("Error submitting case history:", error);
-      alert("Failed to save case history. Please try again.");
+      toast.error("Failed to save case history. Please try again.");
     }
   };
 
   return (
     <div className="ml-72 my-8 gap-12 flex items flex-col px-8 h-fit w-fit">
+      <Toaster />
       <Header patient={patient} />
       <ProgressBar />
       <NavMenu />
