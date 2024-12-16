@@ -4,21 +4,25 @@ import NavMenu from "./NavMenu";
 import Header from "./Header";
 import Radios from "./Radios";
 import CallToActionButtons from "./CallToActionButtons";
-import { Toaster } from 'react-hot-toast';
+import { Toaster } from "react-hot-toast";
 import Inputs from "./Inputs";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import {
   createCaseHistoryHandler,
   updateCaseHistoryHandler,
   fetchCaseHistoryHandler,
-  testCreateCaseHistoryHandler,
 } from "../services/client/api-handlers/examinations-handler";
+import {fetchAppointmentsDetails} from "../services/client/api-handlers/appointments-handler"
 import Cookies from "js-cookie"; // Import js-cookie
 
 const CaseHistory = ({}) => {
   const { appointmentId } = useParams(); // Retrieve appointmentId from URL
   const location = useLocation(); // Access state passed with navigate
-  const { patient, appointment } = location.state || {}; // Extract patient and appointment
+  const [appointment, setAppointment] = useState(
+    location.state?.appointment || null
+  );
+  const [patient, setPatient] = useState(location.state?.patient || null);
+  const [isLoading, setIsLoading] = useState(!appointment || !patient);
 
   const [formData, setFormData] = useState({
     appointment: "",
@@ -47,13 +51,22 @@ const CaseHistory = ({}) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (appointmentId) {
-      setFormData((prevData) => ({
-        ...prevData,
-        appointment: appointmentId, // Set the appointment ID
-      }));
-    }
-  }, [appointmentId]);
+    const fetchData = async () => {
+      if (!appointment || !patient) {
+        try {
+          setIsLoading(true);
+          const response = await fetchAppointmentsDetails(appointmentId); // Fetch data from API
+          setAppointment(response);
+          setPatient(response.patient);
+        } catch (error) {
+          console.error("Error fetching appointment details:", error);
+        } finally {
+          setIsLoading(false);
+        }
+      }
+    };
+    fetchData();
+  }, [appointmentId, appointment, patient]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -100,7 +113,7 @@ const CaseHistory = ({}) => {
       <Toaster />
       <Header patient={patient} />
       <ProgressBar />
-      <NavMenu />
+      <NavMenu appointmentId={appointmentId} />
       <form onSubmit={handleSubmit} className="">
         <section className="flex gap-28">
           <aside className="flex flex-col gap-12">

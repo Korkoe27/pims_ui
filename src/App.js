@@ -8,9 +8,14 @@ import AuthProvider from './hooks/AuthProvider';
 import PrivateRoute from './hooks/PrivateRoute';
 import { ClinicProvider } from './contexts/ClinicProvider';
 
+// Import Redux setup
+import { Provider } from 'react-redux';
+import store from './redux/store';
+
 const App = () => {
   return (
     <div className='bg-[#f9fafb]'>
+      <Provider store={store}> {/* Redux Provider */}
       <BrowserRouter>
         <AuthProvider>
           <ClinicProvider>
@@ -26,11 +31,11 @@ const App = () => {
               <Route path='/dispensary' element={<Dispensary />} />
               <Route path='/register-patient' element={<PersonalInfo />} />
               <Route path="/case-history/:appointmentId" element={<CaseHistory />} />
-              <Route path='/visual-acuity' element={<VisualAcuity />} />
-              <Route path='/externals' element={<Externals />} />
-              <Route path='/internals' element={<Internals />} />
-              <Route path='/refraction' element={<Refraction />} />
-              <Route path='/extra-tests' element={<ExtraTests />} />
+              <Route path='/visual-acuity/:appointmentId' element={<VisualAcuity />} />
+              <Route path='/externals/:appointmentId' element={<Externals />} />
+              <Route path='/internals/:appointmentId' element={<Internals />} />
+              <Route path='/refraction/:appointmentId' element={<Refraction />} />
+              <Route path='/extra-tests/:appointmentId' element={<ExtraTests />} />
               <Route path='/diagnosis' element={<Diagnosis />} />
               <Route path='/management' element={<Management />} />
               <Route path='/createAppointment' element={<CreateAppointment />} />
@@ -39,6 +44,7 @@ const App = () => {
           </ClinicProvider>
         </AuthProvider>
       </BrowserRouter>
+      </Provider>
     </div>
   );
 };

@@ -5,7 +5,7 @@ import { FiUserCheck } from "react-icons/fi";
 import { LuUsers2 } from "react-icons/lu";
 import { GrAdd } from "react-icons/gr";
 import { FaChevronDown } from "react-icons/fa6";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import PatientModal from "../components/SelectClinicModal";
 import SearchModalUnfilled from "../components/SearchModalUnfilled";
 import { useAuth } from "../hooks/AuthProvider";
@@ -14,6 +14,7 @@ import { useAppointments } from "../services/queries/appointments-query";
 import LoadingSpinner from "../components/LoadingSpinner";
 
 const Dashboard = () => {
+  const navigate = useNavigate(); // Initialize navigate
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false); // Track dropdown state
   const { user, logOut } = useAuth(); // Access the authenticated user and logOut
@@ -21,6 +22,20 @@ const Dashboard = () => {
   const { data: appointments, isLoading } = useAppointments();
 
   const isTable = true;
+
+  const handleConsult = (appointment) => {
+    if (!appointment) {
+      console.error("Appointment is undefined.");
+      return;
+    }
+  
+    const { id: appointmentId, patient } = appointment;
+  
+    // Navigate to the case history page with state
+    navigate(`/case-history/${appointmentId}`, {
+      state: { patient, appointment },
+    });
+  };
 
   // const dates = appointmentsDetails.filter((date)=> date?.appointment_date == today);
 
@@ -199,7 +214,9 @@ const Dashboard = () => {
                   <th
                     scope="col"
                     className="px-3 min-w-40 py-3 text-base font-semibold normal-case"
-                  ></th>
+                  >
+          
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -237,7 +254,10 @@ const Dashboard = () => {
                           Edit
                         </Link> */}
                         <Link
-                          to="#"
+                          to={{
+                            pathname: `/case-history/${appointment.id}`,
+                          }}
+                          state={{ patient: appointment.patient, appointment }}
                           className="text-white bg-[#2f3192] px-4 py-2 rounded-lg"
                         >
                           Attend to Patient

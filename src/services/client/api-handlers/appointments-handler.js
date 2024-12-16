@@ -1,9 +1,14 @@
 import apiClient from "../apiService";
 import { baseURL } from "../baseurl"
-import { getDashboardStat } from "../endpoints"
+import { getDashboardStat, fetchAppointments } from "../endpoints"
 
 export const    handleAppointments  =   async   ()  =>   {
     const   url = `${baseURL}${getDashboardStat}`;
+    return  await apiClient(url,  {method:    'GET'});
+}
+
+export const fetchAppointmentsDetails  =   async   ()  =>   {
+    const   url = `${baseURL}${fetchAppointments}`;
     return  await apiClient(url,  {method:    'GET'});
 }
 
