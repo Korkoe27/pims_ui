@@ -42,7 +42,7 @@ const Appointments = () => {
               Status
             </th>
             <th scope="col" className="px-3 min-w-40 py-3">
-              
+              Action
             </th>
           </tr>
         </thead>
