@@ -199,7 +199,9 @@ const Dashboard = () => {
                   <th
                     scope="col"
                     className="px-3 min-w-40 py-3 text-base font-semibold normal-case"
-                  ></th>
+                  >
+          
+                  </th>
                 </tr>
               </thead>
               <tbody>
