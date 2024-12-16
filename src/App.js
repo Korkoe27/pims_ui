@@ -8,7 +8,7 @@ import Layout from './pages/Layout';
 import AuthProvider from './hooks/AuthProvider';
 import PrivateRoute from './hooks/PrivateRoute';
 import { ClinicProvider } from './contexts/ClinicProvider';
-import store from "./redux/store";
+import { store } from "./redux/store";
 
 
 const App = () => {

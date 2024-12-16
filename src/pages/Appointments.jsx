@@ -1,102 +1,64 @@
 import React, { useEffect } from "react";
 import LoadingSpinner from "../components/LoadingSpinner";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  fetchAppointmentsStart,
-  fetchAppointmentsSuccess,
-  fetchAppointmentsFailure,
-  selectAppointment,
-} from "../redux/reducers/appointments";
-import { useAppointments } from "../services/queries/appointments-query";
+import { fetchAppointments, selectAppointment } from "../redux/slices/appointmentsSlice";
 import { useNavigate } from "react-router-dom";
 
 const Appointments = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const { appointments, loading, error } = useSelector(
-    (state) => state.appointments
-  );
+  const { appointments, loading, error } = useSelector((state) => state.appointments);
 
-  // Fetch data using TanStack Query
-  const { data, isLoading, isError, error: queryError } = useAppointments();
-
-  // Sync TanStack Query data with Redux
+  // Fetch Appointments on Mount
   useEffect(() => {
-    if (isLoading) {
-      console.log("Fetching Appointments...");
-      dispatch(fetchAppointmentsStart());
-    } else if (data) {
-      console.log(
-        "Appointments Fetched Successfully:",
-        data?.data?.today_appointments?.data
-      );
-      dispatch(
-        fetchAppointmentsSuccess(data?.data?.today_appointments?.data || [])
-      );
-    } else if (isError) {
-      console.error("Error Fetching Appointments:", queryError.message);
-      dispatch(fetchAppointmentsFailure(queryError.message));
-    }
-  }, [data, isLoading, isError, queryError, dispatch]);
+    dispatch(fetchAppointments());
+  }, [dispatch]);
 
   // Handle "Consult" button click
   const handleConsult = (appointment) => {
     const { id: appointmentId, patient } = appointment;
-  
-    // Log to confirm the data being passed
+
     console.log("Appointment ID:", appointmentId);
     console.log("Patient Data:", patient);
-  
+
     // Dispatch selected appointment to Redux
     dispatch(selectAppointment({ appointmentId, patient }));
-  
-    // Navigate to the CaseHistory page
+
+    // Navigate to Case History
     navigate(`/case-history/${appointmentId}`);
   };
-  
 
   return (
     <div className="px-8 ml-72 flex flex-col mt-8 gap-8 bg-[#f9fafb] w-full shadow-md sm:rounded-lg">
       <h1 className="font-extrabold text-xl">Today's Appointments</h1>
 
-      {(loading || isLoading) && <LoadingSpinner />}
+      {/* Loading State */}
+      {loading && <LoadingSpinner />}
+
+      {/* Error State */}
       {error && <p className="text-red-500">Error: {error}</p>}
 
-      {appointments?.length > 0 && (
-        <table className="w-full text-base text-left rtl:text-right text-gray-500 ">
-          <thead className="text-base text-gray-700 uppercase bg-gray-50 ">
+      {/* Appointments Table */}
+      {!loading && appointments?.length > 0 && (
+        <table className="w-full text-base text-left rtl:text-right text-gray-500">
+          <thead className="text-base text-gray-700 uppercase bg-gray-50">
             <tr>
-              <th scope="col" className="px-6 py-3">
-                Date
-              </th>
-              <th scope="col" className="px-6 py-3">
-                Patient ID
-              </th>
-              <th scope="col" className="px-6 py-3">
-                Name
-              </th>
-              <th scope="col" className="px-6 py-3">
-                Type
-              </th>
-              <th scope="col" className="px-6 py-3">
-                Status
-              </th>
-              <th scope="col" className="px-3 min-w-40 py-3">
-                Action
-              </th>
+              <th scope="col" className="px-6 py-3">Date</th>
+              <th scope="col" className="px-6 py-3">Patient ID</th>
+              <th scope="col" className="px-6 py-3">Name</th>
+              <th scope="col" className="px-6 py-3">Type</th>
+              <th scope="col" className="px-6 py-3">Status</th>
+              <th scope="col" className="px-3 min-w-40 py-3">Action</th>
             </tr>
           </thead>
           <tbody>
             {appointments.map((appointment) => (
               <tr key={appointment.id} className="bg-white border-b">
                 <td className="px-6 py-4">{appointment?.appointment_date}</td>
+                <td className="px-6 py-4">{appointment?.patient?.patient_id}</td>
                 <td className="px-6 py-4">
-                  {appointment?.patient?.patient_id}
-                </td>
-                <td className="px-6 py-4">
-                  {appointment?.patient?.first_name}{" "}
-                  {appointment?.patient?.last_name}
+                  {appointment?.patient?.first_name} {appointment?.patient?.last_name}
                 </td>
                 <td className="px-6 py-4">{appointment?.appointment_type}</td>
                 <td className="w-fit mx-auto">
@@ -122,6 +84,7 @@ const Appointments = () => {
         </table>
       )}
 
+      {/* Empty State */}
       {!loading && appointments?.length === 0 && (
         <p className="text-gray-500 text-center">No appointments available.</p>
       )}
