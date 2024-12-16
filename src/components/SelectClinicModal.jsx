@@ -1,14 +1,17 @@
+
 import React, {useRef, useEffect, useState} from 'react';
 import { useNavigate } from "react-router-dom";
 import toast, { Toaster } from 'react-hot-toast';
+import { useClinic } from '../contexts/ClinicProvider';
 
 
 const SelectClinicModal = ({setIsModalOpen}) => {
+  const {selectedClinic,setSelectedClinic}=useClinic();
   const specificElementRef = useRef(null);
 
   const navigate = useNavigate();
 
-  const [selectedClinic, setSelectedClinic] = useState(false);
+  // const [selectedClinic, setSelectedClinic] = useState(false);
 
   const handleClinicSelection = (clinic) => {
     setSelectedClinic(clinic);
@@ -56,7 +59,7 @@ const SelectClinicModal = ({setIsModalOpen}) => {
     <div className='fixed inset-0 bg-black bg-opacity-50 backdrop-blur-[2px]'>
       <Toaster />
        <dialog
-        className="flex flex-col my-10 m-auto w-[1200px] border h-[696px] justify-center items-center modal-overlay "
+        className="flex flex-col z-50 my-10 m-auto w-[1200px] border h-[696px] justify-center items-center modal-overlay "
         ref={specificElementRef}
         
       >

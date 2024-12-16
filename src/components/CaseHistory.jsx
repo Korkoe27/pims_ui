@@ -96,6 +96,7 @@ const CaseHistory = ({}) => {
 
   return (
     <div className="ml-72 my-8 gap-12 flex items flex-col px-8 h-fit w-fit">
+      <Toaster />
       <Header patient={patient} />
       <ProgressBar />
       <NavMenu />
