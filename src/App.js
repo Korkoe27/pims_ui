@@ -6,12 +6,14 @@ import { Dashboard, Appointments, Dispensary, Inventory, Patients, Login } from 
 import Layout from './pages/Layout';
 import AuthProvider from './hooks/AuthProvider';
 import PrivateRoute from './hooks/PrivateRoute';
+import { ClinicProvider } from './contexts/ClinicProvider';
 
 const App = () => {
   return (
     <div className='bg-[#f9fafb]'>
       <BrowserRouter>
         <AuthProvider>
+          <ClinicProvider>
           <Routes>
             <Route path='/login' element={<Login />} />
             
@@ -34,6 +36,7 @@ const App = () => {
               <Route path='/createAppointment' element={<CreateAppointment />} />
             </Route>
           </Routes>
+          </ClinicProvider>
         </AuthProvider>
       </BrowserRouter>
     </div>

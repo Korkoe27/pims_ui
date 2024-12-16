@@ -1,21 +1,25 @@
 import apiClient from "../apiService";
 import { baseURL } from "../baseurl"
-import { createCaseHistory, updateCaseHistory, fetchCaseHistory } from '../endpoints';
+import { createCaseHistory, listPatients } from "../endpoints"
 
-// Create CaseHistory
-export const createCaseHistoryHandler = async (data) => {
-const url = createCaseHistory; // Use static endpoint for creation
-return await apiClient.post(url, data);
-};
+// export const   createCaseHistory  =   async   ()  =>   {
+//     const   url = `${baseURL}${createCaseHistory}`;
+//     return  await apiClient(url,  {method:    'POST'});
+// }
 
-// Update CaseHistory
-export const updateCaseHistoryHandler = async (appointmentId, data) => {
-const url = updateCaseHistory(appointmentId); // Use dynamic endpoint
-return await apiClient.put(url, data);
-};
+export const    updateCaseHistory  =   async   ()  =>   {
+    const   url = `${baseURL}${createCaseHistory}`;
+    return  await apiClient(url,  {method:    'PATCH'});
+}
 
-// Fetch CaseHistory by appointmentId
-export const fetchCaseHistoryHandler = async (appointmentId) => {
-const url = fetchCaseHistory(appointmentId); // Use dynamic endpoint
-return await apiClient.get(url);
-};
+export const    viewCaseHistory  =   async   ()  =>   {
+    const   url = `${baseURL}${createCaseHistory}`;
+    return  await apiClient(url,  {method:    'GET'});
+}
+
+export const    createPatient  =    async  (payload)  =>   {
+    const   url = `${baseURL}${listPatients}`;
+    return   await apiClient(url,     {method:    'POST',data:payload});
+
+}
+
