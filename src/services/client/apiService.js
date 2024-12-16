@@ -7,12 +7,9 @@ const fetchCSRFToken = async () => {
     const response = await axios.get(`${baseURL}/auth/api/get-csrf-token/`, {
       withCredentials: true,
     });
-    const csrfToken = response.data?.csrftoken;
-    console.log('Fetched CSRF Token:', csrfToken);
-    return csrfToken;
+    return response.data?.csrftoken;
   } catch (error) {
-    console.error('Failed to fetch CSRF token:', error);
-    throw error;
+    throw new Error('Failed to fetch CSRF token');
   }
 };
 
@@ -28,68 +25,37 @@ const apiClient = axios.create({
 // Request Interceptor
 apiClient.interceptors.request.use(
   async (config) => {
-    // Fetch CSRF token dynamically if not already set
     if (!config.headers['X-CSRFToken']) {
       const csrfToken = await fetchCSRFToken();
       if (csrfToken) {
         config.headers['X-CSRFToken'] = csrfToken;
       }
     }
-
-    // Log request details
-    console.log('REQUEST:', {
-      URL: config.url,
-      Method: config.method,
-      Headers: config.headers,
-      Data: config.data,
-    });
-
     return config;
   },
-  (error) => {
-    console.error('REQUEST ERROR:', error);
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
 // Response Interceptor
 apiClient.interceptors.response.use(
-  (response) => {
-    // Log response details
-    console.log('RESPONSE:', {
-      URL: response.config.url,
-      Status: response.status,
-      Data: response.data,
-      Headers: response.headers,
-    });
-    return response;
-  },
+  (response) => response,
   (error) => {
     if (error.response) {
-      console.error('RESPONSE ERROR:', {
-        URL: error.response.config?.url,
-        Status: error.response.status,
-        Data: error.response.data,
-        Headers: error.response.headers,
-      });
-    } else {
-      console.error('NETWORK ERROR:', error.message);
+      throw new Error(
+        `Error: ${error.response.status}, ${error.response.data?.detail || 'An error occurred'}`
+      );
     }
-    return Promise.reject(error);
+    throw new Error('Network error, please check your connection');
   }
 );
-
-// Define your API calls
 
 // Login API
 export const login = async (username, password) => {
   try {
     const response = await apiClient.post('auth/api/login/', { username, password });
-    console.log('Login successful:', response.data);
     return response.data;
   } catch (error) {
-    console.error('Login failed:', error);
-    throw error;
+    throw new Error('Login failed');
   }
 };
 
@@ -97,11 +63,9 @@ export const login = async (username, password) => {
 export const logout = async () => {
   try {
     const response = await apiClient.post('auth/api/logout/');
-    console.log('Logout successful:', response.data);
     return response.data;
   } catch (error) {
-    console.error('Logout failed:', error);
-    throw error;
+    throw new Error('Logout failed');
   }
 };
 
@@ -109,24 +73,19 @@ export const logout = async () => {
 export const getUserProfile = async () => {
   try {
     const response = await apiClient.get('/profile/');
-    console.log('Profile fetched:', response.data);
     return response.data;
   } catch (error) {
-    console.error('Fetching profile failed:', error);
-    throw error;
+    throw new Error('Failed to fetch profile');
   }
 };
 
 // Check session API
 export const checkSession = async () => {
-  console.log('checkSession function called');
   try {
     const response = await apiClient.get('auth/api/check-session/');
-    console.log('Session active:', response.data);
     return response.data;
   } catch (error) {
-    console.error('Session check failed:', error);
-    throw error;
+    throw new Error('Failed to check session');
   }
 };
 
