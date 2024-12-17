@@ -14,9 +14,13 @@ import {
 } from "../services/client/api-handlers/examinations-handler";
 import {fetchAppointmentsDetails} from "../services/client/api-handlers/appointments-handler"
 import Cookies from "js-cookie"; // Import js-cookie
+import { useSelector } from "react-redux";
+
+
 
 const CaseHistory = ({}) => {
   const { appointmentId } = useParams(); // Retrieve appointmentId from URL
+  const selectedAppointment = useSelector((state) => state.appointments.selectedAppointment); // Access Redux state
   const location = useLocation(); // Access state passed with navigate
   const [appointment, setAppointment] = useState(
     location.state?.appointment || null
@@ -67,6 +71,12 @@ const CaseHistory = ({}) => {
     };
     fetchData();
   }, [appointmentId, appointment, patient]);
+
+  useEffect(() => {
+    // Log the data for debugging purposes
+    console.log("Fetched Appointment ID:", appointmentId);
+    console.log("Redux Stored Appointment Data:", selectedAppointment);
+  }, [appointmentId, selectedAppointment]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;

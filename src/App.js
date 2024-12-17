@@ -1,4 +1,5 @@
 import React from 'react';
+import { Provider } from "react-redux";
 import './App.css';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { CaseHistory, PersonalInfo, VisualAcuity, Internals, Externals, Refraction, ExtraTests, Diagnosis, Management, CreateAppointment } from './components';
@@ -7,15 +8,13 @@ import Layout from './pages/Layout';
 import AuthProvider from './hooks/AuthProvider';
 import PrivateRoute from './hooks/PrivateRoute';
 import { ClinicProvider } from './contexts/ClinicProvider';
+import { store } from "./redux/store";
 
-// Import Redux setup
-import { Provider } from 'react-redux';
-import store from './redux/store';
 
 const App = () => {
   return (
     <div className='bg-[#f9fafb]'>
-      <Provider store={store}> {/* Redux Provider */}
+      <Provider store={store}>
       <BrowserRouter>
         <AuthProvider>
           <ClinicProvider>
