@@ -1,17 +1,6 @@
 import axios from 'axios';
 import { baseURL } from './baseurl';
-
-// Utility to fetch CSRF token from the backend
-const fetchCSRFToken = async () => {
-  try {
-    const response = await axios.get(`${baseURL}auth/api/get-csrf-token/`, {
-      withCredentials: true,
-    });
-    return response.data?.csrftoken;
-  } catch (error) {
-    throw new Error('Failed to fetch CSRF token');
-  }
-};
+import Cookies from "js-cookie";
 
 // Set up a base URL for your API
 const apiClient = axios.create({
@@ -22,15 +11,24 @@ const apiClient = axios.create({
   withCredentials: true, // Ensure that cookies are sent with each request
 });
 
-// Request Interceptor
+
+// Helper to fetch CSRF token
+const fetchCSRFToken = () => {
+  const csrfToken = Cookies.get("csrftoken"); // Fetch CSRF token from cookies
+  console.log("CSRF Token from Cookies:", csrfToken); // Log the token for debugging
+  return csrfToken;
+};
+
+// Request Interceptor to include CSRF token and print headers
 apiClient.interceptors.request.use(
-  async (config) => {
-    if (!config.headers['X-CSRFToken']) {
-      const csrfToken = await fetchCSRFToken();
-      if (csrfToken) {
-        config.headers['X-CSRFToken'] = csrfToken;
-      }
+  (config) => {
+    const csrfToken = fetchCSRFToken();
+    if (csrfToken) {
+      config.headers["X-CSRFToken"] = csrfToken;
     }
+
+    // Print headers for debugging
+    console.log("Request Headers:", config.headers);
     return config;
   },
   (error) => Promise.reject(error)

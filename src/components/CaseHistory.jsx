@@ -12,15 +12,16 @@ import {
   updateCaseHistoryHandler,
   fetchCaseHistoryHandler,
 } from "../services/client/api-handlers/examinations-handler";
-import {fetchAppointmentsDetails} from "../services/client/api-handlers/appointments-handler"
+import { fetchAppointmentsDetails } from "../services/client/api-handlers/appointments-handler";
 import Cookies from "js-cookie"; // Import js-cookie
 import { useSelector } from "react-redux";
-
-
+import CSRFToken from "../components/CSRFToken";
 
 const CaseHistory = ({}) => {
   const { appointmentId } = useParams(); // Retrieve appointmentId from URL
-  const selectedAppointment = useSelector((state) => state.appointments.selectedAppointment); // Access Redux state
+  const selectedAppointment = useSelector(
+    (state) => state.appointments.selectedAppointment
+  ); // Access Redux state
   const location = useLocation(); // Access state passed with navigate
   const [appointment, setAppointment] = useState(
     location.state?.appointment || null
@@ -125,6 +126,8 @@ const CaseHistory = ({}) => {
       <ProgressBar />
       <NavMenu appointmentId={appointmentId} />
       <form onSubmit={handleSubmit} className="">
+        {/* Include CSRF Token */}
+        <CSRFToken />
         <section className="flex gap-28">
           <aside className="flex flex-col gap-12">
             {/* Chief Complaint */}
