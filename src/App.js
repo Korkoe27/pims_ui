@@ -1,7 +1,8 @@
-import React from "react";
+import React, {useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { Provider } from "react-redux";
 import "./App.css";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate  } from "react-router-dom";
 import {
   CaseHistory,
   PersonalInfo,
@@ -27,8 +28,23 @@ import AuthProvider from "./hooks/AuthProvider";
 import PrivateRoute from "./hooks/PrivateRoute";
 import { ClinicProvider } from "./contexts/ClinicProvider";
 import { store } from "./redux/store";
+import { checkUserSession } from "./redux/slices/authSlice";
+import LoadingSpinner from "./components/LoadingSpinner";
 
 const App = () => {
+  const dispatch = useDispatch();
+  const { user, loading } = useSelector((state) => state.auth);
+
+  useEffect(() => {
+    // Run session check on app load
+    dispatch(checkUserSession());
+  }, [dispatch]);
+
+  if (loading) {
+    // Display spinner while checking session
+    return <LoadingSpinner />;
+  }
+
   return (
     <div className="bg-[#f9fafb]">
       <Provider store={store}>
