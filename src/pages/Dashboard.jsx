@@ -9,7 +9,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import PatientModal from "../components/SelectClinicModal";
 import SearchModalUnfilled from "../components/SearchModalUnfilled";
-import { logoutUser } from "../redux/slices/authSlice"; // Redux logout
+import { logoutUser } from "../redux/slices/authSlice";
 import { useAppointments } from "../services/queries/appointments-query";
 import LoadingSpinner from "../components/LoadingSpinner";
 
@@ -21,39 +21,20 @@ const Dashboard = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isSearchModalVisible, setSearchModalVisibility] = useState(false);
 
-  const { user } = useSelector((state) => state.auth); // Access user from Redux
+  const { user } = useSelector((state) => state.auth); // Fetch user from Redux
   const { data: appointments, isLoading } = useAppointments();
 
-  const isTable = true;
-
-  const handleConsult = (appointment) => {
-    if (!appointment) {
-      console.error("Appointment is undefined.");
-      return;
-    }
-    const { id: appointmentId, patient } = appointment;
-
-    navigate(`/case-history/${appointmentId}`, {
-      state: { patient, appointment },
-    });
-  };
-
   const handleLogout = () => {
-    dispatch(logoutUser()); // Dispatch Redux logout action
+    dispatch(logoutUser());
   };
 
   const openModal = () => setIsModalOpen(true);
-
-  const openSearchModal = () => {
-    setSearchModalVisibility(true);
-  };
-
+  const openSearchModal = () => setSearchModalVisibility(true);
   const toggleDropdown = () => setIsDropdownOpen(!isDropdownOpen);
 
   return (
     <div className="px-8 ml-72 flex flex-col mt-4 gap-8 bg-[#f9fafb] w-full">
       {isModalOpen && <PatientModal setIsModalOpen={setIsModalOpen} />}
-
       {isSearchModalVisible && (
         <SearchModalUnfilled setSearchModalVisibility={setSearchModalVisibility} />
       )}
@@ -74,7 +55,6 @@ const Dashboard = () => {
           </h2>
         </div>
 
-        {/* Search and Add Buttons */}
         <div className="flex items-center justify-end gap-5 h-14 col-span-7 w-90 border-[#d0d5dd]">
           <div className="flex bg-white items-center text-left gap-0 w-2/3 px-2 border rounded-md">
             <CiSearch title="Search" className="h-5 bg-white cursor-pointer" />
@@ -99,11 +79,10 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* User Dropdown */}
         <div className="relative flex items-end justify-end gap-12 col-span-1">
           <div className="flex justify-end gap-3 items-center">
             <span className="bg-[#ffe7cc] px-5 py-2 w-14 h-14 text-[#3e3838] flex justify-center items-center rounded-[100%] font-semibold text-xl">
-              {`${user?.first_name[0] || "K"}${user?.last_name[0] || "D"}`}
+              {`${user?.first_name?.[0] || "K"}${user?.last_name?.[0] || "D"}`}
             </span>
             <FaChevronDown
               title="Menu"
@@ -126,38 +105,119 @@ const Dashboard = () => {
 
       {/* Appointment Cards */}
       <div className="grid grid-cols-12 gap-9 w-full">
-        <div className="bg-[#ececf9] p-4 h-36 col-span-4 w-full">
+        <div className="bg-[#ececf9] p-4 h-36 col-span-4">
           <h3 className="flex items-center text-base gap-[12px] font-normal">
             <LuUsers2 className="w-6 h-6" />
             Today's Appointments
           </h3>
-          {isLoading && <LoadingSpinner />}
-          <span className="text-[50px] font-bold text-[#2f3192]">
-            {appointments?.data?.today_appointments?.count}
-          </span>
+          {isLoading ? (
+            <LoadingSpinner />
+          ) : (
+            <span className="text-[50px] font-bold text-[#2f3192]">
+              {appointments?.data?.today_appointments?.count || 0}
+            </span>
+          )}
         </div>
-
-        <div className="bg-[#fbeae9] p-4 h-36 w-full col-span-4">
+        <div className="bg-[#fbeae9] p-4 h-36 col-span-4">
           <h3 className="flex items-center text-base gap-[12px] font-normal">
             <LuClock3 className="w-6 h-6" />
             Pending Appointments
           </h3>
-          {isLoading && <LoadingSpinner />}
-          <span className="text-[50px] font-bold text-[#d42620]">
-            {appointments?.data?.pending_appointments}
-          </span>
+          {isLoading ? (
+            <LoadingSpinner />
+          ) : (
+            <span className="text-[50px] font-bold text-[#d42620]">
+              {appointments?.data?.pending_appointments || 0}
+            </span>
+          )}
         </div>
-
-        <div className="bg-[#e7f6ec] p-4 h-36 w-full flex flex-col col-span-4">
+        <div className="bg-[#e7f6ec] p-4 h-36 col-span-4">
           <h3 className="flex items-center text-base gap-[12px] font-normal">
             <FiUserCheck className="w-6 h-6" />
             Completed Appointments
           </h3>
-          {isLoading && <LoadingSpinner />}
-          <span className="text-[50px] font-bold text-[#0f973d]">
-            {appointments?.data?.completed_appointments}
-          </span>
+          {isLoading ? (
+            <LoadingSpinner />
+          ) : (
+            <span className="text-[50px] font-bold text-[#0f973d]">
+              {appointments?.data?.completed_appointments || 0}
+            </span>
+          )}
         </div>
+      </div>
+
+      {/* Upcoming Appointments Table */}
+      <div>
+        <div className="flex justify-between my-[15px]">
+          <h2 className="font-bold text-xl">Upcoming Appointments</h2>
+          <Link to="/appointments" className="text-[#2f3192] font-semibold">
+            See all
+          </Link>
+        </div>
+        <table className="w-full">
+          <thead className="text-black uppercase text-left h-16 bg-[#f0f2f5]">
+            <tr>
+              <th className="px-3 py-3">Date</th>
+              <th className="px-3 py-3">Patient’s ID</th>
+              <th className="px-3 py-3">Name</th>
+              <th className="px-3 py-3">Appointment Type</th>
+              <th className="px-3 py-3"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {isLoading && <LoadingSpinner />}
+            {appointments?.data?.today_appointments?.data?.slice(0, 3).map((appointment) => (
+              <tr key={appointment?.id}>
+                <td className="px-3 py-3">{appointment?.appointment_date}</td>
+                <td className="px-3 py-3">{appointment?.patient?.patient_id}</td>
+                <td className="px-3 py-3">
+                  {appointment?.patient?.first_name} {appointment?.patient?.last_name}
+                </td>
+                <td className="px-3 py-3">{appointment?.appointment_type}</td>
+                <td className="py-3 flex justify-end">
+                  <Link
+                    to={`/case-history/${appointment.id}`}
+                    className="text-white bg-[#2f3192] px-4 py-2 rounded-lg"
+                  >
+                    Attend to Patient
+                  </Link>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Recent Patient Activity Table */}
+      <div className="my-5">
+        <div className="flex justify-between my-4">
+          <h2 className="font-bold text-xl">Recent Patient Activity</h2>
+          <Link className="text-[#2f3192] font-semibold">See all</Link>
+        </div>
+        <table className="w-full">
+          <thead className="text-black uppercase text-left h-16 bg-[#f0f2f5]">
+            <tr>
+              <th className="px-3 py-3">Date</th>
+              <th className="px-3 py-3">Patient’s ID</th>
+              <th className="px-3 py-3">Name</th>
+              <th className="px-3 py-3">Diagnosis</th>
+              <th className="px-3 py-3">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td className="px-3 py-3">07-05-2024</td>
+              <td className="px-3 py-3">2122/10/22</td>
+              <td className="px-3 py-3">Korkoe A.K Dumashie</td>
+              <td className="px-3 py-3">Allergic Conjunctivitis</td>
+              <td className="px-3 py-3">
+                <span className="bg-[#e7f6ec] text-[#036b26] py-2 px-3 rounded-lg">
+                  Completed
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
   );
