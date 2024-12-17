@@ -12,6 +12,7 @@ import SearchModalUnfilled from "../components/SearchModalUnfilled";
 import { logoutUser } from "../redux/slices/authSlice";
 import { useAppointments } from "../services/queries/appointments-query";
 import LoadingSpinner from "../components/LoadingSpinner";
+import { unwrapResult } from "@reduxjs/toolkit";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -24,8 +25,14 @@ const Dashboard = () => {
   const { user } = useSelector((state) => state.auth); // Fetch user from Redux
   const { data: appointments, isLoading } = useAppointments();
 
-  const handleLogout = () => {
-    dispatch(logoutUser());
+  const handleLogout = async () => {
+    try {
+      const resultAction = await dispatch(logoutUser()); // Dispatch logout action
+      unwrapResult(resultAction); // Ensures successful completion
+      navigate("/login"); // Redirect to login page
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
   };
 
   const openModal = () => setIsModalOpen(true);
@@ -36,7 +43,9 @@ const Dashboard = () => {
     <div className="px-8 ml-72 flex flex-col mt-4 gap-8 bg-[#f9fafb] w-full">
       {isModalOpen && <PatientModal setIsModalOpen={setIsModalOpen} />}
       {isSearchModalVisible && (
-        <SearchModalUnfilled setSearchModalVisibility={setSearchModalVisibility} />
+        <SearchModalUnfilled
+          setSearchModalVisibility={setSearchModalVisibility}
+        />
       )}
 
       {/* Header */}
@@ -166,24 +175,29 @@ const Dashboard = () => {
           </thead>
           <tbody>
             {isLoading && <LoadingSpinner />}
-            {appointments?.data?.today_appointments?.data?.slice(0, 3).map((appointment) => (
-              <tr key={appointment?.id}>
-                <td className="px-3 py-3">{appointment?.appointment_date}</td>
-                <td className="px-3 py-3">{appointment?.patient?.patient_id}</td>
-                <td className="px-3 py-3">
-                  {appointment?.patient?.first_name} {appointment?.patient?.last_name}
-                </td>
-                <td className="px-3 py-3">{appointment?.appointment_type}</td>
-                <td className="py-3 flex justify-end">
-                  <Link
-                    to={`/case-history/${appointment.id}`}
-                    className="text-white bg-[#2f3192] px-4 py-2 rounded-lg"
-                  >
-                    Attend to Patient
-                  </Link>
-                </td>
-              </tr>
-            ))}
+            {appointments?.data?.today_appointments?.data
+              ?.slice(0, 3)
+              .map((appointment) => (
+                <tr key={appointment?.id}>
+                  <td className="px-3 py-3">{appointment?.appointment_date}</td>
+                  <td className="px-3 py-3">
+                    {appointment?.patient?.patient_id}
+                  </td>
+                  <td className="px-3 py-3">
+                    {appointment?.patient?.first_name}{" "}
+                    {appointment?.patient?.last_name}
+                  </td>
+                  <td className="px-3 py-3">{appointment?.appointment_type}</td>
+                  <td className="py-3 flex justify-end">
+                    <Link
+                      to={`/case-history/${appointment.id}`}
+                      className="text-white bg-[#2f3192] px-4 py-2 rounded-lg"
+                    >
+                      Attend to Patient
+                    </Link>
+                  </td>
+                </tr>
+              ))}
           </tbody>
         </table>
       </div>
