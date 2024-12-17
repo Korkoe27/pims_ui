@@ -1,12 +1,18 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
-import { useAuth } from '../hooks/AuthProvider'; // Use the AuthProvider for context
+import { useSelector } from 'react-redux';
 
 const PrivateRoute = ({ children }) => {
-  const { user } = useAuth(); // Check the user state from context
-  
-  // If user is not authenticated, redirect to login page
-  return user ? children : <Navigate to="/login" />;
+  // Get user from Redux state
+  const { user } = useSelector((state) => state.auth);
+
+  // If the user is not authenticated, redirect to the login page
+  if (!user) {
+    return <Navigate to="/login" />;
+  }
+
+  // If the user is authenticated, render the protected component
+  return children;
 };
 
 export default PrivateRoute;
