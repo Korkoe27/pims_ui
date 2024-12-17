@@ -135,15 +135,3 @@ const checkStatus = (status) => {
       return "bg-yellow-400";
   }
 };
-
-
-const showConsultBtn  = (status)  =>{
-  switch(status){
-    case  'Completed':  return  'hidden';
-    case  'Cancelled':  return  'hidden';
-
-    default:  case  'Scheduled':  return  'block';
-  }
-
-
-}
