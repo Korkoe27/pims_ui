@@ -10,9 +10,11 @@ import { useSelector, useDispatch } from "react-redux";
 import PatientModal from "../components/SelectClinicModal";
 import SearchModalUnfilled from "../components/SearchModalUnfilled";
 import { logoutUser } from "../redux/slices/authSlice";
-import { useAppointments } from "../services/queries/appointments-query";
+import { useAppointments, } from "../services/queries/appointments-query";
 import LoadingSpinner from "../components/LoadingSpinner";
 import { unwrapResult } from "@reduxjs/toolkit";
+import { selectAppointment } from "../redux/slices/appointmentsSlice";
+
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -33,6 +35,11 @@ const Dashboard = () => {
     } catch (error) {
       console.error("Logout failed:", error);
     }
+  };
+
+  const handleAttendToPatient = (appointment) => {
+    dispatch(selectAppointment(appointment)); // Set the selected appointment in Redux
+    navigate(`/case-history/${appointment.id}`, { state: { appointment } });
   };
 
   const openModal = () => setIsModalOpen(true);
@@ -191,6 +198,7 @@ const Dashboard = () => {
                   <td className="py-3 flex justify-end">
                     <Link
                       to={`/case-history/${appointment.id}`}
+                      onClick={() => handleAttendToPatient(appointment)}
                       className="text-white bg-[#2f3192] px-4 py-2 rounded-lg"
                     >
                       Attend to Patient
