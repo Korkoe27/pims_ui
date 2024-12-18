@@ -2,14 +2,20 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { checkSession, login, logout } from '../../services/client/apiService';
 
 // Check user session
-export const checkUserSession = createAsyncThunk('auth/checkSession', async (_, thunkAPI) => {
-  try {
-    const res = await checkSession();
-    return res.user;
-  } catch (error) {
-    return thunkAPI.rejectWithValue('Session expired or invalid');
+export const checkUserSession = createAsyncThunk(
+  "auth/checkSession",
+  async (_, thunkAPI) => {
+    try {
+      const res = await checkSession(); // Call the API function
+      console.log("Check Session Response:", res); // Log the full response
+      return res.user; // Return the user data
+    } catch (error) {
+      console.error("Session Check Error:", error); // Log the error
+      return thunkAPI.rejectWithValue("Session expired or invalid");
+    }
   }
-});
+);
+
 
 // Login user
 export const loginUser = createAsyncThunk('auth/login', async (credentials, thunkAPI) => {
