@@ -5,7 +5,7 @@ export const listPatients = "clients/api/patients/";
 
 //Appointment Endpoints
 export const createAppointment = "/tests/clients/api/appointments/";
-export const fetchAppointments = "/tests/clients/api/appointments/";
+export const fetchAppointments = "clients/api/appointments/";
 export const getAppointmentsDetails = "/tests/clients/api/appointments/${appointmentId}/";
 
 // Patient Examination Endpoints
@@ -13,7 +13,7 @@ export const createCaseHistory = "/tests/api/case-history/";
 export const updateCaseHistory = (appointmentId) =>
   `/tests/api/case-history/${appointmentId}/`; // Use dynamic parameter
 export const fetchCaseHistory = (appointmentId) =>
-  `/tests/api/case-history/appointment/${appointmentId}/`; // Fetch by appointmentId
+  `/tests/api/case-history/${appointmentId}/`; // Fetch by appointmentId
 
 // Patient Details Endpoints
 export const fetchPatientDetails = (patientId) =>
