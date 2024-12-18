@@ -12,6 +12,9 @@ export {default as ExtraTests} from './ExtraTests';
 export {default as Diagnosis} from './Diagnosis';
 export {default as Management} from './Management';
 export {default as CreateAppointment} from './CreateAppointment';
+export {default as PatientDetails} from './PatientDetails';
+export {default as AppointmentDetails} from './AppointmentDetails';
+
 
 
 

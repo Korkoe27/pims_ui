@@ -14,6 +14,8 @@ import {
   Diagnosis,
   Management,
   CreateAppointment,
+  AppointmentDetails,
+  PatientDetails,
 } from "./components";
 import {
   Dashboard,
@@ -94,6 +96,8 @@ const App = () => {
                 />
                 <Route path="/diagnosis" element={<Diagnosis />} />
                 <Route path="/management" element={<Management />} />
+                <Route path="/patient-details" element={<PatientDetails />} />
+                <Route path="/appointment-details:appointmentId" element={<AppointmentDetails />} />
                 <Route
                   path="/createAppointment"
                   element={<CreateAppointment />}
