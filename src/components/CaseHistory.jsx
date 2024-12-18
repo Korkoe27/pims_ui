@@ -9,6 +9,7 @@ import { useNavigate, useParams, useLocation } from "react-router-dom";
 import {
   createCaseHistoryHandler,
   updateCaseHistoryHandler,
+  fetchCaseHistoryHandler,
 } from "../services/client/api-handlers/examinations-handler";
 import { fetchAppointmentsDetails } from "../services/client/api-handlers/appointments-handler";
 import Cookies from "js-cookie";
