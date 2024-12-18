@@ -37,7 +37,7 @@ const Externals = () => {
   return (
     <div className="ml-72 py-8 w-full px-8 min-h-screen flex flex-col bg-[#f9fafb] gap-12">
       <Header patient={patient} />
-      <ProgressBar />
+      <ProgressBar step={1} />
       <NavMenu />
 
       <form action="" className="flex gap-8 flex-col w-fit h-full py-4">

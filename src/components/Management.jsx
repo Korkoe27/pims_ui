@@ -79,7 +79,7 @@ const Management = () => {
 )}
 
         <Header/>
-        <ProgressBar />
+        <ProgressBar step={3} />
         <form action="" className='flex flex-col gap-5 w-fit'>
             <main className="flex gap-40">
             <section className='flex flex-col gap-12 w-fit'>

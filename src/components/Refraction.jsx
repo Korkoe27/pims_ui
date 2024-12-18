@@ -32,7 +32,7 @@ const Refraction = () => {
   return (
     <div className="ml-72 my-8 px-16 flex flex-col gap-12">
       <Header patient={patient} />
-      <ProgressBar />
+      <ProgressBar step={1} />
       <NavMenu />
 
       <form className="flex flex-col gap-20">

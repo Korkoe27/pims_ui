@@ -17,7 +17,7 @@ const VisualAcuity = () => {
   return (
     <div className="ml-72 my-8 px-8 flex flex-col gap-12">
       <Header patient={patient} />
-      <ProgressBar />
+      <ProgressBar step={1} />
       <NavMenu />
 
       <form action="" className="flex gap-48">

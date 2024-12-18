@@ -13,7 +13,7 @@ const Diagnosis = () => {
   return (
     <main className='ml-72 my-8 px-8 w-fit flex flex-col gap-12'>
                     <Header/>
-                    <ProgressBar />
+                    <ProgressBar step={2} />
             <form action='' className=' flex flex-col w-fit gap-8'>
         <div className="flex flex-col gap-2">
             <label htmlFor="differentialDiagnosis" className='font-medium text-base'>Differential Diagnosis</label>

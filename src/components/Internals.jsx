@@ -40,7 +40,7 @@ const Internals = () => {
   return (
     <main className="ml-72 py-8 px-8 w-full min-h-screen flex flex-col gap-12">
       <Header patient={patient} />
-      <ProgressBar />
+      <ProgressBar step={1} />
       <NavMenu />
 
       <form action="" className="flex flex-col w-fit gap-8 py-4">
