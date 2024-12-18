@@ -8,10 +8,12 @@ import { FaChevronDown } from "react-icons/fa6";
 import { Link, useNavigate } from "react-router-dom";
 import PatientModal from "../components/SelectClinicModal";
 import SearchModalUnfilled from "../components/SearchModalUnfilled";
-import { useAuth } from "../hooks/AuthProvider";
-
-import { useAppointments } from "../services/queries/appointments-query";
+import { logoutUser } from "../redux/slices/authSlice";
+import { useAppointments, } from "../services/queries/appointments-query";
 import LoadingSpinner from "../components/LoadingSpinner";
+import { unwrapResult } from "@reduxjs/toolkit";
+import { selectAppointment } from "../redux/slices/appointmentsSlice";
+
 
 const Dashboard = () => {
   const navigate = useNavigate(); // Initialize navigate
@@ -57,6 +59,11 @@ const Dashboard = () => {
   const handleLogout = () => {
     // e.preventDefault();
     logOut();
+  };
+
+  const handleAttendToPatient = (appointment) => {
+    dispatch(selectAppointment(appointment)); // Set the selected appointment in Redux
+    navigate(`/case-history/${appointment.id}`, { state: { appointment } });
   };
 
   const openModal = () => setIsModalOpen(true);
@@ -252,74 +259,41 @@ const Dashboard = () => {
           >
             Edit
           </Link>
-          <Link to="#" className="text-white bg-[#2f3192] px-4 py-2 rounded-lg">
-            Attend to Patient
-          </Link>
-        </td>
-      </tr>
-    ))}
-</tbody>
-
-            </table>
-          </div>
-
-          <div className="my-5">
-            <div className='flex justify-between my-4'>
-            <h2 className='font-bold text-xl'>Completed Appointments</h2>
-            <Link to='/appointments' className='text-[#2f3192] text-right font-semibold'>See all</Link>
-            </div>
-            <table className="w-full">
-              <thead className="text-black uppercase text-left rounded-[8px] h-16 bg-[#f0f2f5]">
-                <tr>
-                  <th
-                    scope="col"
-                    className="px-3 min-w-[168px] py-3 text-base font-semibold normal-case"
-                  >
-                    Date
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-3 min-w-[168px] py-3 text-base font-semibold normal-case"
-                  >
-                    Patient’s ID
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-3 py-3 min-w-[168px] text-base font-semibold normal-case"
-                  >
-                    Name
-                  </th>
-                  <th scope="col" className="px-3 py-3 min-w-[168px] text-base font-semibold normal-case">
-                    Type
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-3 py-3 min-w-[168px] text-base font-semibold normal-case"
-                  >
-                    Status
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-
-              {
-            isLoading &&  <LoadingSpinner isTable={isTable} className='flex justify-center' />
-          }
-
-              {completedAppointments
-    ?.slice(0, 5) // Extract the first 5 items from the array
-    .map((appointment) => (
-                <tr className="text-left">
-                  <td className="px-3 py-3 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">{appointment?.appointment_date}</td>
-                  <td className="px-3 py-3 my-3 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">{appointment?.patient?.patient_id}</td>
-                  <td className="px-3 py-3 my-3 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">{appointment?.patient?.first_name} {appointment?.patient?.last_name}</td>
-                  <td className="px-3 py-3 my-3 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">{appointment?.appointment_type}</td>
-                  <td className="px-3 py-3 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">
-        <span className={`px-6 rounded-full py-2 text-base font-medium text-white w-5 ${checkStatus(appointment?.status)}`}>
-          {appointment?.status}
-
-            </span>
-        </td>
+        </div>
+        <table className="w-full">
+          <thead className="text-black uppercase text-left h-16 bg-[#f0f2f5]">
+            <tr>
+              <th className="px-3 py-3">Date</th>
+              <th className="px-3 py-3">Patient’s ID</th>
+              <th className="px-3 py-3">Name</th>
+              <th className="px-3 py-3">Appointment Type</th>
+              <th className="px-3 py-3"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {isLoading && <LoadingSpinner />}
+            {appointments?.data?.today_appointments?.data
+              ?.slice(0, 3)
+              .map((appointment) => (
+                <tr key={appointment?.id}>
+                  <td className="px-3 py-3">{appointment?.appointment_date}</td>
+                  <td className="px-3 py-3">
+                    {appointment?.patient?.patient_id}
+                  </td>
+                  <td className="px-3 py-3">
+                    {appointment?.patient?.first_name}{" "}
+                    {appointment?.patient?.last_name}
+                  </td>
+                  <td className="px-3 py-3">{appointment?.appointment_type}</td>
+                  <td className="py-3 flex justify-end">
+                    <Link
+                      to={`/case-history/${appointment.id}`}
+                      onClick={() => handleAttendToPatient(appointment)}
+                      className="text-white bg-[#2f3192] px-4 py-2 rounded-lg"
+                    >
+                      Attend to Patient
+                    </Link>
+                  </td>
                 </tr>
               ))}
               </tbody>
