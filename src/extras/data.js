@@ -34,37 +34,33 @@ export const Sidebar_links = [
 
 ];
 
-export const Consultation_nav = [
-
+export const getConsultationNav = (appointmentId) => [
     {
         name: 'case history',
-        link: '/case-history'
-
+        link: `/case-history/${appointmentId}`
     },
     {
         name: 'visual acuity',
-        link: '/visual-acuity'
+        link: `/visual-acuity/${appointmentId}`
     },
     {
         name: 'externals',
-        link: '/externals'
-
+        link: `/externals/${appointmentId}`
     },
     {
         name: 'internals',
-        link: '/internals'
-
+        link: `/internals/${appointmentId}`
     },
     {
         name: 'refraction',
-        link: '/refraction'
-
+        link: `/refraction/${appointmentId}`
     },
     {
         name: 'extra tests',
-        link: '/extra-tests'
+        link: `/extra-tests/${appointmentId}`
     },
 ];
+
 
 
 

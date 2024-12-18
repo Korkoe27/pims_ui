@@ -3,6 +3,7 @@ import appointmentsReducer from "./slices/appointmentsSlice";
 import authReducer from "./slices/authSlice";
 import { persistStore, persistReducer } from "redux-persist";
 import storage from "redux-persist/lib/storage"; 
+import caseHistoryReducer from "./slices/caseHistorySlice";
 
 // Persist Config
 const persistConfig = {
@@ -18,6 +19,7 @@ export const store = configureStore({
   reducer: {
     appointments: appointmentsReducer,  // Normal appointments reducer
     auth: persistedAuthReducer,         // Persisted auth reducer
+    caseHistory: caseHistoryReducer,
   },
 });
 

@@ -1,37 +1,26 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useParams, useNavigate } from "react-router-dom";
+import {
+  fetchCaseHistory,
+  saveCaseHistory,
+} from "../redux/slices/caseHistorySlice";
 import ProgressBar from "./ProgressBar";
 import NavMenu from "./NavMenu";
 import Header from "./Header";
 import Radios from "./Radios";
 import Inputs from "./Inputs";
-import { Toaster } from "react-hot-toast";
-import { useNavigate, useParams, useLocation } from "react-router-dom";
-import {
-  createCaseHistoryHandler,
-  updateCaseHistoryHandler,
-  fetchCaseHistoryHandler,
-} from "../services/client/api-handlers/examinations-handler";
-import { fetchAppointmentsDetails } from "../services/client/api-handlers/appointments-handler";
-import Cookies from "js-cookie";
-import { useSelector } from "react-redux";
 
 const CaseHistory = () => {
   const { appointmentId } = useParams();
-  const selectedAppointment = useSelector(
-    (state) => state.appointments.selectedAppointment
-  );
-  const location = useLocation();
   const navigate = useNavigate();
-
-  const [appointment, setAppointment] = useState(
-    location.state?.appointment || null
+  const dispatch = useDispatch();
+  const { data: caseHistory, loading } = useSelector(
+    (state) => state.caseHistory
   );
-  const [patient, setPatient] = useState(location.state?.patient || null);
-  const [isLoading, setIsLoading] = useState(!appointment || !patient);
-  const [step, setStep] = useState(1); // For progress tracking
 
   const [formData, setFormData] = useState({
-    appointment: "",
+    appointment: appointmentId,
     chiefComplaint: "",
     lastEyeExamination: "",
     burningSensation: false,
@@ -67,39 +56,15 @@ const CaseHistory = () => {
     hobbies: [],
   });
 
-  const [caseHistoryId, setCaseHistoryId] = useState(null);
+  useEffect(() => {
+    dispatch(fetchCaseHistory(appointmentId));
+  }, [dispatch, appointmentId]);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setIsLoading(true);
-
-        // Fetch Appointment & Patient Details
-        if (!appointment || !patient) {
-          const response = await fetchAppointmentsDetails(appointmentId);
-          setAppointment(response);
-          setPatient(response.patient);
-        }
-
-        // Fetch Existing Case History
-        const caseHistoryResponse = await fetchCaseHistoryHandler(
-          appointmentId
-        );
-        if (caseHistoryResponse) {
-          setCaseHistoryId(caseHistoryResponse.id); // Store the ID
-          setFormData({
-            ...caseHistoryResponse, // Prepopulate form with fetched data
-            appointment: appointmentId,
-          });
-        }
-      } catch (error) {
-        console.error("Error fetching case history:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchData();
-  }, [appointmentId]);
+    if (caseHistory) {
+      setFormData(caseHistory);
+    }
+  }, [caseHistory]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -109,121 +74,128 @@ const CaseHistory = () => {
     });
   };
 
-  const handleNextStep = () => {
-    setStep((prevStep) => prevStep + 1);
-  };
-
-  const handlePreviousStep = () => {
-    setStep((prevStep) => (prevStep > 1 ? prevStep - 1 : prevStep));
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
-      const payload = { ...formData, appointment: appointmentId };
-
-      if (caseHistoryId) {
-        await updateCaseHistoryHandler(appointmentId, payload);
-        alert("Case history updated successfully!");
-      } else {
-        await createCaseHistoryHandler(payload);
-        alert("Case history created successfully!");
-      }
-      handleNextStep();
-      if (step === 3) navigate("/visual-acuity");
-    } catch (error) {
-      console.error("Error submitting case history:", error);
-      alert("Failed to save case history. Please try again.");
-    }
+    await dispatch(saveCaseHistory({ appointmentId, data: formData }));
+    navigate(`/visual-acuity/${appointmentId}`);
   };
+
+  if (loading) {
+    return <div className="text-center mt-10">Loading...</div>;
+  }
 
   return (
     <div className="ml-72 my-8 gap-12 flex flex-col px-8 h-fit w-fit">
-      <Toaster />
-      <Header patient={patient} />
-      <ProgressBar step={step} />
+      <Header patient={caseHistory?.patient} />
+      <ProgressBar step={1} />
       <NavMenu appointmentId={appointmentId} />
-      <form onSubmit={handleSubmit} className="">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-8">
         <section className="flex gap-28">
-          {step === 1 && (
-            <aside className="flex flex-col gap-12">
-              <div className="flex flex-col">
-                <h1 className="text-base font-medium text-black">
-                  Chief Complaint <span className="text-[#ff0000]">*</span>
-                </h1>
-                <textarea
-                  name="chiefComplaint"
-                  value={formData.chiefComplaint}
-                  onChange={handleChange}
-                  placeholder="Type in the patient’s chief complaint"
-                  className="p-4 border border-[#d0d5dd] resize-none rounded-md w-96 h-48"
-                ></textarea>
-              </div>
-            </aside>
-          )}
+          <aside className="flex flex-col gap-12">
+            {/* Chief Complaint */}
+            <div className="flex flex-col">
+              <h1 className="text-base font-medium text-black">
+                Chief Complaint <span className="text-[#ff0000]">*</span>
+              </h1>
+              <textarea
+                name="chiefComplaint"
+                value={formData.chiefComplaint}
+                onChange={handleChange}
+                placeholder="Type in the patient’s chief complaint"
+                className="p-4 border border-[#d0d5dd] resize-none rounded-md w-96 h-48"
+              ></textarea>
+            </div>
 
-          {step === 2 && (
-            <aside className="flex flex-col gap-12">
+            {/* On Direct Questioning */}
+            <>
               <h1 className="text-base font-medium text-black">
                 On Direct Questioning <span className="text-[#ff0000]">*</span>
               </h1>
               <div className="grid grid-cols-2 gap-8">
-                {[
-                  { label: "Burning Sensation", name: "burningSensation" },
-                  { label: "Itching", name: "itching" },
-                  { label: "Tearing", name: "tearing" },
-                  { label: "Double Vision", name: "doubleVision" },
-                  { label: "Discharge", name: "discharge" },
-                  { label: "Pain", name: "pain" },
-                  { label: "FBS", name: "fbs" },
-                  { label: "Photophobia", name: "photophobia" },
-                ].map((field) => (
+                {["burningSensation", "itching", "tearing", "doubleVision", "discharge", "pain", "fbs", "photophobia"].map((field) => (
                   <Radios
-                    key={field.name}
-                    label={field.label}
-                    name={field.name}
-                    checked={formData[field.name]}
+                    key={field}
+                    label={field.replace(/([A-Z])/g, " $1")}
+                    name={field}
+                    checked={formData[field]}
                     onChange={handleChange}
                   />
                 ))}
               </div>
-            </aside>
-          )}
+            </>
 
-          {step === 3 && (
-            <aside className="flex flex-col gap-12">
+            {/* Patient Medical History */}
+            <>
               <h1 className="text-base font-medium text-black">
-                Patient Medical History{" "}
-                <span className="text-[#ff0000]">*</span>
+                Patient Medical History <span className="text-[#ff0000]">*</span>
               </h1>
               <div className="grid grid-cols-2 gap-8">
-                {[
-                  { label: "Asthma", name: "asthma" },
-                  { label: "Ulcer", name: "ulcer" },
-                  { label: "Diabetes", name: "diabetes" },
-                  { label: "Hypertension", name: "hypertension" },
-                  { label: "Sickle Cell", name: "sickleCell" },
-                  { label: "STD/STI", name: "stdSti" },
-                ].map((field) => (
+                {["asthma", "ulcer", "diabetes", "hypertension", "sickleCell", "stdSti"].map((field) => (
                   <Radios
-                    key={field.name}
-                    label={field.label}
-                    name={field.name}
-                    checked={formData[field.name]}
+                    key={field}
+                    label={field.replace(/([A-Z])/g, " $1")}
+                    name={field}
+                    checked={formData[field]}
                     onChange={handleChange}
                   />
                 ))}
               </div>
-            </aside>
-          )}
+            </>
+          </aside>
+
+          <aside className="flex flex-col gap-12">
+            {/* Family Medical History */}
+            <>
+              <h1 className="text-base font-medium text-black">
+                Family Medical History <span className="text-[#ff0000]">*</span>
+              </h1>
+              <div className="grid grid-cols-2 gap-8">
+                {["familyAsthma", "familyUlcer", "familyDiabetes", "familyHypertension", "familySickleCell", "familyStdSti"].map(
+                  (field) => (
+                    <Radios
+                      key={field}
+                      label={field.replace(/([A-Z])/g, " $1")}
+                      name={field}
+                      checked={formData[field]}
+                      onChange={handleChange}
+                    />
+                  )
+                )}
+              </div>
+            </>
+
+            {/* Text Inputs */}
+            <>
+              <Inputs
+                type="text"
+                label="Parent's Drug History"
+                name="parentDrugHistory"
+                value={formData.parentDrugHistory}
+                onChange={handleChange}
+              />
+              <Inputs
+                type="text"
+                label="Patient’s Allergies"
+                name="allergies"
+                value={formData.allergies}
+                onChange={handleChange}
+              />
+              <Inputs
+                type="text"
+                label="Patient’s Hobbies"
+                name="hobbies"
+                value={formData.hobbies}
+                onChange={handleChange}
+              />
+            </>
+          </aside>
         </section>
 
         <div className="flex gap-8 justify-evenly my-16">
           <button
             type="button"
-            onClick={handlePreviousStep}
+            onClick={() => navigate(-1)}
             className="w-56 p-4 rounded-lg text-[#2f3192] border border-[#2f3192]"
-            disabled={step === 1}
           >
             Back
           </button>
@@ -231,7 +203,7 @@ const CaseHistory = () => {
             type="submit"
             className="w-56 p-4 rounded-lg text-white bg-[#2f3192]"
           >
-            {step === 3 ? "Save and proceed" : "Next"}
+            Save and proceed
           </button>
         </div>
       </form>
