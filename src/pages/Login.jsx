@@ -4,7 +4,8 @@ import { CiLock } from "react-icons/ci";
 import { PiUserCircle } from "react-icons/pi";
 import { VscEye } from "react-icons/vsc";
 import { FiEyeOff } from "react-icons/fi";
-import { useAuth } from "../hooks/AuthProvider"; // Use the AuthProvider
+import { useDispatch, useSelector } from "react-redux";
+import { loginUser } from "../redux/slices/authSlice"; // Redux login action
 import { useNavigate } from "react-router-dom";
 
 const LoadingSpinner = () => (
@@ -31,43 +32,27 @@ const Login = () => {
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState(null); // For handling login errors
-  const [loading, setLoading] = useState(false); // Loading state
-  const { user, loginAction } = useAuth(); // Get user and loginAction from AuthProvider
+  const dispatch = useDispatch();
   const navigate = useNavigate();
 
+  // Access Redux state for auth
+  const { user, loading, error } = useSelector((state) => state.auth);
+
   useEffect(() => {
-    // Redirect to dashboard if the user is already authenticated
+    // Redirect if already logged in
     if (user) {
       navigate("/"); // Redirect to dashboard
     }
   }, [user, navigate]);
 
-  const togglePasswordVisibility = () => {
-    setPasswordVisible(!passwordVisible);
-  };
+  const togglePasswordVisibility = () => setPasswordVisible(!passwordVisible);
 
-  // Handle form submission
   const handleLogin = async (e) => {
     e.preventDefault();
-    setLoading(true); // Set loading to true
-    try {
-      const data = { username, password };
-      await loginAction(data); // Use loginAction from AuthProvider
-      // On successful login, navigation happens within loginAction
-    } catch (err) {
-      console.error("Login failed:", err);
-      if (err.response && err.response.status === 400) {
-        setError("Login Error: Invalid username or password."); // Specific error message for 400 status
-      } else {
-        setError("An unexpected error occurred. Please try again later."); // General error message
-      }
-    } finally {
-      setLoading(false); // Set loading to false
-    }
+    const credentials = { username, password };
+    dispatch(loginUser(credentials));
   };
 
-  // Display the loading spinner when loading
   if (loading) {
     return <LoadingSpinner />;
   }
@@ -94,11 +79,11 @@ const Login = () => {
               <PiUserCircle className="w-8 h-8 object-contain text-[#667185]" />
               <input
                 type="text"
-                className="w-full outline-none  h-full p-0 bg-white"
+                className="w-full outline-none h-full p-0 bg-white"
                 placeholder="Username"
                 name="username"
-                value={username} // Bind the username state
-                onChange={(e) => setUsername(e.target.value)} // Update state on change
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
               />
             </div>
           </div>
@@ -113,8 +98,8 @@ const Login = () => {
                 className="w-full outline-none h-full p-0 bg-white"
                 placeholder="Password"
                 name="password"
-                value={password} // Bind the password state
-                onChange={(e) => setPassword(e.target.value)} // Update state on change
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
               />
               {passwordVisible ? (
                 <FiEyeOff
