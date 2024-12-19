@@ -37,6 +37,8 @@ const Dashboard = () => {
     }
   };
 
+  const completedAppointments = appointments?.data?.today_appointments?.data?.filter((appointment)=>appointment?.status  === 'Completed');
+
   const handleAttendToPatient = (appointment) => {
     dispatch(selectAppointment(appointment)); // Set the selected appointment in Redux
     navigate(`/case-history/${appointment.id}`, { state: { appointment } });
@@ -213,9 +215,16 @@ const Dashboard = () => {
       {/* Recent Patient Activity Table */}
       <div className="my-5">
         <div className="flex justify-between my-4">
-          <h2 className="font-bold text-xl">Recent Patient Activity</h2>
+          <h2 className="font-bold text-xl">Completed Appointments</h2>
+          {!completedAppointments || completedAppointments.length === 0 ? null : (
           <Link className="text-[#2f3192] font-semibold">See all</Link>
+        )}
         </div>
+
+        {!completedAppointments || completedAppointments.length === 0 ? (
+        <p className="text-center text-gray-500">No patient has arrived yet.🚫</p>
+      ) : (
+
         <table className="w-full">
           <thead className="text-black uppercase text-left h-16 bg-[#f0f2f5]">
             <tr>
@@ -227,19 +236,27 @@ const Dashboard = () => {
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td className="px-3 py-3">07-05-2024</td>
-              <td className="px-3 py-3">2122/10/22</td>
-              <td className="px-3 py-3">Korkoe A.K Dumashie</td>
-              <td className="px-3 py-3">Allergic Conjunctivitis</td>
-              <td className="px-3 py-3">
-                <span className="bg-[#e7f6ec] text-[#036b26] py-2 px-3 rounded-lg">
-                  Completed
-                </span>
+          {
+            isLoading &&  <LoadingSpinner className='flex justify-center' />
+          }
+          {completedAppointments
+              ?.slice(0, 5) 
+              .map((appointment) => (
+                <tr className="text-left">
+                  <td className="px-3 py-3 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">{appointment?.appointment_date}</td>
+                  <td className="px-3 py-3 my-3 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">{appointment?.patient?.patient_id}</td>
+                  <td className="px-3 py-3 my-3 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">{appointment?.patient?.first_name} {appointment?.patient?.last_name}</td>
+                  <td className="px-3 py-3 my-3 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">{appointment?.appointment_type}</td>
+                  <td className="px-3 py-3 border border-l-0 border-t-0 border-r-0 border-b-[#d9d9d9]">
+        <span className={`px-6 rounded-full py-2 text-base font-medium text-white w-5 ${checkStatus(appointment?.status)}`}>
+          {appointment?.status}
+            </span>
               </td>
             </tr>
+                ))}
           </tbody>
         </table>
+              )}
       </div>
     </div>
   );
