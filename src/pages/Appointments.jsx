@@ -33,86 +33,71 @@ const Appointments = () => {
     navigate(`/case-history/${appointmentId}`);
   };
 
+  // Determine what to render based on loading, error, and data state
+  let content;
+  if (loading) {
+    content = <LoadingSpinner />;
+  } else if (error) {
+    content = <p className="text-red-500">Error: {error}</p>;
+  } else if (appointments?.length === 0) {
+    content = <p className="text-gray-500 text-center">No appointments available.</p>;
+  } else {
+    content = (
+      <table className="w-full text-base text-left rtl:text-right text-gray-500">
+        <thead className="text-base text-gray-700 uppercase bg-gray-50">
+          <tr>
+            <th scope="col" className="px-6 py-3">Date</th>
+            <th scope="col" className="px-6 py-3">Patient ID</th>
+            <th scope="col" className="px-6 py-3">Name</th>
+            <th scope="col" className="px-6 py-3">Type</th>
+            <th scope="col" className="px-6 py-3">Status</th>
+            <th scope="col" className="px-3 min-w-40 py-3">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {appointments.map((appointment) => (
+            <tr key={appointment.id} className="bg-white border-b">
+              <td className="px-6 py-4">{appointment?.appointment_date}</td>
+              <td className="px-6 py-4">{appointment?.patient?.patient_id}</td>
+              <td className="px-6 py-4">
+                {appointment?.patient?.first_name} {appointment?.patient?.last_name}
+              </td>
+              <td className="px-6 py-4">{appointment?.appointment_type}</td>
+              <td className="w-fit mx-auto">
+                <span
+                  className={`px-6 rounded-full py-2 text-base font-medium text-white w-5 ${checkStatus(
+                    appointment?.status
+                  )}`}
+                >
+                  {appointment?.status}
+                </span>
+              </td>
+              <td className="px-6 py-4 flex gap-10">
+                <button
+                  onClick={() => handleConsult(appointment)}
+                  className="focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5"
+                >
+                  Consult
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    );
+  }
+
   return (
     <div className="px-8 ml-72 flex flex-col mt-8 gap-8 bg-[#f9fafb] w-full shadow-md sm:rounded-lg">
       <h1 className="font-extrabold text-xl">Today's Appointments</h1>
-
-      {/* Loading State */}
-      {loading && <LoadingSpinner />}
-
-      {/* Error State */}
-      {error && <p className="text-red-500">Error: {error}</p>}
-
-      {/* Appointments Table */}
-      {!loading && appointments?.length > 0 && (
-        <table className="w-full text-base text-left rtl:text-right text-gray-500">
-          <thead className="text-base text-gray-700 uppercase bg-gray-50">
-            <tr>
-              <th scope="col" className="px-6 py-3">
-                Date
-              </th>
-              <th scope="col" className="px-6 py-3">
-                Patient ID
-              </th>
-              <th scope="col" className="px-6 py-3">
-                Name
-              </th>
-              <th scope="col" className="px-6 py-3">
-                Type
-              </th>
-              <th scope="col" className="px-6 py-3">
-                Status
-              </th>
-              <th scope="col" className="px-3 min-w-40 py-3">
-                Action
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {appointments.map((appointment) => (
-              <tr key={appointment.id} className="bg-white border-b">
-                <td className="px-6 py-4">{appointment?.appointment_date}</td>
-                <td className="px-6 py-4">
-                  {appointment?.patient?.patient_id}
-                </td>
-                <td className="px-6 py-4">
-                  {appointment?.patient?.first_name}{" "}
-                  {appointment?.patient?.last_name}
-                </td>
-                <td className="px-6 py-4">{appointment?.appointment_type}</td>
-                <td className="w-fit mx-auto">
-                  <span
-                    className={`px-6 rounded-full py-2 text-base font-medium text-white w-5 ${checkStatus(
-                      appointment?.status
-                    )}`}
-                  >
-                    {appointment?.status}
-                  </span>
-                </td>
-                <td className="px-6 py-4 flex gap-10">
-                  <button
-                    onClick={() => handleConsult(appointment)}
-                    className="focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5"
-                  >
-                    Consult
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
-
-      {/* Empty State */}
-      {!loading && appointments?.length === 0 && (
-        <p className="text-gray-500 text-center">No appointments available.</p>
-      )}
+      {content}
     </div>
   );
 };
 
 export default Appointments;
 
+// Helper function for status styles
 const checkStatus = (status) => {
   switch (status) {
     case "Completed":
