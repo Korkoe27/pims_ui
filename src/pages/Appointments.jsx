@@ -22,13 +22,6 @@ const Appointments = () => {
     }
   }, [appointments.length, dispatch]);
 
-  // Debug State
-  useEffect(() => {
-    console.log("Loading:", loading);
-    console.log("Error:", error);
-    console.log("Appointments:", appointments);
-  }, [loading, error, appointments]);
-
   // Handle "Consult" button click
   const handleConsult = (appointment) => {
     const { id: appointmentId, patient } = appointment;
