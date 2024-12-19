@@ -15,10 +15,29 @@ import {
 import Cookies from "js-cookie"; // Import js-cookie
 
 const CaseHistory = ({}) => {
-  const { appointmentId } = useParams(); // Retrieve appointmentId from URL
+  const { appointmentId: paramAppointmentId } = useParams(); // Retrieve from URL // Retrieve appointmentId from URL
   const location = useLocation(); // Access state passed with navigate
   const { patient, appointment } = location.state || {}; // Extract patient and appointment
 
+  const [appointmentId, setAppointmentId] = useState(
+    paramAppointmentId || localStorage.getItem("appointmentId") || ""
+  ); // Use URL, localStorage, or empty as fallback
+
+  useEffect(() => {
+    if (paramAppointmentId) {
+      // Save the appointmentId to localStorage for persistence
+      localStorage.setItem("appointmentId", paramAppointmentId);
+      setAppointmentId(paramAppointmentId);
+    }
+  }, [paramAppointmentId]);
+
+  useEffect(() => {
+    // Clear localStorage if needed on component unmount
+    return () => {
+      localStorage.removeItem("appointmentId");
+    };
+  }, []);
+  
   const [formData, setFormData] = useState({
     appointment: "",
     chiefComplaint: "",
