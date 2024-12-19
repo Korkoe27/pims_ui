@@ -1,43 +1,30 @@
 import React, { useState, useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { useNavigate, useParams } from "react-router-dom";
+import { fetchAppointments, selectAppointment } from "../redux/slices/appointmentsSlice";
 import ProgressBar from "./ProgressBar";
 import NavMenu from "./NavMenu";
 import Header from "./Header";
 import Radios from "./Radios";
 import CallToActionButtons from "./CallToActionButtons";
 import Inputs from "./Inputs";
-import { useNavigate, useParams, useLocation } from "react-router-dom";
 import {
   createCaseHistoryHandler,
   updateCaseHistoryHandler,
-  fetchCaseHistoryHandler,
-  testCreateCaseHistoryHandler,
 } from "../services/client/api-handlers/examinations-handler";
-import Cookies from "js-cookie"; // Import js-cookie
+import Cookies from "js-cookie";
 
-const CaseHistory = ({}) => {
-  const { appointmentId: paramAppointmentId } = useParams(); // Retrieve from URL // Retrieve appointmentId from URL
-  const location = useLocation(); // Access state passed with navigate
-  const { patient, appointment } = location.state || {}; // Extract patient and appointment
+const CaseHistory = () => {
+  const { appointmentId: paramAppointmentId } = useParams();
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
-  const [appointmentId, setAppointmentId] = useState(
-    paramAppointmentId || localStorage.getItem("appointmentId") || ""
-  ); // Use URL, localStorage, or empty as fallback
+  const { appointments, selectedAppointment, loading } = useSelector(
+    (state) => state.appointments
+  );
 
-  useEffect(() => {
-    if (paramAppointmentId) {
-      // Save the appointmentId to localStorage for persistence
-      localStorage.setItem("appointmentId", paramAppointmentId);
-      setAppointmentId(paramAppointmentId);
-    }
-  }, [paramAppointmentId]);
+  const appointmentId = paramAppointmentId || localStorage.getItem("appointmentId");
 
-  useEffect(() => {
-    // Clear localStorage if needed on component unmount
-    return () => {
-      localStorage.removeItem("appointmentId");
-    };
-  }, []);
-  
   const [formData, setFormData] = useState({
     appointment: "",
     chiefComplaint: "",
@@ -61,14 +48,43 @@ const CaseHistory = ({}) => {
     hobbies: [],
   });
 
-  const [caseHistoryId, setCaseHistoryId] = useState(null); // To store the ID of the existing case history
-  const navigate = useNavigate();
+  const [caseHistoryId, setCaseHistoryId] = useState(null);
+
+  // Fetch appointments on mount if not already loaded
+  useEffect(() => {
+    if (appointments.length === 0) {
+      dispatch(fetchAppointments()); // Fetch all appointments
+    }
+  }, [dispatch, appointments]);
+
+  // Set selected appointment and save appointmentId to localStorage
+  useEffect(() => {
+    if (appointmentId) {
+      localStorage.setItem("appointmentId", appointmentId);
+
+      if (!selectedAppointment) {
+        const appointment = appointments.find(
+          (appt) => appt.id === appointmentId
+        );
+        if (appointment) {
+          dispatch(selectAppointment(appointment));
+        }
+      }
+    }
+  }, [appointmentId, appointments, selectedAppointment, dispatch]);
+
+  // Clear localStorage on component unmount
+  useEffect(() => {
+    return () => {
+      localStorage.removeItem("appointmentId");
+    };
+  }, []);
 
   useEffect(() => {
     if (appointmentId) {
       setFormData((prevData) => ({
         ...prevData,
-        appointment: appointmentId, // Set the appointment ID
+        appointment: appointmentId,
       }));
     }
   }, [appointmentId]);
@@ -86,18 +102,16 @@ const CaseHistory = ({}) => {
     try {
       const payload = { ...formData, appointment: appointmentId };
 
-      console.log("Submitting payload:", JSON.stringify(payload, null, 2)); // Log formData
+      console.log("Submitting payload:", JSON.stringify(payload, null, 2));
       console.log("Headers sent to API:", {
         "Content-Type": "application/json",
         "X-CSRFToken": Cookies.get("csrftoken"),
       });
 
       if (caseHistoryId) {
-        // Update existing case history
         await updateCaseHistoryHandler(appointmentId, payload);
         alert("Case history updated successfully!");
       } else {
-        // Create a new case history
         await createCaseHistoryHandler(payload);
         alert("Case history created successfully!");
       }
@@ -113,16 +127,15 @@ const CaseHistory = ({}) => {
     }
   };
 
+  if (loading) {
+    return <p>Loading appointments...</p>;
+  }
 
-  // Test Function
-  const handleStaticTest = async () => {
-    try {
-      const response = await createCaseHistoryHandler();
-      console.log("Static data response:", response);
-    } catch (error) {
-      console.error("Error testing static data:", error);
-    }
-  };
+  if (!selectedAppointment) {
+    return <p>No appointment found for ID: {appointmentId}</p>;
+  }
+
+  const patient = selectedAppointment.patient;
   
 
   return (
@@ -130,7 +143,7 @@ const CaseHistory = ({}) => {
       <Header patient={patient} />
       <ProgressBar step={1} />
       <NavMenu />
-      <form onSubmit={handleStaticTest} className="">
+      <form onSubmit={handleSubmit} className="">
         <section className="flex gap-28">
           <aside className="flex flex-col gap-12">
             {/* Chief Complaint */}
