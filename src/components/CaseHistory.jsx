@@ -1,26 +1,26 @@
-import React, { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { useParams, useNavigate } from "react-router-dom";
-import {
-  fetchCaseHistory,
-  saveCaseHistory,
-} from "../redux/slices/caseHistorySlice";
+import React, { useState, useEffect } from "react";
 import ProgressBar from "./ProgressBar";
 import NavMenu from "./NavMenu";
 import Header from "./Header";
 import Radios from "./Radios";
+import CallToActionButtons from "./CallToActionButtons";
 import Inputs from "./Inputs";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
+import {
+  createCaseHistoryHandler,
+  updateCaseHistoryHandler,
+  fetchCaseHistoryHandler,
+  testCreateCaseHistoryHandler,
+} from "../services/client/api-handlers/examinations-handler";
+import Cookies from "js-cookie"; // Import js-cookie
 
-const CaseHistory = () => {
-  const { appointmentId } = useParams();
-  const navigate = useNavigate();
-  const dispatch = useDispatch();
-  const { data: caseHistory, loading } = useSelector(
-    (state) => state.caseHistory
-  );
+const CaseHistory = ({}) => {
+  const { appointmentId } = useParams(); // Retrieve appointmentId from URL
+  const location = useLocation(); // Access state passed with navigate
+  const { patient, appointment } = location.state || {}; // Extract patient and appointment
 
   const [formData, setFormData] = useState({
-    appointment: appointmentId,
+    appointment: "",
     chiefComplaint: "",
     lastEyeExamination: "",
     burningSensation: false,
@@ -37,34 +37,22 @@ const CaseHistory = () => {
     hypertension: false,
     sickleCell: false,
     stdSti: false,
-    spectacles: false,
-    eyeSurgery: false,
-    ocularTrauma: false,
-    glaucoma: false,
-    familyAsthma: false,
-    familyUlcer: false,
-    familyDiabetes: false,
-    familyHypertension: false,
-    familySickleCell: false,
-    familyStdSti: false,
-    familySpectacles: false,
-    familyEyeSurgery: false,
-    familyOcularTrauma: false,
-    familyGlaucoma: false,
     parentDrugHistory: [],
     allergies: [],
     hobbies: [],
   });
 
-  useEffect(() => {
-    dispatch(fetchCaseHistory(appointmentId));
-  }, [dispatch, appointmentId]);
+  const [caseHistoryId, setCaseHistoryId] = useState(null); // To store the ID of the existing case history
+  const navigate = useNavigate();
 
   useEffect(() => {
-    if (caseHistory) {
-      setFormData(caseHistory);
+    if (appointmentId) {
+      setFormData((prevData) => ({
+        ...prevData,
+        appointment: appointmentId, // Set the appointment ID
+      }));
     }
-  }, [caseHistory]);
+  }, [appointmentId]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -76,20 +64,54 @@ const CaseHistory = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await dispatch(saveCaseHistory({ appointmentId, data: formData }));
-    navigate(`/visual-acuity/${appointmentId}`);
+    try {
+      const payload = { ...formData, appointment: appointmentId };
+
+      console.log("Submitting payload:", JSON.stringify(payload, null, 2)); // Log formData
+      console.log("Headers sent to API:", {
+        "Content-Type": "application/json",
+        "X-CSRFToken": Cookies.get("csrftoken"),
+      });
+
+      if (caseHistoryId) {
+        // Update existing case history
+        await updateCaseHistoryHandler(appointmentId, payload);
+        alert("Case history updated successfully!");
+      } else {
+        // Create a new case history
+        await createCaseHistoryHandler(payload);
+        alert("Case history created successfully!");
+      }
+      navigate("/visual-acuity");
+    } catch (error) {
+      console.error("Error submitting case history:", error);
+      if (error.response) {
+        console.error("Response data:", error.response.data);
+        console.error("Response status:", error.response.status);
+        console.error("Response headers:", error.response.headers);
+      }
+      alert("Failed to save case history. Please try again.");
+    }
   };
 
-  if (loading) {
-    return <div className="text-center mt-10">Loading...</div>;
-  }
+
+  // Test Function
+  const handleStaticTest = async () => {
+    try {
+      const response = await createCaseHistoryHandler();
+      console.log("Static data response:", response);
+    } catch (error) {
+      console.error("Error testing static data:", error);
+    }
+  };
+  
 
   return (
-    <div className="ml-72 my-8 gap-12 flex flex-col px-8 h-fit w-fit">
-      <Header patient={caseHistory?.patient} />
+    <div className="ml-72 my-8 gap-12 flex items flex-col px-8 h-fit w-fit">
+      <Header patient={patient} />
       <ProgressBar step={1} />
-      <NavMenu appointmentId={appointmentId} />
-      <form onSubmit={handleSubmit} className="flex flex-col gap-8">
+      <NavMenu />
+      <form onSubmit={handleStaticTest} className="">
         <section className="flex gap-28">
           <aside className="flex flex-col gap-12">
             {/* Chief Complaint */}
@@ -112,12 +134,21 @@ const CaseHistory = () => {
                 On Direct Questioning <span className="text-[#ff0000]">*</span>
               </h1>
               <div className="grid grid-cols-2 gap-8">
-                {["burningSensation", "itching", "tearing", "doubleVision", "discharge", "pain", "fbs", "photophobia"].map((field) => (
+                {[
+                  { label: "Burning Sensation", name: "burningSensation" },
+                  { label: "Itching", name: "itching" },
+                  { label: "Tearing", name: "tearing" },
+                  { label: "Double Vision", name: "doubleVision" },
+                  { label: "Discharge", name: "discharge" },
+                  { label: "Pain", name: "pain" },
+                  { label: "FBS", name: "fbs" },
+                  { label: "Photophobia", name: "photophobia" },
+                ].map((field) => (
                   <Radios
-                    key={field}
-                    label={field.replace(/([A-Z])/g, " $1")}
-                    name={field}
-                    checked={formData[field]}
+                    key={field.name}
+                    label={field.label}
+                    name={field.name}
+                    checked={formData[field.name]}
                     onChange={handleChange}
                   />
                 ))}
@@ -127,15 +158,23 @@ const CaseHistory = () => {
             {/* Patient Medical History */}
             <>
               <h1 className="text-base font-medium text-black">
-                Patient Medical History <span className="text-[#ff0000]">*</span>
+                Patient Medical History{" "}
+                <span className="text-[#ff0000]">*</span>
               </h1>
               <div className="grid grid-cols-2 gap-8">
-                {["asthma", "ulcer", "diabetes", "hypertension", "sickleCell", "stdSti"].map((field) => (
+                {[
+                  { label: "Asthma", name: "asthma" },
+                  { label: "Ulcer", name: "ulcer" },
+                  { label: "Diabetes", name: "diabetes" },
+                  { label: "Hypertension", name: "hypertension" },
+                  { label: "Sickle Cell", name: "sickleCell" },
+                  { label: "STD/STI", name: "stdSti" },
+                ].map((field) => (
                   <Radios
-                    key={field}
-                    label={field.replace(/([A-Z])/g, " $1")}
-                    name={field}
-                    checked={formData[field]}
+                    key={field.name}
+                    label={field.label}
+                    name={field.name}
+                    checked={formData[field.name]}
                     onChange={handleChange}
                   />
                 ))}
@@ -144,23 +183,81 @@ const CaseHistory = () => {
           </aside>
 
           <aside className="flex flex-col gap-12">
+            {/* Patient Ocular History */}
+            <>
+              <h1 className="text-base font-medium text-black">
+                Patient Ocular History <span className="text-[#ff0000]">*</span>
+              </h1>
+              <Inputs
+                type="date"
+                label="Last Eye Examination"
+                name="lastEyeExamination"
+                value={formData.lastEyeExamination}
+                onChange={handleChange}
+              />
+              <div className="grid grid-cols-2 gap-8">
+                {[
+                  { label: "Spectacles", name: "spectacles" },
+                  { label: "Eye Surgery", name: "eyeSurgery" },
+                  { label: "Ocular Trauma", name: "ocularTrauma" },
+                  { label: "Glaucoma", name: "glaucoma" },
+                ].map((field) => (
+                  <Radios
+                    key={field.name}
+                    label={field.label}
+                    name={field.name}
+                    checked={formData[field.name]}
+                    onChange={handleChange}
+                  />
+                ))}
+              </div>
+            </>
+
             {/* Family Medical History */}
             <>
               <h1 className="text-base font-medium text-black">
                 Family Medical History <span className="text-[#ff0000]">*</span>
               </h1>
               <div className="grid grid-cols-2 gap-8">
-                {["familyAsthma", "familyUlcer", "familyDiabetes", "familyHypertension", "familySickleCell", "familyStdSti"].map(
-                  (field) => (
-                    <Radios
-                      key={field}
-                      label={field.replace(/([A-Z])/g, " $1")}
-                      name={field}
-                      checked={formData[field]}
-                      onChange={handleChange}
-                    />
-                  )
-                )}
+                {[
+                  { label: "Asthma", name: "familyAsthma" },
+                  { label: "Ulcer", name: "familyUlcer" },
+                  { label: "Diabetes", name: "familyDiabetes" },
+                  { label: "Hypertension", name: "familyHypertension" },
+                  { label: "Sickle Cell", name: "familySickleCell" },
+                  { label: "STD/STI", name: "familyStdSti" },
+                ].map((field) => (
+                  <Radios
+                    key={field.name}
+                    label={field.label}
+                    name={field.name}
+                    checked={formData[field.name]}
+                    onChange={handleChange}
+                  />
+                ))}
+              </div>
+            </>
+
+            {/* Family Ocular History */}
+            <>
+              <h1 className="text-base font-medium text-black">
+                Family Ocular History <span className="text-[#ff0000]">*</span>
+              </h1>
+              <div className="grid grid-cols-2 gap-8">
+                {[
+                  { label: "Spectacles", name: "familySpectacles" },
+                  { label: "Eye Surgery", name: "familyEyeSurgery" },
+                  { label: "Ocular Trauma", name: "familyOcularTrauma" },
+                  { label: "Glaucoma", name: "familyGlaucoma" },
+                ].map((field) => (
+                  <Radios
+                    key={field.name}
+                    label={field.label}
+                    name={field.name}
+                    checked={formData[field.name]}
+                    onChange={handleChange}
+                  />
+                ))}
               </div>
             </>
 
@@ -190,7 +287,6 @@ const CaseHistory = () => {
             </>
           </aside>
         </section>
-
         <div className="flex gap-8 justify-evenly my-16">
           <button
             type="button"
@@ -212,3 +308,5 @@ const CaseHistory = () => {
 };
 
 export default CaseHistory;
+
+
