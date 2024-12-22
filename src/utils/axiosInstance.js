@@ -1,15 +1,31 @@
+/**
+ * Axios Configuration
+ * 
+ * This file configures an Axios instance for making API requests.
+ * It includes support for handling HttpOnly cookies and automatic token refresh when encountering 401 errors.
+ * 
+ */
+
+/////////////////////////
+// Axios Instance
+/////////////////////////
+
 import axios from "axios";
-import { baseURL } from "../services/client/baseurl";
+import { baseURL } from "../services/client/baseurl"; // Import the base URL dynamically
 
 // Create an Axios instance
 const axiosInstance = axios.create({
-  baseURL: "baseURL", 
-  withCredentials: true,           // Automatically include HttpOnly cookies
+  baseURL: baseURL, // Use the imported base URL
+  withCredentials: true, // Automatically include HttpOnly cookies
 });
+
+/////////////////////////
+// Interceptors
+/////////////////////////
 
 // Handle token refresh when 401 errors occur
 axiosInstance.interceptors.response.use(
-  (response) => response,
+  (response) => response, // Pass successful responses through unchanged
   async (error) => {
     const originalRequest = error.config;
 
@@ -22,7 +38,7 @@ axiosInstance.interceptors.response.use(
         const response = await axiosInstance.post("/auth/api/token/refresh/");
         const newAccessToken = response.data.access;
 
-        // Update the Authorization header dynamically (optional)
+        // Update the Authorization header dynamically
         originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
 
         // Retry the original request
@@ -33,7 +49,7 @@ axiosInstance.interceptors.response.use(
       }
     }
 
-    return Promise.reject(error);
+    return Promise.reject(error); // Reject other errors
   }
 );
 
