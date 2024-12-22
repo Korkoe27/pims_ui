@@ -1,25 +1,33 @@
+/**
+ * Store Configuration
+ *
+ * Configures the Redux store with authentication and API slices.
+ *
+ * Author: Solomon Edziah
+ * Date: 2024-12-22
+ */
+
 import { configureStore } from "@reduxjs/toolkit";
-import appointmentsReducer from "./slices/appointmentsSlice";
-import authReducer from "./slices/authSlice";
-import { persistStore, persistReducer } from "redux-persist";
-import storage from "redux-persist/lib/storage"; 
+import authReducer from "./features/authSlice";
+import { patientApi } from "../services/client/mutations/patient-mutations";
+import { appointmentApi } from "../services/client/mutations/appointment-mutations";
+import { examinationApi } from "../services/client/mutations/examination-mutations";
+import { authApi } from "../services/client/mutations/auth-mutations";
 
-// Persist Config
-const persistConfig = {
-  key: "auth", // Key for auth slice
-  storage,     // Use local storage
-};
-
-// Create a persisted reducer for auth
-const persistedAuthReducer = persistReducer(persistConfig, authReducer);
-
-// Configure store
 export const store = configureStore({
   reducer: {
-    appointments: appointmentsReducer,  // Normal appointments reducer
-    auth: persistedAuthReducer,         // Persisted auth reducer
+    auth: authReducer, // Reducer for authentication state
+    [patientApi.reducerPath]: patientApi.reducer, // Patient API slice
+    [appointmentApi.reducerPath]: appointmentApi.reducer, // Appointment API slice
+    [examinationApi.reducerPath]: examinationApi.reducer, // Examination API slice
+    [authApi.reducerPath]: authApi.reducer, // Authentication API slice
   },
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware()
+      .concat(patientApi.middleware)
+      .concat(appointmentApi.middleware)
+      .concat(examinationApi.middleware)
+      .concat(authApi.middleware),
 });
 
-// Create a persistor
-export const persistor = persistStore(store);
+export default store;
