@@ -1,5 +1,5 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { checkSession, login, logout } from '../../services/client/apiService';
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import { checkSession, login, logout } from "../../services/client/apiService";
 
 // Check user session
 export const checkUserSession = createAsyncThunk(
@@ -16,34 +16,42 @@ export const checkUserSession = createAsyncThunk(
   }
 );
 
-
 // Login user
-export const loginUser = createAsyncThunk('auth/login', async (credentials, thunkAPI) => {
-  try {
-    const res = await login(credentials.username, credentials.password);
-    return res.user;
-  } catch (error) {
-    return thunkAPI.rejectWithValue('Login failed');
+export const loginUser = createAsyncThunk(
+  "auth/login",
+  async (credentials, thunkAPI) => {
+    try {
+      const res = await login(credentials.username, credentials.password);
+      return res.user;
+    } catch (error) {
+      return thunkAPI.rejectWithValue("Login failed");
+    }
   }
-});
+);
 
 // Logout user
-export const logoutUser = createAsyncThunk('auth/logout', async (_, thunkAPI) => {
-  try {
-    await logout(); // Call logout API
-    return null; // No payload needed, clears user state
-  } catch (error) {
-    return thunkAPI.rejectWithValue('Logout failed');
+export const logoutUser = createAsyncThunk(
+  "auth/logout",
+  async (_, thunkAPI) => {
+    try {
+      await logout(); // Call logout API
+      return null; // No payload needed, clears user state
+    } catch (error) {
+      // Return a rejection to propagate error to the UI
+      return thunkAPI.rejectWithValue("Logout failed");
+    }
   }
-});
+);
 
 const authSlice = createSlice({
-  name: 'auth',
+  name: "auth",
   initialState: { user: null, loading: false, error: null },
   extraReducers: (builder) => {
     builder
       // Check session
-      .addCase(checkUserSession.pending, (state) => { state.loading = true; })
+      .addCase(checkUserSession.pending, (state) => {
+        state.loading = true;
+      })
       .addCase(checkUserSession.fulfilled, (state, action) => {
         state.user = action.payload;
         state.loading = false;
@@ -53,7 +61,9 @@ const authSlice = createSlice({
         state.error = action.payload;
       })
       // Login
-      .addCase(loginUser.pending, (state) => { state.loading = true; })
+      .addCase(loginUser.pending, (state) => {
+        state.loading = true;
+      })
       .addCase(loginUser.fulfilled, (state, action) => {
         state.user = action.payload;
         state.loading = false;
@@ -65,14 +75,15 @@ const authSlice = createSlice({
       })
       // Logout
       .addCase(logoutUser.fulfilled, (state) => {
-        state.user = null; // Clear user state
+        // Clear Redux user state
+        state.user = null;
         state.error = null;
       })
       .addCase(logoutUser.rejected, (state, action) => {
+        // Capture logout error
         state.error = action.payload;
       });
   },
 });
 
 export default authSlice.reducer;
-

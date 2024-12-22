@@ -10,11 +10,10 @@ import { useSelector, useDispatch } from "react-redux";
 import PatientModal from "../components/SelectClinicModal";
 import SearchModalUnfilled from "../components/SearchModalUnfilled";
 import { logoutUser } from "../redux/slices/authSlice";
-import { useAppointments, } from "../services/queries/appointments-query";
+import { useAppointments } from "../services/queries/appointments-query";
 import LoadingSpinner from "../components/LoadingSpinner";
 import { unwrapResult } from "@reduxjs/toolkit";
 import { selectAppointment } from "../redux/slices/appointmentsSlice";
-
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -29,10 +28,19 @@ const Dashboard = () => {
 
   const handleLogout = async () => {
     try {
-      const resultAction = await dispatch(logoutUser()); // Dispatch logout action
-      unwrapResult(resultAction); // Ensures successful completion
-      navigate("/login"); // Redirect to login page
+      // Dispatch logout action
+      const resultAction = await dispatch(logoutUser());
+
+      // Ensure successful logout using unwrapResult
+      unwrapResult(resultAction);
+
+      // Clear localStorage (Concept: Side Effects)
+      localStorage.clear();
+
+      // Navigate to login page (Concept: Navigation)
+      navigate("/login");
     } catch (error) {
+      // Log the error for debugging (Concept: Error Handling)
       console.error("Logout failed:", error);
     }
   };
