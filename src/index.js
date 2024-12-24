@@ -3,31 +3,15 @@ import ReactDOM from "react-dom/client";
 import "./index.css";
 import App from "./App";
 import reportWebVitals from "./reportWebVitals";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { Provider } from "react-redux";
-import { PersistGate } from "redux-persist/integration/react";
-import { store} from "./redux/store";
-import LoadingSpinner from "./components/LoadingSpinner"; // Optional loading spinner for persistor
-
-const queryClient = new QueryClient({
-  defaultOptions: { queries: { retry: 3, retryDelay: 500 } },
-});
+import { store } from "./redux/store";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 
 root.render(
   <React.StrictMode>
-    {/* Provide Redux Store */}
     <Provider store={store}>
-      {/* Handle Persisted Redux State */}
-      {/* <PersistGate loading={<LoadingSpinner />} > */}
-        {/* React Query Provider */}
-        <QueryClientProvider client={queryClient}>
-          <App />
-          <ReactQueryDevtools initialIsOpen={false} />
-        </QueryClientProvider>
-      {/* </PersistGate> */}
+      <App />
     </Provider>
   </React.StrictMode>
 );

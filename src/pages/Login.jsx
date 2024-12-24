@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useLoginMutation } from "../redux/api/authApi";
 import Logo from "../components/Logo";
 import { CiLock } from "react-icons/ci";
 import { PiUserCircle } from "react-icons/pi";
 import { VscEye } from "react-icons/vsc";
 import { FiEyeOff } from "react-icons/fi";
-import { useLoginMutation } from "../services/client/apiService"; // RTK Query hook for login
-import { useNavigate } from "react-router-dom";
 
 const LoadingSpinner = () => (
   <div className="flex justify-center items-center h-screen">
@@ -28,32 +28,22 @@ const LoadingSpinner = () => (
 );
 
 const Login = () => {
-  const [passwordVisible, setPasswordVisible] = useState(false);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [passwordVisible, setPasswordVisible] = useState(false);
+  const [login, { isLoading, error }] = useLoginMutation(); // Use the login mutation
   const navigate = useNavigate();
-
-  // Use RTK Query login mutation hook
-  const [login, { isLoading, isError, error }] = useLoginMutation();
-
-  useEffect(() => {
-    // Redirect if already logged in
-    if (localStorage.getItem("user")) {
-      navigate("/"); // Redirect to dashboard
-    }
-  }, [navigate]);
 
   const togglePasswordVisibility = () => setPasswordVisible(!passwordVisible);
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    const credentials = { username, password };
-
     try {
-      await login(credentials).unwrap(); // Call the login mutation
-      navigate("/"); // Redirect to dashboard on successful login
+      const userData = await login({ username, password }).unwrap(); // Perform login
+      console.log("Login successful:", userData);
+      navigate("/"); // Redirect to the dashboard
     } catch (err) {
-      console.error("Login failed:", err); // Handle login error
+      console.error("Login failed:", err);
     }
   };
 
@@ -75,6 +65,7 @@ const Login = () => {
           onSubmit={handleLogin}
           className="flex flex-col gap-8 p-9 justify-center items-center"
         >
+          {/* Username Input */}
           <div className="flex flex-col w-96 gap-1">
             <label htmlFor="username" className="text-[#101928] text-base">
               Username
@@ -82,43 +73,61 @@ const Login = () => {
             <div className="flex justify-between items-start gap-3 rounded-lg border p-3 border-[#d0d5dd] bg-white w-full">
               <PiUserCircle className="w-8 h-8 object-contain text-[#667185]" />
               <input
-                id="username"
                 type="text"
+                className="w-full outline-none h-full p-0 bg-white"
+                placeholder="Username"
+                name="username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                placeholder="Enter your username"
-                className="w-full border-none outline-none"
+                required
               />
             </div>
           </div>
 
-          <div className="flex flex-col w-96 gap-1">
+          {/* Password Input */}
+          <div className="w-96 flex flex-col gap-1">
             <label htmlFor="password" className="text-[#101928] text-base">
               Password
             </label>
             <div className="flex justify-between items-start gap-3 rounded-lg border p-3 border-[#d0d5dd] bg-white w-full">
               <CiLock className="w-8 h-8 object-contain text-[#667185]" />
               <input
-                id="password"
                 type={passwordVisible ? "text" : "password"}
+                className="w-full outline-none h-full p-0 bg-white"
+                placeholder="Password"
+                name="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter your password"
-                className="w-full border-none outline-none"
+                required
               />
-              <div onClick={togglePasswordVisibility} className="cursor-pointer">
-                {passwordVisible ? <VscEye className="w-6 h-6" /> : <FiEyeOff className="w-6 h-6" />}
-              </div>
+              {passwordVisible ? (
+                <FiEyeOff
+                  className="w-8 h-8 object-contain cursor-pointer p-0 hover:text-[#000] text-[#667185]"
+                  onClick={togglePasswordVisibility}
+                />
+              ) : (
+                <VscEye
+                  className="w-8 h-8 object-contain cursor-pointer p-0 hover:text-[#000] text-[#667185]"
+                  onClick={togglePasswordVisibility}
+                />
+              )}
             </div>
           </div>
 
-          {isError && <p className="text-red-500">{error?.data || "Login failed. Please try again."}</p>}
+          {/* Error Message */}
+          {error && (
+            <p className="text-red-500 font-bold text-center mt-4">
+              {error.data?.message || "Login failed. Please try again."}
+            </p>
+          )}
 
+          {/* Submit Button */}
           <button
+            className="bg-[#2f3192] text-white p-5 w-96 rounded-lg"
             type="submit"
-            className="bg-blue-600 text-white p-2 rounded-md w-full"
+            disabled={isLoading}
           >
-            Log in
+            {isLoading ? "Logging in..." : "Log into your account"}
           </button>
         </form>
       </div>

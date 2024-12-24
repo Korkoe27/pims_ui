@@ -6,7 +6,7 @@
  */
 
 import { configureStore } from "@reduxjs/toolkit";
-import { authApi } from "../services/api/authApi"; // Authentication API slice
+import { authApi } from "./api/authApi"; // Authentication API slice
 import authReducer from "../redux/slices/authSlice"; // Authentication state slice
 
 export const store = configureStore({

@@ -1,26 +1,28 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { baseURL } from "./base_url/baseurl";
+import { loginUrl, logoutUrl } from "./endpoints/endpoints";
 
 // Base configuration for all authentication-related endpoints
 export const authApi = createApi({
   reducerPath: "authApi", // The name of this API slice
   baseQuery: fetchBaseQuery({
-    baseUrl: "/api", // Replace with your actual API base URL
+    baseUrl: baseURL, // Replace with your actual API base URL
     credentials: "include", // Ensures cookies (like HTTP-only tokens) are sent with requests
   }),
   endpoints: (builder) => ({
     // Login endpoint
     login: builder.mutation({
       query: (credentials) => ({
-        url: "/auth/login", // Your login endpoint
+        url: loginUrl,
         method: "POST",
-        body: credentials, // Send username/password in the request body
+        body: credentials, 
       }),
     }),
 
     // Logout endpoint
     logout: builder.mutation({
       query: () => ({
-        url: "/auth/logout", // Your logout endpoint
+        url: logoutUrl, 
         method: "POST",
       }),
     }),
