@@ -28,17 +28,17 @@ import AuthProvider from "./hooks/AuthProvider";
 import PrivateRoute from "./hooks/PrivateRoute";
 import { ClinicProvider } from "./contexts/ClinicProvider";
 import { store } from "./redux/store";
-import { checkUserSession } from "./redux/slices/authSlice";
+// import { checkUserSession } from "./redux/slices/authSlice";
 import LoadingSpinner from "./components/LoadingSpinner";
 
 const App = () => {
   const dispatch = useDispatch();
   const { user, loading } = useSelector((state) => state.auth);
 
-  useEffect(() => {
-    // Run session check on app load
-    dispatch(checkUserSession());
-  }, [dispatch]);
+  // useEffect(() => {
+  //   // Run session check on app load
+  //   dispatch(checkUserSession());
+  // }, [dispatch]);
 
   if (loading) {
     // Display spinner while checking session

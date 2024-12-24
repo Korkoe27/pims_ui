@@ -1,78 +1,40 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { checkSession, login, logout } from '../../services/client/apiService';
+import { createSlice } from '@reduxjs/toolkit';
+import { apiClient } from '../../services/client/apiService'; // Import apiClient with RTK Query
 
-// Check user session
-export const checkUserSession = createAsyncThunk(
-  "auth/checkSession",
-  async (_, thunkAPI) => {
-    try {
-      const res = await checkSession(); // Call the API function
-      console.log("Check Session Response:", res); // Log the full response
-      return res.user; // Return the user data
-    } catch (error) {
-      console.error("Session Check Error:", error); // Log the error
-      return thunkAPI.rejectWithValue("Session expired or invalid");
-    }
-  }
-);
-
-
-// Login user
-export const loginUser = createAsyncThunk('auth/login', async (credentials, thunkAPI) => {
-  try {
-    const res = await login(credentials.username, credentials.password);
-    return res.user;
-  } catch (error) {
-    return thunkAPI.rejectWithValue('Login failed');
-  }
-});
-
-// Logout user
-export const logoutUser = createAsyncThunk('auth/logout', async (_, thunkAPI) => {
-  try {
-    await logout(); // Call logout API
-    return null; // No payload needed, clears user state
-  } catch (error) {
-    return thunkAPI.rejectWithValue('Logout failed');
-  }
-});
-
+// Auth Slice to manage the state of the user and loading/error states
 const authSlice = createSlice({
   name: 'auth',
   initialState: { user: null, loading: false, error: null },
+  reducers: {
+    // Reducer to reset the user state (e.g., after logout)
+    resetAuth: (state) => {
+      state.user = null;
+      state.error = null;
+    },
+  },
   extraReducers: (builder) => {
+    // Handle login mutation (fired on login success)
     builder
-      // Check session
-      .addCase(checkUserSession.pending, (state) => { state.loading = true; })
-      .addCase(checkUserSession.fulfilled, (state, action) => {
-        state.user = action.payload;
-        state.loading = false;
-      })
-      .addCase(checkUserSession.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      })
-      // Login
-      .addCase(loginUser.pending, (state) => { state.loading = true; })
-      .addCase(loginUser.fulfilled, (state, action) => {
+      .addMatcher(apiClient.endpoints.login.matchFulfilled, (state, action) => {
         state.user = action.payload;
         state.loading = false;
         state.error = null;
       })
-      .addCase(loginUser.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      })
-      // Logout
-      .addCase(logoutUser.fulfilled, (state) => {
-        state.user = null; // Clear user state
+      // Handle logout mutation (fired on logout success)
+      .addMatcher(apiClient.endpoints.logout.matchFulfilled, (state) => {
+        state.user = null;
         state.error = null;
       })
-      .addCase(logoutUser.rejected, (state, action) => {
+      // Handle loading and error states
+      .addMatcher(apiClient.endpoints.login.matchPending, (state) => {
+        state.loading = true;
+      })
+      .addMatcher(apiClient.endpoints.logout.matchRejected, (state, action) => {
         state.error = action.payload;
+        state.loading = false;
       });
   },
 });
 
+export const { resetAuth } = authSlice.actions;
 export default authSlice.reducer;
-

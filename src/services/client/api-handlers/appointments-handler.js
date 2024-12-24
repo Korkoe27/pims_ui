@@ -1,18 +1,26 @@
-import apiClient from "../apiService";
-import { baseURL } from "../baseurl"
-import { getDashboardStat, fetchAppointments } from "../endpoints"
+/**
+ * Appointments Handler
+ *
+ * This file contains functions to handle API requests related to appointments.
+ * It includes handlers for fetching dashboard statistics, fetching appointment details, 
+ * and creating new appointments.
+ */
 
-export const    handleAppointments  =   async   ()  =>   {
-    const   url = `${baseURL}${getDashboardStat}`;
-    return  await apiClient(url,  {method:    'GET'});
-}
+import { apiClient } from "../apiService";
+import { baseURL } from "../baseurl";
+import { getDashboardStatUrl, fetchAppointmentsUrl } from "../endpoints";
 
-export const fetchAppointmentsDetails  =   async   ()  =>   {
-    const   url = `${baseURL}${fetchAppointments}`;
-    return  await apiClient(url,  {method:    'GET'});
-}
+export const handleAppointments = async () => {
+  const url = `${baseURL}${getDashboardStatUrl}`;
+  return await apiClient(url, { method: 'GET' });
+};
 
-export const    createAppointments  =   async   ()  =>   {
-    const   url = `${baseURL}${getDashboardStat}`;
-    return  await apiClient(url,  {method:    'GET'});
-}
+export const fetchAppointmentsDetails = async () => {
+  const url = `${baseURL}${fetchAppointmentsUrl}`;
+  return await apiClient(url, { method: 'GET' });
+};
+
+export const createAppointments = async () => {
+  const url = `${baseURL}${getDashboardStatUrl}`;
+  return await apiClient(url, { method: 'GET' });
+};

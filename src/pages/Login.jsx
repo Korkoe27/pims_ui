@@ -4,8 +4,7 @@ import { CiLock } from "react-icons/ci";
 import { PiUserCircle } from "react-icons/pi";
 import { VscEye } from "react-icons/vsc";
 import { FiEyeOff } from "react-icons/fi";
-import { useDispatch, useSelector } from "react-redux";
-import { loginUser } from "../redux/slices/authSlice"; // Redux login action
+import { useLoginMutation } from "../services/client/apiService"; // RTK Query hook for login
 import { useNavigate } from "react-router-dom";
 
 const LoadingSpinner = () => (
@@ -32,28 +31,33 @@ const Login = () => {
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  // Access Redux state for auth
-  const { user, loading, error } = useSelector((state) => state.auth);
+  // Use RTK Query login mutation hook
+  const [login, { isLoading, isError, error }] = useLoginMutation();
 
   useEffect(() => {
     // Redirect if already logged in
-    if (user) {
+    if (localStorage.getItem("user")) {
       navigate("/"); // Redirect to dashboard
     }
-  }, [user, navigate]);
+  }, [navigate]);
 
   const togglePasswordVisibility = () => setPasswordVisible(!passwordVisible);
 
   const handleLogin = async (e) => {
     e.preventDefault();
     const credentials = { username, password };
-    dispatch(loginUser(credentials));
+
+    try {
+      await login(credentials).unwrap(); // Call the login mutation
+      navigate("/"); // Redirect to dashboard on successful login
+    } catch (err) {
+      console.error("Login failed:", err); // Handle login error
+    }
   };
 
-  if (loading) {
+  if (isLoading) {
     return <LoadingSpinner />;
   }
 
@@ -78,50 +82,43 @@ const Login = () => {
             <div className="flex justify-between items-start gap-3 rounded-lg border p-3 border-[#d0d5dd] bg-white w-full">
               <PiUserCircle className="w-8 h-8 object-contain text-[#667185]" />
               <input
+                id="username"
                 type="text"
-                className="w-full outline-none h-full p-0 bg-white"
-                placeholder="Username"
-                name="username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
+                placeholder="Enter your username"
+                className="w-full border-none outline-none"
               />
             </div>
           </div>
-          <div className="w-96 flex flex-col gap-1">
+
+          <div className="flex flex-col w-96 gap-1">
             <label htmlFor="password" className="text-[#101928] text-base">
               Password
             </label>
             <div className="flex justify-between items-start gap-3 rounded-lg border p-3 border-[#d0d5dd] bg-white w-full">
               <CiLock className="w-8 h-8 object-contain text-[#667185]" />
               <input
+                id="password"
                 type={passwordVisible ? "text" : "password"}
-                className="w-full outline-none h-full p-0 bg-white"
-                placeholder="Password"
-                name="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                placeholder="Enter your password"
+                className="w-full border-none outline-none"
               />
-              {passwordVisible ? (
-                <FiEyeOff
-                  className="w-8 h-8 object-contain cursor-pointer p-0 hover:text-[#000] text-[#667185]"
-                  onClick={togglePasswordVisibility}
-                />
-              ) : (
-                <VscEye
-                  className="w-8 h-8 object-contain cursor-pointer p-0 hover:text-[#000] text-[#667185]"
-                  onClick={togglePasswordVisibility}
-                />
-              )}
+              <div onClick={togglePasswordVisibility} className="cursor-pointer">
+                {passwordVisible ? <VscEye className="w-6 h-6" /> : <FiEyeOff className="w-6 h-6" />}
+              </div>
             </div>
           </div>
-          {error && (
-            <p className="text-red-500 font-bold text-center mt-4">{error}</p>
-          )}
+
+          {isError && <p className="text-red-500">{error?.data || "Login failed. Please try again."}</p>}
+
           <button
-            className="bg-[#2f3192] text-white p-5 w-96 rounded-lg"
             type="submit"
+            className="bg-blue-600 text-white p-2 rounded-md w-full"
           >
-            Log into your account
+            Log in
           </button>
         </form>
       </div>

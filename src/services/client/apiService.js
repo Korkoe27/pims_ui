@@ -1,15 +1,8 @@
-/**
- * API Client Configuration
- * 
- * This file configures the RTK Query API client for managing requests to the backend.
- * It includes endpoints for login and logout, dynamically referencing pre-defined URLs.
- * 
- */
-
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { baseURL } from "../client/baseurl"; // Import the base URL
-import { loginUrl, logoutUrl } from "../services/client/apiEndpoints"; // Import authentication URLs
+import { loginUrl, logoutUrl } from "../client/endpoints"; // Import authentication URLs
 
+// API client configured with login and logout endpoints
 export const apiClient = createApi({
   reducerPath: "apiClient",
   baseQuery: fetchBaseQuery({
@@ -17,15 +10,15 @@ export const apiClient = createApi({
     credentials: "include", // Include HttpOnly cookies
   }),
   endpoints: (builder) => ({
-    // Login endpoint
+    // Login mutation
     login: builder.mutation({
       query: (credentials) => ({
         url: loginUrl, // Use the pre-defined login URL
         method: "POST",
-        body: credentials,
+        body: credentials, // Send credentials as body
       }),
     }),
-    // Logout endpoint
+    // Logout mutation
     logout: builder.mutation({
       query: () => ({
         url: logoutUrl, // Use the pre-defined logout URL
