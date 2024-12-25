@@ -1,5 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { apiClient } from '../../services/client/apiService'; // Import apiClient with RTK Query
+import { authApi } from '../api/authApi'; // Import the correct RTK Query slice
 
 const authSlice = createSlice({
   name: 'auth',
@@ -14,26 +14,26 @@ const authSlice = createSlice({
   extraReducers: (builder) => {
     // Handle login mutation (fired on login success)
     builder
-      .addMatcher(apiClient.endpoints.login.matchFulfilled, (state, action) => {
-        console.log("Login successful, payload:", action.payload); // Debugging
-        state.user = action.payload; // Update the user state with payload
+      .addMatcher(authApi.endpoints.login.matchFulfilled, (state, action) => {
+        console.log("authSlice: matchFulfilled triggered, payload:", action.payload.user); // Debugging
+        state.user = action.payload.user; // Update user in the slice
         state.loading = false;
         state.error = null;
       })
       // Handle logout mutation (fired on logout success)
-      .addMatcher(apiClient.endpoints.logout.matchFulfilled, (state) => {
+      .addMatcher(authApi.endpoints.logout.matchFulfilled, (state) => {
         state.user = null; // Clear user state on logout
         state.error = null;
       })
       // Handle loading and error states
-      .addMatcher(apiClient.endpoints.login.matchPending, (state) => {
+      .addMatcher(authApi.endpoints.login.matchPending, (state) => {
         state.loading = true; // Set loading to true during login
       })
-      .addMatcher(apiClient.endpoints.login.matchRejected, (state, action) => {
+      .addMatcher(authApi.endpoints.login.matchRejected, (state, action) => {
         state.error = action.error?.data?.message || "Login failed"; // Capture error message
         state.loading = false;
       })
-      .addMatcher(apiClient.endpoints.logout.matchRejected, (state, action) => {
+      .addMatcher(authApi.endpoints.logout.matchRejected, (state, action) => {
         state.error = action.payload; // Capture error for logout
         state.loading = false;
       });

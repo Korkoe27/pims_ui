@@ -40,7 +40,7 @@ const Login = () => {
     e.preventDefault();
     try {
       const userData = await login({ username, password }).unwrap(); // Perform login
-      console.log("Login successful:", userData);
+      console.log(" Static Login successful:", userData);
 
       // Redirect to the Dashboard after login
       navigate("/");
