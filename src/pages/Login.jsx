@@ -32,7 +32,7 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [login, { isLoading, error }] = useLoginMutation(); // Use the login mutation
-  const navigate = useNavigate();
+  const navigate = useNavigate(); // Hook to navigate to different routes
 
   const togglePasswordVisibility = () => setPasswordVisible(!passwordVisible);
 
@@ -41,7 +41,9 @@ const Login = () => {
     try {
       const userData = await login({ username, password }).unwrap(); // Perform login
       console.log("Login successful:", userData);
-      navigate("/"); // Redirect to the dashboard
+
+      // Redirect to the Dashboard after login
+      navigate("/");
     } catch (err) {
       console.error("Login failed:", err);
     }

@@ -43,12 +43,12 @@ const App = () => {
             <Route
               path="/"
               element={
-                <PrivateRoute>
+                // <PrivateRoute>
                   <Layout />
-                </PrivateRoute>
+                // </PrivateRoute>
               }
             >
-              <Route index element={<Dashboard />} />
+              <Route path="/" element={<Dashboard />} />
               <Route path="/my-patients" element={<Patients />} />
               <Route path="/appointments" element={<Appointments />} />
               <Route path="/inventory" element={<Inventory />} />
