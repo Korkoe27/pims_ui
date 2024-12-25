@@ -23,8 +23,7 @@ import {
   Login,
 } from "./pages";
 import Layout from "./pages/Layout";
-import PrivateRoute from "./hooks/PrivateRoute";
-import { ClinicProvider } from "./contexts/ClinicProvider";
+import ProtectedRoute from "./hooks/ProtectedRoute"; // Updated to use the renamed ProtectedRoute
 import LoadingSpinner from "./components/LoadingSpinner";
 
 const App = () => {
@@ -38,45 +37,39 @@ const App = () => {
   return (
     <div className="bg-[#f9fafb]">
       <BrowserRouter>
-          <Routes>
-            <Route path="/login" element={<Login />} />
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute>
+                <Layout />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<Dashboard />} />
+            <Route path="/my-patients" element={<Patients />} />
+            <Route path="/appointments" element={<Appointments />} />
+            <Route path="/inventory" element={<Inventory />} />
+            <Route path="/dispensary" element={<Dispensary />} />
+            <Route path="/register-patient" element={<PersonalInfo />} />
             <Route
-              path="/"
-              element={
-                // <PrivateRoute>
-                  <Layout />
-                // </PrivateRoute>
-              }
-            >
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/my-patients" element={<Patients />} />
-              <Route path="/appointments" element={<Appointments />} />
-              <Route path="/inventory" element={<Inventory />} />
-              <Route path="/dispensary" element={<Dispensary />} />
-              <Route path="/register-patient" element={<PersonalInfo />} />
-              <Route
-                path="/case-history/:appointmentId"
-                element={<CaseHistory />}
-              />
-              <Route
-                path="/visual-acuity/:appointmentId"
-                element={<VisualAcuity />}
-              />
-              <Route path="/externals/:appointmentId" element={<Externals />} />
-              <Route path="/internals/:appointmentId" element={<Internals />} />
-              <Route path="/refraction/:appointmentId" element={<Refraction />} />
-              <Route
-                path="/extra-tests/:appointmentId"
-                element={<ExtraTests />}
-              />
-              <Route path="/diagnosis" element={<Diagnosis />} />
-              <Route path="/management" element={<Management />} />
-              <Route
-                path="/createAppointment"
-                element={<CreateAppointment />}
-              />
-            </Route>
-          </Routes>
+              path="/case-history/:appointmentId"
+              element={<CaseHistory />}
+            />
+            <Route
+              path="/visual-acuity/:appointmentId"
+              element={<VisualAcuity />}
+            />
+            <Route path="/externals/:appointmentId" element={<Externals />} />
+            <Route path="/internals/:appointmentId" element={<Internals />} />
+            <Route path="/refraction/:appointmentId" element={<Refraction />} />
+            <Route path="/extra-tests/:appointmentId" element={<ExtraTests />} />
+            <Route path="/diagnosis" element={<Diagnosis />} />
+            <Route path="/management" element={<Management />} />
+            <Route path="/createAppointment" element={<CreateAppointment />} />
+          </Route>
+        </Routes>
       </BrowserRouter>
     </div>
   );
