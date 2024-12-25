@@ -24,14 +24,14 @@ import {
 } from "./pages";
 import Layout from "./pages/Layout";
 import ProtectedRoute from "./hooks/ProtectedRoute";
-import LoadingSpinner from "./components/LoadingSpinner";
+import LoginLoader from "./components/LoginLoader";
 
 const App = () => {
   const { loading } = useSelector((state) => state.auth);
 
   if (loading) {
     // Display spinner while checking session
-    return <LoadingSpinner />;
+    return <LoginLoader />;
   }
 
   return (
