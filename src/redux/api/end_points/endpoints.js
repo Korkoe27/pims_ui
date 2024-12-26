@@ -38,7 +38,7 @@ export const updatePatientDetailsUrl = (patientId) =>
   `/clients/api/update-patient/${patientId}/`;
 
 // List all patients
-export const listAllPatientsUrl = "/clients/api/patients/";
+export const listAllPatientsUrl = `/clients/api/patients/`;
 
 // Create a new patient (removed patientId, as it's not required for creating a new resource)
 export const createNewPatientUrl = "/clients/api/create-patient/";
