@@ -7,8 +7,8 @@
 import { configureStore } from "@reduxjs/toolkit";
 import { persistStore, persistReducer } from "redux-persist";
 import storage from "redux-persist/lib/storage"; // Defaults to localStorage
-import { authApi } from "./api/authApi"; // Authentication API slice
-import authReducer from "../redux/slices/authSlice"; // Authentication state slice
+import { authApi } from "../api/features/authApi"; // Authentication API slice
+import authReducer from "../slices/authSlice"; // Authentication state slice
 
 // Persistence configuration for the auth slice
 const persistConfig = {

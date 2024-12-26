@@ -5,7 +5,7 @@ import App from "./App";
 import reportWebVitals from "./reportWebVitals";
 import { Provider } from "react-redux";
 import { PersistGate } from "redux-persist/integration/react"; // Import PersistGate
-import { store, persistor } from "./redux/store"; // Import both store and persistor
+import { store, persistor } from "./redux/store/store"; // Import both store and persistor
 import LoadingSpinner from "./components/LoadingSpinner"; // Import your loading spinner
 
 const root = ReactDOM.createRoot(document.getElementById("root"));

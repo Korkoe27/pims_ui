@@ -4,7 +4,6 @@ import { Link, NavLink } from "react-router-dom";
 import { HiUser } from "react-icons/hi2";
 import { Sidebar_links } from "../extras/data.js";
 import { useSelector } from "react-redux";
-import { useLogoutMutation } from "../redux/api/authApi"; // RTK Query hook for logout
 import useLogout from "../hooks/useLogout";
 
 const Sidebar = () => {

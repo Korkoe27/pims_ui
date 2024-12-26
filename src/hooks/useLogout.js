@@ -5,7 +5,7 @@
  */
 
 import { useNavigate } from "react-router-dom";
-import { useLogoutMutation } from "../redux/api/authApi";
+import { useLogoutMutation } from "../redux/api/features/authApi";
 import { useDispatch } from "react-redux";
 import { resetAuth } from "../redux/slices/authSlice";
 

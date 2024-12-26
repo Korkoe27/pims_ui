@@ -4,7 +4,7 @@
  * Authentication-related API endpoints, injected into the apiClient.
  */
 
-import { apiClient } from "./apiClient";
+import { apiClient } from "../api_client/apiClient";
 import { loginUrl, logoutUrl, checkSessionUrl } from "../end_points/endpoints";
 
 export const authApi = apiClient.injectEndpoints({

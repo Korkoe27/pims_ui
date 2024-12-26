@@ -7,7 +7,7 @@
  */
 
 import { createSlice } from "@reduxjs/toolkit";
-import { authApi } from "../api/authApi"; // Import the correct RTK Query slice
+import { authApi } from "../api/features/authApi"; // Import the correct RTK Query slice
 import { persistReducer } from "redux-persist";
 import storage from "redux-persist/lib/storage"; // Default: localStorage
 

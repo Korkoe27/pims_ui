@@ -9,7 +9,6 @@ import { Link, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import PatientModal from "../components/SelectClinicModal";
 import SearchModalUnfilled from "../components/SearchModalUnfilled";
-import { useLogoutMutation } from "../redux/api/authApi";
 import useLogout from "../hooks/useLogout";
 
 const Dashboard = () => {

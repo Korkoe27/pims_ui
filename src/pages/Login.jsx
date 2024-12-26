@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useLoginMutation } from "../redux/api/authApi";
+import { useLoginMutation } from "../redux/api/features/authApi";
 import Logo from "../components/Logo";
 import { CiLock } from "react-icons/ci";
 import { PiUserCircle } from "react-icons/pi";

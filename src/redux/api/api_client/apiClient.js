@@ -6,7 +6,7 @@
  */
 
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { baseURL } from "./base_url/baseurl";
+import { baseURL } from "../base_url/baseurl";
 
 export const apiClient = createApi({
   reducerPath: "apiClient", // Name of this API slice
