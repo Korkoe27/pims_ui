@@ -1,29 +1,42 @@
+/**
+ * LoginLoader Component
+ *
+ * Displays a spinning hourglass animation with a "Please wait..." inscription.
+ * Used during authentication or loading states.
+ */
 import React from "react";
 
 const LoginLoader = () => {
   return (
-    <div className="flex flex-col items-center justify-center h-screen bg-[#f9fafb]">
-      <h1 className="text-3xl font-extrabold text-blue-600 mb-6 tracking-wide">
-        Logging In... Please Wait...
-      </h1>
-      <div className="relative w-20 h-20">
-        <div className="absolute inset-0 border-4 border-blue-500 rounded-full animate-spin-hourglass"></div>
-        <div className="absolute inset-0 bg-gradient-to-b from-blue-300 to-blue-600 rounded-full"></div>
-        <div className="absolute inset-0 bg-[#f9fafb] m-3 rounded-full"></div>
-      </div>
-      <p className="mt-8 text-lg text-blue-700 font-semibold">
-        We're almost there!
-      </p>
-      <style jsx>{`
-        .animate-spin-hourglass {
-          animation: spin-hourglass 1.5s linear infinite;
+    <div className="flex flex-col justify-center items-center h-screen bg-[#f9fafb]">
+      <div className="hourglass-loader"></div>
+      <p className="mt-4 text-lg text-gray-700 font-medium">Please wait...</p>
+      <style>{`
+        .hourglass-loader {
+          width: 40px;
+          height: 40px;
+          border: 4px solid transparent;
+          border-top: 4px solid #007bff;
+          border-bottom: 4px solid #007bff;
+          border-radius: 50%;
+          animation: spin 1.5s linear infinite, hourglass 1.5s ease-in-out infinite;
         }
-        @keyframes spin-hourglass {
+
+        @keyframes spin {
           0% {
             transform: rotate(0deg);
           }
           100% {
             transform: rotate(360deg);
+          }
+        }
+
+        @keyframes hourglass {
+          0%, 100% {
+            clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
+          }
+          50% {
+            clip-path: polygon(0% 0%, 100% 0%, 50% 100%);
           }
         }
       `}</style>

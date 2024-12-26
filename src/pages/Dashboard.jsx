@@ -11,9 +11,11 @@ import PatientModal from "../components/SelectClinicModal";
 import SearchModalUnfilled from "../components/SearchModalUnfilled";
 import { useLogoutMutation } from "../redux/api/authApi";
 import LoadingSpinner from "../components/LoadingSpinner";
-
+import useLogout from "../hooks/useLogout";
 
 const Dashboard = () => {
+  const { handleLogout, isLoading } = useLogout(); // Use the logout hook
+
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
@@ -22,24 +24,6 @@ const Dashboard = () => {
   const [isSearchModalVisible, setSearchModalVisibility] = useState(false);
 
   const { user } = useSelector((state) => state.auth); // Fetch user from Redux
-
-  // Initialize the logout mutation hook
-  const [logout] = useLogoutMutation();
-
-  const handleLogout = async () => {
-    try {
-      await logout().unwrap(); // Call the logout mutation
-      console.log("Logout successful");
-      navigate("/login"); // Redirect to login page
-    } catch (error) {
-      console.error("Logout failed:", error); // Handle any errors
-    }
-  };
-
-  // const handleAttendToPatient = (appointment) => {
-  //   dispatch(selectAppointment(appointment)); // Set the selected appointment in Redux
-  //   navigate(`/case-history/${appointment.id}`, { state: { appointment } });
-  // };
 
   const openModal = () => setIsModalOpen(true);
   const openSearchModal = () => setSearchModalVisibility(true);
@@ -110,8 +94,9 @@ const Dashboard = () => {
               <button
                 className="block px-4 py-2 text-gray-700 hover:bg-gray-200 w-full text-left"
                 onClick={handleLogout}
+                disabled={isLoading}
               >
-                Logout
+                {isLoading ? "Logging out..." : "Logout"}
               </button>
             </div>
           )}
@@ -246,13 +231,15 @@ const Dashboard = () => {
 
 export default Dashboard;
 
+const checkStatus = (status) => {
+  switch (status) {
+    case "Completed":
+      return "bg-green-600";
+    case "Cancelled":
+      return "bg-red-600";
 
-
-const checkStatus = (status)  =>{
-  switch(status){
-    case  'Completed': return 'bg-green-600';
-    case  'Cancelled': return 'bg-red-600';
-
-    default: case  'Scheduled': return 'bg-yellow-400';
+    default:
+    case "Scheduled":
+      return "bg-yellow-400";
   }
 };
