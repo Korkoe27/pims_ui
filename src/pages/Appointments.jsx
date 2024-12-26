@@ -17,12 +17,14 @@ const Appointments = () => {
 
   const appointments = todayAppointments?.data || [];
 
+  // Sort appointments by status: Scheduled, Completed, Cancelled
+  const sortedAppointments = [...appointments].sort((a, b) => {
+    const statusOrder = { Scheduled: 1, Completed: 2, Cancelled: 3 };
+    return statusOrder[a.status] - statusOrder[b.status];
+  });
+
   const handleConsult = (appointment) => {
     const { id: appointmentId, patient } = appointment;
-
-    // Debugging
-    console.log("Appointment Object:", appointment);
-    console.log("Patient Data:", patient);
 
     if (!patient) {
       console.error("Patient data is missing in the appointment object.");
@@ -47,7 +49,7 @@ const Appointments = () => {
       {error && <p className="text-red-500">Error: {error}</p>}
 
       {/* Appointments Table */}
-      {!loading && appointments?.length > 0 && (
+      {!loading && sortedAppointments?.length > 0 && (
         <table className="w-full text-base text-left rtl:text-right text-gray-500">
           <thead className="text-base text-gray-700 uppercase bg-gray-50">
             <tr>
@@ -72,7 +74,7 @@ const Appointments = () => {
             </tr>
           </thead>
           <tbody>
-            {appointments.map((appointment) => (
+            {sortedAppointments.map((appointment) => (
               <tr key={appointment.id} className="bg-white border-b">
                 <td className="px-6 py-4">{appointment?.appointment_date}</td>
                 <td className="px-6 py-4">
@@ -93,12 +95,14 @@ const Appointments = () => {
                   </span>
                 </td>
                 <td className="px-6 py-4 flex gap-10">
-                  <button
-                    onClick={() => handleConsult(appointment)}
-                    className="focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5"
-                  >
-                    Consult
-                  </button>
+                  {appointment?.status === "Scheduled" && (
+                    <button
+                      onClick={() => handleConsult(appointment)}
+                      className="focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5"
+                    >
+                      Consult
+                    </button>
+                  )}
                 </td>
               </tr>
             ))}
@@ -107,7 +111,7 @@ const Appointments = () => {
       )}
 
       {/* Empty State */}
-      {!loading && appointments?.length === 0 && (
+      {!loading && sortedAppointments?.length === 0 && (
         <p className="text-gray-500 text-center">No appointments available.</p>
       )}
     </div>
