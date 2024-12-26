@@ -15,6 +15,7 @@ import {
   CreateAppointment,
 } from "./components";
 import {
+  Consultation,
   Dashboard,
   Appointments,
   Dispensary,
@@ -65,6 +66,8 @@ const App = () => {
             <Route path="/diagnosis" element={<Diagnosis />} />
             <Route path="/management" element={<Management />} />
             <Route path="/createAppointment" element={<CreateAppointment />} />
+            <Route path="/consultation/" element={<Consultation />} />
+
           </Route>
         </Routes>
       </BrowserRouter>

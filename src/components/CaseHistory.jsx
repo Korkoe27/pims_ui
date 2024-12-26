@@ -3,7 +3,7 @@ import ProgressBar from "./ProgressBar";
 import NavMenu from "./NavMenu";
 import Header from "./Header";
 import Radios from "./Radios";
-import Inputs from "./Inputs";
+import LoadingSpinner from "./LoadingSpinner"; // Add a spinner
 import { Toaster } from "react-hot-toast";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import {
@@ -12,7 +12,6 @@ import {
   fetchCaseHistoryHandler,
 } from "../services/client/api-handlers/examinations-handler";
 import { fetchAppointmentsDetails } from "../services/client/api-handlers/appointments-handler";
-import Cookies from "js-cookie";
 import { useSelector } from "react-redux";
 
 const CaseHistory = () => {
@@ -24,9 +23,11 @@ const CaseHistory = () => {
   const navigate = useNavigate();
 
   const [appointment, setAppointment] = useState(
-    location.state?.appointment || null
+    location.state?.appointment || selectedAppointment || null
   );
-  const [patient, setPatient] = useState(location.state?.patient || null);
+  const [patient, setPatient] = useState(
+    location.state?.patient || selectedAppointment?.patient || null
+  );
   const [isLoading, setIsLoading] = useState(!appointment || !patient);
   const [step, setStep] = useState(1); // For progress tracking
 
@@ -94,12 +95,13 @@ const CaseHistory = () => {
         }
       } catch (error) {
         console.error("Error fetching case history:", error);
+        alert("Failed to fetch case history. Please try again.");
       } finally {
         setIsLoading(false);
       }
     };
     fetchData();
-  }, [appointmentId]);
+  }, [appointmentId, appointment, patient]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -137,13 +139,17 @@ const CaseHistory = () => {
     }
   };
 
+  if (isLoading) {
+    return <LoadingSpinner />;
+  }
+
   return (
     <div className="ml-72 my-8 gap-12 flex flex-col px-8 h-fit w-fit">
       <Toaster />
       <Header patient={patient} />
       <ProgressBar step={step} />
       <NavMenu appointmentId={appointmentId} />
-      <form onSubmit={handleSubmit} className="">
+      <form onSubmit={handleSubmit}>
         <section className="flex gap-28">
           {step === 1 && (
             <aside className="flex flex-col gap-12">
@@ -168,51 +174,17 @@ const CaseHistory = () => {
                 On Direct Questioning <span className="text-[#ff0000]">*</span>
               </h1>
               <div className="grid grid-cols-2 gap-8">
-                {[
-                  { label: "Burning Sensation", name: "burningSensation" },
-                  { label: "Itching", name: "itching" },
-                  { label: "Tearing", name: "tearing" },
-                  { label: "Double Vision", name: "doubleVision" },
-                  { label: "Discharge", name: "discharge" },
-                  { label: "Pain", name: "pain" },
-                  { label: "FBS", name: "fbs" },
-                  { label: "Photophobia", name: "photophobia" },
-                ].map((field) => (
-                  <Radios
-                    key={field.name}
-                    label={field.label}
-                    name={field.name}
-                    checked={formData[field.name]}
-                    onChange={handleChange}
-                  />
-                ))}
-              </div>
-            </aside>
-          )}
-
-          {step === 3 && (
-            <aside className="flex flex-col gap-12">
-              <h1 className="text-base font-medium text-black">
-                Patient Medical History{" "}
-                <span className="text-[#ff0000]">*</span>
-              </h1>
-              <div className="grid grid-cols-2 gap-8">
-                {[
-                  { label: "Asthma", name: "asthma" },
-                  { label: "Ulcer", name: "ulcer" },
-                  { label: "Diabetes", name: "diabetes" },
-                  { label: "Hypertension", name: "hypertension" },
-                  { label: "Sickle Cell", name: "sickleCell" },
-                  { label: "STD/STI", name: "stdSti" },
-                ].map((field) => (
-                  <Radios
-                    key={field.name}
-                    label={field.label}
-                    name={field.name}
-                    checked={formData[field.name]}
-                    onChange={handleChange}
-                  />
-                ))}
+                {[{ label: "Burning Sensation", name: "burningSensation" }, { label: "Itching", name: "itching" }].map(
+                  (field) => (
+                    <Radios
+                      key={field.name}
+                      label={field.label}
+                      name={field.name}
+                      checked={formData[field.name]}
+                      onChange={handleChange}
+                    />
+                  )
+                )}
               </div>
             </aside>
           )}
