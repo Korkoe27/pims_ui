@@ -47,6 +47,12 @@ const Dashboard = () => {
   const pendingAppointments = dashboardData?.pending_appointments || 0;
   const completedAppointments = dashboardData?.completed_appointments || 0;
   const todayAppointments = dashboardData?.today_appointments?.data || [];
+  const recentPatientActivity = dashboardData?.recent_activity || [];
+
+  const handleAttendToPatient = (appointmentId) => {
+    console.log("Attending to patient with ID:", appointmentId);
+    navigate(`/case-history/${appointmentId}`);
+  };
 
   return (
     <div className="px-8 ml-72 flex flex-col mt-4 gap-8 bg-[#f9fafb] w-full">
@@ -168,29 +174,29 @@ const Dashboard = () => {
               <th className="px-3 py-3">Patient’s ID</th>
               <th className="px-3 py-3">Name</th>
               <th className="px-3 py-3">Appointment Type</th>
+              <th className="px-3 py-3 text-center">Action</th>
             </tr>
           </thead>
           <tbody>
-            {dashboardLoading ? (
-              <tr>
-                <td colSpan="4" className="text-center py-4">
-                  <LoadingSpinner />
+            {todayAppointments.slice(0, 3).map((appointment) => (
+              <tr key={appointment.id} className="bg-white border-b">
+                <td className="px-3 py-3">{appointment.appointment_date}</td>
+                <td className="px-3 py-3">{appointment.patient.patient_id}</td>
+                <td className="px-3 py-3">
+                  {appointment.patient.first_name}{" "}
+                  {appointment.patient.last_name}
+                </td>
+                <td className="px-3 py-3">{appointment.appointment_type}</td>
+                <td className="py-3 flex justify-center">
+                  <button
+                    className="text-white bg-[#2f3192] px-4 py-2 rounded-lg"
+                    onClick={() => handleAttendToPatient(appointment.id)}
+                  >
+                    Attend to Patient
+                  </button>
                 </td>
               </tr>
-            ) : (
-              todayAppointments.slice(0, 3).map((appointment) => (
-                <tr key={appointment.id}>
-                  <td className="px-3 py-3">{appointment.appointment_date}</td>
-                  <td className="px-3 py-3">
-                    {appointment.patient.patient_id}
-                  </td>
-                  <td className="px-3 py-3">
-                    {`${appointment.patient.first_name} ${appointment.patient.last_name}`}
-                  </td>
-                  <td className="px-3 py-3">{appointment.appointment_type}</td>
-                </tr>
-              ))
-            )}
+            ))}
           </tbody>
         </table>
       </div>
@@ -212,17 +218,25 @@ const Dashboard = () => {
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td className="px-3 py-3">07-05-2024</td>
-              <td className="px-3 py-3">2122/10/22</td>
-              <td className="px-3 py-3">Korkoe A.K Dumashie</td>
-              <td className="px-3 py-3">Allergic Conjunctivitis</td>
-              <td className="px-3 py-3">
-                <span className="bg-[#e7f6ec] text-[#036b26] py-2 px-3 rounded-lg">
-                  Completed
-                </span>
-              </td>
-            </tr>
+            {recentPatientActivity.map((activity) => (
+              <tr key={activity.id} className="bg-white border-b">
+                <td className="px-3 py-3">{activity.date}</td>
+                <td className="px-3 py-3">{activity.patient_id}</td>
+                <td className="px-3 py-3">{activity.name}</td>
+                <td className="px-3 py-3">{activity.diagnosis}</td>
+                <td className="px-3 py-3">
+                  <span
+                    className={`py-2 px-3 rounded-lg ${
+                      activity.status === "Completed"
+                        ? "bg-green-200 text-green-800"
+                        : "bg-red-200 text-red-800"
+                    }`}
+                  >
+                    {activity.status}
+                  </span>
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
