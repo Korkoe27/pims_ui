@@ -5,25 +5,17 @@ import { HiUser } from "react-icons/hi2";
 import { Sidebar_links } from "../extras/data.js";
 import { useSelector } from "react-redux";
 import { useLogoutMutation } from "../redux/api/authApi"; // RTK Query hook for logout
+import useLogout from "../hooks/useLogout";
 
 const Sidebar = () => {
   const { user } = useSelector((state) => state.auth);
-  const [logout] = useLogoutMutation(); // RTK Query hook for logout
+  const { handleLogout, isLoading } = useLogout(); // Use the logout hook
 
   const activeLink =
     "flex items-center gap-5 pl-4 pt-3 pb-2.5 rounded text-blue-900 font-bold text-md my-2 bg-[#e3effc]";
 
   const normalLink =
     "flex items-center gap-5 pl-4 pt-3 pb-2.5 rounded text-black font-normal text-md hover:bg-[#e3effc] my-2";
-
-  const handleLogout = async () => {
-    try {
-      await logout().unwrap(); // Call the logout mutation
-      console.log("Logout successful");
-    } catch (error) {
-      console.error("Logout failed:", error); // Handle any errors
-    }
-  };
 
   return (
     <div className="w-72 bg-white fixed flex flex-col shadow-lg h-screen overscroll-contain md:overflow-hidden overflow-auto md:hover:overflow-auto">
@@ -46,9 +38,7 @@ const Sidebar = () => {
             {item.icon}
             <span className="capitalize">{item.name}</span>
             {item.name === "appointments" && (
-              <span
-                className="flex bg-[#f0f2f5] w-[2rem] h-[1.5rem] justify-center items-center rounded-full font-medium text-[#344054] text-[0.75rem] relative top-0 right-0 transform translate-x-[100%]"
-              >
+              <span className="flex bg-[#f0f2f5] w-[2rem] h-[1.5rem] justify-center items-center rounded-full font-medium text-[#344054] text-[0.75rem] relative top-0 right-0 transform translate-x-[100%]">
                 --
               </span>
             )}

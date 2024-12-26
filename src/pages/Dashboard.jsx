@@ -10,11 +10,10 @@ import { useSelector, useDispatch } from "react-redux";
 import PatientModal from "../components/SelectClinicModal";
 import SearchModalUnfilled from "../components/SearchModalUnfilled";
 import { useLogoutMutation } from "../redux/api/authApi";
-import LoadingSpinner from "../components/LoadingSpinner";
 import useLogout from "../hooks/useLogout";
 
 const Dashboard = () => {
-  const { handleLogout, isLoading } = useLogout(); // Use the logout hook
+  const { handleLogout, isLoading } = useLogout();
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
