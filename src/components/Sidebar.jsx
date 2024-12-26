@@ -5,10 +5,19 @@ import { HiUser } from "react-icons/hi2";
 import { Sidebar_links } from "../extras/data.js";
 import { useSelector } from "react-redux";
 import useLogout from "../hooks/useLogout";
+import { useGetDashboardDataQuery } from "../redux/api/features/dashboardApi";
 
 const Sidebar = () => {
   const { user } = useSelector((state) => state.auth);
   const { handleLogout, isLoading } = useLogout(); // Use the logout hook
+
+  // Fetch dashboard data
+  const { data: dashboardData, isLoading: isDashboardLoading } =
+    useGetDashboardDataQuery();
+
+  const totalAppointments = dashboardData
+    ? dashboardData.pending_appointments + dashboardData.completed_appointments
+    : "--";
 
   const activeLink =
     "flex items-center gap-5 pl-4 pt-3 pb-2.5 rounded text-blue-900 font-bold text-md my-2 bg-[#e3effc]";
@@ -38,7 +47,7 @@ const Sidebar = () => {
             <span className="capitalize">{item.name}</span>
             {item.name === "appointments" && (
               <span className="flex bg-[#f0f2f5] w-[2rem] h-[1.5rem] justify-center items-center rounded-full font-medium text-[#344054] text-[0.75rem] relative top-0 right-0 transform translate-x-[100%]">
-                --
+                {isDashboardLoading ? "--" : totalAppointments}
               </span>
             )}
           </NavLink>
