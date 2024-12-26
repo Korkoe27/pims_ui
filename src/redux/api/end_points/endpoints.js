@@ -1,10 +1,10 @@
 /**
  * API Endpoints
- * 
- * This file contains all API endpoint URLs for Authentication, Dashboard, 
- * Patients, Appointments, and Examinations. Each section is modularized 
+ *
+ * This file contains all API endpoint URLs for Authentication, Dashboard,
+ * Patients, Appointments, and Examinations. Each section is modularized
  * for better maintainability and scalability.
- * 
+ *
  */
 
 /////////////////////////
@@ -15,12 +15,11 @@ export const loginUrl = "auth/api/login/";
 export const logoutUrl = "auth/api/logout/";
 export const checkSessionUrl = "auth/api/check-session/";
 
-
 /////////////////////////
 // Dashboard
 /////////////////////////
 
-export const getDashboardStatUrl = "summary/api/dashboard/";
+export const getDashboardDataUrl = "summary/api/dashboard/";
 
 /////////////////////////
 // Patients

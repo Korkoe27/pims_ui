@@ -5,7 +5,7 @@
  */
 
 import { createSlice } from "@reduxjs/toolkit";
-import { apiClient } from "../api/apiClient"; // Import API client for endpoints
+import { dashboardApi } from "../api/features/dashboardApi"; // Use the correct API slice
 
 const initialState = {
   totalPatients: 0,
@@ -39,23 +39,36 @@ const dashboardSlice = createSlice({
   extraReducers: (builder) => {
     // Fetch Dashboard Data
     builder
-      .addMatcher(apiClient.endpoints.getDashboardData.matchPending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addMatcher(apiClient.endpoints.getDashboardData.matchFulfilled, (state, action) => {
-        const { total_patients, pending_appointments, completed_appointments, today_appointments } =
-          action.payload;
-        state.totalPatients = total_patients;
-        state.pendingAppointments = pending_appointments;
-        state.completedAppointments = completed_appointments;
-        state.todayAppointments = today_appointments;
-        state.loading = false;
-      })
-      .addMatcher(apiClient.endpoints.getDashboardData.matchRejected, (state, action) => {
-        state.loading = false;
-        state.error = action.error?.message || "Failed to fetch dashboard data";
-      });
+      .addMatcher(
+        dashboardApi.endpoints.getDashboardData.matchPending,
+        (state) => {
+          state.loading = true;
+          state.error = null;
+        }
+      )
+      .addMatcher(
+        dashboardApi.endpoints.getDashboardData.matchFulfilled,
+        (state, action) => {
+          const {
+            total_patients,
+            pending_appointments,
+            completed_appointments,
+            today_appointments,
+          } = action.payload;
+          state.totalPatients = total_patients;
+          state.pendingAppointments = pending_appointments;
+          state.completedAppointments = completed_appointments;
+          state.todayAppointments = today_appointments;
+          state.loading = false;
+        }
+      )
+      .addMatcher(
+        dashboardApi.endpoints.getDashboardData.matchRejected,
+        (state, action) => {
+          state.loading = false;
+          state.error = action.error?.message || "Failed to fetch dashboard data";
+        }
+      );
   },
 });
 

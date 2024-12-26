@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { CiSearch } from "react-icons/ci";
 import { LuClock3 } from "react-icons/lu";
 import { FiUserCheck } from "react-icons/fi";
@@ -10,9 +10,12 @@ import { useSelector, useDispatch } from "react-redux";
 import PatientModal from "../components/SelectClinicModal";
 import SearchModalUnfilled from "../components/SearchModalUnfilled";
 import useLogout from "../hooks/useLogout";
+import { useGetDashboardDataQuery } from "../redux/api/features/dashboardApi";
+import { resetDashboardState } from "../redux/slices/dashboardSlice";
+import LoadingSpinner from "../components/LoadingSpinner";
 
 const Dashboard = () => {
-  const { handleLogout, isLoading } = useLogout();
+  const { handleLogout, isLoading: logoutLoading } = useLogout();
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -21,11 +24,29 @@ const Dashboard = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isSearchModalVisible, setSearchModalVisibility] = useState(false);
 
-  const { user } = useSelector((state) => state.auth); // Fetch user from Redux
+  const { user } = useSelector((state) => state.auth);
+
+  const {
+    data: dashboardData,
+    isLoading: dashboardLoading,
+    error: dashboardError,
+  } = useGetDashboardDataQuery();
+
+  useEffect(() => {
+    if (dashboardError) {
+      console.error("Failed to fetch dashboard data:", dashboardError);
+      dispatch(resetDashboardState());
+    }
+  }, [dashboardError, dispatch]);
 
   const openModal = () => setIsModalOpen(true);
   const openSearchModal = () => setSearchModalVisibility(true);
   const toggleDropdown = () => setIsDropdownOpen(!isDropdownOpen);
+
+  const totalPatients = dashboardData?.total_patients || 0;
+  const pendingAppointments = dashboardData?.pending_appointments || 0;
+  const completedAppointments = dashboardData?.completed_appointments || 0;
+  const todayAppointments = dashboardData?.today_appointments?.data || [];
 
   return (
     <div className="px-8 ml-72 flex flex-col mt-4 gap-8 bg-[#f9fafb] w-full">
@@ -92,9 +113,9 @@ const Dashboard = () => {
               <button
                 className="block px-4 py-2 text-gray-700 hover:bg-gray-200 w-full text-left"
                 onClick={handleLogout}
-                disabled={isLoading}
+                disabled={logoutLoading}
               >
-                {isLoading ? "Logging out..." : "Logout"}
+                {logoutLoading ? "Logging out..." : "Logout"}
               </button>
             </div>
           )}
@@ -106,41 +127,29 @@ const Dashboard = () => {
         <div className="bg-[#ececf9] p-4 h-36 col-span-4">
           <h3 className="flex items-center text-base gap-[12px] font-normal">
             <LuUsers2 className="w-6 h-6" />
-            Today's Appointments
+            Total Patients
           </h3>
-          {/* {isLoading ? (
-            <LoadingSpinner />
-          ) : (
-            <span className="text-[50px] font-bold text-[#2f3192]">
-              {0}
-            </span>
-          )} */}
+          <span className="text-[50px] font-bold text-[#2f3192]">
+            {dashboardLoading ? <LoadingSpinner /> : totalPatients}
+          </span>
         </div>
         <div className="bg-[#fbeae9] p-4 h-36 col-span-4">
           <h3 className="flex items-center text-base gap-[12px] font-normal">
             <LuClock3 className="w-6 h-6" />
             Pending Appointments
           </h3>
-          {/* {isLoading ? (
-            <LoadingSpinner />
-          ) : (
-            <span className="text-[50px] font-bold text-[#d42620]">
-              {0}
-            </span>
-          )} */}
+          <span className="text-[50px] font-bold text-[#d42620]">
+            {dashboardLoading ? <LoadingSpinner /> : pendingAppointments}
+          </span>
         </div>
         <div className="bg-[#e7f6ec] p-4 h-36 col-span-4">
           <h3 className="flex items-center text-base gap-[12px] font-normal">
             <FiUserCheck className="w-6 h-6" />
             Completed Appointments
           </h3>
-          {/* {isLoading ? (
-            <LoadingSpinner />
-          ) : (
-            <span className="text-[50px] font-bold text-[#0f973d]">
-              {appointments?.data?.completed_appointments || 0}
-            </span>
-          )} */}
+          <span className="text-[50px] font-bold text-[#0f973d]">
+            {dashboardLoading ? <LoadingSpinner /> : completedAppointments}
+          </span>
         </div>
       </div>
 
@@ -159,35 +168,29 @@ const Dashboard = () => {
               <th className="px-3 py-3">Patient’s ID</th>
               <th className="px-3 py-3">Name</th>
               <th className="px-3 py-3">Appointment Type</th>
-              <th className="px-3 py-3"></th>
             </tr>
           </thead>
           <tbody>
-            {/* {isLoading && <LoadingSpinner />}
-            {appointments?.data?.today_appointments?.data
-              ?.slice(0, 3)
-              .map((appointment) => (
-                <tr key={appointment?.id}>
-                  <td className="px-3 py-3">{appointment?.appointment_date}</td>
+            {dashboardLoading ? (
+              <tr>
+                <td colSpan="4" className="text-center py-4">
+                  <LoadingSpinner />
+                </td>
+              </tr>
+            ) : (
+              todayAppointments.slice(0, 3).map((appointment) => (
+                <tr key={appointment.id}>
+                  <td className="px-3 py-3">{appointment.appointment_date}</td>
                   <td className="px-3 py-3">
-                    {appointment?.patient?.patient_id}
+                    {appointment.patient.patient_id}
                   </td>
                   <td className="px-3 py-3">
-                    {appointment?.patient?.first_name}{" "}
-                    {appointment?.patient?.last_name}
+                    {`${appointment.patient.first_name} ${appointment.patient.last_name}`}
                   </td>
-                  <td className="px-3 py-3">{appointment?.appointment_type}</td>
-                  <td className="py-3 flex justify-end">
-                    <Link
-                      to={`/case-history/${appointment.id}`}
-                      // onClick={() => handleAttendToPatient(appointment)}
-                      className="text-white bg-[#2f3192] px-4 py-2 rounded-lg"
-                    >
-                      Attend to Patient
-                    </Link>
-                  </td>
+                  <td className="px-3 py-3">{appointment.appointment_type}</td>
                 </tr>
-              ))} */}
+              ))
+            )}
           </tbody>
         </table>
       </div>
@@ -228,16 +231,3 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
-
-const checkStatus = (status) => {
-  switch (status) {
-    case "Completed":
-      return "bg-green-600";
-    case "Cancelled":
-      return "bg-red-600";
-
-    default:
-    case "Scheduled":
-      return "bg-yellow-400";
-  }
-};
