@@ -7,7 +7,7 @@
  */
 
 // Base URL for Production Environment
-//export const baseURL = 'https://optometryclinic-production.up.railway.app/';
+export const baseURL = 'https://optometryclinic-production.up.railway.app/';
 
 // Uncomment the following line for Local Development
- export const baseURL = 'http://127.0.0.1:8000/';
+//export const baseURL = 'http://127.0.0.1:8000/';
