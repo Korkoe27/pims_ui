@@ -1,15 +1,17 @@
 /**
  * Store Configuration
  *
- * Configures the Redux store with authentication using RTK Query and persistence.
+ * Configures the Redux store with authentication, patient management, and dashboard using RTK Query and persistence.
  */
 
 import { configureStore } from "@reduxjs/toolkit";
 import { persistStore, persistReducer } from "redux-persist";
 import storage from "redux-persist/lib/storage"; // Defaults to localStorage
 import { authApi } from "../api/features/authApi"; // Authentication API slice
+import { patientApi } from "../api/features/patientApi"; // Patient API slice
 import authReducer from "../slices/authSlice"; // Authentication state slice
-import dashboardReducer from "../slices/dashboardSlice"; 
+import dashboardReducer from "../slices/dashboardSlice"; // Dashboard state slice
+import patientReducer from "../slices/patientSlice"; // Patient state slice
 
 // Persistence configuration for the auth slice
 const persistConfig = {
@@ -24,13 +26,17 @@ const persistedAuthReducer = persistReducer(persistConfig, authReducer);
 export const store = configureStore({
   reducer: {
     auth: persistedAuthReducer, // Persisted local state for authentication
-    dashboard: dashboardReducer, 
+    dashboard: dashboardReducer, // Dashboard state slice
+    patients: patientReducer, // Patient state slice
     [authApi.reducerPath]: authApi.reducer, // RTK Query reducer for authentication API
+    [patientApi.reducerPath]: patientApi.reducer, // RTK Query reducer for patient API
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: false, // Disable serializable check for Redux Persist
-    }).concat(authApi.middleware), // RTK Query middleware for authentication API
+    })
+      .concat(authApi.middleware) // RTK Query middleware for authentication API
+      .concat(patientApi.middleware), // RTK Query middleware for patient API
 });
 
 // Create the persistor
