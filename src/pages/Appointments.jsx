@@ -1,49 +1,40 @@
 import React, { useEffect } from "react";
 import LoadingSpinner from "../components/LoadingSpinner";
-import { useDispatch, useSelector } from "react-redux";
-import {
-  fetchAppointments,
-  selectAppointment,
-} from "../redux/slices/appointmentsSlice";
+import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { selectAppointment } from "../redux/slices/appointmentsSlice";
 
 const Appointments = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const { appointments, loading, error } = useSelector(
-    (state) => state.appointments
-  );
+  // Accessing data from the dashboard store
+  const { todayAppointments, loading, error } = useSelector((state) => ({
+    todayAppointments: state.dashboard.todayAppointments,
+    loading: state.dashboard.loading,
+    error: state.dashboard.error,
+  }));
 
-  // Fetch Appointments on Mount
-  useEffect(() => {
-    if (appointments?.length === 0) {
-      dispatch(fetchAppointments());
-    }
-  }, [appointments.length, dispatch]);
-
-  useEffect(() => {
-  }, [loading, error, appointments]);
+  const appointments = todayAppointments?.data || [];
 
   const handleConsult = (appointment) => {
     const { id: appointmentId, patient } = appointment;
-  
+
     // Debugging
     console.log("Appointment Object:", appointment);
     console.log("Patient Data:", patient);
-  
+
     if (!patient) {
       console.error("Patient data is missing in the appointment object.");
       return;
     }
-  
+
     // Dispatch selected appointment to Redux
     dispatch(selectAppointment({ appointmentId, patient }));
-  
+
     // Navigate to Case History
     navigate(`/case-history/${appointmentId}`, { state: { patient, appointment } });
   };
-  
 
   return (
     <div className="px-8 ml-72 flex flex-col mt-8 gap-8 bg-[#f9fafb] w-full shadow-md sm:rounded-lg">
