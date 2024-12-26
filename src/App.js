@@ -1,6 +1,7 @@
 import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { useSelector } from "react-redux";
+import { useCheckSessionQuery } from "./redux/api/authApi";
+import { useSelector, useDispatch } from "react-redux";
 import "./App.css";
 import {
   CaseHistory,
@@ -25,9 +26,24 @@ import {
 import Layout from "./pages/Layout";
 import ProtectedRoute from "./hooks/ProtectedRoute";
 import LoginLoader from "./components/LoginLoader";
+import { setUser } from "./redux/slices/authSlice";
 
 const App = () => {
+  const dispatch = useDispatch();
+  const { data, isLoading } = useCheckSessionQuery();
   const { loading } = useSelector((state) => state.auth);
+
+  // Update Redux state with user info if authenticated
+  React.useEffect(() => {
+    if (data) {
+      dispatch(setUser(data));
+    }
+  }, [data, dispatch]);
+
+  if (isLoading) {
+    // Display spinner while session is being checked
+    return <LoginLoader />;
+  }
 
   if (loading) {
     // Display spinner while checking session

@@ -13,6 +13,8 @@
 
 export const loginUrl = "auth/api/login/";
 export const logoutUrl = "auth/api/logout/";
+export const checkSessionUrl = "auth/api/check-session/";
+
 
 /////////////////////////
 // Dashboard
