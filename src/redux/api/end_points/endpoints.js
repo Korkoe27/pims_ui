@@ -45,7 +45,7 @@ export const createNewPatientUrl = "/clients/api/create-patient/";
 
 //Fetch patient appointments =
 export const fetchPatientAppointmentsUrl = (patientId) =>
-  `/clients/api/patient-detail/${patientId}/`;
+  `/clients/api/${patientId}/appointments/`;
 
 /////////////////////////
 // Appointments
