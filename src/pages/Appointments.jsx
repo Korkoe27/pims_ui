@@ -101,7 +101,7 @@ const Appointments = () => {
                   <td className="px-6 py-4 flex gap-10">
                     {appointment?.status === "Scheduled" && (
                       <button
-                        onClick={handleConsult}
+                        onClick={() => handleConsult(appointment)}
                         className="focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5"
                       >
                         Consult
