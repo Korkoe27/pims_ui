@@ -12,6 +12,7 @@ import { patientApi } from "../api/features/patientApi"; // Patient API slice
 import authReducer from "../slices/authSlice"; // Authentication state slice
 import dashboardReducer from "../slices/dashboardSlice"; // Dashboard state slice
 import patientReducer from "../slices/patientSlice"; // Patient state slice
+import appointmentsReducer from "../slices/appointmentsSlice"; // Appointments state slice
 
 // Persistence configuration for the auth slice
 const persistConfig = {
@@ -28,6 +29,7 @@ export const store = configureStore({
     auth: persistedAuthReducer, // Persisted local state for authentication
     dashboard: dashboardReducer, // Dashboard state slice
     patients: patientReducer, // Patient state slice
+    appointments: appointmentsReducer, // Appointments state slice
     [authApi.reducerPath]: authApi.reducer, // RTK Query reducer for authentication API
     [patientApi.reducerPath]: patientApi.reducer, // RTK Query reducer for patient API
   },
@@ -39,7 +41,7 @@ export const store = configureStore({
       .concat(patientApi.middleware), // RTK Query middleware for patient API
 });
 
-// Create the persistor
 export const persistor = persistStore(store);
 
 export default store;
+

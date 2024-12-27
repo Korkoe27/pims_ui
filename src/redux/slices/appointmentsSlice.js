@@ -25,6 +25,7 @@ const appointmentsSlice = createSlice({
   },
   reducers: {
     selectAppointment: (state, action) => {
+      console.log("Setting selectedAppointment:", action.payload); // Add this log
       state.selectedAppointment = action.payload;
     },
     clearSelectedAppointment: (state) => {

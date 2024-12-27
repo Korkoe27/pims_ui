@@ -158,7 +158,6 @@ const Dashboard = () => {
       </div>
 
       {/* Upcoming Appointments Table */}
-      {/* Upcoming Appointments Table */}
       <div>
         <div className="flex justify-between my-[15px]">
           <h2 className="font-bold text-xl">Upcoming Appointments</h2>
@@ -198,7 +197,7 @@ const Dashboard = () => {
                   <td className="py-3 flex justify-center">
                     <button
                       className="text-white bg-[#2f3192] px-4 py-2 rounded-lg"
-                      onClick={handleConsult}
+                      onClick={() => handleConsult(appointment)}
                     >
                       Attend to Patient
                     </button>
