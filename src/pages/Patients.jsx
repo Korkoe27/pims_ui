@@ -26,7 +26,7 @@ const Patients = () => {
       <div className="flex justify-between">
 
 
-      {isLoading && <LoadingSpinner isTable={isTable} />}
+      {isLoading && <LoadingSpinner />}
       <h1 className="font-extrabold text-xl">Patients</h1>
 
       </div>
