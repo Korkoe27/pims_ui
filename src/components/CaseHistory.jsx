@@ -2,12 +2,22 @@ import React, { useState, useEffect } from "react";
 import Radios from "./Radios";
 import Inputs from "./Inputs";
 import { useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
 import {
-  createCaseHistoryHandler,
-  updateCaseHistoryHandler,
-} from "../services/client/api-handlers/examinations-handler";
+  useFetchCaseHistoryQuery,
+  useCreateCaseHistoryMutation,
+  useUpdateCaseHistoryMutation,
+} from "../redux/api/features/consultationApi";
+import { clearError, clearSuccessMessage } from "../redux/slices/consultationSlice";
 
 const CaseHistory = ({ appointmentId }) => {
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  const { caseHistory, error, successMessage } = useSelector(
+    (state) => state.consultation
+  );
+
   const [formData, setFormData] = useState({
     appointment: "",
     chiefComplaint: "",
@@ -45,17 +55,22 @@ const CaseHistory = ({ appointmentId }) => {
     hobbies: "",
   });
 
-  const [caseHistoryId, setCaseHistoryId] = useState(null); // To store the ID of the existing case history
-  const navigate = useNavigate();
+  const [caseHistoryId, setCaseHistoryId] = useState(null);
+
+  const { data: fetchedCaseHistory } = useFetchCaseHistoryQuery(appointmentId, {
+    skip: !appointmentId,
+  });
+  const [createCaseHistory] = useCreateCaseHistoryMutation();
+  const [updateCaseHistory] = useUpdateCaseHistoryMutation();
 
   useEffect(() => {
-    if (appointmentId) {
-      setFormData((prevData) => ({
-        ...prevData,
-        appointment: appointmentId, // Set the appointment ID
-      }));
+    if (fetchedCaseHistory) {
+      setFormData(fetchedCaseHistory);
+      setCaseHistoryId(fetchedCaseHistory.id);
+    } else if (appointmentId) {
+      setFormData((prev) => ({ ...prev, appointment: appointmentId }));
     }
-  }, [appointmentId]);
+  }, [fetchedCaseHistory, appointmentId]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -68,21 +83,17 @@ const CaseHistory = ({ appointmentId }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const payload = { ...formData, appointment: appointmentId };
-
       if (caseHistoryId) {
-        // Update existing case history
-        await updateCaseHistoryHandler(appointmentId, payload);
+        await updateCaseHistory({ appointmentId, ...formData });
         alert("Case history updated successfully!");
       } else {
-        // Create a new case history
-        await createCaseHistoryHandler(payload);
+        await createCaseHistory(formData);
         alert("Case history created successfully!");
       }
-      // Notify parent or proceed to next tab
+      dispatch(clearSuccessMessage());
     } catch (error) {
       console.error("Error submitting case history:", error);
-      alert("Failed to save case history. Please try again.");
+      dispatch(clearError());
     }
   };
 
@@ -162,7 +173,8 @@ const CaseHistory = ({ appointmentId }) => {
           {/* Patient Ocular History */}
           <div>
             <h1 className="text-base font-medium text-black">
-              Patient Ocular History <span className="text-[#ff0000]">*</span>
+              Patient Ocular History{" "}
+              <span className="text-[#ff0000]">*</span>
             </h1>
             <Inputs
               type="date"
@@ -218,7 +230,8 @@ const CaseHistory = ({ appointmentId }) => {
           {/* Family Ocular History */}
           <div>
             <h1 className="text-base font-medium text-black">
-              Family Ocular History <span className="text-[#ff0000]">*</span>
+              Family Ocular History{" "}
+              <span className="text-[#ff0000]">*</span>
             </h1>
             <div className="grid grid-cols-2 gap-8">
               {[
@@ -275,7 +288,7 @@ const CaseHistory = ({ appointmentId }) => {
           type="submit"
           className="w-56 p-4 rounded-lg text-white bg-[#2f3192]"
         >
-          Save and proceed
+          Save and Proceed
         </button>
       </div>
     </form>
