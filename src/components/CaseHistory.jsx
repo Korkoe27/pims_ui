@@ -14,9 +14,8 @@ const CaseHistory = ({ appointmentId }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const { caseHistory, error, successMessage } = useSelector(
-    (state) => state.consultation
-  );
+  // Fetch the current user from the Redux store
+  const { user } = useSelector((state) => state.auth);
 
   const [formData, setFormData] = useState({
     appointment: "",
@@ -57,9 +56,10 @@ const CaseHistory = ({ appointmentId }) => {
 
   const [caseHistoryId, setCaseHistoryId] = useState(null);
 
-  const { data: fetchedCaseHistory } = useFetchCaseHistoryQuery(appointmentId, {
-    skip: !appointmentId,
-  });
+  const { data: fetchedCaseHistory, isLoading } = useFetchCaseHistoryQuery(
+    appointmentId,
+    { skip: !appointmentId }
+  );
   const [createCaseHistory] = useCreateCaseHistoryMutation();
   const [updateCaseHistory] = useUpdateCaseHistoryMutation();
 
@@ -83,11 +83,16 @@ const CaseHistory = ({ appointmentId }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      const payload = {
+        ...formData,
+        created_by: user.id, // Add the user ID
+      };
+
       if (caseHistoryId) {
-        await updateCaseHistory({ appointmentId, ...formData });
+        await updateCaseHistory({ appointmentId, ...payload });
         alert("Case history updated successfully!");
       } else {
-        await createCaseHistory(formData);
+        await createCaseHistory(payload);
         alert("Case history created successfully!");
       }
       dispatch(clearSuccessMessage());
@@ -96,6 +101,10 @@ const CaseHistory = ({ appointmentId }) => {
       dispatch(clearError());
     }
   };
+
+  if (isLoading) {
+    return <p>Loading case history...</p>;
+  }
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-12">
@@ -173,8 +182,7 @@ const CaseHistory = ({ appointmentId }) => {
           {/* Patient Ocular History */}
           <div>
             <h1 className="text-base font-medium text-black">
-              Patient Ocular History{" "}
-              <span className="text-[#ff0000]">*</span>
+              Patient Ocular History <span className="text-[#ff0000]">*</span>
             </h1>
             <Inputs
               type="date"
