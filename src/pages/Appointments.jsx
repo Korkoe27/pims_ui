@@ -4,10 +4,12 @@ import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import Pagination from "../components/Pagination";
 import { selectAppointment } from "../redux/slices/appointmentsSlice";
+import useHandleConsult from "../hooks/useHandleConsult";
 
 const Appointments = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { handleConsult } = useHandleConsult();
 
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10; // Number of items per page
@@ -39,21 +41,6 @@ const Appointments = () => {
     setCurrentPage(page);
   };
 
-  const handleConsult = (appointment) => {
-    const { id: appointmentId, patient } = appointment;
-
-    if (!patient) {
-      console.error("Patient data is missing in the appointment object.");
-      return;
-    }
-
-    // Dispatch selected appointment to Redux
-    dispatch(selectAppointment({ appointmentId, patient }));
-
-    // Navigate to Case History
-    navigate(`/case-history/${appointmentId}`, { state: { patient, appointment } });
-  };
-
   return (
     <div className="px-8 ml-72 flex flex-col mt-8 gap-8 bg-[#f9fafb] w-full shadow-md sm:rounded-lg">
       <h1 className="font-extrabold text-xl">Today's Appointments</h1>
@@ -70,21 +57,36 @@ const Appointments = () => {
           <table className="w-full text-base text-left rtl:text-right text-gray-500">
             <thead className="text-base text-gray-700 uppercase bg-gray-50">
               <tr>
-                <th scope="col" className="px-6 py-3">Date</th>
-                <th scope="col" className="px-6 py-3">Patient ID</th>
-                <th scope="col" className="px-6 py-3">Name</th>
-                <th scope="col" className="px-6 py-3">Type</th>
-                <th scope="col" className="px-6 py-3">Status</th>
-                <th scope="col" className="px-3 min-w-40 py-3">Action</th>
+                <th scope="col" className="px-6 py-3">
+                  Date
+                </th>
+                <th scope="col" className="px-6 py-3">
+                  Patient ID
+                </th>
+                <th scope="col" className="px-6 py-3">
+                  Name
+                </th>
+                <th scope="col" className="px-6 py-3">
+                  Type
+                </th>
+                <th scope="col" className="px-6 py-3">
+                  Status
+                </th>
+                <th scope="col" className="px-3 min-w-40 py-3">
+                  Action
+                </th>
               </tr>
             </thead>
             <tbody>
               {paginatedAppointments.map((appointment) => (
                 <tr key={appointment.id} className="bg-white border-b">
                   <td className="px-6 py-4">{appointment?.appointment_date}</td>
-                  <td className="px-6 py-4">{appointment?.patient?.patient_id}</td>
                   <td className="px-6 py-4">
-                    {appointment?.patient?.first_name} {appointment?.patient?.last_name}
+                    {appointment?.patient?.patient_id}
+                  </td>
+                  <td className="px-6 py-4">
+                    {appointment?.patient?.first_name}{" "}
+                    {appointment?.patient?.last_name}
                   </td>
                   <td className="px-6 py-4">{appointment?.appointment_type}</td>
                   <td className="w-fit mx-auto">
@@ -99,7 +101,7 @@ const Appointments = () => {
                   <td className="px-6 py-4 flex gap-10">
                     {appointment?.status === "Scheduled" && (
                       <button
-                        onClick={() => handleConsult(appointment)}
+                        onClick={handleConsult}
                         className="focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5"
                       >
                         Consult
@@ -119,7 +121,11 @@ const Appointments = () => {
           />
         </>
       ) : (
-        !loading && <p className="text-gray-500 text-center">No appointments available.</p>
+        !loading && (
+          <p className="text-gray-500 text-center">
+            No appointments available.
+          </p>
+        )
       )}
     </div>
   );

@@ -21,6 +21,7 @@ import {
   Dispensary,
   Inventory,
   Patients,
+  PatientDetails,
   Login,
 } from "./pages";
 import Layout from "./pages/Layout";
@@ -53,6 +54,7 @@ const App = () => {
           >
             <Route index element={<Dashboard />} />
             <Route path="/my-patients" element={<Patients />} />
+            <Route path="/patients-details" element={<PatientDetails />} />
             <Route path="/appointments" element={<Appointments />} />
             <Route path="/inventory" element={<Inventory />} />
             <Route path="/dispensary" element={<Dispensary />} />

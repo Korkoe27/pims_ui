@@ -13,9 +13,11 @@ import useLogout from "../hooks/useLogout";
 import { useGetDashboardDataQuery } from "../redux/api/features/dashboardApi";
 import { resetDashboardState } from "../redux/slices/dashboardSlice";
 import LoadingSpinner from "../components/LoadingSpinner";
+import useHandleConsult from "../hooks/useHandleConsult";
 
 const Dashboard = () => {
   const { handleLogout, isLoading: logoutLoading } = useLogout();
+  const { handleConsult } = useHandleConsult();
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -43,16 +45,12 @@ const Dashboard = () => {
   const openSearchModal = () => setSearchModalVisibility(true);
   const toggleDropdown = () => setIsDropdownOpen(!isDropdownOpen);
 
-  const totalPatients = dashboardData?.total_patients || 0;
+  const todaysAppointmentCount = dashboardData?.today_appointments?.count || 0;
   const pendingAppointments = dashboardData?.pending_appointments || 0;
   const completedAppointments = dashboardData?.completed_appointments || 0;
   const todayAppointments = dashboardData?.today_appointments?.data || [];
   const recentPatientActivity = dashboardData?.recent_activity || [];
 
-  const handleAttendToPatient = (appointmentId) => {
-    console.log("Attending to patient with ID:", appointmentId);
-    navigate(`/consultation/`);
-  };
 
   return (
     <div className="px-8 ml-72 flex flex-col mt-4 gap-8 bg-[#f9fafb] w-full">
@@ -133,10 +131,10 @@ const Dashboard = () => {
         <div className="bg-[#ececf9] p-4 h-36 col-span-4">
           <h3 className="flex items-center text-base gap-[12px] font-normal">
             <LuUsers2 className="w-6 h-6" />
-            Total Patients
+            Today's Appointments
           </h3>
           <span className="text-[50px] font-bold text-[#2f3192]">
-            {dashboardLoading ? <LoadingSpinner /> : totalPatients}
+            {dashboardLoading ? <LoadingSpinner /> : todaysAppointmentCount}
           </span>
         </div>
         <div className="bg-[#fbeae9] p-4 h-36 col-span-4">
@@ -200,7 +198,7 @@ const Dashboard = () => {
                   <td className="py-3 flex justify-center">
                     <button
                       className="text-white bg-[#2f3192] px-4 py-2 rounded-lg"
-                      onClick={() => handleAttendToPatient(appointment.id)}
+                      onClick={handleConsult}
                     >
                       Attend to Patient
                     </button>

@@ -4,9 +4,11 @@ import usePagination from "../hooks/usePagination";
 import LoadingSpinner from "../components/LoadingSpinner";
 import Pagination from "../components/Pagination";
 import { Link } from "react-router-dom";
+import useHandlePatientDetails from "../hooks/useHandlePatientDetails";
 
 const Patients = () => {
   const { currentPage, pageSize, handlePageChange } = usePagination();
+  const { handlePatientDetails } = useHandlePatientDetails();
 
   const { data: patients, isLoading, error } = useGetAllPatientsQuery({
     page: currentPage,
@@ -45,8 +47,9 @@ const Patients = () => {
                   <td className="px-6 py-4">{patient?.primary_phone}</td>
                   <td className="px-6 py-4 flex gap-4">
                     <Link
-                      to={`/patients/${patient.id}`}
+                      to={"/patients-details/"}
                       className="text-white bg-blue-500 hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2"
+                      onClick={() => handlePatientDetails()}
                     >
                       View
                     </Link>
