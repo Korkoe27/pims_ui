@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import Pagination from "../components/Pagination";
 import { selectAppointment } from "../redux/slices/appointmentsSlice";
 import useHandleConsult from "../hooks/useHandleConsult";
+import Navbar from "../components/Navbar";
 
 const Appointments = () => {
   const dispatch = useDispatch();
@@ -43,10 +44,13 @@ const Appointments = () => {
 
   return (
     <div className="px-8 ml-72 flex flex-col mt-8 gap-8 bg-[#f9fafb] w-full shadow-md sm:rounded-lg">
+
+    <Navbar  />
+      {loading && <LoadingSpinner />}
+
       <h1 className="font-extrabold text-xl">Today's Appointments</h1>
 
       {/* Loading State */}
-      {loading && <LoadingSpinner />}
 
       {/* Error State */}
       {error && <p className="text-red-500">Error: {error}</p>}
