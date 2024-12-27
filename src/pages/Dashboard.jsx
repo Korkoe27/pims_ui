@@ -42,7 +42,6 @@ const Dashboard = () => {
   const todayAppointments = dashboardData?.today_appointments?.data || [];
   const recentPatientActivity = dashboardData?.recent_activity || [];
 
-
   return (
         <div className="px-8 ml-72 flex flex-col mt-4 gap-8 bg-[#f9fafb] w-full">
   <Navbar />
@@ -92,7 +91,9 @@ const Dashboard = () => {
           <div className="flex justify-center items-center">
             <LoadingSpinner />
           </div>
-        ) : todayAppointments.length > 0 ? (
+        ) : todayAppointments.filter(
+            (appointment) => appointment.status === "Scheduled"
+          ).length > 0 ? (
           <table className="w-full">
             <thead className="text-black uppercase text-left h-16 bg-[#f0f2f5]">
               <tr>
@@ -104,32 +105,39 @@ const Dashboard = () => {
               </tr>
             </thead>
             <tbody>
-              {todayAppointments.slice(0, 3).map((appointment) => (
-                <tr key={appointment.id} className="bg-white border-b">
-                  <td className="px-3 py-3">{appointment.appointment_date}</td>
-                  <td className="px-3 py-3">
-                    {appointment.patient.patient_id}
-                  </td>
-                  <td className="px-3 py-3">
-                    {appointment.patient.first_name}{" "}
-                    {appointment.patient.last_name}
-                  </td>
-                  <td className="px-3 py-3">{appointment.appointment_type}</td>
-                  <td className="py-3 flex justify-center">
-                    <button
-                      className="text-white bg-[#2f3192] px-4 py-2 rounded-lg"
-                      onClick={() => handleConsult(appointment)}
-                    >
-                      Attend to Patient
-                    </button>
-                  </td>
-                </tr>
-              ))}
+              {todayAppointments
+                .filter((appointment) => appointment.status === "Scheduled")
+                .slice(0, 3)
+                .map((appointment) => (
+                  <tr key={appointment.id} className="bg-white border-b">
+                    <td className="px-3 py-3">
+                      {appointment.appointment_date}
+                    </td>
+                    <td className="px-3 py-3">
+                      {appointment.patient.patient_id}
+                    </td>
+                    <td className="px-3 py-3">
+                      {appointment.patient.first_name}{" "}
+                      {appointment.patient.last_name}
+                    </td>
+                    <td className="px-3 py-3">
+                      {appointment.appointment_type}
+                    </td>
+                    <td className="py-3 flex justify-center">
+                      <button
+                        className="text-white bg-[#2f3192] px-4 py-2 rounded-lg"
+                        onClick={() => handleConsult(appointment)}
+                      >
+                        Attend to Patient
+                      </button>
+                    </td>
+                  </tr>
+                ))}
             </tbody>
           </table>
         ) : (
           <p className="text-gray-500 text-center">
-            No upcoming appointments available.
+            No scheduled appointments available.
           </p>
         )}
       </div>
