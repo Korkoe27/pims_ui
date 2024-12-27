@@ -19,23 +19,17 @@ const Header = ({ patient, appointmentId }) => {
   }
 
   return (
-    <div className="flex flex-col gap-1 bg-white p-4 shadow-md rounded-md">
+    <div className="flex flex-col gap-1">
       {/* Patient Name */}
-      <h1 className="text-lg font-bold text-black">
+      <h1 className="text-base font-normal">
         {patientData?.first_name || "Unknown"} {patientData?.last_name || ""}
       </h1>
 
       {/* Patient ID */}
-      <p className="text-sm font-medium text-gray-600">
+      <h1 className="text-2xl font-semibold">
         Patient ID: {patientData?.patient_id || "Not Available"}
-      </p>
+      </h1>
 
-      {/* Appointment ID */}
-      {/* {appointmentId && (
-        <p className="text-sm text-gray-500">
-          Appointment ID: <span className="text-black">{appointmentId}</span>
-        </p>
-      )} */}
     </div>
   );
 };

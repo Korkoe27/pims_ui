@@ -16,7 +16,7 @@ const Sidebar = () => {
     useGetDashboardDataQuery();
 
   const totalAppointments = dashboardData
-    ? dashboardData.pending_appointments + dashboardData.completed_appointments
+    ? dashboardData?.today_appointments?.count
     : "--";
 
   const activeLink =

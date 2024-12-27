@@ -241,7 +241,7 @@ const CaseHistory = ({ appointmentId }) => {
           {/* Text Inputs */}
           <Inputs
             type="text"
-            label="Parent's Drug History"
+            label="Patient’s Drug History"
             name="parentDrugHistory"
             value={formData.parentDrugHistory}
             onChange={handleChange}
