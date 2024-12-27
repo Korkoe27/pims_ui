@@ -1,55 +1,75 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { handleAppointments } from "../../services/client/api-handlers/appointments-handler";
+import { createSlice } from "@reduxjs/toolkit";
+import { appointmentsApi } from "../api/features/appointmentsApi"
 
-// Async Thunk for fetching appointments
-export const fetchAppointments = createAsyncThunk(
-  "appointments/fetchAppointments",
-  async (_, { rejectWithValue }) => {
-    try {
-      const response = await handleAppointments(); // Replace with your API call
-      return response?.data?.today_appointments?.data || [];
-    } catch (error) {
-      return rejectWithValue(error.message);
-    }
-  }
-);
+// Initial State
+const initialState = {
+  appointmentsList: [], // For storing all appointments
+  selectedAppointment: null, // For holding details of a selected appointment
+  error: null, // For any error handling
+  loading: false, // Loading state for appointment-related actions
+  successMessage: null, // Success message for actions like creating/updating an appointment
+};
 
-// Slice for appointments
+// Appointment Slice
 const appointmentsSlice = createSlice({
   name: "appointments",
-  initialState: {
-    appointments: [],
-    selectedAppointment: null,
-    loading: false,
-    error: null,
-  },
+  initialState,
   reducers: {
-    selectAppointment: (state, action) => {
-      console.log("Setting selectedAppointment:", action.payload); // Add this log
+    // Reset appointments state
+    resetAppointmentsState: (state) => {
+      state.appointmentsList = [];
+      state.selectedAppointment = null;
+      state.error = null;
+      state.loading = false;
+      state.successMessage = null;
+    },
+    // Set selected appointment
+    setSelectedAppointment: (state, action) => {
       state.selectedAppointment = action.payload;
     },
-    clearSelectedAppointment: (state) => {
-      state.selectedAppointment = null;
+    // Clear error state
+    clearError: (state) => {
+      state.error = null;
+    },
+    // Clear success message
+    clearSuccessMessage: (state) => {
+      state.successMessage = null;
     },
   },
   extraReducers: (builder) => {
+    // Use RTK Query matchers for the `appointmentsApi` endpoints
+
+    // Handle getAppointments
     builder
-      .addCase(fetchAppointments.pending, (state) => {
+      .addMatcher(appointmentsApi.endpoints.getAppointments.matchPending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(fetchAppointments.fulfilled, (state, action) => {
+      .addMatcher(appointmentsApi.endpoints.getAppointments.matchFulfilled, (state, action) => {
+        state.appointmentsList = action.payload;
         state.loading = false;
-        state.appointments = action.payload;
       })
-      .addCase(fetchAppointments.rejected, (state, action) => {
+      .addMatcher(appointmentsApi.endpoints.getAppointments.matchRejected, (state, action) => {
+        state.error = action.error?.message || "Failed to fetch appointments";
         state.loading = false;
-        state.error = action.payload;
+      });
+
+    // Handle getAppointmentDetails
+    builder
+      .addMatcher(appointmentsApi.endpoints.getAppointmentDetails.matchFulfilled, (state, action) => {
+        state.selectedAppointment = action.payload;
+      })
+      .addMatcher(appointmentsApi.endpoints.getAppointmentDetails.matchRejected, (state, action) => {
+        state.error = action.error?.message || "Failed to fetch appointment details";
       });
   },
 });
 
-export const { selectAppointment, clearSelectedAppointment } =
-  appointmentsSlice.actions;
-
+// Export Actions and Reducer
+export const {
+  resetAppointmentsState,
+  setSelectedAppointment,
+  clearError,
+  clearSuccessMessage,
+} = appointmentsSlice.actions;
 export default appointmentsSlice.reducer;
