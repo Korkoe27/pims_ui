@@ -34,23 +34,35 @@ const PatientDetails = () => {
           </div>
           <div>
             <h2 className="font-bold text-gray-700">Patient ID:</h2>
-            <p className="text-gray-600">{patient.patient_id}</p>
+            <p className="text-gray-600">{patient.patient_id || "N/A"}</p>
           </div>
           <div>
             <h2 className="font-bold text-gray-700">Phone Number:</h2>
-            <p className="text-gray-600">{patient.primary_phone || "Not provided"}</p>
+            <p className="text-gray-600">{patient.primary_phone || "N/A"}</p>
           </div>
           <div>
-            <h2 className="font-bold text-gray-700">Email:</h2>
-            <p className="text-gray-600">{patient.email || "Not provided"}</p>
+            <h2 className="font-bold text-gray-700">Age:</h2>
+            <p className="text-gray-600">{patient.age || "N/A"}</p>
           </div>
           <div>
-            <h2 className="font-bold text-gray-700">Clinic:</h2>
-            <p className="text-gray-600">{patient.clinic || "Not assigned"}</p>
+            <h2 className="font-bold text-gray-700">Gender:</h2>
+            <p className="text-gray-600">{patient.gender || "N/A"}</p>
           </div>
           <div>
             <h2 className="font-bold text-gray-700">Date of Birth:</h2>
-            <p className="text-gray-600">{patient.date_of_birth || "Not provided"}</p>
+            <p className="text-gray-600">{patient.dob || "N/A"}</p>
+          </div>
+          <div>
+            <h2 className="font-bold text-gray-700">Address:</h2>
+            <p className="text-gray-600">{patient.address || "N/A"}</p>
+          </div>
+          <div>
+            <h2 className="font-bold text-gray-700">Registration Date:</h2>
+            <p className="text-gray-600">{patient.registration_date || "N/A"}</p>
+          </div>
+          <div>
+            <h2 className="font-bold text-gray-700">Hospital ID:</h2>
+            <p className="text-gray-600">{patient.hospital_id || "N/A"}</p>
           </div>
         </div>
       </div>
@@ -85,22 +97,54 @@ const PatientDetails = () => {
           {activeTab === "info" && (
             <div className="p-6 bg-gray-50 rounded-lg shadow-sm">
               <h2 className="text-xl font-bold text-[#2f3192] mb-4">Additional Information</h2>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                 <div>
-                  <h3 className="font-bold text-gray-700">Gender:</h3>
-                  <p className="text-gray-600">{patient.gender || "Not provided"}</p>
+                  <h3 className="font-bold text-gray-700">Landmark:</h3>
+                  <p className="text-gray-600">{patient.landmark || "N/A"}</p>
                 </div>
                 <div>
-                  <h3 className="font-bold text-gray-700">Address:</h3>
-                  <p className="text-gray-600">{patient.address || "Not provided"}</p>
+                  <h3 className="font-bold text-gray-700">Hometown:</h3>
+                  <p className="text-gray-600">{patient.hometown || "N/A"}</p>
                 </div>
                 <div>
-                  <h3 className="font-bold text-gray-700">Marital Status:</h3>
-                  <p className="text-gray-600">{patient.marital_status || "Not provided"}</p>
+                  <h3 className="font-bold text-gray-700">Region:</h3>
+                  <p className="text-gray-600">{patient.region || "N/A"}</p>
                 </div>
                 <div>
-                  <h3 className="font-bold text-gray-700">Emergency Contact:</h3>
-                  <p className="text-gray-600">{patient.emergency_contact || "Not provided"}</p>
+                  <h3 className="font-bold text-gray-700">Occupation Category:</h3>
+                  <p className="text-gray-600">{patient.occupation_category || "N/A"}</p>
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-700">Occupation:</h3>
+                  <p className="text-gray-600">{patient.occupation || "N/A"}</p>
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-700">Alternate Phone:</h3>
+                  <p className="text-gray-600">{patient.alternate_phone || "N/A"}</p>
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-700">Emergency Contact Name:</h3>
+                  <p className="text-gray-600">{patient.emergency_contact_name || "N/A"}</p>
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-700">Emergency Contact Number:</h3>
+                  <p className="text-gray-600">{patient.emergency_contact_number || "N/A"}</p>
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-700">Insurance Type:</h3>
+                  <p className="text-gray-600">{patient.insurance_type || "N/A"}</p>
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-700">Insurance Provider:</h3>
+                  <p className="text-gray-600">{patient.insurance_provider || "N/A"}</p>
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-700">Insurance Number:</h3>
+                  <p className="text-gray-600">{patient.insurance_number || "N/A"}</p>
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-700">Date of First Visit:</h3>
+                  <p className="text-gray-600">{patient.date_of_first_visit || "N/A"}</p>
                 </div>
               </div>
             </div>
