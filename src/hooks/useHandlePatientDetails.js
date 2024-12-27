@@ -1,11 +1,16 @@
 import { useNavigate } from "react-router-dom";
 
+
 const useHandlePatientDetails = () => {
   const navigate = useNavigate();
 
-  const handlePatientDetails = () => {
-    // Navigate to the Consultation Page
-    navigate("/patient-details");
+  const handlePatientDetails = (patient) => {
+    if (!patient) {
+      console.error("No patient selected.");
+      return;
+    }
+    // Navigate to PatientDetails with state
+    navigate(`/patients-details/`, { state: { patient } });
   };
 
   return { handlePatientDetails };

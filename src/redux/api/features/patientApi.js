@@ -11,6 +11,7 @@ import {
   updatePatientDetailsUrl,
   listAllPatientsUrl,
   createNewPatientUrl,
+  fetchPatientAppointmentsUrl
 } from "../end_points/endpoints";
 
 export const patientApi = apiClient.injectEndpoints({
@@ -60,6 +61,14 @@ export const patientApi = apiClient.injectEndpoints({
         body: patientData,
       }),
     }),
+
+    // Fetch Patient Appointments
+    getPatientAppointments: builder.query({
+      query: (patientId) => ({
+        url: fetchPatientAppointmentsUrl(patientId), // Use the endpoint function
+        method: "GET",
+      }),
+    }),
   }),
 });
 
@@ -69,4 +78,5 @@ export const {
   useSearchPatientsQuery,
   useUpdatePatientDetailsMutation,
   useCreatePatientMutation,
+  useGetPatientAppointmentsQuery,
 } = patientApi;
