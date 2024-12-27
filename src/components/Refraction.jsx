@@ -1,39 +1,57 @@
 import React, { useState } from "react";
-import ProgressBar from "./ProgressBar";
-import Header from "./Header";
-import NavMenu from "./NavMenu";
 import { GrAdd } from "react-icons/gr";
-import { useNavigate, useParams, useLocation } from "react-router-dom";
 
 const Refraction = () => {
-  const { appointmentId } = useParams(); // Retrieve appointmentId from URL
-  const location = useLocation(); // Access state passed with navigate
-  const { patient, appointment } = location.state || {}; // Extract patient and appointment
-  const navigate = useNavigate();
-  const proceedToExtraTest = () => {
-    navigate("/extra-tests");
-  };
+  const [showCycloplegic, setShowCycloplegic] = useState(false);
+  const [showPhoria, setShowPhoria] = useState(false);
 
-  const [view, setDiv] = useState(false);
-  const [phoria, displayPhoria] = useState(false);
-  const toggleOpenDiv = () => {
-    setDiv(true);
-  };
-  const toggleCloseDiv = () => {
-    setDiv(false);
-  };
-  const togglePhoria = () => {
-    displayPhoria(true);
-  };
-  const closePhoria = () => {
-    displayPhoria(false);
-  };
+  const toggleCycloplegic = () => setShowCycloplegic(!showCycloplegic);
+  const togglePhoria = () => setShowPhoria(!showPhoria);
+
+  const renderFields = (fields) => (
+    <div className="flex gap-4">
+      {fields.map(({ label, name, placeholder }) => (
+        <div key={name} className="flex flex-col">
+          <label className="text-center font-normal text-base">{label}</label>
+          <input
+            type="text"
+            name={`right-${name}`}
+            className="w-20 h-9 mb-4 rounded-md border border-[#d0d5dd]"
+            placeholder={placeholder}
+          />
+          <input
+            type="text"
+            name={`left-${name}`}
+            className="w-20 h-9 rounded-md border border-[#d0d5dd]"
+            placeholder={placeholder}
+          />
+        </div>
+      ))}
+    </div>
+  );
+
+  const commonFields = [
+    { label: "Standard", name: "standard" },
+    { label: "CYL", name: "cyl" },
+    { label: "AXIS", name: "axis" },
+    { label: "VA@6m", name: "va6m" },
+  ];
+
+  const cycloplegicFields = [
+    { label: "SPH", name: "cycloplegic-sph" },
+    { label: "CYL", name: "cycloplegic-cyl" },
+    { label: "AXIS", name: "cycloplegic-axis" },
+    { label: "VA@6m", name: "cycloplegic-va6m" },
+  ];
+
+  const phoriaFields = [
+    { label: "Amount", name: "phoria-amount", placeholder: "e.g., 2PD" },
+    { label: "Direction", name: "phoria-direction", placeholder: "Eso/Exo" },
+  ];
 
   return (
-    <div className="ml-72 my-8 px-16 flex flex-col gap-12">
-      <Header patient={patient} />
-      <ProgressBar />
-      <NavMenu />
+    <div className="my-8 px-16 flex flex-col gap-12">
+      <h1 className="text-xl font-bold text-center mb-4">Refraction Results</h1>
 
       <form className="flex flex-col gap-20">
         <div className="flex flex-col gap-1 h-20 w-[375px]">
@@ -45,356 +63,67 @@ const Refraction = () => {
           </label>
           <select
             name="objectRefraction"
-            className="w-full p-4 h-14 rounded-md border border-[#d0d5dd] bg-white "
-            id=""
+            className="w-full p-4 h-14 rounded-md border border-[#d0d5dd] bg-white"
           ></select>
         </div>
 
-        <aside className=" flex flex-col gap-16">
-          <h1 className="text-[#101928] text-base">
-            Objective Refraction Results
-          </h1>
+        <section className="flex flex-col gap-16">
+          <h1 className="text-[#101928] text-base">Objective Refraction Results</h1>
           <div className="flex gap-4">
             <div className="flex flex-col justify-end gap-4 items-baseline">
               <h1 className="text-xl font-bold text-center">OD</h1>
               <h1 className="text-xl font-bold text-center">OS</h1>
             </div>
-            <div className="flex gap-4 my-">
-              <div className="flex flex-col">
-                <label htmlFor="" className="text-center font-normal text-base">
-                  Standard
-                </label>
-                <input
-                  type="text"
-                  className="w-20 h-9 mb-4 rounded-md border border-[#d0d5dd]"
-                />
-                <input
-                  type="text"
-                  className="w-20 h-9 rounded-md border border-[#d0d5dd]"
-                />
-              </div>
-              <div className="flex flex-col">
-                <label htmlFor="" className="text-center font-normal text-base">
-                  CYL
-                </label>
-                <input
-                  type="text"
-                  className="w-20 h-9 mb-4 rounded-md border border-[#d0d5dd]"
-                />
-                <input
-                  type="text"
-                  className="w-20 h-9 rounded-md border border-[#d0d5dd]"
-                />
-              </div>
-              <div className="flex flex-col">
-                <label htmlFor="" className="text-center font-normal text-base">
-                  AXIS
-                </label>
-                <input
-                  type="text"
-                  className="w-20 h-9 mb-4 rounded-md border border-[#d0d5dd]"
-                />
-                <input
-                  type="text"
-                  className="w-20 h-9 rounded-md border border-[#d0d5dd]"
-                />
-              </div>
-              <div className="flex flex-col">
-                <label htmlFor="" className="text-center font-normal text-base">
-                  VA@6m
-                </label>
-                <input
-                  type="text"
-                  className="w-20 h-9 mb-4 rounded-md border border-[#d0d5dd]"
-                />
-                <input
-                  type="text"
-                  className="w-20 h-9 rounded-md border border-[#d0d5dd]"
-                />
-              </div>
-            </div>
+            {renderFields(commonFields)}
           </div>
 
-          <h1 className="text-[#101928] text-base">
-            Subjective Refraction Results
-          </h1>
-
+          <h1 className="text-[#101928] text-base">Subjective Refraction Results</h1>
           <div className="flex gap-4">
             <div className="flex flex-col justify-end gap-4 items-baseline">
               <h1 className="text-xl font-bold text-center">OD</h1>
               <h1 className="text-xl font-bold text-center">OS</h1>
             </div>
-            <div className="flex gap-4 my-">
-              <div className="flex flex-col">
-                <label htmlFor="" className="text-center font-normal text-base">
-                  Standard
-                </label>
-                <input
-                  type="text"
-                  className="w-20 h-9 mb-4 rounded-md border border-[#d0d5dd]"
-                />
-                <input
-                  type="text"
-                  className="w-20 h-9 rounded-md border border-[#d0d5dd]"
-                />
-              </div>
-              <div className="flex flex-col">
-                <label htmlFor="" className="text-center font-normal text-base">
-                  CYL
-                </label>
-                <input
-                  type="text"
-                  className="w-20 h-9 mb-4 rounded-md border border-[#d0d5dd]"
-                />
-                <input
-                  type="text"
-                  className="w-20 h-9 rounded-md border border-[#d0d5dd]"
-                />
-              </div>
-              <div className="flex flex-col">
-                <label htmlFor="" className="text-center font-normal text-base">
-                  AXIS
-                </label>
-                <input
-                  type="text"
-                  className="w-20 h-9 mb-4 rounded-md border border-[#d0d5dd]"
-                />
-                <input
-                  type="text"
-                  className="w-20 h-9 rounded-md border border-[#d0d5dd]"
-                />
-              </div>
-              <div className="flex flex-col">
-                <label htmlFor="" className="text-center font-normal text-base">
-                  ADD
-                </label>
-                <input
-                  type="text"
-                  className="w-20 h-9 mb-4 rounded-md border border-[#d0d5dd]"
-                />
-                <input
-                  type="text"
-                  className="w-20 h-9 rounded-md border border-[#d0d5dd]"
-                />
-              </div>
-              <div className="flex flex-col">
-                <label htmlFor="" className="text-center font-normal text-base">
-                  VA@6m
-                </label>
-                <input
-                  type="text"
-                  className="w-20 h-9 mb-4 rounded-md border border-[#d0d5dd]"
-                />
-                <input
-                  type="text"
-                  className="w-20 h-9 rounded-md border border-[#d0d5dd]"
-                />
-              </div>
-              <div className="flex flex-col">
-                <label htmlFor="" className="text-center font-normal text-base">
-                  VA@0.4m
-                </label>
-                <input
-                  type="text"
-                  className="w-20 h-9 mb-4 rounded-md border border-[#d0d5dd]"
-                />
-                <input
-                  type="text"
-                  className="w-20 h-9 rounded-md border border-[#d0d5dd]"
-                />
-              </div>
+            {renderFields([...commonFields, { label: "ADD", name: "add" }, { label: "VA@0.4m", name: "va04m" }])}
+          </div>
+        </section>
+
+        <section className="flex flex-col gap-16 w-fit">
+          <button
+            onClick={toggleCycloplegic}
+            className="text-[#2f3192] font-semibold flex items-center gap-2"
+            type="button"
+          >
+            <GrAdd className="w-5 h-5" />
+            {showCycloplegic ? "Remove Cycloplegic Refraction" : "Add Cycloplegic Refraction"}
+          </button>
+          {showCycloplegic && (
+            <div className="flex flex-col gap-4">
+              <h1 className="text-[#101928] text-medium text-base">Cycloplegic Refraction Results</h1>
+              {renderFields(cycloplegicFields)}
             </div>
-          </div>
-          <div className="flex flex-col gap-16 w-fit">
-            {!view && (
-              <button
-                onClick={toggleOpenDiv}
-                className="text-[#2f3192] font-semibold flex items-center gap-2"
-              >
-                <GrAdd className="w-5 h-5" />
-                Add cycloplegic refraction
-              </button>
-            )}
+          )}
 
-            {view && (
-              <aside className="flex flex-col gap-4">
-                <div className="flex justify-between items-center">
-                  <h1 className="text-[#101928] text-medium text-base">
-                    Cycloplegic Refraction Results
-                  </h1>
-                  <span
-                    className="text-base font-medium cursor-pointer"
-                    onClick={toggleCloseDiv}
-                  >
-                    X
-                  </span>
-                </div>
-
-                <div className="flex gap-4">
-                  <div className="flex flex-col justify-end gap-4 items-baseline">
-                    <h1 className="text-xl font-bold text-center">OD</h1>
-                    <h1 className="text-xl font-bold text-center">OS</h1>
-                  </div>
-                  <div className="flex gap-4 my-">
-                    <div className="flex flex-col">
-                      <label
-                        htmlFor=""
-                        className="text-center font-normal text-base"
-                      >
-                        SPH
-                      </label>
-                      <input
-                        type="text"
-                        name="rightCycloplegicRefractionSph"
-                        className="w-20 h-9 mb-4 rounded-md border border-[#d0d5dd]"
-                      />
-                      <input
-                        type="text"
-                        name="leftCycloplegicRefractionSph"
-                        className="w-20 h-9 rounded-md border border-[#d0d5dd]"
-                      />
-                    </div>
-                    <div className="flex flex-col">
-                      <label
-                        htmlFor=""
-                        className="text-center font-normal text-base"
-                      >
-                        CYL
-                      </label>
-                      <input
-                        type="text"
-                        name="rightCycloplegicRefractionCyl"
-                        className="w-20 h-9 mb-4 rounded-md border border-[#d0d5dd]"
-                      />
-                      <input
-                        type="text"
-                        name="leftCycloplegicRefractionCyl"
-                        className="w-20 h-9 rounded-md border border-[#d0d5dd]"
-                      />
-                    </div>
-                    <div className="flex flex-col">
-                      <label
-                        htmlFor=""
-                        className="text-center font-normal text-base"
-                      >
-                        AXIS
-                      </label>
-                      <input
-                        type="text"
-                        name="rightCycloplegicRefractionAxis"
-                        className="w-20 h-9 mb-4 rounded-md border border-[#d0d5dd]"
-                      />
-                      <input
-                        type="text"
-                        name="leftCycloplegicRefractionAxis"
-                        className="w-20 h-9 rounded-md border border-[#d0d5dd]"
-                      />
-                    </div>
-                    <div className="flex flex-col">
-                      <label
-                        htmlFor=""
-                        className="text-center font-normal text-base"
-                      >
-                        VA@6m
-                      </label>
-                      <input
-                        type="text"
-                        name="rightCycloplegicRefractionVA@6m"
-                        className="w-20 h-9 mb-4 rounded-md border border-[#d0d5dd]"
-                      />
-                      <input
-                        type="text"
-                        name="leftCycloplegicRefractionVA@6m"
-                        className="w-20 h-9 rounded-md border border-[#d0d5dd]"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </aside>
-            )}
-
-            {!phoria && (
-              <button
-                onClick={togglePhoria}
-                className="text-[#2f3192] font-semibold flex items-center gap-2"
-              >
-                <GrAdd className="w-5 h-5" />
-                Add Phoria Results
-              </button>
-            )}
-
-            {phoria && (
-              <aside className="w-fit flex flex-col gap-4">
-                <div className="flex justify-between items-center">
-                  <h1 className="text-[#101928] text-medium text-base">
-                    Phoria
-                  </h1>
-                  <span
-                    className="text-base font-medium cursor-pointer"
-                    onClick={closePhoria}
-                  >
-                    X
-                  </span>
-                </div>
-                <div className="flex gap-4">
-                  <div className="flex flex-col justify-end gap-4 items-baseline">
-                    <h1 className="text-xl font-bold text-center">OD</h1>
-                    <h1 className="text-xl font-bold text-center">OS</h1>
-                  </div>
-                  <div className="flex gap-4">
-                    <div className="flex flex-col">
-                      <label
-                        htmlFor=""
-                        className="text-center font-normal text-base"
-                      >
-                        Amount
-                      </label>
-                      <input
-                        type="text"
-                        name="rightPhoriaAmount"
-                        className="w-20 h-9 mb-4 rounded-md border border-[#d0d5dd] p-2"
-                        placeholder="eg 2PD"
-                      />
-                      <input
-                        type="text"
-                        name="leftPhoriaAmount"
-                        className="w-20 h-9 rounded-md border border-[#d0d5dd] p-2"
-                        placeholder="eg 2PD"
-                      />
-                    </div>
-                    <div className="flex flex-col">
-                      <label
-                        htmlFor=""
-                        className="text-center font-normal text-base"
-                      >
-                        Direction
-                      </label>
-                      <input
-                        type="text"
-                        name="rightPhoriaDirection"
-                        className="w-20 h-9 mb-4 rounded-md border border-[#d0d5dd] p-2"
-                        placeholder="Eso/Exo"
-                      />
-                      <input
-                        type="text"
-                        name="leftPhoriaDirection"
-                        className="w-20 h-9 rounded-md border border-[#d0d5dd] p-2"
-                        placeholder="Eso/Exo"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </aside>
-            )}
-          </div>
-        </aside>
+          <button
+            onClick={togglePhoria}
+            className="text-[#2f3192] font-semibold flex items-center gap-2"
+            type="button"
+          >
+            <GrAdd className="w-5 h-5" />
+            {showPhoria ? "Remove Phoria Results" : "Add Phoria Results"}
+          </button>
+          {showPhoria && (
+            <div className="flex flex-col gap-4">
+              <h1 className="text-[#101928] text-medium text-base">Phoria</h1>
+              {renderFields(phoriaFields)}
+            </div>
+          )}
+        </section>
 
         <button
           className="text-white bg-[#2f3192] w-48 h-14 p-4 rounded-lg"
           type="button"
-          onClick={proceedToExtraTest}
         >
-          Save and proceed
+          Save and Finish
         </button>
       </form>
     </div>

@@ -1,9 +1,10 @@
-import apiClient from "../apiService";
+// import apiClient from "../apiService";
 import { baseURL } from "../baseurl";
-import { listPatients } from "../endpoints";
+import { listAllPatientsUrl } from "../endpoints";
+import {apiClient}  from "../apiService";
 
 
 export const showPatients   =   async   ()  =>  {
-    const   url =   `${baseURL}${listPatients}`;
+    const   url =   `${baseURL}${listAllPatientsUrl}`;
     return await    apiClient(url,  {method:    'GET'});
 }

@@ -3,11 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@reduxjs/toolkit": "^2.5.0",
-    "@tanstack/react-query": "^5.62.0",
     "@tanstack/react-query-devtools": "^5.62.0",
     "@testing-library/jest-dom": "^6.4.8",
-    "@testing-library/react": "^16.0.0",
     "@testing-library/user-event": "^14.5.2",
     "axios": "^1.7.7",
     "express": "^4.21.0",
@@ -70,7 +67,12 @@
   "devDependencies": {
     "@babel/core": "^7.26.0",
     "@babel/preset-env": "^7.26.0",
+    "@reduxjs/toolkit": "^2.5.0",
+    "@testing-library/react": "^16.1.0",
     "babel-jest": "^29.7.0",
+    "jest": "^27.5.1",
+    "jest-fetch-mock": "^3.0.3",
+    "react-test-renderer": "^18.3.1",
     "tailwindcss": "^3.4.7"
   }
 }

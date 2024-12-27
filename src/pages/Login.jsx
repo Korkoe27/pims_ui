@@ -1,12 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useLoginMutation } from "../redux/api/features/authApi";
 import Logo from "../components/Logo";
 import { CiLock } from "react-icons/ci";
 import { PiUserCircle } from "react-icons/pi";
 import { VscEye } from "react-icons/vsc";
 import { FiEyeOff } from "react-icons/fi";
-import { useDispatch, useSelector } from "react-redux";
-import { loginUser } from "../redux/slices/authSlice"; // Redux login action
-import { useNavigate } from "react-router-dom";
 
 const LoadingSpinner = () => (
   <div className="flex justify-center items-center h-screen">
@@ -29,31 +28,28 @@ const LoadingSpinner = () => (
 );
 
 const Login = () => {
-  const [passwordVisible, setPasswordVisible] = useState(false);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
-
-  // Access Redux state for auth
-  const { user, loading, error } = useSelector((state) => state.auth);
-
-  useEffect(() => {
-    // Redirect if already logged in
-    if (user) {
-      navigate("/"); // Redirect to dashboard
-    }
-  }, [user, navigate]);
+  const [passwordVisible, setPasswordVisible] = useState(false);
+  const [login, { isLoading, error }] = useLoginMutation(); // Use the login mutation
+  const navigate = useNavigate(); // Hook to navigate to different routes
 
   const togglePasswordVisibility = () => setPasswordVisible(!passwordVisible);
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    const credentials = { username, password };
-    dispatch(loginUser(credentials));
+    try {
+      const userData = await login({ username, password }).unwrap(); // Perform login
+      console.log(" Static Login successful:", userData);
+
+      // Redirect to the Dashboard after login
+      navigate("/");
+    } catch (err) {
+      console.error("Login failed:", err);
+    }
   };
 
-  if (loading) {
+  if (isLoading) {
     return <LoadingSpinner />;
   }
 
@@ -71,6 +67,7 @@ const Login = () => {
           onSubmit={handleLogin}
           className="flex flex-col gap-8 p-9 justify-center items-center"
         >
+          {/* Username Input */}
           <div className="flex flex-col w-96 gap-1">
             <label htmlFor="username" className="text-[#101928] text-base">
               Username
@@ -84,9 +81,12 @@ const Login = () => {
                 name="username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
+                required
               />
             </div>
           </div>
+
+          {/* Password Input */}
           <div className="w-96 flex flex-col gap-1">
             <label htmlFor="password" className="text-[#101928] text-base">
               Password
@@ -100,6 +100,7 @@ const Login = () => {
                 name="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                required
               />
               {passwordVisible ? (
                 <FiEyeOff
@@ -114,14 +115,21 @@ const Login = () => {
               )}
             </div>
           </div>
+
+          {/* Error Message */}
           {error && (
-            <p className="text-red-500 font-bold text-center mt-4">{error}</p>
+            <p className="text-red-500 font-bold text-center mt-4">
+              {error.data?.message || "Login failed. Please try again."}
+            </p>
           )}
+
+          {/* Submit Button */}
           <button
             className="bg-[#2f3192] text-white p-5 w-96 rounded-lg"
             type="submit"
+            disabled={isLoading}
           >
-            Log into your account
+            {isLoading ? "Logging in..." : "Log into your account"}
           </button>
         </form>
       </div>
