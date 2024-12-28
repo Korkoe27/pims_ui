@@ -221,7 +221,7 @@ const Dashboard = () => {
         )}
       </div>
 
-      {/* Recent Patient Activity Table */}
+      {/* Recent Patient Activity Table
       <div className="my-5">
         <div className="flex justify-between my-4">
           <h2 className="font-bold text-xl">Recent Patient Activity</h2>
@@ -259,7 +259,7 @@ const Dashboard = () => {
             ))}
           </tbody>
         </table>
-      </div>
+      </div> */}
     </div>
   );
 };
