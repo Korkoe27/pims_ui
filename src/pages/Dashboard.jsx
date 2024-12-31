@@ -97,8 +97,7 @@ const Dashboard = () => {
               <th className="px-3 py-3">Date</th>
               <th className="px-3 py-3">Patient’s ID</th>
               <th className="px-3 py-3">Name</th>
-              <th className="px-3 py-3">Appointment Type</th>
-              <th className="px-3 py-3"></th>
+              <th className="px-3 py-3">Appointment Type</th>-
             </tr>
           </thead>
           <tbody>
