@@ -1,14 +1,13 @@
-import React, { useState } from 'react'
-import { CiSearch } from 'react-icons/ci'
-import { FaChevronDown } from 'react-icons/fa6'
-import { GrAdd } from 'react-icons/gr'
+import React, { useState } from "react";
+import { CiSearch } from "react-icons/ci";
+import { FaChevronDown } from "react-icons/fa6";
+import { GrAdd } from "react-icons/gr";
 
 import PatientModal from "../components/SelectClinicModal";
 import { useSelector } from "react-redux";
-import SearchModalUnfilled from './SearchModalUnfilled';
+import SearchModalUnfilled from "./SearchModalUnfilled";
 
 const Navbar = () => {
-
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isSearchModalVisible, setSearchModalVisibility] = useState(false);
@@ -17,85 +16,84 @@ const Navbar = () => {
   const openSearchModal = () => setSearchModalVisibility(true);
   const toggleDropdown = () => setIsDropdownOpen(!isDropdownOpen);
 
-  // const { user } = useSelector((state) => state.auth);
+  // Fetch user data from Redux store
+  const user = useSelector((state) => state.auth.user);
 
-  // console.log("user:",user)
   return (
+    <div className="dashboard_header grid items-center grid-cols-12 h-[10%]">
+      {isModalOpen && <PatientModal setIsModalOpen={setIsModalOpen} />}
+      {isSearchModalVisible && (
+        <SearchModalUnfilled
+          setSearchModalVisibility={setSearchModalVisibility}
+        />
+      )}
+      <div className="col-span-4">
+        <h2 className="text-2xl font-bold">
+          Good{" "}
+          {`${new Date().getHours() < 12 ? "Morning" : new Date().getHours() < 18 ? "Afternoon" : "Evening"}`},{" "}
+          <span>{user?.first_name || "User"}</span> 👋🏾
+        </h2>
+      </div>
 
-
-          <div className="dashboard_header grid items-center grid-cols-12 h-[10%]">
-                        {isModalOpen && <PatientModal setIsModalOpen={setIsModalOpen} />}
-                  {isSearchModalVisible && (
-                    <SearchModalUnfilled
-                      setSearchModalVisibility={setSearchModalVisibility}
-                    />
-                  )}
-            <div className='col-span-4'>
-              <h2 className='text-2xl font-bold grid-'>
-                Good {`${new Date().getHours() < 12 ? "Morning" : new Date().getHours() < 18 ? "Afternoon" : "Evening"}`} , 
-                <span>User</span> 👋🏾 
-                {/* <span>{user?.first_name  || "User"}</span> 👋🏾  */}
-              </h2>
-            </div>
-            
-            <div className='flex items-center justify-end gap-5 h-14 col-span-7 w-90 border-[#d0d5dd]'>
-              <div className='flex  items-center text-left gap-0 w-2/3 border bg-white rounded-md px-4'>
-                <CiSearch title='Search' className='h-5 bg-white cursor-pointer'/>
-                <input type="search" name="search" readOnly placeholder='Search' className='p-4 focus:outline-none w-full' 
-                  onClick={openSearchModal}
-                />
-              </div>
-              <div className='flex items-center'>
-                <button className='flex items-center p-4 h-14 text-white bg-[#2f3192] gap-2 rounded-md text-sm' 
-                  type='button'
-                  onClick={openModal}
-                >
-                  <GrAdd/>Add New Patient
-                </button>
-              </div>
-            </div>
-            <div className='relative flex items-end justify-end gap-12 col-span-1'>
-              <div className='flex justify-end gap-3 items-center'>
-                <span className='bg-[#ffe7cc] px-5 py-2 w-14 h-14 text-[#3e3838] flex justify-center items-center rounded-[100%] font-semibold text-xl'>
-                  {/* {`${user?.first_name[0] || 'K'}${user?.last_name[0] || 'D'}`}  */}
-                  {/* Display user's initials */}
-                  KO
-                </span>
-                <FaChevronDown 
-                  title="Menu" 
-                  className='cursor-pointer font-800 h-6 w-6'
-                  onClick={toggleDropdown} // Toggle the dropdown
-                />
-              </div>
-              {/* Dropdown for Logout */}
-              {isDropdownOpen && (
-                <div className="absolute right-0 top-14 bg-white border rounded-lg p-2 shadow-lg">
-                  <form action="" 
-                  // onSubmit={handleLogout}
-                  >
-                    <button className="block px-4 py-2 text-gray-700 hover:bg-gray-200 w-full text-left" type="submit">
-                    Logout
-                  </button>
-                  </form>
-                  
-                </div>
-              )}
-            </div>
+      <div className="flex items-center justify-end gap-5 h-14 col-span-7 w-90 border-[#d0d5dd]">
+        <div className="flex items-center text-left gap-0 w-2/3 border bg-white rounded-md px-4">
+          <CiSearch
+            title="Search"
+            className="h-5 bg-white cursor-pointer"
+          />
+          <input
+            type="search"
+            name="search"
+            readOnly
+            placeholder="Search"
+            className="p-4 focus:outline-none w-full"
+            onClick={openSearchModal}
+          />
+        </div>
+        <div className="flex items-center">
+          <button
+            className="flex items-center p-4 h-14 text-white bg-[#2f3192] gap-2 rounded-md text-sm"
+            type="button"
+            onClick={openModal}
+          >
+            <GrAdd />
+            Add New Patient
+          </button>
+        </div>
+      </div>
+      <div className="relative flex items-end justify-end gap-12 col-span-1">
+        <div className="flex justify-end gap-3 items-center">
+          <span className="bg-[#ffe7cc] px-5 py-2 w-14 h-14 text-[#3e3838] flex justify-center items-center rounded-[100%] font-semibold text-xl">
+            {/* Display user's initials */}
+            {user
+              ? `${user.first_name[0] || ""}${user.last_name[0] || ""}`
+              : "U"}
+          </span>
+          <FaChevronDown
+            title="Menu"
+            className="cursor-pointer font-800 h-6 w-6"
+            onClick={toggleDropdown} // Toggle the dropdown
+          />
+        </div>
+        {/* Dropdown for Logout */}
+        {isDropdownOpen && (
+          <div className="absolute right-0 top-14 bg-white border rounded-lg p-2 shadow-lg">
+            <form>
+              <button
+                className="block px-4 py-2 text-gray-700 hover:bg-gray-200 w-full text-left"
+                type="button"
+                onClick={() => {
+                  // Add logout functionality here
+                }}
+              >
+                Logout
+              </button>
+            </form>
           </div>
-  )
-}
+        )}
+      </div>
+    </div>
+  );
+};
 
-export default Navbar
-
-
-// import React from 'react'
-
-// const Navbar = () => {
-//   return (
-//     <div>
-      
-//     </div>
-//   )
-// }
-
-// export default Navbar
+export default Navbar;

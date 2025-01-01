@@ -12,8 +12,9 @@
 /////////////////////////
 
 export const registerUrl = "/accounts/register/";
-export const loginUrl = "/accountslogin/";
-export const logoutUrl = "auth/api/logout/";
+// export const loginUrl = "/accountslogin/";
+export const loginUrl = "/auth/auth/login/";
+export const logoutUrl = "/auth/auth/logout/";
 export const checkSessionUrl = "auth/api/check-session/";
 
 /////////////////////////
