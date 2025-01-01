@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import useHandleLogin from "../hooks/useHandleLogin";
+import { useDispatch } from "react-redux";
+import { useLoginMutation, useLazyGetUserQuery } from "../redux/api/features/authApi";
+import { setUser } from "../redux/slices/authSlice";
 import Logo from "../components/Logo";
 import { CiLock } from "react-icons/ci";
 import { PiUserCircle } from "react-icons/pi";
@@ -31,19 +33,37 @@ const Login = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [passwordVisible, setPasswordVisible] = useState(false);
-  const { handleLogin, isLoginLoading, loginError } = useHandleLogin(); // Use the custom hook
+  const [error, setError] = useState(null);
+  const dispatch = useDispatch();
   const navigate = useNavigate();
+  const [login, { isLoading: isLoginLoading }] = useLoginMutation();
+  const [getUser] = useLazyGetUserQuery();
 
   const togglePasswordVisibility = () => setPasswordVisible(!passwordVisible);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError(null); // Clear previous errors
+
     try {
-      await handleLogin({ username, password });
-      // Navigate to the dashboard after successful login
+      // Step 1: Call the login API
+      const { accessToken, refreshToken } = await login({ username, password }).unwrap();
+
+      // Step 2: Store tokens in localStorage
+      localStorage.setItem("access_token", accessToken);
+      localStorage.setItem("refresh_token", refreshToken);
+
+      // Step 3: Fetch user data
+      const user = await getUser().unwrap();
+
+      // Step 4: Dispatch user data to Redux
+      dispatch(setUser(user));
+
+      // Step 5: Navigate to the homepage
       navigate("/");
     } catch (err) {
-      console.error("Login error:", err);
+      console.error("Login failed:", err);
+      setError(err.data?.message || "An error occurred during login.");
     }
   };
 
@@ -113,9 +133,9 @@ const Login = () => {
           </div>
 
           {/* Error Message */}
-          {loginError && (
+          {error && (
             <p className="text-red-500 font-bold text-center mt-4">
-              {loginError.data?.message || "Login failed. Please try again."}
+              {error}
             </p>
           )}
 
