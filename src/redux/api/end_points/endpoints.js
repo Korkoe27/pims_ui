@@ -11,7 +11,8 @@
 // Authentication
 /////////////////////////
 
-export const loginUrl = "auth/api/login/";
+export const registerUrl = "/accounts/register/";
+export const loginUrl = "/accountslogin/";
 export const logoutUrl = "auth/api/logout/";
 export const checkSessionUrl = "auth/api/check-session/";
 
