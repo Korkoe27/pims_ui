@@ -69,7 +69,6 @@ const App = () => {
             <Route path="/management" element={<Management />} />
             <Route path="/createAppointment" element={<CreateAppointment />} />
             <Route path="/consultation/:appointmentId" element={<Consultation />} />
-
           </Route>
         </Routes>
       </BrowserRouter>

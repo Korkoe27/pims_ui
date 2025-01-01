@@ -6,11 +6,14 @@ import { GrAdd } from "react-icons/gr";
 import PatientModal from "../components/SelectClinicModal";
 import { useSelector } from "react-redux";
 import SearchModalUnfilled from "./SearchModalUnfilled";
+import useLogout from "../hooks/useLogout"; // Import the useLogout hook
 
 const Navbar = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isSearchModalVisible, setSearchModalVisibility] = useState(false);
+
+  const { handleLogout } = useLogout(); // Access the logout function
 
   const openModal = () => setIsModalOpen(true);
   const openSearchModal = () => setSearchModalVisibility(true);
@@ -83,7 +86,7 @@ const Navbar = () => {
                 className="block px-4 py-2 text-gray-700 hover:bg-gray-200 w-full text-left"
                 type="button"
                 onClick={() => {
-                  // Add logout functionality here
+                  handleLogout(); // Call the logout function
                 }}
               >
                 Logout

@@ -1,33 +1,40 @@
-/**
- * useLogout Hook
- *
- * Provides a reusable function to handle user logout across the application.
- */
-
 import { useNavigate } from "react-router-dom";
-import { useLogoutMutation } from "../redux/api/features/authApi";
 import { useDispatch } from "react-redux";
 import { resetAuth } from "../redux/slices/authSlice";
 
 const useLogout = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const [logout, { isLoading }] = useLogoutMutation();
 
-  const handleLogout = async () => {
+  const handleLogout = () => {
     try {
-      console.log("Initiating logout...");
-      await logout().unwrap(); // Call the logout mutation
-      dispatch(resetAuth()); // Reset Redux auth state
-      console.log("Logout successful");
-      navigate("/login"); // Redirect to the login page
+      console.log("Initiating frontend logout...");
+
+      // Reset Redux auth state
+      dispatch(resetAuth());
+
+      // Clear persisted user data
+      localStorage.removeItem("persist:auth");
+      localStorage.removeItem("access_token");
+      localStorage.removeItem("refresh_token");
+
+      // Clear cookies (if any cookies are used for authentication)
+      document.cookie.split(";").forEach((cookie) => {
+        const name = cookie.split("=")[0].trim();
+        document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/`;
+      });
+
+      console.log("Frontend logout successful");
+
+      // Redirect to the login page
+      navigate("/login", { replace: true });
     } catch (error) {
-      console.error("Logout failed:", error); // Handle any errors
-      alert("Failed to log out. Please try again.");
+      console.error("Logout failed:", error);
+      alert("An error occurred during logout. Please try again.");
     }
   };
 
-  return { handleLogout, isLoading };
+  return { handleLogout };
 };
 
 export default useLogout;

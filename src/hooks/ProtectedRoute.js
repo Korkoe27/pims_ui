@@ -1,22 +1,17 @@
-/**
- * ProtectedRoute Component
- * Ensures only authenticated users can access the route.
- */
 import React from "react";
 import { Navigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 
 const ProtectedRoute = ({ children }) => {
-  // Get user from Redux state
+  // Dynamically track authentication state from Redux
   const { user } = useSelector((state) => state.auth);
 
+  // Redirect unauthenticated users to the login page
   if (!user) {
-    console.warn(
-      "ProtectedRoute: User not authenticated, redirecting to /login"
-    );
     return <Navigate to="/login" replace />;
   }
 
+  // Render protected content for authenticated users
   return children;
 };
 
