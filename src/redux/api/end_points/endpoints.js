@@ -11,7 +11,8 @@
 // Authentication
 /////////////////////////
 
-export const loginUrl = "auth/api/login/";
+export const registerUrl = "/accounts/register/";
+export const loginUrl = "/accountslogin/";
 export const logoutUrl = "auth/api/logout/";
 export const checkSessionUrl = "auth/api/check-session/";
 
@@ -43,6 +44,9 @@ export const listAllPatientsUrl = `/clients/api/patients/`;
 // Create a new patient (removed patientId, as it's not required for creating a new resource)
 export const createNewPatientUrl = "/clients/api/create-patient/";
 
+//Fetch patient appointments =
+export const fetchPatientAppointmentsUrl = (patientId) =>
+  `/clients/api/${patientId}/appointments/`;
 
 /////////////////////////
 // Appointments
