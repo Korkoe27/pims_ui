@@ -15,6 +15,7 @@ import dashboardReducer from "../slices/dashboardSlice"; // Dashboard state slic
 import patientReducer from "../slices/patientSlice"; // Patient state slice
 import appointmentsReducer from "../slices/appointmentsSlice"; // Appointments state slice
 import consultationReducer from "../slices/consultationSlice"; // Consultation state slice
+import clinicReducer from "../slices/clinicSlice"
 
 // Persistence configuration for the auth slice
 const persistConfig = {
@@ -33,6 +34,7 @@ export const store = configureStore({
     patients: patientReducer, // Patient state slice
     appointments: appointmentsReducer, // Appointments state slice
     consultation: consultationReducer, // Consultation state slice
+    clinic: clinicReducer, // Clinic state slice
     [authApi.reducerPath]: authApi.reducer, // RTK Query reducer for authentication API
     [patientApi.reducerPath]: patientApi.reducer, // RTK Query reducer for patient API
     [consultationApi.reducerPath]: consultationApi.reducer, // RTK Query reducer for consultation API
