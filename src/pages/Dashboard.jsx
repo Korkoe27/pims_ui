@@ -19,8 +19,8 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-
   const { user } = useSelector((state) => state.auth);
+  console.log(user);
 
   const {
     data: dashboardData,
@@ -35,7 +35,6 @@ const Dashboard = () => {
     }
   }, [dashboardError, dispatch]);
 
-
   const todaysAppointmentCount = dashboardData?.today_appointments?.count || 0;
   const pendingAppointments = dashboardData?.pending_appointments || 0;
   const completedAppointments = dashboardData?.completed_appointments || 0;
@@ -43,9 +42,8 @@ const Dashboard = () => {
   const recentPatientActivity = dashboardData?.recent_activity || [];
 
   return (
-        <div className="px-8 ml-72 flex flex-col mt-4 gap-8 bg-[#f9fafb] w-full">
-  <Navbar />
-
+    <div className="px-8 ml-72 flex flex-col mt-4 gap-8 bg-[#f9fafb] w-full">
+      <Navbar />
       {/* Appointment Cards */}
       <div className="grid grid-cols-12 gap-9 w-full">
         <div className="bg-[#ececf9] p-4 h-36 col-span-4">
@@ -142,7 +140,7 @@ const Dashboard = () => {
         )}
       </div>
 
-      {/* Recent Patient Activity Table */}
+      {/* Recent Patient Activity Table
       <div className="my-5">
         <div className="flex justify-between my-4">
           <h2 className="font-bold text-xl">Recent Patient Activity</h2>
@@ -180,7 +178,7 @@ const Dashboard = () => {
             ))}
           </tbody>
         </table>
-      </div>
+      </div> */}
     </div>
   );
 };

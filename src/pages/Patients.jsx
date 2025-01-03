@@ -24,9 +24,6 @@ const Patients = () => {
 {isModalOpen && <PatientModal setIsModalOpen={setIsModalOpen} />} */}
     <Navbar />
       <div className="flex justify-between">
-
-
-      {isLoading && <LoadingSpinner />}
       <h1 className="font-extrabold text-xl">Patients</h1>
 
       </div>

@@ -6,12 +6,25 @@ const PatientDetails = () => {
   const location = useLocation();
   const { patient } = location.state || {};
   const [activeTab, setActiveTab] = useState("info"); // Default active tab
+  const [selectedAppointment, setSelectedAppointment] = useState(null); // For modal
+  const [appointmentTab, setAppointmentTab] = useState("casehistory"); // Tabs in modal
 
   // Fetch appointments for the patient
   const { data: appointments, isLoading, error } = useGetPatientAppointmentsQuery(
     patient?.id,
     { skip: !patient } // Skip the query if no patient data
   );
+
+  const handleViewMore = (appointment) => {
+    setSelectedAppointment(appointment); // Open modal with selected appointment details
+  };
+
+  const closeModal = () => {
+    setSelectedAppointment(null); // Close modal
+  };
+
+  // Debugging appointments data
+  console.log("Fetched Appointments:", appointments);
 
   if (!patient) {
     return (
@@ -52,18 +65,6 @@ const PatientDetails = () => {
             <h2 className="font-bold text-gray-700">Date of Birth:</h2>
             <p className="text-gray-600">{patient.dob || "N/A"}</p>
           </div>
-          <div>
-            <h2 className="font-bold text-gray-700">Address:</h2>
-            <p className="text-gray-600">{patient.address || "N/A"}</p>
-          </div>
-          <div>
-            <h2 className="font-bold text-gray-700">Registration Date:</h2>
-            <p className="text-gray-600">{patient.registration_date || "N/A"}</p>
-          </div>
-          <div>
-            <h2 className="font-bold text-gray-700">Hospital ID:</h2>
-            <p className="text-gray-600">{patient.hospital_id || "N/A"}</p>
-          </div>
         </div>
       </div>
 
@@ -73,9 +74,7 @@ const PatientDetails = () => {
           <button
             onClick={() => setActiveTab("info")}
             className={`px-6 py-2 font-semibold ${
-              activeTab === "info"
-                ? "border-b-2 border-[#2f3192] text-[#2f3192]"
-                : "text-gray-500 hover:text-[#2f3192]"
+              activeTab === "info" ? "border-b-2 border-[#2f3192] text-[#2f3192]" : "text-gray-500 hover:text-[#2f3192]"
             }`}
           >
             More Info
@@ -83,9 +82,7 @@ const PatientDetails = () => {
           <button
             onClick={() => setActiveTab("appointments")}
             className={`px-6 py-2 font-semibold ${
-              activeTab === "appointments"
-                ? "border-b-2 border-[#2f3192] text-[#2f3192]"
-                : "text-gray-500 hover:text-[#2f3192]"
+              activeTab === "appointments" ? "border-b-2 border-[#2f3192] text-[#2f3192]" : "text-gray-500 hover:text-[#2f3192]"
             }`}
           >
             Appointments
@@ -94,62 +91,6 @@ const PatientDetails = () => {
 
         {/* Tabs Content */}
         <div className="mt-4">
-          {activeTab === "info" && (
-            <div className="p-6 bg-gray-50 rounded-lg shadow-sm">
-              <h2 className="text-xl font-bold text-[#2f3192] mb-4">Additional Information</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                <div>
-                  <h3 className="font-bold text-gray-700">Landmark:</h3>
-                  <p className="text-gray-600">{patient.landmark || "N/A"}</p>
-                </div>
-                <div>
-                  <h3 className="font-bold text-gray-700">Hometown:</h3>
-                  <p className="text-gray-600">{patient.hometown || "N/A"}</p>
-                </div>
-                <div>
-                  <h3 className="font-bold text-gray-700">Region:</h3>
-                  <p className="text-gray-600">{patient.region || "N/A"}</p>
-                </div>
-                <div>
-                  <h3 className="font-bold text-gray-700">Occupation Category:</h3>
-                  <p className="text-gray-600">{patient.occupation_category || "N/A"}</p>
-                </div>
-                <div>
-                  <h3 className="font-bold text-gray-700">Occupation:</h3>
-                  <p className="text-gray-600">{patient.occupation || "N/A"}</p>
-                </div>
-                <div>
-                  <h3 className="font-bold text-gray-700">Alternate Phone:</h3>
-                  <p className="text-gray-600">{patient.alternate_phone || "N/A"}</p>
-                </div>
-                <div>
-                  <h3 className="font-bold text-gray-700">Emergency Contact Name:</h3>
-                  <p className="text-gray-600">{patient.emergency_contact_name || "N/A"}</p>
-                </div>
-                <div>
-                  <h3 className="font-bold text-gray-700">Emergency Contact Number:</h3>
-                  <p className="text-gray-600">{patient.emergency_contact_number || "N/A"}</p>
-                </div>
-                <div>
-                  <h3 className="font-bold text-gray-700">Insurance Type:</h3>
-                  <p className="text-gray-600">{patient.insurance_type || "N/A"}</p>
-                </div>
-                <div>
-                  <h3 className="font-bold text-gray-700">Insurance Provider:</h3>
-                  <p className="text-gray-600">{patient.insurance_provider || "N/A"}</p>
-                </div>
-                <div>
-                  <h3 className="font-bold text-gray-700">Insurance Number:</h3>
-                  <p className="text-gray-600">{patient.insurance_number || "N/A"}</p>
-                </div>
-                <div>
-                  <h3 className="font-bold text-gray-700">Date of First Visit:</h3>
-                  <p className="text-gray-600">{patient.date_of_first_visit || "N/A"}</p>
-                </div>
-              </div>
-            </div>
-          )}
-
           {activeTab === "appointments" && (
             <div className="p-6 bg-gray-50 rounded-lg shadow-sm">
               <h2 className="text-xl font-bold text-[#2f3192] mb-4">Appointments</h2>
@@ -170,6 +111,9 @@ const PatientDetails = () => {
                       <th scope="col" className="px-6 py-3">
                         Status
                       </th>
+                      <th scope="col" className="px-6 py-3">
+                        Action
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
@@ -178,6 +122,14 @@ const PatientDetails = () => {
                         <td className="px-6 py-4">{appointment.appointment_date}</td>
                         <td className="px-6 py-4">{appointment.appointment_type}</td>
                         <td className="px-6 py-4">{appointment.status}</td>
+                        <td className="px-6 py-4">
+                          <button
+                            onClick={() => handleViewMore(appointment)}
+                            className="text-white bg-[#2f3192] hover:bg-[#1e226d] font-medium rounded-lg text-sm px-4 py-2"
+                          >
+                            View More
+                          </button>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -189,6 +141,80 @@ const PatientDetails = () => {
           )}
         </div>
       </div>
+
+      {/* Modal for Appointment Details */}
+      {selectedAppointment && (
+        <div className="fixed inset-0 z-50 bg-gray-800 bg-opacity-75 flex items-center justify-center">
+          <div className="bg-white rounded-lg shadow-lg p-6 w-3/4">
+            <h2 className="text-xl font-bold text-[#2f3192] mb-4">
+              Appointment Details
+            </h2>
+            {/* Modal Tabs */}
+            <div className="flex border-b mb-4">
+              <button
+                onClick={() => setAppointmentTab("casehistory")}
+                className={`px-6 py-2 font-semibold ${
+                  appointmentTab === "casehistory"
+                    ? "border-b-2 border-[#2f3192] text-[#2f3192]"
+                    : "text-gray-500 hover:text-[#2f3192]"
+                }`}
+              >
+                Case History
+              </button>
+              <button
+                onClick={() => setAppointmentTab("refraction")}
+                className={`px-6 py-2 font-semibold ${
+                  appointmentTab === "refraction"
+                    ? "border-b-2 border-[#2f3192] text-[#2f3192]"
+                    : "text-gray-500 hover:text-[#2f3192]"
+                }`}
+              >
+                Refraction
+              </button>
+              <button
+                onClick={() => setAppointmentTab("extratest")}
+                className={`px-6 py-2 font-semibold ${
+                  appointmentTab === "extratest"
+                    ? "border-b-2 border-[#2f3192] text-[#2f3192]"
+                    : "text-gray-500 hover:text-[#2f3192]"
+                }`}
+              >
+                Extra Test
+              </button>
+            </div>
+
+            {/* Modal Tab Content */}
+            <div>
+              {appointmentTab === "casehistory" && (
+                <div>
+                  <h3 className="text-lg font-bold">Case History</h3>
+                  <p className="text-gray-600">Details about the case history...</p>
+                </div>
+              )}
+              {appointmentTab === "refraction" && (
+                <div>
+                  <h3 className="text-lg font-bold">Refraction</h3>
+                  <p className="text-gray-600">Details about refraction...</p>
+                </div>
+              )}
+              {appointmentTab === "extratest" && (
+                <div>
+                  <h3 className="text-lg font-bold">Extra Test</h3>
+                  <p className="text-gray-600">Details about extra tests...</p>
+                </div>
+              )}
+            </div>
+
+            {/* Close Button */}
+            <button
+              onClick={closeModal}
+              className="mt-4 text-white bg-red-500 hover:bg-red-700 font-medium rounded-lg text-sm px-4 py-2"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

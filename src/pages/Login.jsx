@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useLoginMutation } from "../redux/api/features/authApi";
+import { useDispatch } from "react-redux";
+import { useLoginMutation, useLazyGetUserQuery } from "../redux/api/features/authApi";
+import { setUser } from "../redux/slices/authSlice";
 import Logo from "../components/Logo";
 import { CiLock } from "react-icons/ci";
 import { PiUserCircle } from "react-icons/pi";
@@ -31,25 +33,41 @@ const Login = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [passwordVisible, setPasswordVisible] = useState(false);
-  const [login, { isLoading, error }] = useLoginMutation(); // Use the login mutation
-  const navigate = useNavigate(); // Hook to navigate to different routes
+  const [error, setError] = useState(null);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const [login, { isLoading: isLoginLoading }] = useLoginMutation();
+  const [getUser] = useLazyGetUserQuery();
 
   const togglePasswordVisibility = () => setPasswordVisible(!passwordVisible);
 
-  const handleLogin = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
-      const userData = await login({ username, password }).unwrap(); // Perform login
-      console.log(" Static Login successful:", userData);
+    setError(null); // Clear previous errors
 
-      // Redirect to the Dashboard after login
+    try {
+      // Step 1: Call the login API
+      const { accessToken, refreshToken } = await login({ username, password }).unwrap();
+
+      // Step 2: Store tokens in localStorage
+      localStorage.setItem("access_token", accessToken);
+      localStorage.setItem("refresh_token", refreshToken);
+
+      // Step 3: Fetch user data
+      const user = await getUser().unwrap();
+
+      // Step 4: Dispatch user data to Redux
+      dispatch(setUser(user));
+
+      // Step 5: Navigate to the homepage
       navigate("/");
     } catch (err) {
       console.error("Login failed:", err);
+      setError(err.data?.message || "An error occurred during login.");
     }
   };
 
-  if (isLoading) {
+  if (isLoginLoading) {
     return <LoadingSpinner />;
   }
 
@@ -57,14 +75,12 @@ const Login = () => {
     <div className="flex flex-col gap-10 justify-center items-center h-screen w-screen">
       <div className="flex flex-col text-center">
         <Logo displayType="block" />
-        <h1 className="text-xl font-bold">
-          Patient Information Management System
-        </h1>
+        <h1 className="text-xl font-bold">Patient Information Management System</h1>
       </div>
       <div className="flex flex-col justify-center items-center rounded-lg p-12 border border-[#d0d5dd]">
         <h1 className="font-bold text-3xl">Log in</h1>
         <form
-          onSubmit={handleLogin}
+          onSubmit={handleSubmit}
           className="flex flex-col gap-8 p-9 justify-center items-center"
         >
           {/* Username Input */}
@@ -119,7 +135,7 @@ const Login = () => {
           {/* Error Message */}
           {error && (
             <p className="text-red-500 font-bold text-center mt-4">
-              {error.data?.message || "Login failed. Please try again."}
+              {error}
             </p>
           )}
 
@@ -127,9 +143,9 @@ const Login = () => {
           <button
             className="bg-[#2f3192] text-white p-5 w-96 rounded-lg"
             type="submit"
-            disabled={isLoading}
+            disabled={isLoginLoading}
           >
-            {isLoading ? "Logging in..." : "Log into your account"}
+            {isLoginLoading ? "Logging in..." : "Log into your account"}
           </button>
         </form>
       </div>

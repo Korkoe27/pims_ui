@@ -11,9 +11,10 @@
 // Authentication
 /////////////////////////
 
-export const loginUrl = "auth/api/login/";
-export const logoutUrl = "auth/api/logout/";
+export const loginUrl = "auth/auth/jwt/create/";
+export const logoutUrl = "/auth/api/logout/";
 export const checkSessionUrl = "auth/api/check-session/";
+export const getUserUrl = "auth/auth/users/me/"
 
 /////////////////////////
 // Dashboard
@@ -45,7 +46,7 @@ export const createNewPatientUrl = "/clients/api/create-patient/";
 
 //Fetch patient appointments =
 export const fetchPatientAppointmentsUrl = (patientId) =>
-  `/clients/api/patient-detail/${patientId}/`;
+  `/clients/api/${patientId}/appointments/`;
 
 /////////////////////////
 // Appointments
