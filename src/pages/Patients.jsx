@@ -24,9 +24,6 @@ const Patients = () => {
 {isModalOpen && <PatientModal setIsModalOpen={setIsModalOpen} />} */}
     <Navbar />
       <div className="flex justify-between">
-
-
-      {isLoading && <LoadingSpinner />}
       <h1 className="font-extrabold text-xl">Patients</h1>
 
       </div>
@@ -94,7 +91,7 @@ const Patients = () => {
                 <th scope="col" className="px-6 py-3">Name</th>
                 <th scope="col" className="px-6 py-3">Clinic</th>
                 <th scope="col" className="px-6 py-3">Phone Number</th>
-                <th scope="col" className="px-6 py-3">Actions</th> {/* Added Actions Column */}
+                <th scope="col" className="px-6 py-3">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -102,16 +99,15 @@ const Patients = () => {
                 <tr key={patient.id} className="bg-white border-b">
                   <td className="px-6 py-4">{patient?.patient_id}</td>
                   <td className="px-6 py-4">{`${patient?.first_name} ${patient?.last_name}`}</td>
-                  <td className="px-6 py-4">{patient?.clinic}</td>
-                  <td className="px-6 py-4">{patient?.primary_phone}</td>
+                  <td className="px-6 py-4">{patient?.clinic || "Not assigned"}</td>
+                  <td className="px-6 py-4">{patient?.primary_phone || "Not provided"}</td>
                   <td className="px-6 py-4 flex gap-4">
-                    <Link
-                      to={"/patients-details/"}
+                    <button
                       className="text-white bg-blue-500 hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2"
-                      onClick={() => handlePatientDetails()}
+                      onClick={() => handlePatientDetails(patient)}
                     >
                       View
-                    </Link>
+                    </button>
                   </td>
                 </tr>
               ))}
