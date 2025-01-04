@@ -8,22 +8,39 @@ import {
 
 const CaseHistory = ({ appointmentId }) => {
   const navigate = useNavigate();
-
-  // Fetch user from Redux
   const { user } = useSelector((state) => state.auth);
 
   // State for form data
   const [formData, setFormData] = useState({
-    chiefComplaint: "",
-    lastEyeExamination: "",
-    burningSensation: false,
+    chief_complaint: "",
+    last_eye_examination: "",
+    burning_sensation: false,
     itching: false,
     tearing: false,
-    doubleVision: false,
+    double_vision: false,
     discharge: false,
-    parentDrugHistory: "",
+    pain: false,
+    fbs: false,
+    photophobia: false,
+    asthma: false,
+    ulcer: false,
+    diabetes: false,
+    hypertension: false,
+    sickle_cell: false,
+    std_sti: false,
+    parent_drug_history: "",
     allergies: "",
     hobbies: "",
+    family_asthma: false,
+    family_ulcer: false,
+    family_diabetes: false,
+    family_hypertension: false,
+    family_sickle_cell: false,
+    family_std_sti: false,
+    family_spectacles: false,
+    family_eye_surgery: false,
+    family_ocular_trauma: false,
+    family_glaucoma: false,
   });
 
   // Fetch case history data
@@ -34,24 +51,44 @@ const CaseHistory = ({ appointmentId }) => {
 
   const [createCaseHistory] = useCreateCaseHistoryMutation();
 
+  // Populate form data with fetched case history
   useEffect(() => {
     if (fetchedCaseHistory) {
-      // Populate the form data with fetched case history
       setFormData({
-        chiefComplaint: fetchedCaseHistory?.chief_complaint || "",
-        lastEyeExamination: fetchedCaseHistory?.last_eye_examination || "",
-        burningSensation: fetchedCaseHistory?.burning_sensation || false,
+        chief_complaint: fetchedCaseHistory?.chief_complaint || "",
+        last_eye_examination: fetchedCaseHistory?.last_eye_examination || "",
+        burning_sensation: fetchedCaseHistory?.burning_sensation || false,
         itching: fetchedCaseHistory?.itching || false,
         tearing: fetchedCaseHistory?.tearing || false,
-        doubleVision: fetchedCaseHistory?.double_vision || false,
+        double_vision: fetchedCaseHistory?.double_vision || false,
         discharge: fetchedCaseHistory?.discharge || false,
-        parentDrugHistory: fetchedCaseHistory?.parent_drug_history || "",
+        pain: fetchedCaseHistory?.pain || false,
+        fbs: fetchedCaseHistory?.fbs || false,
+        photophobia: fetchedCaseHistory?.photophobia || false,
+        asthma: fetchedCaseHistory?.asthma || false,
+        ulcer: fetchedCaseHistory?.ulcer || false,
+        diabetes: fetchedCaseHistory?.diabetes || false,
+        hypertension: fetchedCaseHistory?.hypertension || false,
+        sickle_cell: fetchedCaseHistory?.sickle_cell || false,
+        std_sti: fetchedCaseHistory?.std_sti || false,
+        parent_drug_history: fetchedCaseHistory?.parent_drug_history || "",
         allergies: fetchedCaseHistory?.allergies || "",
         hobbies: fetchedCaseHistory?.hobbies || "",
+        family_asthma: fetchedCaseHistory?.family_asthma || false,
+        family_ulcer: fetchedCaseHistory?.family_ulcer || false,
+        family_diabetes: fetchedCaseHistory?.family_diabetes || false,
+        family_hypertension: fetchedCaseHistory?.family_hypertension || false,
+        family_sickle_cell: fetchedCaseHistory?.family_sickle_cell || false,
+        family_std_sti: fetchedCaseHistory?.family_std_sti || false,
+        family_spectacles: fetchedCaseHistory?.family_spectacles || false,
+        family_eye_surgery: fetchedCaseHistory?.family_eye_surgery || false,
+        family_ocular_trauma: fetchedCaseHistory?.family_ocular_trauma || false,
+        family_glaucoma: fetchedCaseHistory?.family_glaucoma || false,
       });
     }
   }, [fetchedCaseHistory]);
 
+  // Handle form field changes
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData({
@@ -60,6 +97,7 @@ const CaseHistory = ({ appointmentId }) => {
     });
   };
 
+  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -72,8 +110,7 @@ const CaseHistory = ({ appointmentId }) => {
 
       await createCaseHistory(payload);
       alert("Case history saved successfully!");
-      // Refetch the data to get the updated case history
-      refetch();
+      refetch(); // Refetch the data after saving
     } catch (error) {
       console.error("Error saving case history:", error);
     }
@@ -91,8 +128,8 @@ const CaseHistory = ({ appointmentId }) => {
       <div>
         <label className="block font-medium">Chief Complaint:</label>
         <textarea
-          name="chiefComplaint"
-          value={formData.chiefComplaint}
+          name="chief_complaint"
+          value={formData.chief_complaint}
           onChange={handleChange}
           placeholder="Enter chief complaint"
           className="border p-2 rounded w-full"
@@ -104,38 +141,101 @@ const CaseHistory = ({ appointmentId }) => {
         <label className="block font-medium">Last Eye Examination:</label>
         <input
           type="date"
-          name="lastEyeExamination"
-          value={formData.lastEyeExamination}
+          name="last_eye_examination"
+          value={formData.last_eye_examination}
           onChange={handleChange}
           className="border p-2 rounded w-full"
         />
       </div>
 
-      {/* Burning Sensation */}
+      {/* On Direct Questioning */}
       <div>
-        <label className="block font-medium">Burning Sensation:</label>
-        <input
-          type="checkbox"
-          name="burningSensation"
-          checked={formData.burningSensation}
-          onChange={handleChange}
-        />
+        <h2 className="font-bold">On Direct Questioning</h2>
+        {[
+          { label: "Burning Sensation", name: "burning_sensation" },
+          { label: "Itching", name: "itching" },
+          { label: "Tearing", name: "tearing" },
+          { label: "Double Vision", name: "double_vision" },
+          { label: "Discharge", name: "discharge" },
+          { label: "Pain", name: "pain" },
+          { label: "FBS", name: "fbs" },
+          { label: "Photophobia", name: "photophobia" },
+        ].map((field) => (
+          <div key={field.name}>
+            <label>
+              <input
+                type="checkbox"
+                name={field.name}
+                checked={formData[field.name]}
+                onChange={handleChange}
+              />
+              {field.label}
+            </label>
+          </div>
+        ))}
       </div>
 
-      {/* Parent Drug History */}
+      {/* Family Medical History */}
+      <div>
+        <h2 className="font-bold">Family Medical History</h2>
+        {[
+          { label: "Asthma", name: "family_asthma" },
+          { label: "Ulcer", name: "family_ulcer" },
+          { label: "Diabetes", name: "family_diabetes" },
+          { label: "Hypertension", name: "family_hypertension" },
+          { label: "Sickle Cell", name: "family_sickle_cell" },
+          { label: "STD/STI", name: "family_std_sti" },
+        ].map((field) => (
+          <div key={field.name}>
+            <label>
+              <input
+                type="checkbox"
+                name={field.name}
+                checked={formData[field.name]}
+                onChange={handleChange}
+              />
+              {field.label}
+            </label>
+          </div>
+        ))}
+      </div>
+
+      {/* Family Ocular History */}
+      <div>
+        <h2 className="font-bold">Family Ocular History</h2>
+        {[
+          { label: "Spectacles", name: "family_spectacles" },
+          { label: "Eye Surgery", name: "family_eye_surgery" },
+          { label: "Ocular Trauma", name: "family_ocular_trauma" },
+          { label: "Glaucoma", name: "family_glaucoma" },
+        ].map((field) => (
+          <div key={field.name}>
+            <label>
+              <input
+                type="checkbox"
+                name={field.name}
+                checked={formData[field.name]}
+                onChange={handleChange}
+              />
+              {field.label}
+            </label>
+          </div>
+        ))}
+      </div>
+
+      {/* Additional Fields */}
       <div>
         <label className="block font-medium">Parent Drug History:</label>
         <input
           type="text"
-          name="parentDrugHistory"
-          value={formData.parentDrugHistory}
+          name="parent_drug_history"
+          value={formData.parent_drug_history}
           onChange={handleChange}
           placeholder="Enter parent drug history"
           className="border p-2 rounded w-full"
         />
       </div>
 
-      {/* Allergies */}
       <div>
         <label className="block font-medium">Allergies:</label>
         <input
@@ -148,7 +248,6 @@ const CaseHistory = ({ appointmentId }) => {
         />
       </div>
 
-      {/* Hobbies */}
       <div>
         <label className="block font-medium">Hobbies:</label>
         <input
