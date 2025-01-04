@@ -100,19 +100,13 @@ const CaseHistory = ({ appointmentId }) => {
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     try {
-      const payload = {
-        ...formData,
-        created_by: user?.id,
-        appointment: appointmentId,
-      };
-
-      await createCaseHistory(payload);
-      alert("Case history saved successfully!");
-      refetch(); // Refetch the data after saving
+      const payload = { ...formData, created_by: user?.id };
+      await createCaseHistory(payload); // Call the mutation
+      navigate(`/visual-acuity/${appointmentId}`);
     } catch (error) {
       console.error("Error saving case history:", error);
+      alert("Failed to save case history. Please try again.");
     }
   };
 
