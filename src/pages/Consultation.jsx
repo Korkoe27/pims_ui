@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import Header from "../components/Header";
 import ProgressBar from "../components/ProgressBar";
 import NavMenu from "../components/NavMenu";
@@ -10,25 +10,36 @@ import Externals from "../components/Externals";
 import Internals from "../components/Internals";
 import Refraction from "../components/Refraction";
 import ExtraTests from "../components/ExtraTests";
-import {Consultation_nav} from "../extras/data"
 
 const Consultation = () => {
   const { appointmentId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
 
-  const [activeTab, setActiveTab] = useState("case history"); // Default to the first tab
+  // Get the active tab from URL query parameters
+  const searchParams = new URLSearchParams(location.search);
+  const initialTab = searchParams.get("tab") || "case history"; // Default to "case history"
 
-  // Get the selected appointment from Redux
+  const [activeTab, setActiveTab] = useState(initialTab);
+
   const selectedAppointment = useSelector(
     (state) => state.appointments.selectedAppointment
   );
 
   // Redirect if no appointment is selected
-  if (!selectedAppointment) {
-    console.error("No appointment selected. Redirecting to Dashboard...");
-    navigate("/dashboard");
-    return <p>Redirecting to Dashboard...</p>;
-  }
+  useEffect(() => {
+    if (!selectedAppointment) {
+      console.error("No appointment selected. Redirecting to Dashboard...");
+      navigate("/dashboard");
+    }
+  }, [selectedAppointment, navigate]);
+
+  // Update the URL when the active tab changes
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    params.set("tab", activeTab);
+    navigate(`${location.pathname}?${params.toString()}`, { replace: true });
+  }, [activeTab, navigate, location.pathname]);
 
   const renderTabContent = () => {
     switch (activeTab) {
@@ -52,16 +63,12 @@ const Consultation = () => {
   return (
     <div className="px-8 ml-72 flex flex-col mt-8 gap-8 bg-[#f9fafb] w-full shadow-md sm:rounded-lg">
       <h1 className="font-extrabold text-xl">Consultation</h1>
-      {/* Pass patient and appointmentId dynamically */}
-      <Header 
-        patient={selectedAppointment.patient} 
-        appointmentId={appointmentId} 
+      <Header
+        patient={selectedAppointment?.patient}
+        appointmentId={appointmentId}
       />
       <ProgressBar step={1} />
-      <NavMenu 
-        activeTab={activeTab} 
-        setActiveTab={setActiveTab} 
-      />
+      <NavMenu activeTab={activeTab} setActiveTab={setActiveTab} />
       <div className="mt-4">{renderTabContent()}</div>
     </div>
   );
