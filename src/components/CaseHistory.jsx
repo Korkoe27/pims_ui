@@ -1,75 +1,183 @@
-import React, { useEffect, useState } from "react";
-import { useFetchCaseHistoryQuery } from "../redux/api/features/consultationApi";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
+import {
+  useFetchCaseHistoryQuery,
+  useCreateCaseHistoryMutation,
+} from "../redux/api/features/consultationApi";
 
-const CaseHistoryDisplay = ({ appointmentId }) => {
-  const { data: fetchedCaseHistory, isLoading, isError } = useFetchCaseHistoryQuery(
+const CaseHistory = ({ appointmentId }) => {
+  const navigate = useNavigate();
+
+  // Fetch user from Redux
+  const { user } = useSelector((state) => state.auth);
+
+  // State for form data
+  const [formData, setFormData] = useState({
+    chiefComplaint: "",
+    lastEyeExamination: "",
+    burningSensation: false,
+    itching: false,
+    tearing: false,
+    doubleVision: false,
+    discharge: false,
+    parentDrugHistory: "",
+    allergies: "",
+    hobbies: "",
+  });
+
+  // Fetch case history data
+  const { data: fetchedCaseHistory, isLoading, refetch } = useFetchCaseHistoryQuery(
     appointmentId,
     { skip: !appointmentId }
   );
 
-  const [caseHistory, setCaseHistory] = useState(null);
+  const [createCaseHistory] = useCreateCaseHistoryMutation();
 
   useEffect(() => {
-    if (isError) {
-      console.error("Error fetching case history.");
-    } else if (fetchedCaseHistory) {
-      setCaseHistory(fetchedCaseHistory); // Set case history if data exists
-    } else {
-      setCaseHistory(null); // Reset to null if no data
+    if (fetchedCaseHistory) {
+      // Populate the form data with fetched case history
+      setFormData({
+        chiefComplaint: fetchedCaseHistory?.chief_complaint || "",
+        lastEyeExamination: fetchedCaseHistory?.last_eye_examination || "",
+        burningSensation: fetchedCaseHistory?.burning_sensation || false,
+        itching: fetchedCaseHistory?.itching || false,
+        tearing: fetchedCaseHistory?.tearing || false,
+        doubleVision: fetchedCaseHistory?.double_vision || false,
+        discharge: fetchedCaseHistory?.discharge || false,
+        parentDrugHistory: fetchedCaseHistory?.parent_drug_history || "",
+        allergies: fetchedCaseHistory?.allergies || "",
+        hobbies: fetchedCaseHistory?.hobbies || "",
+      });
     }
-  }, [fetchedCaseHistory, isError]);
+  }, [fetchedCaseHistory]);
+
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setFormData({
+      ...formData,
+      [name]: type === "checkbox" ? checked : value,
+    });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      const payload = {
+        ...formData,
+        created_by: user?.id,
+        appointment: appointmentId,
+      };
+
+      await createCaseHistory(payload);
+      alert("Case history saved successfully!");
+      // Refetch the data to get the updated case history
+      refetch();
+    } catch (error) {
+      console.error("Error saving case history:", error);
+    }
+  };
 
   if (isLoading) {
-    return <p className="text-gray-500">Loading case history...</p>;
+    return <p>Loading case history...</p>;
   }
 
   return (
-    <div className="p-4 border border-gray-300 rounded-md bg-white">
-      {caseHistory ? (
-        <div>
-          <h1 className="text-xl font-bold mb-4">Case History</h1>
-          <ul>
-            <li>
-              <strong>Chief Complaint:</strong> {caseHistory.chief_complaint}
-            </li>
-            <li>
-              <strong>Last Eye Examination:</strong>{" "}
-              {caseHistory.last_eye_examination || "Not Provided"}
-            </li>
-            <li>
-              <strong>Burning Sensation:</strong>{" "}
-              {caseHistory.burning_sensation ? "Yes" : "No"}
-            </li>
-            <li>
-              <strong>Itching:</strong> {caseHistory.itching ? "Yes" : "No"}
-            </li>
-            <li>
-              <strong>Tearing:</strong> {caseHistory.tearing ? "Yes" : "No"}
-            </li>
-            <li>
-              <strong>Double Vision:</strong> {caseHistory.double_vision ? "Yes" : "No"}
-            </li>
-            <li>
-              <strong>Discharge:</strong> {caseHistory.discharge ? "Yes" : "No"}
-            </li>
-            <li>
-              <strong>Parent Drug History:</strong>{" "}
-              {caseHistory.parent_drug_history?.join(", ") || "Not Provided"}
-            </li>
-            <li>
-              <strong>Allergies:</strong>{" "}
-              {caseHistory.allergies?.join(", ") || "None"}
-            </li>
-            <li>
-              <strong>Hobbies:</strong> {caseHistory.hobbies?.join(", ") || "None"}
-            </li>
-          </ul>
-        </div>
-      ) : (
-        <p className="text-gray-500">No Case History Available</p>
-      )}
-    </div>
+    <form onSubmit={handleSubmit} className="flex flex-col gap-8">
+      <h1 className="text-xl font-bold">Case History</h1>
+
+      {/* Chief Complaint */}
+      <div>
+        <label className="block font-medium">Chief Complaint:</label>
+        <textarea
+          name="chiefComplaint"
+          value={formData.chiefComplaint}
+          onChange={handleChange}
+          placeholder="Enter chief complaint"
+          className="border p-2 rounded w-full"
+        />
+      </div>
+
+      {/* Last Eye Examination */}
+      <div>
+        <label className="block font-medium">Last Eye Examination:</label>
+        <input
+          type="date"
+          name="lastEyeExamination"
+          value={formData.lastEyeExamination}
+          onChange={handleChange}
+          className="border p-2 rounded w-full"
+        />
+      </div>
+
+      {/* Burning Sensation */}
+      <div>
+        <label className="block font-medium">Burning Sensation:</label>
+        <input
+          type="checkbox"
+          name="burningSensation"
+          checked={formData.burningSensation}
+          onChange={handleChange}
+        />
+      </div>
+
+      {/* Parent Drug History */}
+      <div>
+        <label className="block font-medium">Parent Drug History:</label>
+        <input
+          type="text"
+          name="parentDrugHistory"
+          value={formData.parentDrugHistory}
+          onChange={handleChange}
+          placeholder="Enter parent drug history"
+          className="border p-2 rounded w-full"
+        />
+      </div>
+
+      {/* Allergies */}
+      <div>
+        <label className="block font-medium">Allergies:</label>
+        <input
+          type="text"
+          name="allergies"
+          value={formData.allergies}
+          onChange={handleChange}
+          placeholder="Enter allergies"
+          className="border p-2 rounded w-full"
+        />
+      </div>
+
+      {/* Hobbies */}
+      <div>
+        <label className="block font-medium">Hobbies:</label>
+        <input
+          type="text"
+          name="hobbies"
+          value={formData.hobbies}
+          onChange={handleChange}
+          placeholder="Enter hobbies"
+          className="border p-2 rounded w-full"
+        />
+      </div>
+
+      <div className="flex gap-4">
+        <button
+          type="button"
+          onClick={() => navigate(-1)}
+          className="bg-gray-200 text-black p-2 rounded"
+        >
+          Back
+        </button>
+        <button
+          type="submit"
+          className="bg-blue-500 text-white p-2 rounded"
+        >
+          Save
+        </button>
+      </div>
+    </form>
   );
 };
 
-export default CaseHistoryDisplay;
+export default CaseHistory;
