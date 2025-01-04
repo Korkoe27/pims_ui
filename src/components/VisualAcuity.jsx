@@ -1,38 +1,76 @@
-import React from "react";
-import Header from "./Header";
-import ProgressBar from "./ProgressBar";
-import NavMenu from "./NavMenu";
-import { useNavigate, useParams, useLocation } from "react-router-dom";
+import React, { useState } from "react";
 import Radios from "./Radios";
+import Inputs from "./Inputs";
+import { useNavigate } from "react-router-dom";
 
-const VisualAcuity = () => {
-  const { appointmentId } = useParams(); // Retrieve appointmentId from URL
-  const location = useLocation(); // Access state passed with navigate
-  const { patient, appointment } = location.state || {}; // Extract patient and appointment
+const VisualAcuity = ({ appointmentId }) => {
+  const [formData, setFormData] = useState({
+    vaChart: "",
+    distanceVaOdStandard: "",
+    distanceVaOsStandard: "",
+    distanceVaOdPh: "",
+    distanceVaOsPh: "",
+    distanceVaOdPlus: "",
+    distanceVaOsPlus: "",
+    nearVaOd: "",
+    nearVaOs: "",
+    patientHasPrescription: false,
+    prescriptionType: "",
+    currentPrescriptionOdSph: "",
+    currentPrescriptionOsSph: "",
+    currentPrescriptionOdCyl: "",
+    currentPrescriptionOsCyl: "",
+    currentPrescriptionOdAxis: "",
+    currentPrescriptionOsAxis: "",
+    currentPrescriptionOdAdd: "",
+    currentPrescriptionOsAdd: "",
+    currentDistanceVaWithPrescriptionOd: "",
+    currentDistanceVaWithPrescriptionOs: "",
+    currentNearVaWithPrescriptionOd: "",
+    currentNearVaWithPrescriptionOs: "",
+  });
+
   const navigate = useNavigate();
-  const Externals = () => {
+
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setFormData({
+      ...formData,
+      [name]: type === "checkbox" ? checked : value,
+    });
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    console.log("Form Data:", formData);
+    alert("Visual Acuity data saved successfully!");
     navigate("/externals");
   };
 
   return (
-    <div className="ml-72 my-8 px-8 flex flex-col gap-12">
-      <Header patient={patient} />
-      <ProgressBar />
-      <NavMenu />
+    <form onSubmit={handleSubmit} className="flex flex-col gap-12">
+      <section className="flex gap-48">
+        <aside className="flex flex-col gap-12">
+          {/* VA Chart */}
+          <div className="flex flex-col gap-4">
+            <label htmlFor="vaChart" className="text-base font-medium">
+              VA Chart used
+            </label>
+            <select
+              name="vaChart"
+              value={formData.vaChart}
+              onChange={handleChange}
+              className="p-4 border border-[#d0d5dd] h-14 rounded-md"
+            >
+              <option value="">Select VA Chart</option>
+              <option value="Snellen">Snellen</option>
+              <option value="LogMAR">LogMAR</option>
+              <option value="E Chart">E Chart</option>
+            </select>
+          </div>
 
-      <form action="" className="flex gap-48">
-        <section className="flex flex-col  gap-4">
-          <aside className="flex flex-col my-6 gap-10">
-            <div className="flex flex-col gap-1 w-[375px] mb-20 h-20">
-              <label htmlFor="" className="text-base font-medium">
-                VA Chart used
-              </label>
-              <select
-                name="vaChart"
-                id=""
-                className="p-4 border border-[#d0d5dd] h-14 rounded-md"
-              ></select>
-            </div>
+          {/* Distance VA (unaided) */}
+          <div>
             <h1 className="text-base font-medium">
               Distance VA (unaided)<span className="text-[#d42620]">*</span>
             </h1>
@@ -42,251 +80,148 @@ const VisualAcuity = () => {
                 <h1 className="text-xl font-bold text-center">OS</h1>
               </div>
               <div className="flex gap-4">
-                <div className="flex flex-col">
-                  <label
-                    htmlFor=""
-                    className="text-center font-normal text-base"
-                  >
-                    Standard
-                  </label>
-                  <input
-                    type="text"
-                    className="w-20 h-9 mb-4 rounded-md border border-[#d0d5dd]"
-                  />
-                  <input
-                    type="text"
-                    className="w-20 h-9 rounded-md border border-[#d0d5dd]"
-                  />
-                </div>
-                <div className="flex flex-col">
-                  <label
-                    htmlFor=""
-                    className="text-center font-normal text-base"
-                  >
-                    PH
-                  </label>
-                  <input
-                    type="text"
-                    className="w-20 h-9 mb-4 rounded-md border border-[#d0d5dd]"
-                  />
-                  <input
-                    type="text"
-                    className="w-20 h-9 rounded-md border border-[#d0d5dd]"
-                  />
-                </div>
-                <div className="flex flex-col">
-                  <label
-                    htmlFor=""
-                    className="text-center font-normal text-base"
-                  >
-                    +1.00
-                  </label>
-                  <input
-                    type="text"
-                    className="w-20 h-9 mb-4 rounded-md border border-[#d0d5dd]"
-                  />
-                  <input
-                    type="text"
-                    className="w-20 h-9 rounded-md border border-[#d0d5dd]"
-                  />
-                </div>
+                {[
+                  { label: "Standard", name: "distanceVaOdStandard", osName: "distanceVaOsStandard" },
+                  { label: "PH", name: "distanceVaOdPh", osName: "distanceVaOsPh" },
+                  { label: "+1.00", name: "distanceVaOdPlus", osName: "distanceVaOsPlus" },
+                ].map((field) => (
+                  <div key={field.name} className="flex flex-col">
+                    <label className="text-center font-normal text-base">
+                      {field.label}
+                    </label>
+                    <input
+                      type="text"
+                      name={field.name}
+                      value={formData[field.name]}
+                      onChange={handleChange}
+                      className="w-20 h-9 mb-4 rounded-md border border-[#d0d5dd]"
+                    />
+                    <input
+                      type="text"
+                      name={field.osName}
+                      value={formData[field.osName]}
+                      onChange={handleChange}
+                      className="w-20 h-9 rounded-md border border-[#d0d5dd]"
+                    />
+                  </div>
+                ))}
               </div>
             </div>
-          </aside>
+          </div>
 
-          <aside className="flex flex-col gap-3">
+          {/* Near VA (unaided) */}
+          <div>
             <h1 className="text-base font-medium">
               Near VA (unaided)<span className="text-[#d42620]">*</span>
             </h1>
             <div className="flex flex-col gap-4">
-              <div className="flex gap-3 items-center">
-                <label htmlFor="" className="text-xl font-bold">
-                  OD
-                </label>
-                <input
-                  type="text"
-                  className="rounded-md border border-[#d0d5dd] w-20 h-9 p-2"
-                />
-              </div>
-              <div className="flex gap-3 items-center">
-                <label htmlFor="" className="text-xl font-bold">
-                  OS
-                </label>
-                <input
-                  type="text"
-                  className="rounded-md border border-[#d0d5dd] w-20 h-9 p-2"
-                />
-              </div>
+              {[
+                { label: "OD", name: "nearVaOd" },
+                { label: "OS", name: "nearVaOs" },
+              ].map((field) => (
+                <div key={field.name} className="flex gap-3 items-center">
+                  <label htmlFor="" className="text-xl font-bold">
+                    {field.label}
+                  </label>
+                  <input
+                    type="text"
+                    name={field.name}
+                    value={formData[field.name]}
+                    onChange={handleChange}
+                    className="rounded-md border border-[#d0d5dd] w-20 h-9 p-2"
+                  />
+                </div>
+              ))}
             </div>
-          </aside>
-          {/* <div className='flex justify-end items-end my-28 mb-0 flex-col'>
-          <button type="submit" className='w-56 p-4 rounded-lg text-[#2f3192] border border-[#2f3192]'>Back</button>
-        </div> */}
-        </section>
+          </div>
+        </aside>
 
-        <section className="flex flex-col gap-12">
+        <aside className="flex flex-col gap-12">
+          {/* Prescription */}
           <Radios
-            name={"patientHasPrescription"}
-            label={"Did patient come with a prescription?"}
+            name="patientHasPrescription"
+            label="Did patient come with a prescription?"
+            checked={formData.patientHasPrescription}
+            onChange={handleChange}
           />
 
-          <div className="flex flex-col h-20 w-[375px]">
+          <div className="flex flex-col gap-4">
             <label htmlFor="prescriptionType" className="text-base font-medium">
               Type of Prescription
             </label>
             <select
               name="prescriptionType"
-              id=""
+              value={formData.prescriptionType}
+              onChange={handleChange}
               className="h-14 rounded-md border border-[#d0d5dd]"
-            ></select>
+            >
+              <option value="">Select Type</option>
+              <option value="Reading Glasses">Reading Glasses</option>
+              <option value="Contact Lenses">Contact Lenses</option>
+              <option value="Bifocal">Bifocal</option>
+            </select>
           </div>
 
-          <div className="flex flex-col gap-6">
-            <label
-              htmlFor="patientCurrentPrescription"
-              className="text-base font-medium"
-            >
+          {/* Patient’s Current Prescription */}
+          <div>
+            <h1 className="text-base font-medium">
               Patient’s Current Prescription
               <span className="text-[#d42620]">*</span>
-            </label>
+            </h1>
             <div className="flex gap-4">
               <div className="flex flex-col justify-end gap-4 items-baseline">
                 <h1 className="text-xl font-bold text-center">OD</h1>
                 <h1 className="text-xl font-bold text-center">OS</h1>
               </div>
               <div className="flex gap-4">
-                <div className="flex flex-col">
-                  <label
-                    htmlFor=""
-                    className="text-center font-medium text-base"
-                  >
-                    SPH
-                  </label>
-                  <input
-                    type="text"
-                    className="w-20 h-9 mb-4 rounded-md border border-[#d0d5dd]"
-                  />
-                  <input
-                    type="text"
-                    className="w-20 h-9 rounded-md border border-[#d0d5dd]"
-                  />
-                </div>
-                <div className="flex flex-col">
-                  <label
-                    htmlFor=""
-                    className="text-center font-medium text-base"
-                  >
-                    CYL
-                  </label>
-                  <input
-                    type="text"
-                    className="w-20 h-9 mb-4 rounded-md border border-[#d0d5dd]"
-                  />
-                  <input
-                    type="text"
-                    className="w-20 h-9 rounded-md border border-[#d0d5dd]"
-                  />
-                </div>
-                <div className="flex flex-col">
-                  <label
-                    htmlFor=""
-                    className="text-center font-medium text-base"
-                  >
-                    AXIS
-                  </label>
-                  <input
-                    type="text"
-                    className="w-20 h-9 mb-4 rounded-md border border-[#d0d5dd]"
-                  />
-                  <input
-                    type="text"
-                    className="w-20 h-9 rounded-md border border-[#d0d5dd]"
-                  />
-                </div>
-                <div className="flex flex-col">
-                  <label
-                    htmlFor=""
-                    className="text-center font-medium text-base"
-                  >
-                    ADD
-                  </label>
-                  <input
-                    type="text"
-                    className="w-20 h-9 mb-4 rounded-md border border-[#d0d5dd]"
-                  />
-                  <input
-                    type="text"
-                    className="w-20 h-9 rounded-md border border-[#d0d5dd]"
-                  />
-                </div>
+                {[
+                  { label: "SPH", odName: "currentPrescriptionOdSph", osName: "currentPrescriptionOsSph" },
+                  { label: "CYL", odName: "currentPrescriptionOdCyl", osName: "currentPrescriptionOsCyl" },
+                  { label: "AXIS", odName: "currentPrescriptionOdAxis", osName: "currentPrescriptionOsAxis" },
+                  { label: "ADD", odName: "currentPrescriptionOdAdd", osName: "currentPrescriptionOsAdd" },
+                ].map((field) => (
+                  <div key={field.odName} className="flex flex-col">
+                    <label className="text-center font-medium text-base">
+                      {field.label}
+                    </label>
+                    <input
+                      type="text"
+                      name={field.odName}
+                      value={formData[field.odName]}
+                      onChange={handleChange}
+                      className="w-20 h-9 mb-4 rounded-md border border-[#d0d5dd]"
+                    />
+                    <input
+                      type="text"
+                      name={field.osName}
+                      value={formData[field.osName]}
+                      onChange={handleChange}
+                      className="w-20 h-9 rounded-md border border-[#d0d5dd]"
+                    />
+                  </div>
+                ))}
               </div>
             </div>
-            <aside className="flex flex-col gap-3">
-              <h1 className="text-base font-medium">
-                Distance VA with Patient’s Current Prescription
-                <span className="text-[#d42620]">*</span>
-              </h1>
-              <div className="flex flex-col gap-4">
-                <div className="flex gap-3 items-center">
-                  <label htmlFor="" className="text-xl font-bold">
-                    OD
-                  </label>
-                  <input
-                    type="text"
-                    className="rounded-md border border-[#d0d5dd] w-20 h-9 p-2"
-                  />
-                </div>
-                <div className="flex gap-3 items-center">
-                  <label htmlFor="" className="text-xl font-bold">
-                    OS
-                  </label>
-                  <input
-                    type="text"
-                    className="rounded-md border border-[#d0d5dd] w-20 h-9 p-2"
-                  />
-                </div>
-              </div>
-            </aside>
-            <aside className="flex flex-col gap-3">
-              <h1 className="text-base font-medium">
-                Near VA with Patient’s Current Prescription
-                <span className="text-[#d42620]">*</span>
-              </h1>
-              <div className="flex flex-col gap-4">
-                <div className="flex gap-3 items-center">
-                  <label htmlFor="" className="text-xl font-bold">
-                    OD
-                  </label>
-                  <input
-                    type="text"
-                    className="rounded-md border border-[#d0d5dd] w-20 h-9 p-2"
-                  />
-                </div>
-                <div className="flex gap-3 items-center">
-                  <label htmlFor="" className="text-xl font-bold">
-                    OS
-                  </label>
-                  <input
-                    type="text"
-                    className="rounded-md border border-[#d0d5dd] w-20 h-9 p-2"
-                  />
-                </div>
-              </div>
-            </aside>
           </div>
+        </aside>
+      </section>
 
-          <div className="gap-8 justify-end  items-end  flex-col flex">
-            <button
-              type="submit"
-              onClick={Externals}
-              className="w-56 p-4 rounded-lg text-white bg-[#2f3192]"
-            >
-              Save and proceed
-            </button>
-          </div>
-        </section>
-      </form>
-    </div>
+      <div className="flex gap-8 justify-evenly my-16">
+        <button
+          type="button"
+          onClick={() => navigate(-1)}
+          className="w-56 p-4 rounded-lg text-[#2f3192] border border-[#2f3192]"
+        >
+          Back
+        </button>
+        <button
+          type="submit"
+          className="w-56 p-4 rounded-lg text-white bg-[#2f3192]"
+        >
+          Save and proceed
+        </button>
+      </div>
+    </form>
   );
 };
 

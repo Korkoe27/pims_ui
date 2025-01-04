@@ -1,78 +1,45 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { checkSession, login, logout } from '../../services/client/apiService';
-
-// Check user session
-export const checkUserSession = createAsyncThunk(
-  "auth/checkSession",
-  async (_, thunkAPI) => {
-    try {
-      const res = await checkSession(); // Call the API function
-      console.log("Check Session Response:", res); // Log the full response
-      return res.user; // Return the user data
-    } catch (error) {
-      console.error("Session Check Error:", error); // Log the error
-      return thunkAPI.rejectWithValue("Session expired or invalid");
-    }
-  }
-);
-
-
-// Login user
-export const loginUser = createAsyncThunk('auth/login', async (credentials, thunkAPI) => {
-  try {
-    const res = await login(credentials.username, credentials.password);
-    return res.user;
-  } catch (error) {
-    return thunkAPI.rejectWithValue('Login failed');
-  }
-});
-
-// Logout user
-export const logoutUser = createAsyncThunk('auth/logout', async (_, thunkAPI) => {
-  try {
-    await logout(); // Call logout API
-    return null; // No payload needed, clears user state
-  } catch (error) {
-    return thunkAPI.rejectWithValue('Logout failed');
-  }
-});
+import { createSlice } from "@reduxjs/toolkit";
+import { persistReducer } from "redux-persist";
+import storage from "redux-persist/lib/storage";
 
 const authSlice = createSlice({
-  name: 'auth',
-  initialState: { user: null, loading: false, error: null },
+  name: "auth",
+  initialState: {
+    user: null, // Stores the logged-in user's data
+    loading: false, // Indicates if an authentication action is in progress
+    error: null, // Stores error messages related to authentication
+  },
+  reducers: {
+    // Manually set user data
+    setUser: (state, action) => {
+      state.user = action.payload;
+    },
+    // Reset authentication state (used during logout)
+    resetAuth: (state) => {
+      state.user = null;
+      state.error = null;
+      state.loading = false; // Reset loading state
+    },
+    // Set loading state
+    setLoading: (state, action) => {
+      state.loading = action.payload;
+    },
+    // Set error state
+    setError: (state, action) => {
+      state.error = action.payload;
+    },
+  },
   extraReducers: (builder) => {
-    builder
-      // Check session
-      .addCase(checkUserSession.pending, (state) => { state.loading = true; })
-      .addCase(checkUserSession.fulfilled, (state, action) => {
-        state.user = action.payload;
-        state.loading = false;
-      })
-      .addCase(checkUserSession.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      })
-      // Login
-      .addCase(loginUser.pending, (state) => { state.loading = true; })
-      .addCase(loginUser.fulfilled, (state, action) => {
-        state.user = action.payload;
-        state.loading = false;
-        state.error = null;
-      })
-      .addCase(loginUser.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      })
-      // Logout
-      .addCase(logoutUser.fulfilled, (state) => {
-        state.user = null; // Clear user state
-        state.error = null;
-      })
-      .addCase(logoutUser.rejected, (state, action) => {
-        state.error = action.payload;
-      });
+    // Add extraReducers if integrating directly with RTK Query APIs
   },
 });
 
-export default authSlice.reducer;
+export const { setUser, resetAuth, setLoading, setError } = authSlice.actions;
 
+const persistConfig = {
+  key: "auth",
+  storage, // Use localStorage for persisting auth state
+  whitelist: ["user"], // Only persist the user state
+};
+
+export default persistReducer(persistConfig, authSlice.reducer);
