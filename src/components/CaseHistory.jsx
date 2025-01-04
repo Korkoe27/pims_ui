@@ -17,8 +17,7 @@ const CaseHistory = ({ appointmentId }) => {
   // Fetch the current user from the Redux store
   const { user } = useSelector((state) => state.auth);
 
-  console.log("User:", user);
-
+  
   const [formData, setFormData] = useState({
     appointment: "",
     chiefComplaint: "",
@@ -58,21 +57,26 @@ const CaseHistory = ({ appointmentId }) => {
 
   const [caseHistoryId, setCaseHistoryId] = useState(null);
 
-  const { data: fetchedCaseHistory, isLoading } = useFetchCaseHistoryQuery(
+  const { data: fetchedCaseHistory, isLoading, isError } = useFetchCaseHistoryQuery(
     appointmentId,
     { skip: !appointmentId }
   );
+
   const [createCaseHistory] = useCreateCaseHistoryMutation();
   const [updateCaseHistory] = useUpdateCaseHistoryMutation();
 
   useEffect(() => {
+    if (isError) {
+      console.error("Error fetching case history");
+    }
+
     if (fetchedCaseHistory) {
       setFormData(fetchedCaseHistory);
       setCaseHistoryId(fetchedCaseHistory.id);
     } else if (appointmentId) {
       setFormData((prev) => ({ ...prev, appointment: appointmentId }));
     }
-  }, [fetchedCaseHistory, appointmentId]);
+  }, [fetchedCaseHistory, appointmentId, isError]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -87,13 +91,15 @@ const CaseHistory = ({ appointmentId }) => {
     try {
       const payload = {
         ...formData,
-        created_by: user.id, // Add the user ID
+        created_by: user?.id, // Add the user ID
       };
 
       if (caseHistoryId) {
+        console.log("Updating case history:", payload);
         await updateCaseHistory({ appointmentId, ...payload });
         alert("Case history updated successfully!");
       } else {
+        console.log("Creating new case history:", payload);
         await createCaseHistory(payload);
         alert("Case history created successfully!");
       }
@@ -105,7 +111,7 @@ const CaseHistory = ({ appointmentId }) => {
   };
 
   if (isLoading) {
-    return <p>Loading case history...</p>;
+    return <p className="text-gray-500">Loading case history...</p>;
   }
 
   return (
@@ -141,32 +147,6 @@ const CaseHistory = ({ appointmentId }) => {
                 { label: "Pain", name: "pain" },
                 { label: "FBS", name: "fbs" },
                 { label: "Photophobia", name: "photophobia" },
-              ].map((field) => (
-                <Radios
-                  key={field.name}
-                  label={field.label}
-                  name={field.name}
-                  checked={formData[field.name]}
-                  onChange={handleChange}
-                />
-              ))}
-            </div>
-          </div>
-
-          {/* Patient Medical History */}
-          <div>
-            <h1 className="text-base font-medium text-black">
-              Patient Medical History{" "}
-              <span className="text-[#ff0000]">*</span>
-            </h1>
-            <div className="grid grid-cols-2 gap-8">
-              {[
-                { label: "Asthma", name: "asthma" },
-                { label: "Ulcer", name: "ulcer" },
-                { label: "Diabetes", name: "diabetes" },
-                { label: "Hypertension", name: "hypertension" },
-                { label: "Sickle Cell", name: "sickleCell" },
-                { label: "STD/STI", name: "stdSti" },
               ].map((field) => (
                 <Radios
                   key={field.name}
