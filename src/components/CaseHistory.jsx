@@ -6,9 +6,10 @@ import {
   useCreateCaseHistoryMutation,
 } from "../redux/api/features/consultationApi";
 
-const CaseHistory = ({ appointmentId }) => {
+const CaseHistory = ({ appointmentId, onNavigateNext }) => {
   const navigate = useNavigate();
   const { user } = useSelector((state) => state.auth);
+  const [activeTab, setActiveTab] = useState("visualvisual acuity"); 
 
   // State for form data
   const [formData, setFormData] = useState({
@@ -103,7 +104,7 @@ const CaseHistory = ({ appointmentId }) => {
     try {
       const payload = { ...formData, created_by: user?.id };
       await createCaseHistory(payload); // Call the mutation
-      navigate(`/visual-acuity/${appointmentId}`);
+      onNavigateNext(); // Move to the next tab
     } catch (error) {
       console.error("Error saving case history:", error);
       alert("Failed to save case history. Please try again.");

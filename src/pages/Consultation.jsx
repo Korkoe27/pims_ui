@@ -16,9 +16,19 @@ const Consultation = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
+  // Tab order for navigation
+  const tabOrder = [
+    "case history",
+    "visual acuity",
+    "externals",
+    "internals",
+    "refraction",
+    "extra tests",
+  ];
+
   // Get the active tab from URL query parameters
   const searchParams = new URLSearchParams(location.search);
-  const initialTab = searchParams.get("tab") || "case history"; // Default to "case history"
+  const initialTab = searchParams.get("tab") || "case history";
 
   const [activeTab, setActiveTab] = useState(initialTab);
 
@@ -41,10 +51,22 @@ const Consultation = () => {
     navigate(`${location.pathname}?${params.toString()}`, { replace: true });
   }, [activeTab, navigate, location.pathname]);
 
+  const navigateToNextTab = () => {
+    const currentIndex = tabOrder.indexOf(activeTab);
+    if (currentIndex >= 0 && currentIndex < tabOrder.length - 1) {
+      setActiveTab(tabOrder[currentIndex + 1]);
+    }
+  };
+
   const renderTabContent = () => {
     switch (activeTab) {
       case "case history":
-        return <CaseHistory appointmentId={appointmentId} />;
+        return (
+          <CaseHistory
+            appointmentId={appointmentId}
+            onNavigateNext={navigateToNextTab}
+          />
+        );
       case "visual acuity":
         return <VisualAcuity appointmentId={appointmentId} />;
       case "externals":
@@ -75,3 +97,4 @@ const Consultation = () => {
 };
 
 export default Consultation;
+
