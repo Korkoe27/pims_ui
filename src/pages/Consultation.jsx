@@ -86,7 +86,7 @@ const Consultation = () => {
     <div className="px-8 ml-72 flex flex-col mt-8 gap-8 bg-[#f9fafb] w-full shadow-md sm:rounded-lg">
       <h1 className="font-extrabold text-xl">Consultation</h1>
       <Header
-        patient={selectedAppointment?.patient}
+        patient={selectedAppointment.patient} 
         appointmentId={appointmentId}
       />
       <ProgressBar step={1} />

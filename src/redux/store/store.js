@@ -1,9 +1,3 @@
-/**
- * Store Configuration
- *
- * Configures the Redux store with authentication, patient management, consultation, and other modules using RTK Query and persistence.
- */
-
 import { configureStore } from "@reduxjs/toolkit";
 import { persistStore, persistReducer } from "redux-persist";
 import storage from "redux-persist/lib/storage"; // Defaults to localStorage
@@ -15,24 +9,38 @@ import dashboardReducer from "../slices/dashboardSlice"; // Dashboard state slic
 import patientReducer from "../slices/patientSlice"; // Patient state slice
 import appointmentsReducer from "../slices/appointmentsSlice"; // Appointments state slice
 import consultationReducer from "../slices/consultationSlice"; // Consultation state slice
-import clinicReducer from "../slices/clinicSlice"
+import clinicReducer from "../slices/clinicSlice"; // Clinic state slice
 
 // Persistence configuration for the auth slice
-const persistConfig = {
+const authPersistConfig = {
   key: "auth", // Key to store auth state in localStorage
   storage,
   whitelist: ["user"], // Persist only the 'user' field in the auth state
 };
 
 // Apply persistence to the auth reducer
-const persistedAuthReducer = persistReducer(persistConfig, authReducer);
+const persistedAuthReducer = persistReducer(authPersistConfig, authReducer);
 
+// Persistence configuration for the appointments slice
+const appointmentsPersistConfig = {
+  key: "appointments", // Key to store appointments state in localStorage
+  storage,
+  whitelist: ["selectedAppointment"], // Persist only the 'selectedAppointment' field
+};
+
+// Apply persistence to the appointments reducer
+const persistedAppointmentsReducer = persistReducer(
+  appointmentsPersistConfig,
+  appointmentsReducer
+);
+
+// Configure the Redux store
 export const store = configureStore({
   reducer: {
     auth: persistedAuthReducer, // Persisted local state for authentication
     dashboard: dashboardReducer, // Dashboard state slice
     patients: patientReducer, // Patient state slice
-    appointments: appointmentsReducer, // Appointments state slice
+    appointments: persistedAppointmentsReducer, // Persisted local state for appointments
     consultation: consultationReducer, // Consultation state slice
     clinic: clinicReducer, // Clinic state slice
     [authApi.reducerPath]: authApi.reducer, // RTK Query reducer for authentication API
