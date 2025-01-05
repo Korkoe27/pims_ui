@@ -6,7 +6,7 @@ import {
   useCreateCaseHistoryMutation,
 } from "../redux/api/features/consultationApi";
 
-const CaseHistory = ({ appointmentId, onNavigateNext }) => {
+const CaseHistory = ({ appointmentId, onNavigateNext  }) => {
   const navigate = useNavigate();
   const { user } = useSelector((state) => state.auth);
   const [showErrorDialog, setShowErrorDialog] = useState(false); // Error dialog visibility

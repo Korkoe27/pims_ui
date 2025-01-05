@@ -58,6 +58,13 @@ const Consultation = () => {
     }
   };
 
+  const navigateToPreviousTab = () => {
+    const currentIndex = tabOrder.indexOf(activeTab);
+    if (currentIndex > 0) {
+      setActiveTab(tabOrder[currentIndex - 1]);
+    }
+  };
+
   const renderTabContent = () => {
     switch (activeTab) {
       case "case history":
@@ -72,6 +79,7 @@ const Consultation = () => {
           <VisualAcuity
             appointmentId={appointmentId}
             onNavigateNext={navigateToNextTab}
+            onNavigatePrevious={navigateToPreviousTab}
           />
         );
       case "externals":
@@ -79,6 +87,7 @@ const Consultation = () => {
           <Externals
             appointmentId={appointmentId}
             onNavigateNext={navigateToNextTab}
+            onNavigatePrevious={navigateToPreviousTab}
           />
         );
       case "internals":
@@ -86,6 +95,7 @@ const Consultation = () => {
           <Internals
             appointmentId={appointmentId}
             onNavigateNext={navigateToNextTab}
+            onNavigatePrevious={navigateToPreviousTab}
           />
         );
       case "refraction":
@@ -93,6 +103,7 @@ const Consultation = () => {
           <Refraction
             appointmentId={appointmentId}
             onNavigateNext={navigateToNextTab}
+            onNavigatePrevious={navigateToPreviousTab}
           />
         );
       case "extra tests":
@@ -100,6 +111,7 @@ const Consultation = () => {
           <ExtraTests
             appointmentId={appointmentId}
             onNavigateNext={navigateToNextTab}
+            onNavigatePrevious={navigateToPreviousTab}
           />
         );
       default:

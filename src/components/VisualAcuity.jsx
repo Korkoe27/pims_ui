@@ -7,7 +7,7 @@ import {
   useCreateVisualAcuityMutation,
 } from "../redux/api/features/consultationApi"; // Import hooks
 
-const VisualAcuity = ({ appointmentId, onNavigateNext }) => {
+const VisualAcuity = ({ appointmentId, onNavigateNext, onNavigatePrevious }) => {
   const navigate = useNavigate();
   const { user } = useSelector((state) => state.auth);
   const [showErrorDialog, setShowErrorDialog] = useState(false); // Error dialog visibility
@@ -205,7 +205,7 @@ const VisualAcuity = ({ appointmentId, onNavigateNext }) => {
       <div className="flex gap-8 justify-evenly my-16">
         <button
           type="button"
-          onClick={() => navigate(-1)}
+          onClick={onNavigatePrevious}
           className="w-56 p-4 rounded-lg text-[#2f3192] border border-[#2f3192]"
         >
           Back
