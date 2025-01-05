@@ -5,8 +5,10 @@ import {
   useFetchCaseHistoryQuery,
   useCreateCaseHistoryMutation,
 } from "../redux/api/features/consultationApi";
+import Radios from "./Radios";
+import Inputs from "./Inputs";
 
-const CaseHistory = ({ appointmentId, onNavigateNext  }) => {
+const CaseHistory = ({ appointmentId, onNavigateNext }) => {
   const navigate = useNavigate();
   const { user } = useSelector((state) => state.auth);
   const [showErrorDialog, setShowErrorDialog] = useState(false); // Error dialog visibility
@@ -139,146 +141,196 @@ const CaseHistory = ({ appointmentId, onNavigateNext  }) => {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-8">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-12">
         <h1 className="text-xl font-bold">Case History</h1>
-
-        {/* Chief Complaint */}
-        <div>
-          <label className="block font-medium">Chief Complaint:</label>
-          <textarea
-            name="chief_complaint"
-            value={formData.chief_complaint}
-            onChange={handleChange}
-            placeholder="Enter chief complaint"
-            className="border p-2 rounded w-full"
-          />
-        </div>
-
-        {/* Last Eye Examination */}
-        <div>
-          <label className="block font-medium">Last Eye Examination:</label>
-          <input
-            type="date"
-            name="last_eye_examination"
-            value={formData.last_eye_examination}
-            onChange={handleChange}
-            className="border p-2 rounded w-full"
-          />
-        </div>
-
-        {/* On Direct Questioning */}
-        <div>
-          <h2 className="font-bold">On Direct Questioning</h2>
-          {[
-            { label: "Burning Sensation", name: "burning_sensation" },
-            { label: "Itching", name: "itching" },
-            { label: "Tearing", name: "tearing" },
-            { label: "Double Vision", name: "double_vision" },
-            { label: "Discharge", name: "discharge" },
-            { label: "Pain", name: "pain" },
-            { label: "FBS", name: "fbs" },
-            { label: "Photophobia", name: "photophobia" },
-          ].map((field) => (
-            <div key={field.name}>
-              <label>
-                <input
-                  type="checkbox"
-                  name={field.name}
-                  checked={formData[field.name]}
-                  onChange={handleChange}
-                />
-                {field.label}
-              </label>
+        <section className="flex gap-28">
+          <aside className="flex flex-col gap-12">
+            {/* Chief Complaint */}
+            <div className="flex flex-col">
+              <h1 className="text-base font-medium text-black">
+                Chief Complaint <span className="text-[#ff0000]">*</span>
+              </h1>
+              <textarea
+                name="chief_complaint"
+                value={formData.chief_complaint}
+                onChange={handleChange}
+                placeholder="Type in the patient’s chief complaint"
+                className="p-4 border border-[#d0d5dd] resize-none rounded-md w-96 h-48"
+              />
             </div>
-          ))}
-        </div>
 
-        {/* Family Medical History */}
-        <div>
-          <h2 className="font-bold">Family Medical History</h2>
-          {[
-            { label: "Asthma", name: "family_asthma" },
-            { label: "Ulcer", name: "family_ulcer" },
-            { label: "Diabetes", name: "family_diabetes" },
-            { label: "Hypertension", name: "family_hypertension" },
-            { label: "Sickle Cell", name: "family_sickle_cell" },
-            { label: "STD/STI", name: "family_std_sti" },
-          ].map((field) => (
-            <div key={field.name}>
-              <label>
-                <input
-                  type="checkbox"
-                  name={field.name}
-                  checked={formData[field.name]}
-                  onChange={handleChange}
-                />
-                {field.label}
-              </label>
+            {/* On Direct Questioning */}
+            <div>
+              <h1 className="text-base font-medium text-black">
+                On Direct Questioning <span className="text-[#ff0000]">*</span>
+              </h1>
+              <div className="grid grid-cols-2 gap-8">
+                {[
+                  { label: "Burning Sensation", name: "burning_sensation" },
+                  { label: "Itching", name: "itching" },
+                  { label: "Tearing", name: "tearing" },
+                  { label: "Double Vision", name: "double_vision" },
+                  { label: "Discharge", name: "discharge" },
+                  { label: "Pain", name: "pain" },
+                  { label: "FBS", name: "fbs" },
+                  { label: "Photophobia", name: "photophobia" },
+                ].map((field) => (
+                  <Radios
+                    key={field.name}
+                    label={field.label}
+                    name={field.name}
+                    value={formData[field.name] ? "yes" : "no"} // Map boolean to "yes"/"no"
+                    onChange={handleChange} // Use the existing handleChange
+                  />
+                ))}
+              </div>
             </div>
-          ))}
-        </div>
 
-        {/* Family Ocular History */}
-        <div>
-          <h2 className="font-bold">Family Ocular History</h2>
-          {[
-            { label: "Spectacles", name: "family_spectacles" },
-            { label: "Eye Surgery", name: "family_eye_surgery" },
-            { label: "Ocular Trauma", name: "family_ocular_trauma" },
-            { label: "Glaucoma", name: "family_glaucoma" },
-          ].map((field) => (
-            <div key={field.name}>
-              <label>
-                <input
-                  type="checkbox"
-                  name={field.name}
-                  checked={formData[field.name]}
-                  onChange={handleChange}
-                />
-                {field.label}
-              </label>
+            {/* Patient Medical History */}
+            <div>
+              <h1 className="text-base font-medium text-black">
+                Patient Medical History{" "}
+                <span className="text-[#ff0000]">*</span>
+              </h1>
+              <div className="grid grid-cols-2 gap-8">
+                {[
+                  { label: "Asthma", name: "asthma" },
+                  { label: "Ulcer", name: "ulcer" },
+                  { label: "Diabetes", name: "diabetes" },
+                  { label: "Hypertension", name: "hypertension" },
+                  { label: "Sickle Cell", name: "sickleCell" },
+                  { label: "STD/STI", name: "stdSti" },
+                ].map((field) => (
+                  <Radios
+                    key={field.name}
+                    label={field.label}
+                    name={field.name}
+                    value={formData[field.name] ? "yes" : "no"} // Map boolean to "yes"/"no"
+                    onChange={handleChange} // Use the existing handleChange
+                  />
+                ))}
+              </div>
             </div>
-          ))}
-        </div>
+          </aside>
 
-        {/* Additional Fields */}
-        <div>
-          <label className="block font-medium">Parent Drug History:</label>
-          <input
-            type="text"
-            name="parent_drug_history"
-            value={formData.parent_drug_history}
-            onChange={handleChange}
-            placeholder="Enter parent drug history"
-            className="border p-2 rounded w-full"
-          />
-        </div>
+          <aside className="flex flex-col gap-12">
+            {/* Patient Ocular History */}
+            <div>
+              <h1 className="text-base font-medium text-black">
+                Patient Ocular History <span className="text-[#ff0000]">*</span>
+              </h1>
+              <Inputs
+                type="date"
+                label="Last Eye Examination"
+                name="lastEyeExamination"
+                value={formData.last_eye_examination}
+                onChange={handleChange}
+              />
+              <div className="grid grid-cols-2 gap-8">
+                {[
+                  { label: "Spectacles", name: "spectacles" },
+                  { label: "Eye Surgery", name: "eyeSurgery" },
+                  { label: "Ocular Trauma", name: "ocularTrauma" },
+                  { label: "Glaucoma", name: "glaucoma" },
+                ].map((field) => (
+                  <Radios
+                    key={field.name}
+                    label={field.label}
+                    name={field.name}
+                    value={formData[field.name] ? "yes" : "no"} // Map boolean to "yes"/"no"
+                    onChange={handleChange} // Use the existing handleChange
+                  />
+                ))}
+              </div>
+            </div>
+            {/* Family Medical History */}
+            <div>
+              <h1 className="text-base font-medium text-black">
+                Family Medical History <span className="text-[#ff0000]">*</span>
+              </h1>
+              <div className="grid grid-cols-2 gap-8">
+                {[
+                  { label: "Asthma", name: "family_asthma" },
+                  { label: "Ulcer", name: "family_ulcer" },
+                  { label: "Diabetes", name: "family_diabetes" },
+                  { label: "Hypertension", name: "family_hypertension" },
+                  { label: "Sickle Cell", name: "family_sickle_cell" },
+                  { label: "STD/STI", name: "family_std_sti" },
+                ].map((field) => (
+                  <Radios
+                    key={field.name}
+                    label={field.label}
+                    name={field.name}
+                    value={formData[field.name] ? "yes" : "no"} // Map boolean to "yes"/"no"
+                    onChange={handleChange} // Use the existing handleChange
+                  />
+                ))}
+              </div>
+            </div>
 
-        <div>
-          <label className="block font-medium">Allergies:</label>
-          <input
-            type="text"
-            name="allergies"
-            value={formData.allergies}
-            onChange={handleChange}
-            placeholder="Enter allergies"
-            className="border p-2 rounded w-full"
-          />
-        </div>
+            {/* Family Ocular History */}
+            <div>
+              <h1 className="text-base font-medium text-black">
+                Family Ocular History <span className="text-[#ff0000]">*</span>
+              </h1>
+              <div className="grid grid-cols-2 gap-8">
+                {[
+                  { label: "Spectacles", name: "family_spectacles" },
+                  { label: "Eye Surgery", name: "family_eye_surgery" },
+                  { label: "Ocular Trauma", name: "family_ocular_trauma" },
+                  { label: "Glaucoma", name: "family_glaucoma" },
+                ].map((field) => (
+                  <Radios
+                    key={field.name}
+                    label={field.label}
+                    name={field.name}
+                    value={formData[field.name] ? "yes" : "no"} // Map boolean to "yes"/"no"
+                    onChange={handleChange} // Use the existing handleChange
+                  />
+                ))}
+              </div>
+            </div>
 
-        <div>
-          <label className="block font-medium">Hobbies:</label>
-          <input
-            type="text"
-            name="hobbies"
-            value={formData.hobbies}
-            onChange={handleChange}
-            placeholder="Enter hobbies"
-            className="border p-2 rounded w-full"
-          />
-        </div>
+            {/* Additional Fields */}
+            <div>
+              <label className="block font-medium">Parent Drug History:</label>
+              <input
+                type="text"
+                name="parent_drug_history"
+                value={formData.parent_drug_history}
+                onChange={handleChange}
+                placeholder="Enter parent drug history"
+                className="border p-2 rounded w-full"
+              />
+            </div>
 
-        <div className="flex gap-4">
+            <div>
+              <label className="block font-medium">Allergies:</label>
+              <input
+                type="text"
+                name="allergies"
+                value={formData.allergies}
+                onChange={handleChange}
+                placeholder="Enter allergies"
+                className="border p-2 rounded w-full"
+              />
+            </div>
+
+            <div>
+              <label className="block font-medium">Hobbies:</label>
+              <input
+                type="text"
+                name="hobbies"
+                value={formData.hobbies}
+                onChange={handleChange}
+                placeholder="Enter hobbies"
+                className="border p-2 rounded w-full"
+              />
+            </div>
+          </aside>
+        </section>
+
+        <div className="flex gap-8 justify-evenly my-16">
           <button
             type="button"
             onClick={() => navigate(-1)}
