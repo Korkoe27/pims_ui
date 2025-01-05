@@ -68,15 +68,40 @@ const Consultation = () => {
           />
         );
       case "visual acuity":
-        return <VisualAcuity appointmentId={appointmentId} />;
+        return (
+          <VisualAcuity
+            appointmentId={appointmentId}
+            onNavigateNext={navigateToNextTab}
+          />
+        );
       case "externals":
-        return <Externals appointmentId={appointmentId} />;
+        return (
+          <Externals
+            appointmentId={appointmentId}
+            onNavigateNext={navigateToNextTab}
+          />
+        );
       case "internals":
-        return <Internals appointmentId={appointmentId} />;
+        return (
+          <Internals
+            appointmentId={appointmentId}
+            onNavigateNext={navigateToNextTab}
+          />
+        );
       case "refraction":
-        return <Refraction appointmentId={appointmentId} />;
+        return (
+          <Refraction
+            appointmentId={appointmentId}
+            onNavigateNext={navigateToNextTab}
+          />
+        );
       case "extra tests":
-        return <ExtraTests appointmentId={appointmentId} />;
+        return (
+          <ExtraTests
+            appointmentId={appointmentId}
+            onNavigateNext={navigateToNextTab}
+          />
+        );
       default:
         return <p>Select a tab to continue.</p>;
     }
@@ -86,7 +111,7 @@ const Consultation = () => {
     <div className="px-8 ml-72 flex flex-col mt-8 gap-8 bg-[#f9fafb] w-full shadow-md sm:rounded-lg">
       <h1 className="font-extrabold text-xl">Consultation</h1>
       <Header
-        patient={selectedAppointment.patient} 
+        patient={selectedAppointment.patient}
         appointmentId={appointmentId}
       />
       <ProgressBar step={1} />
@@ -97,4 +122,3 @@ const Consultation = () => {
 };
 
 export default Consultation;
-

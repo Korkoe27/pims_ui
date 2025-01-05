@@ -12,6 +12,14 @@ const CaseHistory = ({ appointmentId, onNavigateNext }) => {
   const [showErrorDialog, setShowErrorDialog] = useState(false); // Error dialog visibility
   const [errorMessage, setErrorMessage] = useState(""); // Error message content
 
+  // Fetch case history data
+  const { data: fetchedCaseHistory, isLoading } = useFetchCaseHistoryQuery(
+    appointmentId,
+    { skip: !appointmentId }
+  );
+
+  const [createCaseHistory] = useCreateCaseHistoryMutation();
+
   // State for form data
   const [formData, setFormData] = useState({
     chief_complaint: "",
@@ -44,14 +52,6 @@ const CaseHistory = ({ appointmentId, onNavigateNext }) => {
     family_ocular_trauma: false,
     family_glaucoma: false,
   });
-
-  // Fetch case history data
-  const { data: fetchedCaseHistory, isLoading } = useFetchCaseHistoryQuery(
-    appointmentId,
-    { skip: !appointmentId }
-  );
-
-  const [createCaseHistory] = useCreateCaseHistoryMutation();
 
   // Populate form data with fetched case history
   useEffect(() => {
@@ -103,7 +103,11 @@ const CaseHistory = ({ appointmentId, onNavigateNext }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const payload = { ...formData, appointment: appointmentId, created_by: user?.id };
+      const payload = {
+        ...formData,
+        appointment: appointmentId,
+        created_by: user?.id,
+      };
       await createCaseHistory(payload).unwrap(); // Call the mutation
       onNavigateNext(); // Move to the next tab
     } catch (error) {
@@ -278,12 +282,15 @@ const CaseHistory = ({ appointmentId, onNavigateNext }) => {
           <button
             type="button"
             onClick={() => navigate(-1)}
-            className="bg-gray-200 text-black p-2 rounded"
+            className="w-56 p-4 rounded-lg text-[#2f3192] border border-[#2f3192]"
           >
             Back
           </button>
-          <button type="submit" className="bg-blue-500 text-white p-2 rounded">
-            Save
+          <button
+            type="submit"
+            className="w-56 p-4 rounded-lg text-white bg-[#2f3192]"
+          >
+            Save and proceed
           </button>
         </div>
       </form>

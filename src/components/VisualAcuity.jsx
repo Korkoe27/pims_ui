@@ -4,17 +4,25 @@ import Radios from "./Radios";
 import { useNavigate } from "react-router-dom";
 import {
   useFetchVisualAcuityQuery,
-  useCreateCaseHistoryMutation,
+  useCreateVisualAcuityMutation,
 } from "../redux/api/features/consultationApi"; // Import hooks
 
 const VisualAcuity = ({ appointmentId, onNavigateNext }) => {
+  const navigate = useNavigate();
   const { user } = useSelector((state) => state.auth);
+  const [showErrorDialog, setShowErrorDialog] = useState(false); // Error dialog visibility
+  const [errorMessage, setErrorMessage] = useState(""); // Error message content
 
   // Fetch visual acuity data
-  const { data: fetchedData, isLoading, isError } = useFetchVisualAcuityQuery(appointmentId);
+  const {
+    data: fetchedData,
+    isLoading,
+    isError,
+  } = useFetchVisualAcuityQuery(appointmentId, { skip: !appointmentId });
 
-  const [createCaseHistory] = useCreateCaseHistoryMutation(); // Initialize mutation
+  const [createVisualAcuity] = useCreateVisualAcuityMutation(); // Initialize mutation
 
+  // State for form data
   const [formData, setFormData] = useState({
     vaChart: "",
     distanceVaOdStandard: "",
@@ -41,18 +49,53 @@ const VisualAcuity = ({ appointmentId, onNavigateNext }) => {
     currentNearVaWithPrescriptionOs: "",
   });
 
-  const navigate = useNavigate();
-
   // Prepopulate form data when fetchedData is available
   useEffect(() => {
     if (fetchedData) {
-      setFormData((prevData) => ({
-        ...prevData,
-        ...fetchedData, // Overwrite with fetched data
-      }));
+      setFormData({
+        vaChart: fetchedData?.va_chart_used || "",
+        distanceVaOdStandard:
+          fetchedData?.distance_va_unaided_od_standard || "",
+        distanceVaOsStandard:
+          fetchedData?.distance_va_unaided_os_standard || "",
+        distanceVaOdPh: fetchedData?.distance_va_unaided_od_ph || "",
+        distanceVaOsPh: fetchedData?.distance_va_unaided_os_ph || "",
+        distanceVaOdPlus1: fetchedData?.distance_va_unaided_od_plus1 || "",
+        distanceVaOsPlus1: fetchedData?.distance_va_unaided_os_plus1 || "",
+        nearVaOd: fetchedData?.near_va_unaided_od || "",
+        nearVaOs: fetchedData?.near_va_unaided_os || "",
+        patientWithPrescription:
+          fetchedData?.patient_with_prescription || false,
+        prescriptionType: fetchedData?.prescription_type || "",
+        currentPrescriptionOdSph:
+          fetchedData?.current_prescription_od_sph || "",
+        currentPrescriptionOsSph:
+          fetchedData?.current_prescription_os_sph || "",
+        currentPrescriptionOdCyl:
+          fetchedData?.current_prescription_od_cyl || "",
+        currentPrescriptionOsCyl:
+          fetchedData?.current_prescription_os_cyl || "",
+        currentPrescriptionOdAxis:
+          fetchedData?.current_prescription_od_axis || "",
+        currentPrescriptionOsAxis:
+          fetchedData?.current_prescription_os_axis || "",
+        currentPrescriptionOdAdd:
+          fetchedData?.current_prescription_od_add || "",
+        currentPrescriptionOsAdd:
+          fetchedData?.current_prescription_os_add || "",
+        distanceVaWithPrescriptionOd:
+          fetchedData?.distance_va_with_prescription_od || "",
+        distanceVaWithPrescriptionOs:
+          fetchedData?.distance_va_with_prescription_os || "",
+        nearVaWithPrescriptionOd:
+          fetchedData?.near_va_with_prescription_od || "",
+        nearVaWithPrescriptionOs:
+          fetchedData?.near_va_with_prescription_os || "",
+      });
     }
   }, [fetchedData]);
 
+  // Handle form field changes
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData({
@@ -61,24 +104,26 @@ const VisualAcuity = ({ appointmentId, onNavigateNext }) => {
     });
   };
 
+  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const payload = { ...formData, created_by: user?.id, appointmentId }; // Include appointmentId
-      await createCaseHistory(payload).unwrap(); // Call the mutation
+      const payload = {
+        ...formData,
+        appointment: appointmentId,
+        created_by: user?.id,
+      };
+      await createVisualAcuity(payload).unwrap(); // Call the mutation
       onNavigateNext(); // Move to the next tab
     } catch (error) {
-      console.error("Error saving visual acuity data:", error);
-      alert("Failed to save visual acuity data. Please try again.");
+      console.error("Error saving case history:", error);
+      setErrorMessage(error?.data?.message || "An unknown error occurred."); // Set error message
+      setShowErrorDialog(true); // Show error dialog
     }
   };
 
   if (isLoading) {
     return <p>Loading visual acuity data...</p>;
-  }
-
-  if (isError) {
-    return <p>Error fetching visual acuity data. Please try again later.</p>;
   }
 
   return (
@@ -115,9 +160,21 @@ const VisualAcuity = ({ appointmentId, onNavigateNext }) => {
               </div>
               <div className="flex gap-4">
                 {[
-                  { label: "Standard", name: "distanceVaOdStandard", osName: "distanceVaOsStandard" },
-                  { label: "PH", name: "distanceVaOdPh", osName: "distanceVaOsPh" },
-                  { label: "+1.00", name: "distanceVaOdPlus", osName: "distanceVaOsPlus" },
+                  {
+                    label: "Standard",
+                    name: "distanceVaOdStandard",
+                    osName: "distanceVaOsStandard",
+                  },
+                  {
+                    label: "PH",
+                    name: "distanceVaOdPh",
+                    osName: "distanceVaOsPh",
+                  },
+                  {
+                    label: "+1.00",
+                    name: "distanceVaOdPlus",
+                    osName: "distanceVaOsPlus",
+                  },
                 ].map((field) => (
                   <div key={field.name} className="flex flex-col">
                     <label className="text-center font-normal text-base">
