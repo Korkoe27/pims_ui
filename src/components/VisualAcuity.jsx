@@ -7,18 +7,21 @@ import {
   useCreateVisualAcuityMutation,
 } from "../redux/api/features/consultationApi"; // Import hooks
 
-const VisualAcuity = ({ appointmentId, onNavigateNext, onNavigatePrevious }) => {
+const VisualAcuity = ({
+  appointmentId,
+  onNavigateNext,
+  onNavigatePrevious,
+}) => {
   const navigate = useNavigate();
   const { user } = useSelector((state) => state.auth);
   const [showErrorDialog, setShowErrorDialog] = useState(false); // Error dialog visibility
   const [errorMessage, setErrorMessage] = useState(""); // Error message content
 
   // Fetch visual acuity data
-  const {
-    data: fetchedData,
-    isLoading,
-    isError,
-  } = useFetchVisualAcuityQuery(appointmentId, { skip: !appointmentId });
+  const { data: fetchedData, isLoading } = useFetchVisualAcuityQuery(
+    appointmentId,
+    { skip: !appointmentId }
+  );
 
   const [createVisualAcuity] = useCreateVisualAcuityMutation(); // Initialize mutation
 

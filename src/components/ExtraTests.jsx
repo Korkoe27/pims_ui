@@ -11,7 +11,8 @@ const ExtraTestsButtons = ({ name, title }) => (
   </button>
 );
 
-const ExtraTests = () => {
+
+const ExtraTests = ({appointmentId, onNavigatePrevious}) => {
   const location = useLocation(); // Access state passed with navigate
   const { patient } = location.state || {}; // Extract patient if needed
   const navigate = useNavigate();
@@ -24,11 +25,23 @@ const ExtraTests = () => {
     { name: "aoa", title: "Amplitude of Accommodation <br> (AOA)" },
     { name: "npc", title: "Near Point of Convergence <br> (NPC)" },
     { name: "coverTest", title: "Cover Test" },
-    { name: "confrontationalVisualFieldTest", title: "Confrontational <br> Visual Field Test" },
+    {
+      name: "confrontationalVisualFieldTest",
+      title: "Confrontational <br> Visual Field Test",
+    },
     { name: "vonGraefeTest", title: "Von Graefe Test" },
-    { name: "positiveRelativeAccommodation", title: "Positive Relative <br> Accommodation" },
-    { name: "negativeRelativeAccommodation", title: "Negative Relative <br> Accommodation" },
-    { name: "perimetry_visualFieldTest", title: "Perimetry <br> (Visual Field Test)" },
+    {
+      name: "positiveRelativeAccommodation",
+      title: "Positive Relative <br> Accommodation",
+    },
+    {
+      name: "negativeRelativeAccommodation",
+      title: "Negative Relative <br> Accommodation",
+    },
+    {
+      name: "perimetry_visualFieldTest",
+      title: "Perimetry <br> (Visual Field Test)",
+    },
     { name: "oct", title: "Optical Coherence Tomography <br> (OCT)" },
     { name: "cornealTopography", title: "Corneal <br> Topography" },
     { name: "pachymetry", title: "Pachymetry" },
@@ -52,16 +65,29 @@ const ExtraTests = () => {
             <span className="text-xl">+</span> Add a Test
           </button>
           {tests.map((test) => (
-            <ExtraTestsButtons key={test.name} name={test.name} title={test.title} />
+            <ExtraTestsButtons
+              key={test.name}
+              name={test.name}
+              title={test.title}
+            />
           ))}
         </section>
-        <button
-          className="w-56 h-14 p-4 rounded-lg bg-[#2f3192] text-white mx-auto"
-          onClick={proceedToDiagnosis}
-          type="button"
-        >
-          Proceed to Diagnosis
-        </button>
+        <div className="flex justify-between mt-8">
+          <button
+            type="button"
+            onClick={onNavigatePrevious}
+            className="px-6 py-2 rounded-lg border border-blue-600 text-blue-600 hover:bg-blue-100"
+          >
+            Back
+          </button>
+          <button
+            className="px-6 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700"
+            onClick={proceedToDiagnosis}
+            type="button"
+          >
+            Proceed to Diagnosis
+          </button>
+        </div>
       </form>
     </div>
   );

@@ -1,130 +1,226 @@
-import React, { useState } from "react";
-import { FaChevronDown, FaChevronUp } from "react-icons/fa";
-import { useNavigate, useParams, useLocation } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import {
+  useFetchInternalsQuery,
+  useCreateInternalsMutation,
+} from "../redux/api/features/consultationApi"; // Import hooks
 
-const Internals = () => {
-  const { appointmentId } = useParams();
-  const location = useLocation();
-  const { patient } = location.state || {};
+const Internals = ({ appointmentId, onNavigateNext, onNavigatePrevious }) => {
   const navigate = useNavigate();
+  const { user } = useSelector((state) => state.auth);
+  const [showErrorDialog, setShowErrorDialog] = useState(false); // Error dialog visibility
+  const [errorMessage, setErrorMessage] = useState(""); // Error message content
 
+  // Fetch internals data
+  const { data: fetchedData, isLoading } = useFetchInternalsQuery(
+    appointmentId,
+    { skip: !appointmentId }
+  );
+
+  const [createInternals] = useCreateInternalsMutation(); // Initialize mutation
+
+  // State for form data
+  const [formData, setFormData] = useState({
+    lensOd: "",
+    lensOs: "",
+    depositsOd: "",
+    depositsOs: "",
+    ptosisOd: "",
+    ptosisOs: "",
+    aphakiaOd: "",
+    aphakiaOs: "",
+    pseudophakiaOd: "",
+    pseudophakiaOs: "",
+    lensClearOd: "",
+    lensClearOs: "",
+    floatersOd: "",
+    floatersOs: "",
+    haemorrhagesOd: "",
+    haemorrhagesOs: "",
+    detachmentOd: "",
+    detachmentOs: "",
+    hazyOd: "",
+    hazyOs: "",
+    vitreousClearOd: "",
+    vitreousClearOs: "",
+    elschnigTypeOd: "",
+    elschnigTypeOs: "",
+    discColorOd: "",
+    discColorOs: "",
+    discMarginOd: "",
+    discMarginOs: "",
+    cupToDiscRatioOd: "",
+    cupToDiscRatioOs: "",
+    arteryToVeinRatioOd: "",
+    arteryToVeinRatioOs: "",
+    fovealReflexOd: "",
+    fovealReflexOs: "",
+    maculaScarOd: "",
+    maculaScarOs: "",
+    maculaHoleOd: "",
+    maculaHoleOs: "",
+    atrophyOd: "",
+    atrophyOs: "",
+    maculaHealthyOd: "",
+    maculaHealthyOs: "",
+    iopMeasuringMethod: "",
+    iopDateTimeTaken: "",
+    iopValueOd: "",
+    iopValueOs: "",
+  });
+
+  // Sections for rendering
   const sections = [
     {
-      name: "lens",
-      title: "Lens",
+      name: "Lens",
       fields: [
-        { label: "Deposits", name: "deposits" },
-        { label: "Cloudy", name: "cloudy" },
-        { label: "Aphakia", name: "aphakia" },
-        { label: "Pseudophakia", name: "pseudophakia" },
-        { label: "Clear", name: "clear" },
+        { label: "Deposits OD", name: "depositsOd" },
+        { label: "Deposits OS", name: "depositsOs" },
+        { label: "Ptosis OD", name: "ptosisOd" },
+        { label: "Ptosis OS", name: "ptosisOs" },
+        { label: "Aphakia OD", name: "aphakiaOd" },
+        { label: "Aphakia OS", name: "aphakiaOs" },
+        { label: "Pseudophakia OD", name: "pseudophakiaOd" },
+        { label: "Pseudophakia OS", name: "pseudophakiaOs" },
+        { label: "Lens Clear OD", name: "lensClearOd" },
+        { label: "Lens Clear OS", name: "lensClearOs" },
       ],
     },
     {
-      name: "vitreous",
-      title: "Vitreous",
+      name: "Vitreous",
       fields: [
-        { label: "Floaters", name: "floaters" },
-        { label: "Haemorrhages", name: "haemorrhages" },
-        { label: "Detachment", name: "detachment" },
-        { label: "Hazy", name: "hazy" },
-        { label: "Clear", name: "clear" },
+        { label: "Floaters OD", name: "floatersOd" },
+        { label: "Floaters OS", name: "floatersOs" },
+        { label: "Haemorrhages OD", name: "haemorrhagesOd" },
+        { label: "Haemorrhages OS", name: "haemorrhagesOs" },
+        { label: "Detachment OD", name: "detachmentOd" },
+        { label: "Detachment OS", name: "detachmentOs" },
+        { label: "Hazy OD", name: "hazyOd" },
+        { label: "Hazy OS", name: "hazyOs" },
+        { label: "Vitreous Clear OD", name: "vitreousClearOd" },
+        { label: "Vitreous Clear OS", name: "vitreousClearOs" },
       ],
     },
     {
-      name: "ophthalmoscopy",
-      title: "Ophthalmoscopy",
+      name: "Ophthalmoscopy",
       fields: [
-        { label: "Disc Color", name: "discColor" },
-        { label: "Disc Margin", name: "discMargin" },
-        { label: "Cup-to-Disc Ratio", name: "cupToDiscRatio" },
-        { label: "Haemorrhages", name: "haemorrhages" },
-        { label: "Exudates", name: "exudates" },
+        { label: "Elschnig Type OD", name: "elschnigTypeOd" },
+        { label: "Elschnig Type OS", name: "elschnigTypeOs" },
+        { label: "Disc Color OD", name: "discColorOd" },
+        { label: "Disc Color OS", name: "discColorOs" },
+        { label: "Disc Margin OD", name: "discMarginOd" },
+        { label: "Disc Margin OS", name: "discMarginOs" },
+        { label: "Cup-to-Disc Ratio OD", name: "cupToDiscRatioOd" },
+        { label: "Cup-to-Disc Ratio OS", name: "cupToDiscRatioOs" },
+        { label: "Artery-to-Vein Ratio OD", name: "arteryToVeinRatioOd" },
+        { label: "Artery-to-Vein Ratio OS", name: "arteryToVeinRatioOs" },
       ],
     },
     {
-      name: "macula",
-      title: "Macula",
+      name: "Macula",
       fields: [
-        { label: "Foveal Reflex", name: "fovealReflex" },
-        { label: "Scar", name: "scar" },
-        { label: "Hole", name: "hole" },
-        { label: "Atrophy", name: "atrophy" },
-        { label: "Healthy", name: "healthy" },
+        { label: "Foveal Reflex OD", name: "fovealReflexOd" },
+        { label: "Foveal Reflex OS", name: "fovealReflexOs" },
+        { label: "Macula Scar OD", name: "maculaScarOd" },
+        { label: "Macula Scar OS", name: "maculaScarOs" },
+        { label: "Macula Hole OD", name: "maculaHoleOd" },
+        { label: "Macula Hole OS", name: "maculaHoleOs" },
+        { label: "Atrophy OD", name: "atrophyOd" },
+        { label: "Atrophy OS", name: "atrophyOs" },
+        { label: "Macula Healthy OD", name: "maculaHealthyOd" },
+        { label: "Macula Healthy OS", name: "maculaHealthyOs" },
       ],
     },
     {
-      name: "intraOcularPressure",
-      title: "Intra-Ocular Pressure",
-      fields: [{ label: "IOP Value", name: "iopValue" }],
+      name: "IOP",
+      fields: [
+        { label: "Measuring Method", name: "iopMeasuringMethod" },
+        { label: "Date & Time Taken", name: "iopDateTimeTaken" },
+        { label: "IOP Value OD", name: "iopValueOd" },
+        { label: "IOP Value OS", name: "iopValueOs" },
+      ],
     },
   ];
 
-  const [dropdowns, setDropdowns] = useState(
-    sections.reduce((acc, section) => ({ ...acc, [section.name]: false }), {})
-  );
+  // Prepopulate form data when fetchedData is available
+  useEffect(() => {
+    if (fetchedData) {
+      setFormData((prev) => ({
+        ...prev,
+        ...fetchedData,
+      }));
+    }
+  }, [fetchedData]);
 
-  const toggleSection = (name) => {
-    setDropdowns((prev) => ({ ...prev, [name]: !prev[name] }));
+  // Handle form field changes
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value,
+    });
   };
 
-  const proceedToRefraction = () => {
-    navigate("/refraction");
+  // Handle form submission
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const payload = {
+        ...formData,
+        appointment: appointmentId,
+        created_by: user?.id,
+      };
+      await createInternals(payload).unwrap(); // Call the mutation
+      onNavigateNext(); // Move to the next tab
+    } catch (error) {
+      console.error("Error saving internals data:", error);
+      setErrorMessage(error?.data?.message || "An unknown error occurred."); // Set error message
+      setShowErrorDialog(true); // Show error dialog
+    }
   };
 
-  const renderFields = (section) => (
-    <div className="flex flex-col gap-8">
-      {section.fields.map(({ label, name }) => (
-        <div key={name} className="flex justify-between items-center">
-          <div className="flex gap-4">
-            <label>
-              <input type="radio" name={`${section.name}-od-${name}`} value="yes" /> Yes
-            </label>
-            <label>
-              <input type="radio" name={`${section.name}-od-${name}`} value="no" /> No
-            </label>
-          </div>
-          <span>{label}</span>
-          <div className="flex gap-4">
-            <label>
-              <input type="radio" name={`${section.name}-os-${name}`} value="yes" /> Yes
-            </label>
-            <label>
-              <input type="radio" name={`${section.name}-os-${name}`} value="no" /> No
-            </label>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
+  if (isLoading) {
+    return <p>Loading internals data...</p>;
+  }
 
   return (
-    <div className="min-h-screen bg-gray-100 p-8">
-      <h1 className="text-2xl font-bold mb-4">Internals</h1>
-      <form className="space-y-8">
-        {sections.map((section) => (
-          <div key={section.name} className="bg-white shadow p-4 rounded">
-            <button
-              type="button"
-              onClick={() => toggleSection(section.name)}
-              className="w-full flex justify-between items-center text-left font-semibold"
-            >
-              <span>{section.title}</span>
-              {dropdowns[section.name] ? <FaChevronUp /> : <FaChevronDown />}
-            </button>
-            {dropdowns[section.name] && renderFields(section)}
-          </div>
-        ))}
+    <form onSubmit={handleSubmit} className="flex flex-col gap-12">
+      {/* Render fields for Lens, Vitreous, Ophthalmoscopy, Macula, IOP */}
+      {sections.map((section) => (
+        <div key={section.name} className="bg-white shadow p-4 rounded">
+          <h2 className="font-bold text-lg">{section.name}</h2>
+          {section.fields.map((field) => (
+            <div key={field.name} className="flex gap-4 items-center">
+              <label className="w-1/3">{field.label}</label>
+              <input
+                type="text"
+                name={field.name}
+                value={formData[field.name]}
+                onChange={handleChange}
+                className="w-2/3 p-2 border border-gray-300 rounded"
+              />
+            </div>
+          ))}
+        </div>
+      ))}
+      <div className="flex gap-8 justify-evenly my-16">
         <button
           type="button"
-          onClick={proceedToRefraction}
-          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          onClick={onNavigatePrevious}
+          className="w-56 p-4 rounded-lg text-[#2f3192] border border-[#2f3192]">
+          Back
+        </button>
+        <button
+          type="submit"
+          className="w-56 p-4 rounded-lg text-white bg-[#2f3192]"
         >
           Save and Proceed
         </button>
-      </form>
-    </div>
+      </div>
+    </form>
   );
 };
 
 export default Internals;
+

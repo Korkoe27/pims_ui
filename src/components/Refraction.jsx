@@ -1,132 +1,197 @@
-import React, { useState } from "react";
-import { GrAdd } from "react-icons/gr";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
+import {
+  useFetchRefractionQuery,
+  useCreateRefractionMutation,
+} from "../redux/api/features/consultationApi";
 
-const Refraction = () => {
-  const [showCycloplegic, setShowCycloplegic] = useState(false);
-  const [showPhoria, setShowPhoria] = useState(false);
+const Refraction = ({ appointmentId, onNavigateNext, onNavigatePrevious }) => {
+  const navigate = useNavigate();
+  const { user } = useSelector((state) => state.auth);
+  const [showErrorDialog, setShowErrorDialog] = useState(false); // Error dialog visibility
+  const [errorMessage, setErrorMessage] = useState(""); // Error message content
 
-  const toggleCycloplegic = () => setShowCycloplegic(!showCycloplegic);
-  const togglePhoria = () => setShowPhoria(!showPhoria);
-
-  const renderFields = (fields) => (
-    <div className="flex gap-4">
-      {fields.map(({ label, name, placeholder }) => (
-        <div key={name} className="flex flex-col">
-          <label className="text-center font-normal text-base">{label}</label>
-          <input
-            type="text"
-            name={`right-${name}`}
-            className="w-20 h-9 mb-4 rounded-md border border-[#d0d5dd]"
-            placeholder={placeholder}
-          />
-          <input
-            type="text"
-            name={`left-${name}`}
-            className="w-20 h-9 rounded-md border border-[#d0d5dd]"
-            placeholder={placeholder}
-          />
-        </div>
-      ))}
-    </div>
+  // Fetch refraction data
+  const { data: fetchedRefraction, isLoading } = useFetchRefractionQuery(
+    appointmentId,
+    { skip: !appointmentId }
   );
 
-  const commonFields = [
-    { label: "Standard", name: "standard" },
-    { label: "CYL", name: "cyl" },
-    { label: "AXIS", name: "axis" },
-    { label: "VA@6m", name: "va6m" },
-  ];
+  const [createRefraction] = useCreateRefractionMutation();
 
-  const cycloplegicFields = [
-    { label: "SPH", name: "cycloplegic-sph" },
-    { label: "CYL", name: "cycloplegic-cyl" },
-    { label: "AXIS", name: "cycloplegic-axis" },
-    { label: "VA@6m", name: "cycloplegic-va6m" },
-  ];
+  // State for form data
+  const [formData, setFormData] = useState({
+    method_objective_refraction: "",
+    objective_sph_od: "",
+    objective_sph_os: "",
+    subjective_cyl_od: "",
+    subjective_cyl_os: "",
+    subjective_axis_od: "",
+    subjective_axis_os: "",
+    subjective_va_od: "",
+    subjective_va_os: "",
+    subjective_add_od: "",
+    subjective_add_os: "",
+    cycloplegic_sph_od: "",
+    cycloplegic_sph_os: "",
+    cycloplegic_axis_od: "",
+    cycloplegic_axis_os: "",
+    phoria_amount: "",
+    phoria_direction: "",
+  });
 
-  const phoriaFields = [
-    { label: "Amount", name: "phoria-amount", placeholder: "e.g., 2PD" },
-    { label: "Direction", name: "phoria-direction", placeholder: "Eso/Exo" },
-  ];
+  // Populate form data with fetched refraction data
+  useEffect(() => {
+    if (fetchedRefraction) {
+      setFormData({
+        method_objective_refraction:
+          fetchedRefraction?.method_objective_refraction || "",
+        objective_sph_od: fetchedRefraction?.objective_sph_od || "",
+        objective_sph_os: fetchedRefraction?.objective_sph_os || "",
+        subjective_cyl_od: fetchedRefraction?.subjective_cyl_od || "",
+        subjective_cyl_os: fetchedRefraction?.subjective_cyl_os || "",
+        subjective_axis_od: fetchedRefraction?.subjective_axis_od || "",
+        subjective_axis_os: fetchedRefraction?.subjective_axis_os || "",
+        subjective_va_od: fetchedRefraction?.subjective_va_od || "",
+        subjective_va_os: fetchedRefraction?.subjective_va_os || "",
+        subjective_add_od: fetchedRefraction?.subjective_add_od || "",
+        subjective_add_os: fetchedRefraction?.subjective_add_os || "",
+        cycloplegic_sph_od: fetchedRefraction?.cycloplegic_sph_od || "",
+        cycloplegic_sph_os: fetchedRefraction?.cycloplegic_sph_os || "",
+        cycloplegic_axis_od: fetchedRefraction?.cycloplegic_axis_od || "",
+        cycloplegic_axis_os: fetchedRefraction?.cycloplegic_axis_os || "",
+        phoria_amount: fetchedRefraction?.phoria_amount || "",
+        phoria_direction: fetchedRefraction?.phoria_direction || "",
+      });
+    }
+  }, [fetchedRefraction]);
+
+  // Handle form field changes
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value,
+    });
+  };
+
+  // Handle form submission
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const payload = {
+        ...formData,
+        appointment: appointmentId,
+        created_by: user?.id,
+      };
+      await createRefraction(payload).unwrap(); // Call the mutation
+      onNavigateNext(); // Move to the next tab
+    } catch (error) {
+      console.error("Error saving refraction data:", error);
+      setErrorMessage(error?.data?.message || "An unknown error occurred."); // Set error message
+      setShowErrorDialog(true); // Show error dialog
+    }
+  };
+
+  if (isLoading) {
+    return <p>Loading refraction data...</p>;
+  }
 
   return (
-    <div className="my-8 px-16 flex flex-col gap-12">
-      <h1 className="text-xl font-bold text-center mb-4">Refraction Results</h1>
+    <>
+      {/* Error Dialog */}
+      {showErrorDialog && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+          <div className="bg-white p-8 rounded shadow-lg">
+            <h2 className="text-xl font-bold mb-4 text-red-600">Error</h2>
+            <p className="mb-4">{errorMessage}</p>
+            <button
+              className="bg-blue-500 text-white px-4 py-2 rounded"
+              onClick={() => setShowErrorDialog(false)} // Close dialog
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
 
-      <form className="flex flex-col gap-20">
-        <div className="flex flex-col gap-1 h-20 w-[375px]">
-          <label
-            htmlFor="objectRefraction"
-            className="text-base text-[#101928] font-medium"
-          >
-            Method for Objective Refraction
-          </label>
-          <select
-            name="objectRefraction"
-            className="w-full p-4 h-14 rounded-md border border-[#d0d5dd] bg-white"
-          ></select>
+      <form onSubmit={handleSubmit} className="flex flex-col gap-8">
+        <h1 className="text-xl font-bold">Refraction</h1>
+
+        {/* Objective Refraction */}
+        <div>
+          <label className="block font-medium">Objective Refraction Method:</label>
+          <input
+            type="text"
+            name="method_objective_refraction"
+            value={formData.method_objective_refraction}
+            onChange={handleChange}
+            className="border p-2 rounded w-full"
+          />
         </div>
 
-        <section className="flex flex-col gap-16">
-          <h1 className="text-[#101928] text-base">Objective Refraction Results</h1>
-          <div className="flex gap-4">
-            <div className="flex flex-col justify-end gap-4 items-baseline">
-              <h1 className="text-xl font-bold text-center">OD</h1>
-              <h1 className="text-xl font-bold text-center">OS</h1>
-            </div>
-            {renderFields(commonFields)}
+        {/* Objective Results */}
+        <div>
+          <h2 className="font-bold">Objective Refraction Results</h2>
+          <div className="grid grid-cols-2 gap-4">
+            <input
+              type="text"
+              name="objective_sph_od"
+              value={formData.objective_sph_od}
+              onChange={handleChange}
+              placeholder="SPH OD"
+              className="border p-2 rounded"
+            />
+            <input
+              type="text"
+              name="objective_sph_os"
+              value={formData.objective_sph_os}
+              onChange={handleChange}
+              placeholder="SPH OS"
+              className="border p-2 rounded"
+            />
           </div>
+        </div>
 
-          <h1 className="text-[#101928] text-base">Subjective Refraction Results</h1>
-          <div className="flex gap-4">
-            <div className="flex flex-col justify-end gap-4 items-baseline">
-              <h1 className="text-xl font-bold text-center">OD</h1>
-              <h1 className="text-xl font-bold text-center">OS</h1>
-            </div>
-            {renderFields([...commonFields, { label: "ADD", name: "add" }, { label: "VA@0.4m", name: "va04m" }])}
-          </div>
-        </section>
+        {/* Phoria Results */}
+        <div>
+          <h2 className="font-bold">Phoria Results</h2>
+          <input
+            type="text"
+            name="phoria_amount"
+            value={formData.phoria_amount}
+            onChange={handleChange}
+            placeholder="Amount"
+            className="border p-2 rounded w-full"
+          />
+          <input
+            type="text"
+            name="phoria_direction"
+            value={formData.phoria_direction}
+            onChange={handleChange}
+            placeholder="Direction"
+            className="border p-2 rounded w-full mt-4"
+          />
+        </div>
 
-        <section className="flex flex-col gap-16 w-fit">
+        <div className="flex gap-8 justify-evenly my-16">
           <button
-            onClick={toggleCycloplegic}
-            className="text-[#2f3192] font-semibold flex items-center gap-2"
             type="button"
+            onClick={onNavigatePrevious}
+            className="w-56 p-4 rounded-lg text-[#2f3192] border border-[#2f3192]"
           >
-            <GrAdd className="w-5 h-5" />
-            {showCycloplegic ? "Remove Cycloplegic Refraction" : "Add Cycloplegic Refraction"}
+            Back
           </button>
-          {showCycloplegic && (
-            <div className="flex flex-col gap-4">
-              <h1 className="text-[#101928] text-medium text-base">Cycloplegic Refraction Results</h1>
-              {renderFields(cycloplegicFields)}
-            </div>
-          )}
-
           <button
-            onClick={togglePhoria}
-            className="text-[#2f3192] font-semibold flex items-center gap-2"
-            type="button"
+            type="submit"
+            className="w-56 p-4 rounded-lg text-white bg-[#2f3192]"
           >
-            <GrAdd className="w-5 h-5" />
-            {showPhoria ? "Remove Phoria Results" : "Add Phoria Results"}
+            Save and proceed
           </button>
-          {showPhoria && (
-            <div className="flex flex-col gap-4">
-              <h1 className="text-[#101928] text-medium text-base">Phoria</h1>
-              {renderFields(phoriaFields)}
-            </div>
-          )}
-        </section>
-
-        <button
-          className="text-white bg-[#2f3192] w-48 h-14 p-4 rounded-lg"
-          type="button"
-        >
-          Save and Finish
-        </button>
+        </div>
       </form>
-    </div>
+    </>
   );
 };
 
