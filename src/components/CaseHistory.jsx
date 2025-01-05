@@ -9,7 +9,8 @@ import {
 const CaseHistory = ({ appointmentId, onNavigateNext }) => {
   const navigate = useNavigate();
   const { user } = useSelector((state) => state.auth);
-  const [activeTab, setActiveTab] = useState("visualvisual acuity"); 
+  const [showErrorDialog, setShowErrorDialog] = useState(false); // Error dialog visibility
+  const [errorMessage, setErrorMessage] = useState(""); // Error message content
 
   // State for form data
   const [formData, setFormData] = useState({
@@ -45,7 +46,7 @@ const CaseHistory = ({ appointmentId, onNavigateNext }) => {
   });
 
   // Fetch case history data
-  const { data: fetchedCaseHistory, isLoading, refetch } = useFetchCaseHistoryQuery(
+  const { data: fetchedCaseHistory, isLoading } = useFetchCaseHistoryQuery(
     appointmentId,
     { skip: !appointmentId }
   );
@@ -102,12 +103,13 @@ const CaseHistory = ({ appointmentId, onNavigateNext }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const payload = { ...formData, created_by: user?.id };
-      await createCaseHistory(payload); // Call the mutation
+      const payload = { ...formData, appointment: appointmentId, created_by: user?.id };
+      await createCaseHistory(payload).unwrap(); // Call the mutation
       onNavigateNext(); // Move to the next tab
     } catch (error) {
       console.error("Error saving case history:", error);
-      alert("Failed to save case history. Please try again.");
+      setErrorMessage(error?.data?.message || "An unknown error occurred."); // Set error message
+      setShowErrorDialog(true); // Show error dialog
     }
   };
 
@@ -116,161 +118,176 @@ const CaseHistory = ({ appointmentId, onNavigateNext }) => {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-8">
-      <h1 className="text-xl font-bold">Case History</h1>
-
-      {/* Chief Complaint */}
-      <div>
-        <label className="block font-medium">Chief Complaint:</label>
-        <textarea
-          name="chief_complaint"
-          value={formData.chief_complaint}
-          onChange={handleChange}
-          placeholder="Enter chief complaint"
-          className="border p-2 rounded w-full"
-        />
-      </div>
-
-      {/* Last Eye Examination */}
-      <div>
-        <label className="block font-medium">Last Eye Examination:</label>
-        <input
-          type="date"
-          name="last_eye_examination"
-          value={formData.last_eye_examination}
-          onChange={handleChange}
-          className="border p-2 rounded w-full"
-        />
-      </div>
-
-      {/* On Direct Questioning */}
-      <div>
-        <h2 className="font-bold">On Direct Questioning</h2>
-        {[
-          { label: "Burning Sensation", name: "burning_sensation" },
-          { label: "Itching", name: "itching" },
-          { label: "Tearing", name: "tearing" },
-          { label: "Double Vision", name: "double_vision" },
-          { label: "Discharge", name: "discharge" },
-          { label: "Pain", name: "pain" },
-          { label: "FBS", name: "fbs" },
-          { label: "Photophobia", name: "photophobia" },
-        ].map((field) => (
-          <div key={field.name}>
-            <label>
-              <input
-                type="checkbox"
-                name={field.name}
-                checked={formData[field.name]}
-                onChange={handleChange}
-              />
-              {field.label}
-            </label>
+    <>
+      {/* Error Dialog */}
+      {showErrorDialog && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+          <div className="bg-white p-8 rounded shadow-lg">
+            <h2 className="text-xl font-bold mb-4 text-red-600">Error</h2>
+            <p className="mb-4">{errorMessage}</p>
+            <button
+              className="bg-blue-500 text-white px-4 py-2 rounded"
+              onClick={() => setShowErrorDialog(false)} // Close dialog
+            >
+              Close
+            </button>
           </div>
-        ))}
-      </div>
+        </div>
+      )}
 
-      {/* Family Medical History */}
-      <div>
-        <h2 className="font-bold">Family Medical History</h2>
-        {[
-          { label: "Asthma", name: "family_asthma" },
-          { label: "Ulcer", name: "family_ulcer" },
-          { label: "Diabetes", name: "family_diabetes" },
-          { label: "Hypertension", name: "family_hypertension" },
-          { label: "Sickle Cell", name: "family_sickle_cell" },
-          { label: "STD/STI", name: "family_std_sti" },
-        ].map((field) => (
-          <div key={field.name}>
-            <label>
-              <input
-                type="checkbox"
-                name={field.name}
-                checked={formData[field.name]}
-                onChange={handleChange}
-              />
-              {field.label}
-            </label>
-          </div>
-        ))}
-      </div>
+      <form onSubmit={handleSubmit} className="flex flex-col gap-8">
+        <h1 className="text-xl font-bold">Case History</h1>
 
-      {/* Family Ocular History */}
-      <div>
-        <h2 className="font-bold">Family Ocular History</h2>
-        {[
-          { label: "Spectacles", name: "family_spectacles" },
-          { label: "Eye Surgery", name: "family_eye_surgery" },
-          { label: "Ocular Trauma", name: "family_ocular_trauma" },
-          { label: "Glaucoma", name: "family_glaucoma" },
-        ].map((field) => (
-          <div key={field.name}>
-            <label>
-              <input
-                type="checkbox"
-                name={field.name}
-                checked={formData[field.name]}
-                onChange={handleChange}
-              />
-              {field.label}
-            </label>
-          </div>
-        ))}
-      </div>
+        {/* Chief Complaint */}
+        <div>
+          <label className="block font-medium">Chief Complaint:</label>
+          <textarea
+            name="chief_complaint"
+            value={formData.chief_complaint}
+            onChange={handleChange}
+            placeholder="Enter chief complaint"
+            className="border p-2 rounded w-full"
+          />
+        </div>
 
-      {/* Additional Fields */}
-      <div>
-        <label className="block font-medium">Parent Drug History:</label>
-        <input
-          type="text"
-          name="parent_drug_history"
-          value={formData.parent_drug_history}
-          onChange={handleChange}
-          placeholder="Enter parent drug history"
-          className="border p-2 rounded w-full"
-        />
-      </div>
+        {/* Last Eye Examination */}
+        <div>
+          <label className="block font-medium">Last Eye Examination:</label>
+          <input
+            type="date"
+            name="last_eye_examination"
+            value={formData.last_eye_examination}
+            onChange={handleChange}
+            className="border p-2 rounded w-full"
+          />
+        </div>
 
-      <div>
-        <label className="block font-medium">Allergies:</label>
-        <input
-          type="text"
-          name="allergies"
-          value={formData.allergies}
-          onChange={handleChange}
-          placeholder="Enter allergies"
-          className="border p-2 rounded w-full"
-        />
-      </div>
+        {/* On Direct Questioning */}
+        <div>
+          <h2 className="font-bold">On Direct Questioning</h2>
+          {[
+            { label: "Burning Sensation", name: "burning_sensation" },
+            { label: "Itching", name: "itching" },
+            { label: "Tearing", name: "tearing" },
+            { label: "Double Vision", name: "double_vision" },
+            { label: "Discharge", name: "discharge" },
+            { label: "Pain", name: "pain" },
+            { label: "FBS", name: "fbs" },
+            { label: "Photophobia", name: "photophobia" },
+          ].map((field) => (
+            <div key={field.name}>
+              <label>
+                <input
+                  type="checkbox"
+                  name={field.name}
+                  checked={formData[field.name]}
+                  onChange={handleChange}
+                />
+                {field.label}
+              </label>
+            </div>
+          ))}
+        </div>
 
-      <div>
-        <label className="block font-medium">Hobbies:</label>
-        <input
-          type="text"
-          name="hobbies"
-          value={formData.hobbies}
-          onChange={handleChange}
-          placeholder="Enter hobbies"
-          className="border p-2 rounded w-full"
-        />
-      </div>
+        {/* Family Medical History */}
+        <div>
+          <h2 className="font-bold">Family Medical History</h2>
+          {[
+            { label: "Asthma", name: "family_asthma" },
+            { label: "Ulcer", name: "family_ulcer" },
+            { label: "Diabetes", name: "family_diabetes" },
+            { label: "Hypertension", name: "family_hypertension" },
+            { label: "Sickle Cell", name: "family_sickle_cell" },
+            { label: "STD/STI", name: "family_std_sti" },
+          ].map((field) => (
+            <div key={field.name}>
+              <label>
+                <input
+                  type="checkbox"
+                  name={field.name}
+                  checked={formData[field.name]}
+                  onChange={handleChange}
+                />
+                {field.label}
+              </label>
+            </div>
+          ))}
+        </div>
 
-      <div className="flex gap-4">
-        <button
-          type="button"
-          onClick={() => navigate(-1)}
-          className="bg-gray-200 text-black p-2 rounded"
-        >
-          Back
-        </button>
-        <button
-          type="submit"
-          className="bg-blue-500 text-white p-2 rounded"
-        >
-          Save
-        </button>
-      </div>
-    </form>
+        {/* Family Ocular History */}
+        <div>
+          <h2 className="font-bold">Family Ocular History</h2>
+          {[
+            { label: "Spectacles", name: "family_spectacles" },
+            { label: "Eye Surgery", name: "family_eye_surgery" },
+            { label: "Ocular Trauma", name: "family_ocular_trauma" },
+            { label: "Glaucoma", name: "family_glaucoma" },
+          ].map((field) => (
+            <div key={field.name}>
+              <label>
+                <input
+                  type="checkbox"
+                  name={field.name}
+                  checked={formData[field.name]}
+                  onChange={handleChange}
+                />
+                {field.label}
+              </label>
+            </div>
+          ))}
+        </div>
+
+        {/* Additional Fields */}
+        <div>
+          <label className="block font-medium">Parent Drug History:</label>
+          <input
+            type="text"
+            name="parent_drug_history"
+            value={formData.parent_drug_history}
+            onChange={handleChange}
+            placeholder="Enter parent drug history"
+            className="border p-2 rounded w-full"
+          />
+        </div>
+
+        <div>
+          <label className="block font-medium">Allergies:</label>
+          <input
+            type="text"
+            name="allergies"
+            value={formData.allergies}
+            onChange={handleChange}
+            placeholder="Enter allergies"
+            className="border p-2 rounded w-full"
+          />
+        </div>
+
+        <div>
+          <label className="block font-medium">Hobbies:</label>
+          <input
+            type="text"
+            name="hobbies"
+            value={formData.hobbies}
+            onChange={handleChange}
+            placeholder="Enter hobbies"
+            className="border p-2 rounded w-full"
+          />
+        </div>
+
+        <div className="flex gap-4">
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            className="bg-gray-200 text-black p-2 rounded"
+          >
+            Back
+          </button>
+          <button type="submit" className="bg-blue-500 text-white p-2 rounded">
+            Save
+          </button>
+        </div>
+      </form>
+    </>
   );
 };
 

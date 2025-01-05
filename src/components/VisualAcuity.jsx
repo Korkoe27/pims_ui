@@ -1,9 +1,20 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useSelector } from "react-redux";
 import Radios from "./Radios";
-import Inputs from "./Inputs";
 import { useNavigate } from "react-router-dom";
+import {
+  useFetchVisualAcuityQuery,
+  useCreateCaseHistoryMutation,
+} from "../redux/api/features/consultationApi"; // Import hooks
 
-const VisualAcuity = ({ appointmentId }) => {
+const VisualAcuity = ({ appointmentId, onNavigateNext }) => {
+  const { user } = useSelector((state) => state.auth);
+
+  // Fetch visual acuity data
+  const { data: fetchedData, isLoading, isError } = useFetchVisualAcuityQuery(appointmentId);
+
+  const [createCaseHistory] = useCreateCaseHistoryMutation(); // Initialize mutation
+
   const [formData, setFormData] = useState({
     vaChart: "",
     distanceVaOdStandard: "",
@@ -32,6 +43,16 @@ const VisualAcuity = ({ appointmentId }) => {
 
   const navigate = useNavigate();
 
+  // Prepopulate form data when fetchedData is available
+  useEffect(() => {
+    if (fetchedData) {
+      setFormData((prevData) => ({
+        ...prevData,
+        ...fetchedData, // Overwrite with fetched data
+      }));
+    }
+  }, [fetchedData]);
+
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData({
@@ -40,12 +61,25 @@ const VisualAcuity = ({ appointmentId }) => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Form Data:", formData);
-    alert("Visual Acuity data saved successfully!");
-    navigate("/externals");
+    try {
+      const payload = { ...formData, created_by: user?.id, appointmentId }; // Include appointmentId
+      await createCaseHistory(payload).unwrap(); // Call the mutation
+      onNavigateNext(); // Move to the next tab
+    } catch (error) {
+      console.error("Error saving visual acuity data:", error);
+      alert("Failed to save visual acuity data. Please try again.");
+    }
   };
+
+  if (isLoading) {
+    return <p>Loading visual acuity data...</p>;
+  }
+
+  if (isError) {
+    return <p>Error fetching visual acuity data. Please try again later.</p>;
+  }
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-12">
@@ -93,101 +127,6 @@ const VisualAcuity = ({ appointmentId }) => {
                       type="text"
                       name={field.name}
                       value={formData[field.name]}
-                      onChange={handleChange}
-                      className="w-20 h-9 mb-4 rounded-md border border-[#d0d5dd]"
-                    />
-                    <input
-                      type="text"
-                      name={field.osName}
-                      value={formData[field.osName]}
-                      onChange={handleChange}
-                      className="w-20 h-9 rounded-md border border-[#d0d5dd]"
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Near VA (unaided) */}
-          <div>
-            <h1 className="text-base font-medium">
-              Near VA (unaided)<span className="text-[#d42620]">*</span>
-            </h1>
-            <div className="flex flex-col gap-4">
-              {[
-                { label: "OD", name: "nearVaOd" },
-                { label: "OS", name: "nearVaOs" },
-              ].map((field) => (
-                <div key={field.name} className="flex gap-3 items-center">
-                  <label htmlFor="" className="text-xl font-bold">
-                    {field.label}
-                  </label>
-                  <input
-                    type="text"
-                    name={field.name}
-                    value={formData[field.name]}
-                    onChange={handleChange}
-                    className="rounded-md border border-[#d0d5dd] w-20 h-9 p-2"
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
-        </aside>
-
-        <aside className="flex flex-col gap-12">
-          {/* Prescription */}
-          <Radios
-            name="patientHasPrescription"
-            label="Did patient come with a prescription?"
-            checked={formData.patientHasPrescription}
-            onChange={handleChange}
-          />
-
-          <div className="flex flex-col gap-4">
-            <label htmlFor="prescriptionType" className="text-base font-medium">
-              Type of Prescription
-            </label>
-            <select
-              name="prescriptionType"
-              value={formData.prescriptionType}
-              onChange={handleChange}
-              className="h-14 rounded-md border border-[#d0d5dd]"
-            >
-              <option value="">Select Type</option>
-              <option value="Reading Glasses">Reading Glasses</option>
-              <option value="Contact Lenses">Contact Lenses</option>
-              <option value="Bifocal">Bifocal</option>
-            </select>
-          </div>
-
-          {/* Patient’s Current Prescription */}
-          <div>
-            <h1 className="text-base font-medium">
-              Patient’s Current Prescription
-              <span className="text-[#d42620]">*</span>
-            </h1>
-            <div className="flex gap-4">
-              <div className="flex flex-col justify-end gap-4 items-baseline">
-                <h1 className="text-xl font-bold text-center">OD</h1>
-                <h1 className="text-xl font-bold text-center">OS</h1>
-              </div>
-              <div className="flex gap-4">
-                {[
-                  { label: "SPH", odName: "currentPrescriptionOdSph", osName: "currentPrescriptionOsSph" },
-                  { label: "CYL", odName: "currentPrescriptionOdCyl", osName: "currentPrescriptionOsCyl" },
-                  { label: "AXIS", odName: "currentPrescriptionOdAxis", osName: "currentPrescriptionOsAxis" },
-                  { label: "ADD", odName: "currentPrescriptionOdAdd", osName: "currentPrescriptionOsAdd" },
-                ].map((field) => (
-                  <div key={field.odName} className="flex flex-col">
-                    <label className="text-center font-medium text-base">
-                      {field.label}
-                    </label>
-                    <input
-                      type="text"
-                      name={field.odName}
-                      value={formData[field.odName]}
                       onChange={handleChange}
                       className="w-20 h-9 mb-4 rounded-md border border-[#d0d5dd]"
                     />
