@@ -23,7 +23,7 @@ const Consultation = () => {
     "externals",
     "internals",
     "refraction",
-    "extra tests",
+    // "extra tests",
   ];
 
   // Get the active tab from URL query parameters
@@ -106,14 +106,14 @@ const Consultation = () => {
             onNavigatePrevious={navigateToPreviousTab}
           />
         );
-      case "extra tests":
-        return (
-          <ExtraTests
-            appointmentId={appointmentId}
-            onNavigateNext={navigateToNextTab}
-            onNavigatePrevious={navigateToPreviousTab}
-          />
-        );
+      // case "extra tests":
+      //   return (
+      //     <ExtraTests
+      //       appointmentId={appointmentId}
+      //       onNavigateNext={navigateToNextTab}
+      //       onNavigatePrevious={navigateToPreviousTab}
+      //     />
+      //   );
       default:
         return <p>Select a tab to continue.</p>;
     }

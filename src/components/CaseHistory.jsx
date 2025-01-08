@@ -26,8 +26,8 @@ const CaseHistory = ({ appointmentId, onNavigateNext }) => {
   const [formData, setFormData] = useState({
     chief_complaint: "",
     last_eye_examination: "",
-    burning_sensation: false,
-    itching: false,
+    burning_sensation: "",
+    itching: "",
     tearing: false,
     double_vision: false,
     discharge: false,
@@ -61,7 +61,7 @@ const CaseHistory = ({ appointmentId, onNavigateNext }) => {
       setFormData({
         chief_complaint: fetchedCaseHistory?.chief_complaint || "",
         last_eye_examination: fetchedCaseHistory?.last_eye_examination || "",
-        burning_sensation: fetchedCaseHistory?.burning_sensation || false,
+        burning_sensation: fetchedCaseHistory?.burning_sensation || "",
         itching: fetchedCaseHistory?.itching || false,
         tearing: fetchedCaseHistory?.tearing || false,
         double_vision: fetchedCaseHistory?.double_vision || false,
@@ -179,7 +179,7 @@ const CaseHistory = ({ appointmentId, onNavigateNext }) => {
                     key={field.name}
                     label={field.label}
                     name={field.name}
-                    value={formData[field.name] ? "yes" : "no"} // Map boolean to "yes"/"no"
+                    value={formData[field.name]} // Map boolean to "yes"/"no"
                     onChange={handleChange} // Use the existing handleChange
                   />
                 ))}
@@ -205,7 +205,7 @@ const CaseHistory = ({ appointmentId, onNavigateNext }) => {
                     key={field.name}
                     label={field.label}
                     name={field.name}
-                    value={formData[field.name] ? "yes" : "no"} // Map boolean to "yes"/"no"
+                    value={formData[field.name]} // Map boolean to "yes"/"no"
                     onChange={handleChange} // Use the existing handleChange
                   />
                 ))}
@@ -237,7 +237,7 @@ const CaseHistory = ({ appointmentId, onNavigateNext }) => {
                     key={field.name}
                     label={field.label}
                     name={field.name}
-                    value={formData[field.name] ? "yes" : "no"} // Map boolean to "yes"/"no"
+                    value={formData[field.name]} // Map boolean to "yes"/"no"
                     onChange={handleChange} // Use the existing handleChange
                   />
                 ))}
@@ -261,7 +261,7 @@ const CaseHistory = ({ appointmentId, onNavigateNext }) => {
                     key={field.name}
                     label={field.label}
                     name={field.name}
-                    value={formData[field.name] ? "yes" : "no"} // Map boolean to "yes"/"no"
+                    value={formData[field.name]} // Map boolean to "yes"/"no"
                     onChange={handleChange} // Use the existing handleChange
                   />
                 ))}
@@ -284,7 +284,7 @@ const CaseHistory = ({ appointmentId, onNavigateNext }) => {
                     key={field.name}
                     label={field.label}
                     name={field.name}
-                    value={formData[field.name] ? "yes" : "no"} // Map boolean to "yes"/"no"
+                    value={formData[field.name]} // Map boolean to "yes"/"no"
                     onChange={handleChange} // Use the existing handleChange
                   />
                 ))}

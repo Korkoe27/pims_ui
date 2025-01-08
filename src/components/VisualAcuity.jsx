@@ -23,7 +23,7 @@ const VisualAcuity = ({
     data: fetchedData,
     isLoading,
     isError,
-    error
+    error,
   } = useFetchVisualAcuityQuery(appointmentId, { skip: !appointmentId });
 
   const [createVisualAcuity] = useCreateVisualAcuityMutation(); // Initialize mutation
@@ -124,7 +124,6 @@ const VisualAcuity = ({
         created_by: user?.id,
       };
 
-      console.log("Submitting Payload:", payload);
       await createVisualAcuity(payload).unwrap();
       onNavigateNext(); // Move to the next tab
     } catch (err) {
@@ -256,10 +255,15 @@ const VisualAcuity = ({
         <aside className="flex flex-col gap-12">
           {/* Prescription */}
           <Radios
-            name="patientHasPrescription"
+            name="patient_with_prescription"
             label="Did patient come with a prescription?"
-            checked={formData.patientHasPrescription}
-            onChange={handleChange}
+            value={formData.patient_with_prescription} // Pass the current value from formData
+            onChange={(e) =>
+              setFormData({
+                ...formData,
+                patient_with_prescription: e.target.value, // Update formData with the selected value
+              })
+            }
           />
 
           <div className="flex flex-col gap-4">
