@@ -63,15 +63,15 @@ const SelectClinicModal = ({ setIsModalOpen }) => {
             <button
               type="button"
               className={`border group border-[#1b1c1e] text-xl font-bold w-80 h-80 flex flex-col items-end p-6 mx-10 rounded-md cursor-pointer ${
-                selectedClinic === "oldsite"
+                selectedClinic === "Old Site"
                   ? "bg-[#ececf9] border-[#2F3192]"
                   : ""
               }`}
-              onClick={() => handleClinicSelection("oldsite")}
+              onClick={() => handleClinicSelection("Old Site")}
             >
               <span
                 className={`border h-6 w-6 rounded-full ${
-                  selectedClinic === "oldsite"
+                  selectedClinic === "Old Site"
                     ? "border-[#2f3192] border-4"
                     : "border-[#1b1c1e]"
                 }`}
@@ -81,15 +81,15 @@ const SelectClinicModal = ({ setIsModalOpen }) => {
             <button
               type="button"
               className={`border group border-[#1b1c1e] text-xl font-bold w-80 h-80 flex flex-col items-end p-6 mx-10 rounded-md cursor-pointer ${
-                selectedClinic === "ucc"
+                selectedClinic === "New Site"
                   ? "bg-[#ececf9] border-[#2F3192]"
                   : ""
               }`}
-              onClick={() => handleClinicSelection("ucc")}
+              onClick={() => handleClinicSelection("New Site")}
             >
               <span
                 className={`border h-6 w-6 rounded-full ${
-                  selectedClinic === "ucc"
+                  selectedClinic === "New Site"
                     ? "border-[#2f3192] border-4"
                     : "border-[#1b1c1e]"
                 }`}
@@ -103,11 +103,11 @@ const SelectClinicModal = ({ setIsModalOpen }) => {
                   ? "bg-[#ececf9] border-[#2F3192]"
                   : ""
               }`}
-              onClick={() => handleClinicSelection("cctu")}
+              onClick={() => handleClinicSelection("CCTU")}
             >
               <span
                 className={`border h-6 w-6 rounded-full ${
-                  selectedClinic === "cctu"
+                  selectedClinic === "CCTU"
                     ? "border-[#2f3192] border-4"
                     : "border-[#1b1c1e]"
                 }`}

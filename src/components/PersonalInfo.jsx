@@ -1,9 +1,14 @@
+// import { create } from "json-server";
 import React, { useState } from "react";
 import { IoPhonePortraitOutline } from "react-icons/io5";
 import { useNavigate } from "react-router-dom";
+import { useCreatePatientMutation } from "../redux/api/features/patientApi";
+import { useSelector } from "react-redux";
 
 const PersonalInfo = () => {
   const navigate = useNavigate();
+
+  const selectedClinic = useSelector((state) => state.clinic.selectedClinic);
 
   const [formData, setFormData] = useState({
     first_name: "",
@@ -11,9 +16,10 @@ const PersonalInfo = () => {
     otherNames: "",
     dob: "",
     gender: "",
-    clinic: "selectedClinic", // Replace with actual value if needed
+    // clinic: "selectedClinic", // Replace with actual value if needed
+    clinic: selectedClinic,
     occupation: "",
-    residence: "",
+    address: "",
     region: "",
     landmark: "",
     hometown: "",
@@ -27,6 +33,9 @@ const PersonalInfo = () => {
     healthInsuranceNumber: "",
   });
 
+
+  const [createPatient] = useCreatePatientMutation();
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -35,14 +44,35 @@ const PersonalInfo = () => {
     }));
   };
 
+  // const createPatient = ()  => {
+
+  // }
+
   const handleSubmit = (e) => {
     e.preventDefault();
     console.log("Form Data Submitted:", formData);
+    const response =  createPatient(formData);
+
+    console.log('The response',JSON.stringify(response, null, 3));
+
+    if(response.statusCode === 201){
+      
+    navigate("/case-history");
+    } else{
+      console.log("Error: ", response.error);
+    }
     // Logic to submit form data
   };
 
   const attendToPatient = () => {
-    navigate("/case-history");
+    // try{ HandleSubmit();
+
+    // navigate("/case-history");
+    // }
+    // catch(e) {
+    // }
+
+    console.log('Attend to patient');
   };
 
   return (
@@ -52,7 +82,7 @@ const PersonalInfo = () => {
         <p className="text-base">Fill out the following details of your new patient</p>
       </div>
 
-      <form onSubmit={handleSubmit} className="px-8 w-fit">
+      <form className="px-8 w-fit" onSubmit={handleSubmit}>
         {/* Section 1 */}
         <section className="flex gap-24 pb-16 justify-between">
           {/* Column 1 */}
@@ -117,8 +147,8 @@ const PersonalInfo = () => {
             />
             <InputField
               label="Place of Residence"
-              name="residence"
-              value={formData.residence}
+              name="address"
+              value={formData.address}
               onChange={handleChange}
               placeholder="Enter the patient’s town/city name"
             />
@@ -225,7 +255,7 @@ const PersonalInfo = () => {
             Schedule Appointment
           </button>
           <button
-            type="button"
+            type="submit"
             onClick={attendToPatient}
             className="w-56 p-4 rounded-lg text-white bg-[#2f3192]"
           >
