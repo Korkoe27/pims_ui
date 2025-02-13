@@ -105,7 +105,7 @@ const Dashboard = () => {
             <tbody>
               {todayAppointments
                 .filter((appointment) => appointment.status === "Scheduled")
-                .slice(0, 3)
+                .slice(0, 5)
                 .map((appointment) => (
                   <tr key={appointment.id} className="bg-white border-b">
                     <td className="px-3 py-3">

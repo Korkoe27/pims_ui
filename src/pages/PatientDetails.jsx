@@ -10,7 +10,11 @@ const PatientDetails = () => {
   const [appointmentTab, setAppointmentTab] = useState("casehistory"); // Tabs in modal
 
   // Fetch appointments for the patient
-  const { data: appointments, isLoading, error } = useGetPatientAppointmentsQuery(
+  const {
+    data: appointments,
+    isLoading,
+    error,
+  } = useGetPatientAppointmentsQuery(
     patient?.id,
     { skip: !patient } // Skip the query if no patient data
   );
@@ -22,9 +26,6 @@ const PatientDetails = () => {
   const closeModal = () => {
     setSelectedAppointment(null); // Close modal
   };
-
-  // Debugging appointments data
-  console.log("Fetched Appointments:", appointments);
 
   if (!patient) {
     return (
@@ -39,7 +40,9 @@ const PatientDetails = () => {
     <div className="px-8 ml-72 flex flex-col mt-8 gap-8 bg-white w-full shadow-lg rounded-lg">
       {/* Patient Basic Info */}
       <div className="p-6 bg-gray-100 rounded-lg shadow-sm">
-        <h1 className="text-2xl font-extrabold text-[#2f3192]">Patient Details</h1>
+        <h1 className="text-2xl font-extrabold text-[#2f3192]">
+          Patient Details
+        </h1>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mt-4">
           <div>
             <h2 className="font-bold text-gray-700">Name:</h2>
@@ -74,7 +77,9 @@ const PatientDetails = () => {
           <button
             onClick={() => setActiveTab("info")}
             className={`px-6 py-2 font-semibold ${
-              activeTab === "info" ? "border-b-2 border-[#2f3192] text-[#2f3192]" : "text-gray-500 hover:text-[#2f3192]"
+              activeTab === "info"
+                ? "border-b-2 border-[#2f3192] text-[#2f3192]"
+                : "text-gray-500 hover:text-[#2f3192]"
             }`}
           >
             More Info
@@ -82,7 +87,9 @@ const PatientDetails = () => {
           <button
             onClick={() => setActiveTab("appointments")}
             className={`px-6 py-2 font-semibold ${
-              activeTab === "appointments" ? "border-b-2 border-[#2f3192] text-[#2f3192]" : "text-gray-500 hover:text-[#2f3192]"
+              activeTab === "appointments"
+                ? "border-b-2 border-[#2f3192] text-[#2f3192]"
+                : "text-gray-500 hover:text-[#2f3192]"
             }`}
           >
             Appointments
@@ -90,10 +97,121 @@ const PatientDetails = () => {
         </div>
 
         {/* Tabs Content */}
+        {activeTab === "info" && (
+          <div className="p-6 bg-gray-50 rounded-lg shadow-sm">
+            <h2 className="text-xl font-bold text-[#2f3192] mb-4">
+              Patient Information
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+              {/* Identification */}
+              <div>
+                <h2 className="font-bold text-gray-700">Patient ID:</h2>
+                <p className="text-gray-600">{patient.patient_id || "N/A"}</p>
+              </div>
+              <div>
+                <h2 className="font-bold text-gray-700">Generated ID:</h2>
+                <p className="text-gray-600">
+                  {patient.generated_id_number || "N/A"}
+                </p>
+              </div>
+              <div>
+                <h2 className="font-bold text-gray-700">ID Type:</h2>
+                <p className="text-gray-600">{patient.id_type || "N/A"}</p>
+              </div>
+              <div>
+                <h2 className="font-bold text-gray-700">ID Number:</h2>
+                <p className="text-gray-600">{patient.id_number || "N/A"}</p>
+              </div>
+
+              {/* Contact and Address */}
+              <div>
+                <h2 className="font-bold text-gray-700">Primary Phone:</h2>
+                <p className="text-gray-600">
+                  {patient.primary_phone || "N/A"}
+                </p>
+              </div>
+              <div>
+                <h2 className="font-bold text-gray-700">Alternate Phone:</h2>
+                <p className="text-gray-600">
+                  {patient.alternate_phone || "N/A"}
+                </p>
+              </div>
+              <div>
+                <h2 className="font-bold text-gray-700">Address:</h2>
+                <p className="text-gray-600">{patient.address || "N/A"}</p>
+              </div>
+              <div>
+                <h2 className="font-bold text-gray-700">Landmark:</h2>
+                <p className="text-gray-600">{patient.landmark || "N/A"}</p>
+              </div>
+              <div>
+                <h2 className="font-bold text-gray-700">Region:</h2>
+                <p className="text-gray-600">{patient.region || "N/A"}</p>
+              </div>
+
+              {/* Emergency Contact */}
+              <div>
+                <h2 className="font-bold text-gray-700">
+                  Emergency Contact Name:
+                </h2>
+                <p className="text-gray-600">
+                  {patient.emergency_contact_name || "N/A"}
+                </p>
+              </div>
+              <div>
+                <h2 className="font-bold text-gray-700">
+                  Emergency Contact Number:
+                </h2>
+                <p className="text-gray-600">
+                  {patient.emergency_contact_number || "N/A"}
+                </p>
+              </div>
+
+              {/* Insurance */}
+              <div>
+                <h2 className="font-bold text-gray-700">Insurance Type:</h2>
+                <p className="text-gray-600">
+                  {patient.insurance_type || "N/A"}
+                </p>
+              </div>
+              <div>
+                <h2 className="font-bold text-gray-700">Insurance Provider:</h2>
+                <p className="text-gray-600">
+                  {patient.insurance_provider || "N/A"}
+                </p>
+              </div>
+              <div>
+                <h2 className="font-bold text-gray-700">Insurance Number:</h2>
+                <p className="text-gray-600">
+                  {patient.insurance_number || "N/A"}
+                </p>
+              </div>
+
+              {/* Visit Info */}
+              <div>
+                <h2 className="font-bold text-gray-700">
+                  Date of First Visit:
+                </h2>
+                <p className="text-gray-600">
+                  {patient.date_of_first_visit || "N/A"}
+                </p>
+              </div>
+              <div>
+                <h2 className="font-bold text-gray-700">Registration Date:</h2>
+                <p className="text-gray-600">
+                  {patient.registration_date || "N/A"}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="mt-4">
           {activeTab === "appointments" && (
             <div className="p-6 bg-gray-50 rounded-lg shadow-sm">
-              <h2 className="text-xl font-bold text-[#2f3192] mb-4">Appointments</h2>
+              <h2 className="text-xl font-bold text-[#2f3192] mb-4">
+                Appointments
+              </h2>
               {isLoading ? (
                 <p className="text-gray-500">Loading appointments...</p>
               ) : error ? (
@@ -119,8 +237,12 @@ const PatientDetails = () => {
                   <tbody>
                     {appointments.map((appointment) => (
                       <tr key={appointment.id} className="bg-white border-b">
-                        <td className="px-6 py-4">{appointment.appointment_date}</td>
-                        <td className="px-6 py-4">{appointment.appointment_type}</td>
+                        <td className="px-6 py-4">
+                          {appointment.appointment_date}
+                        </td>
+                        <td className="px-6 py-4">
+                          {appointment.appointment_type}
+                        </td>
                         <td className="px-6 py-4">{appointment.status}</td>
                         <td className="px-6 py-4">
                           <button
@@ -162,6 +284,36 @@ const PatientDetails = () => {
                 Case History
               </button>
               <button
+                onClick={() => setActiveTab("visual acuity")}
+                className={`px-6 py-2 font-semibold ${
+                  activeTab === "visual acuity"
+                    ? "border-b-2 border-[#2f3192] text-[#2f3192]"
+                    : "text-gray-500 hover:text-[#2f3192]"
+                }`}
+              >
+                Visual Acuity
+              </button>
+              <button
+                onClick={() => setActiveTab("externals")}
+                className={`px-6 py-2 font-semibold ${
+                  activeTab === "externals"
+                    ? "border-b-2 border-[#2f3192] text-[#2f3192]"
+                    : "text-gray-500 hover:text-[#2f3192]"
+                }`}
+              >
+                Externals
+              </button>
+              <button
+                onClick={() => setActiveTab("internals")}
+                className={`px-6 py-2 font-semibold ${
+                  activeTab === "internals"
+                    ? "border-b-2 border-[#2f3192] text-[#2f3192]"
+                    : "text-gray-500 hover:text-[#2f3192]"
+                }`}
+              >
+                Internals
+              </button>
+              <button
                 onClick={() => setAppointmentTab("refraction")}
                 className={`px-6 py-2 font-semibold ${
                   appointmentTab === "refraction"
@@ -188,7 +340,9 @@ const PatientDetails = () => {
               {appointmentTab === "casehistory" && (
                 <div>
                   <h3 className="text-lg font-bold">Case History</h3>
-                  <p className="text-gray-600">Details about the case history...</p>
+                  <p className="text-gray-600">
+                    Details about the case history...
+                  </p>
                 </div>
               )}
               {appointmentTab === "refraction" && (
