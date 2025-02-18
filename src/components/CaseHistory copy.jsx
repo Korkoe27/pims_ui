@@ -31,8 +31,7 @@ import { useNavigate } from 'react-router-dom';
     //     ...formData,
     //     [name]:value
     //   });
- 
-    //   console.log(formData);
+
     // }
 
 

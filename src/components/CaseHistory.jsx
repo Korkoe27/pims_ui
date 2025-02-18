@@ -17,7 +17,6 @@ const CaseHistory = ({ appointmentId }) => {
   // Fetch the current user from the Redux store
   const { user } = useSelector((state) => state.auth);
 
-  console.log("User:", user);
 
   const [formData, setFormData] = useState({
     appointment: "",

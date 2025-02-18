@@ -21,16 +21,16 @@ export const Sidebar_links = [
     icon: <IoCalendarClearOutline className="text-xl font-bold" />,
     path: "/appointments",
   },
-  {
-    name: "inventory",
-    icon: <BsBoxSeam className="text-xl font-bold" />,
-    path: "/inventory",
-  },
-  {
-    name: "dispensary",
-    icon: <MdOutlineRestorePage className="text-xl font-bold" />,
-    path: "/dispensary",
-  },
+  // {
+  //   name: "inventory",
+  //   icon: <BsBoxSeam className="text-xl font-bold" />,
+  //   path: "/inventory",
+  // },
+  // {
+  //   name: "dispensary",
+  //   icon: <MdOutlineRestorePage className="text-xl font-bold" />,
+  //   path: "/dispensary",
+  // },
 ];
 
 export const Consultation_nav = [

@@ -37,7 +37,6 @@ const PersonalInfo = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log("Form Data Submitted:", formData);
     // Logic to submit form data
   };
 

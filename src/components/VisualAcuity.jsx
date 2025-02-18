@@ -42,7 +42,6 @@ const VisualAcuity = ({ appointmentId }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log("Form Data:", formData);
     alert("Visual Acuity data saved successfully!");
     navigate("/externals");
   };

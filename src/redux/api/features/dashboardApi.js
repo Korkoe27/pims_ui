@@ -14,7 +14,6 @@ export const dashboardApi = apiClient.injectEndpoints({
       onQueryStarted: async (arg, { queryFulfilled }) => {
         try {
           const { data } = await queryFulfilled; // Await the query to fulfill
-          console.log("Dashboard Data Fetched:", data); // Log the fetched data
         } catch (error) {
           console.error("Error fetching dashboard data:", error); // Log any errors
         }

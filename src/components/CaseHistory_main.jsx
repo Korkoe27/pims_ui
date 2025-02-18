@@ -67,12 +67,6 @@ const CaseHistory = ({}) => {
     try {
       const payload = { ...formData, appointment: appointmentId };
 
-      console.log("Submitting payload:", JSON.stringify(payload, null, 2)); // Log formData
-      console.log("Headers sent to API:", {
-        "Content-Type": "application/json",
-        "X-CSRFToken": Cookies.get("csrftoken"),
-      });
-
       if (caseHistoryId) {
         // Update existing case history
         await updateCaseHistoryHandler(appointmentId, payload);
@@ -99,7 +93,6 @@ const CaseHistory = ({}) => {
   const handleStaticTest = async () => {
     try {
       const response = await createCaseHistoryHandler();
-      console.log("Static data response:", response);
     } catch (error) {
       console.error("Error testing static data:", error);
     }

@@ -73,7 +73,6 @@ const Externals = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log("Submitted Data:", formData);
     alert("Externals data saved successfully!");
     navigate("/internals");
   };
