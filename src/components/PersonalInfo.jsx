@@ -5,8 +5,6 @@ import { useSelector } from "react-redux";
 
 const PersonalInfo = () => {
   const navigate = useNavigate();
-
-  // 🔹 Fetch selected clinic from Redux store
   const selectedClinic = useSelector((state) => state.clinic.selectedClinic);
 
   console.log("Selected Clinic from Redux:", selectedClinic);
@@ -17,7 +15,7 @@ const PersonalInfo = () => {
     otherNames: "",
     dob: "",
     gender: "",
-    clinic: "selectedClinic", // Replace with actual value if needed
+    clinic: selectedClinic || "",
     occupation: "",
     residence: "",
     region: "",
@@ -33,8 +31,8 @@ const PersonalInfo = () => {
     healthInsuranceNumber: "",
   });
 
+  const [errors, setErrors] = useState({});
 
-  // 🔹 Update clinic when Redux state changes
   useEffect(() => {
     if (selectedClinic) {
       setFormData((prevData) => ({
@@ -46,16 +44,64 @@ const PersonalInfo = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+
+    // Apply validation rules on change
+    let error = "";
+    if (
+      name === "first_name" ||
+      name === "last_name" ||
+      name === "otherNames"
+    ) {
+      if (!/^[A-Za-z ]{1,20}$/.test(value)) {
+        error = "Only letters, max 20 chars";
+      }
+    }
+
+    if (
+      name === "primary_phone" ||
+      name === "alternate_phone" ||
+      name === "emergencyContactPhone"
+    ) {
+      if (!/^\d{10}$/.test(value)) {
+        error = "Enter a valid 10-digit number";
+      }
+    }
+
+    if (name === "healthInsuranceNumber" && value.length > 20) {
+      error = "Max 20 characters";
+    }
+
     setFormData((prev) => ({
       ...prev,
       [name]: value,
+    }));
+    setErrors((prev) => ({
+      ...prev,
+      [name]: error,
     }));
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log("Submitting patient data:", formData);
-    // Logic to submit form data (API call)
+    let validationErrors = {};
+
+    // Required fields validation
+    if (!formData.first_name) validationErrors.first_name = "Required";
+    if (!formData.last_name) validationErrors.last_name = "Required";
+    if (!formData.dob) validationErrors.dob = "Required";
+    if (!formData.gender) validationErrors.gender = "Required";
+    if (!formData.primary_phone) validationErrors.primary_phone = "Required";
+    if (!formData.emergencyContactName)
+      validationErrors.emergencyContactName = "Required";
+    if (!formData.emergencyContactPhone)
+      validationErrors.emergencyContactPhone = "Required";
+
+    setErrors(validationErrors);
+
+    if (Object.keys(validationErrors).length === 0) {
+      console.log("Submitting patient data:", formData);
+      // API call logic
+    }
   };
 
   const attendToPatient = () => {
@@ -66,7 +112,9 @@ const PersonalInfo = () => {
     <div className="px-72 bg-[#f9fafb] h-full w-full">
       <div className="flex flex-col gap-4 px-8 my-6">
         <h1 className="text-2xl font-semibold">New Patient</h1>
-        <p className="text-base">Fill out the following details of your new patient</p>
+        <p className="text-base">
+          Fill out the following details of your new patient
+        </p>
       </div>
 
       <form onSubmit={handleSubmit} className="px-8 w-fit">
@@ -79,21 +127,24 @@ const PersonalInfo = () => {
               name="last_name"
               value={formData.last_name}
               onChange={handleChange}
-              placeholder="Enter the last name of the patient"
+              placeholder="Enter last name"
+              error={errors.last_name}
             />
             <InputField
               label="First Name"
               name="first_name"
               value={formData.first_name}
               onChange={handleChange}
-              placeholder="Enter the first name of the patient"
+              placeholder="Enter first name"
+              error={errors.first_name}
             />
             <InputField
               label="Other Names"
               name="otherNames"
               value={formData.otherNames}
               onChange={handleChange}
-              placeholder="Enter the other names of the patient"
+              placeholder="Enter other names"
+              error={errors.otherNames}
             />
             <InputField
               label="Date of Birth"
@@ -101,9 +152,12 @@ const PersonalInfo = () => {
               value={formData.dob}
               onChange={handleChange}
               type="date"
+              error={errors.dob}
             />
             <div className="flex flex-col gap-2">
-              <label htmlFor="gender" className="text-[#101928]">Gender</label>
+              <label htmlFor="gender" className="text-[#101928]">
+                Gender
+              </label>
               <div className="flex gap-4">
                 <RadioField
                   label="Male"
@@ -126,28 +180,69 @@ const PersonalInfo = () => {
           {/* Column 2 */}
           <aside className="flex flex-col gap-8">
             <SelectField
+              label="Occupation Category"
+              name="occupation_category"
+              value={formData.occupation_category}
+              onChange={handleChange}
+              options={[
+                "Agriculture & Farming",
+                "Automotive & Mechanical",
+                "Business & Finance",
+                "Construction & Manual Labor",
+                "Creative & Artistic",
+                "Education & Training",
+                "Health & Medical Services",
+                "Hospitality & Food Services",
+                "IT & Technology",
+                "Legal & Judicial",
+                "Public Service & Administration",
+                "Religious & Spiritual",
+                "Retired & Not Working",
+                "Technical & Engineering",
+                "Miscellaneous & Others",
+              ]}
+            />
+
+            <SelectField
               label="Occupation"
               name="occupation"
               value={formData.occupation}
               onChange={handleChange}
-              options={["Teacher", "Engineer", "Doctor", "Other"]}
+              options={[
+                "Agriculture & Farming",
+                "Automotive & Mechanical",
+                "Business & Finance",
+                "Construction & Manual Labor",
+                "Creative & Artistic",
+                "Education & Training",
+                "Health & Medical Services",
+                "Hospitality & Food Services",
+                "IT & Technology",
+                "Legal & Judicial",
+                "Public Service & Administration",
+                "Religious & Spiritual",
+                "Retired & Not Working",
+                "Technical & Engineering",
+                "Miscellaneous & Others",
+              ]}
             />
+
             <InputField
-              label="Place of Residence"
+              label="Residence"
               name="residence"
               value={formData.residence}
               onChange={handleChange}
-              placeholder="Enter the patient’s town/city name"
+              placeholder="Enter town/city"
             />
             <SelectField
-              label="Region of Residence"
+              label="Region"
               name="region"
               value={formData.region}
               onChange={handleChange}
-              options={["Region 1", "Region 2", "Region 3"]}
+              options={["Greater Accra", "Ashanti", "Volta"]}
             />
             <InputField
-              label="Closest Landmark"
+              label="Landmark"
               name="landmark"
               value={formData.landmark}
               onChange={handleChange}
@@ -158,7 +253,7 @@ const PersonalInfo = () => {
               name="hometown"
               value={formData.hometown}
               onChange={handleChange}
-              placeholder="Enter the patient’s hometown name"
+              placeholder="Enter hometown"
             />
           </aside>
         </section>
@@ -168,35 +263,39 @@ const PersonalInfo = () => {
           {/* Column 1 */}
           <aside className="flex flex-col gap-8">
             <InputField
-              label="Primary Telephone Number"
+              label="Primary Phone"
               name="primary_phone"
               value={formData.primary_phone}
               onChange={handleChange}
-              placeholder="055 555 5555"
-              icon={<IoPhonePortraitOutline className="text-[#98a2b3]" />}
+              placeholder="0555555555"
+              error={errors.primary_phone}
+              icon={<IoPhonePortraitOutline />}
             />
             <InputField
-              label="Alternate Telephone Number"
+              label="Alternate Phone"
               name="alternate_phone"
               value={formData.alternate_phone}
               onChange={handleChange}
-              placeholder="055 555 5555"
-              icon={<IoPhonePortraitOutline className="text-[#98a2b3]" />}
+              placeholder="0555555555"
+              error={errors.alternate_phone}
+              icon={<IoPhonePortraitOutline />}
             />
             <InputField
               label="Emergency Contact Name"
               name="emergencyContactName"
               value={formData.emergencyContactName}
               onChange={handleChange}
-              placeholder="Enter the name of the emergency contact"
+              placeholder="Contact Name"
+              error={errors.emergencyContactName}
             />
             <InputField
-              label="Emergency Contact’s Phone Number"
+              label="Emergency Contact Phone"
               name="emergencyContactPhone"
               value={formData.emergencyContactPhone}
               onChange={handleChange}
-              placeholder="055 555 5555"
-              icon={<IoPhonePortraitOutline className="text-[#98a2b3]" />}
+              placeholder="0555555555"
+              error={errors.emergencyContactPhone}
+              icon={<IoPhonePortraitOutline />}
             />
           </aside>
 
@@ -207,33 +306,33 @@ const PersonalInfo = () => {
               name="hospitalId"
               value={formData.hospitalId}
               onChange={handleChange}
-              placeholder="Enter the patient’s hospital ID"
+              placeholder="Enter ID"
             />
             <InputField
-              label="Date of First Visit"
+              label="First Visit Date"
               name="dateOfFirstVisit"
               value={formData.dateOfFirstVisit}
               onChange={handleChange}
               type="date"
             />
             <SelectField
-              label="Health Insurance Provider"
+              label="Insurance Provider"
               name="healthInsuranceProvider"
               value={formData.healthInsuranceProvider}
               onChange={handleChange}
-              options={["Provider 1", "Provider 2", "Provider 3"]}
+              options={["NHIS"]}
             />
             <InputField
-              label="Health Insurance Number"
+              label="Insurance Number"
               name="healthInsuranceNumber"
               value={formData.healthInsuranceNumber}
               onChange={handleChange}
-              placeholder="Health Insurance Number"
+              placeholder="Enter number"
+              error={errors.healthInsuranceNumber}
             />
           </aside>
         </section>
 
-        {/* Buttons */}
         <div className="flex gap-8 justify-center my-16">
           <button
             type="submit"
@@ -257,9 +356,19 @@ const PersonalInfo = () => {
 export default PersonalInfo;
 
 // Utility Components for Input, Select, and Radio Fields
-const InputField = ({ label, name, value, onChange, type = "text", placeholder, icon }) => (
+const InputField = ({
+  label,
+  name,
+  value,
+  onChange,
+  type = "text",
+  placeholder,
+  icon,
+}) => (
   <div className="flex flex-col gap-2">
-    <label htmlFor={name} className="text-[#101928]">{label}</label>
+    <label htmlFor={name} className="text-[#101928]">
+      {label}
+    </label>
     <div className="flex items-center gap-2 p-4 bg-white border border-[#d0d5dd] h-14 rounded-lg">
       {icon}
       <input
@@ -276,7 +385,9 @@ const InputField = ({ label, name, value, onChange, type = "text", placeholder, 
 
 const SelectField = ({ label, name, value, onChange, options }) => (
   <div className="flex flex-col gap-2">
-    <label htmlFor={name} className="text-[#101928]">{label}</label>
+    <label htmlFor={name} className="text-[#101928]">
+      {label}
+    </label>
     <select
       name={name}
       value={value}
@@ -285,7 +396,9 @@ const SelectField = ({ label, name, value, onChange, options }) => (
     >
       <option value="">Select an option</option>
       {options.map((option, idx) => (
-        <option key={idx} value={option}>{option}</option>
+        <option key={idx} value={option}>
+          {option}
+        </option>
       ))}
     </select>
   </div>
