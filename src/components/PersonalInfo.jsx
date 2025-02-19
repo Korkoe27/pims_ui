@@ -1,9 +1,15 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { IoPhonePortraitOutline } from "react-icons/io5";
 import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 
 const PersonalInfo = () => {
   const navigate = useNavigate();
+
+  // 🔹 Fetch selected clinic from Redux store
+  const selectedClinic = useSelector((state) => state.clinic.selectedClinic);
+
+  console.log("Selected Clinic from Redux:", selectedClinic);
 
   const [formData, setFormData] = useState({
     first_name: "",
@@ -27,6 +33,17 @@ const PersonalInfo = () => {
     healthInsuranceNumber: "",
   });
 
+
+  // 🔹 Update clinic when Redux state changes
+  useEffect(() => {
+    if (selectedClinic) {
+      setFormData((prevData) => ({
+        ...prevData,
+        clinic: selectedClinic,
+      }));
+    }
+  }, [selectedClinic]);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -37,7 +54,8 @@ const PersonalInfo = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Logic to submit form data
+    console.log("Submitting patient data:", formData);
+    // Logic to submit form data (API call)
   };
 
   const attendToPatient = () => {

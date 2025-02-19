@@ -11,7 +11,7 @@ import {
   updatePatientDetailsUrl,
   listAllPatientsUrl,
   createNewPatientUrl,
-  fetchPatientAppointmentsUrl
+  fetchPatientAppointmentsUrl,
 } from "../end_points/endpoints";
 
 export const patientApi = apiClient.injectEndpoints({
@@ -60,6 +60,14 @@ export const patientApi = apiClient.injectEndpoints({
         method: "POST",
         body: patientData,
       }),
+      async onQueryStarted(patientData, { dispatch, queryFulfilled }) {
+        try {
+          const { data } = await queryFulfilled;
+          console.log("✅ Patient Created Successfully:", data);
+        } catch (error) {
+          console.error("❌ Patient Creation Failed:", error);
+        }
+      },
     }),
 
     // Fetch Patient Appointments
