@@ -105,6 +105,32 @@ const PersonalInfo = () => {
   };
 
   const attendToPatient = () => {
+    let validationErrors = {};
+
+    // Required fields validation
+    if (!formData.first_name) validationErrors.first_name = "Required";
+    if (!formData.last_name) validationErrors.last_name = "Required";
+    if (!formData.dob) validationErrors.dob = "Required";
+    if (!formData.gender) validationErrors.gender = "Required";
+    if (!formData.primary_phone) validationErrors.primary_phone = "Required";
+    if (!/^\d{10}$/.test(formData.primary_phone))
+      validationErrors.primary_phone = "Enter a valid 10-digit number";
+    if (!formData.emergencyContactName)
+      validationErrors.emergencyContactName = "Required";
+    if (!formData.emergencyContactPhone)
+      validationErrors.emergencyContactPhone = "Required";
+    if (!/^\d{10}$/.test(formData.emergencyContactPhone))
+      validationErrors.emergencyContactPhone = "Enter a valid 10-digit number";
+    if (!formData.clinic) validationErrors.clinic = "Clinic selection required";
+
+    setErrors(validationErrors);
+
+    // 🚨 Prevent navigation if errors exist
+    if (Object.keys(validationErrors).length > 0) {
+      return;
+    }
+
+    // ✅ Proceed if no validation errors
     navigate("/case-history");
   };
 
@@ -173,6 +199,7 @@ const PersonalInfo = () => {
                   checked={formData.gender === "Female"}
                   onChange={handleChange}
                 />
+                
               </div>
             </div>
           </aside>
@@ -364,12 +391,17 @@ const InputField = ({
   type = "text",
   placeholder,
   icon,
+  error,
 }) => (
   <div className="flex flex-col gap-2">
     <label htmlFor={name} className="text-[#101928]">
       {label}
     </label>
-    <div className="flex items-center gap-2 p-4 bg-white border border-[#d0d5dd] h-14 rounded-lg">
+    <div
+      className={`flex items-center gap-2 p-4 bg-white border h-14 rounded-lg ${
+        error ? "border-red-500" : "border-[#d0d5dd]"
+      }`}
+    >
       {icon}
       <input
         type={type}
@@ -380,10 +412,11 @@ const InputField = ({
         placeholder={placeholder}
       />
     </div>
+    {error && <span className="text-red-500 text-sm">{error}</span>}
   </div>
 );
 
-const SelectField = ({ label, name, value, onChange, options }) => (
+const SelectField = ({ label, name, value, onChange, options, error }) => (
   <div className="flex flex-col gap-2">
     <label htmlFor={name} className="text-[#101928]">
       {label}
@@ -392,7 +425,9 @@ const SelectField = ({ label, name, value, onChange, options }) => (
       name={name}
       value={value}
       onChange={onChange}
-      className="p-4 w-full border border-[#d0d5dd] h-14 rounded-lg text-[#98a2b3]"
+      className={`p-4 w-full border h-14 rounded-lg text-[#98a2b3] ${
+        error ? "border-red-500" : "border-[#d0d5dd]"
+      }`}
     >
       <option value="">Select an option</option>
       {options.map((option, idx) => (
@@ -401,18 +436,23 @@ const SelectField = ({ label, name, value, onChange, options }) => (
         </option>
       ))}
     </select>
+    {error && <span className="text-red-500 text-sm">{error}</span>}
   </div>
 );
 
-const RadioField = ({ label, name, value, checked, onChange }) => (
-  <label className="flex items-center gap-1">
-    <input
-      type="radio"
-      name={name}
-      value={value}
-      checked={checked}
-      onChange={onChange}
-    />
-    {label}
-  </label>
+const RadioField = ({ label, name, value, checked, onChange, error }) => (
+  <div className="flex flex-col">
+    <div className="flex items-center gap-1">
+      <input
+        type="radio"
+        name={name}
+        value={value}
+        checked={checked}
+        onChange={onChange}
+        className={`${error ? "border-red-500" : "border-[#d0d5dd]"}`}
+      />
+      <label className="text-[#101928]">{label}</label>
+    </div>
+    {error && <span className="text-red-500 text-sm">{error}</span>}
+  </div>
 );
