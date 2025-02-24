@@ -21,6 +21,7 @@ export const Sidebar_links = [
     icon: <IoCalendarClearOutline className="text-xl font-bold" />,
     path: "/appointments",
   },
+  
   // {
   //   name: "inventory",
   //   icon: <BsBoxSeam className="text-xl font-bold" />,

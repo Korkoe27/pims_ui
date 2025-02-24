@@ -7,10 +7,14 @@ import Navbar from "../components/Navbar";
 import Pagination from "../components/Pagination";
 import { Link } from "react-router-dom";
 import useHandlePatientDetails from "../hooks/useHandlePatientDetails";
+import useHandleAppointmentNavigation from "../hooks/useHandleAppointmentNavigation"
+
+
 
 const Patients = () => {
   const { currentPage, pageSize, handlePageChange } = usePagination();
   const { handlePatientDetails } = useHandlePatientDetails();
+  const { goToCreateAppointment } = useHandleAppointmentNavigation();
 
   const { data: patients, isLoading, error } = useGetAllPatientsQuery({
     page: currentPage,
@@ -102,6 +106,12 @@ const Patients = () => {
                   <td className="px-6 py-4">{patient?.clinic || "Not assigned"}</td>
                   <td className="px-6 py-4">{patient?.primary_phone || "Not provided"}</td>
                   <td className="px-6 py-4 flex gap-4">
+                  <button
+                      className="text-white bg-blue-500 hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2"
+                      onClick={() => goToCreateAppointment()}
+                    >
+                      Book Appointment
+                    </button>
                     <button
                       className="text-white bg-blue-500 hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2"
                       onClick={() => handlePatientDetails(patient)}
