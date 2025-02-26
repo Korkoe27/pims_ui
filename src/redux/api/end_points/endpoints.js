@@ -52,10 +52,10 @@ export const fetchPatientAppointmentsUrl = (patientId) =>
 // Appointments
 /////////////////////////
 
-export const createNewAppointmentUrl = "/tests/clients/api/appointments/";
+export const createNewAppointmentUrl = "/clients/api/appointments/";
 export const fetchAppointmentsUrl = "clients/api/appointments/";
 export const getAppointmentsDetailsUrl = (appointmentId) =>
-  `/tests/clients/api/appointments/${appointmentId}/`;
+  `/clients/api/appointments/${appointmentId}/`;
 
 /////////////////////////
 // Case History
