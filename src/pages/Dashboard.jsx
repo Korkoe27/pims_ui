@@ -111,11 +111,10 @@ const Dashboard = () => {
                       {appointment.appointment_date}
                     </td>
                     <td className="px-3 py-3">
-                      {appointment.patient.patient_id}
+                      {appointment.patient_id}
                     </td>
                     <td className="px-3 py-3">
-                      {appointment.patient.first_name}{" "}
-                      {appointment.patient.last_name}
+                      {appointment.patient_name}
                     </td>
                     <td className="px-3 py-3">
                       {appointment.appointment_type}
