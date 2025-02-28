@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { setPatientId } from "../redux/slices/patientSlice";
 import { useCreatePatientMutation } from "../redux/api/features/patientApi";
+import ConfirmSaveModal from "./ConfirmSaveModal";
 
 const PersonalInfo = () => {
   const navigate = useNavigate();
@@ -37,6 +38,9 @@ const PersonalInfo = () => {
 
   const [errors, setErrors] = useState({});
   const [createPatient, { isLoading, error }] = useCreatePatientMutation();
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [confirmMessage, setConfirmMessage] = useState("");
+  const [retryWithConfirmSave, setRetryWithConfirmSave] = useState(false);
 
   useEffect(() => {
     if (selectedClinic) {
@@ -88,14 +92,12 @@ const PersonalInfo = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    let validationErrors = {};
 
-    // Required fields validation
+    const validationErrors = {};
     if (!formData.first_name) validationErrors.first_name = "Required";
     if (!formData.last_name) validationErrors.last_name = "Required";
     if (!formData.dob) validationErrors.dob = "Required";
     if (!formData.gender) validationErrors.gender = "Required";
-    if (!formData.address) validationErrors.address = "Required";
     if (!formData.primary_phone) validationErrors.primary_phone = "Required";
     if (!formData.emergency_contact_name)
       validationErrors.emergency_contact_name = "Required";
@@ -103,55 +105,48 @@ const PersonalInfo = () => {
       validationErrors.emergency_contact_number = "Required";
 
     setErrors(validationErrors);
-    if (Object.keys(validationErrors).length > 0) return; // Stop if errors exist
+    if (Object.keys(validationErrors).length > 0) return;
 
     try {
-      console.log("Submitting patient data:", formData);
+      console.log("📡 Submitting patient data:", formData);
 
-      // ✅ Use RTK Query to create a new patient
-      const response = await createPatient(formData).unwrap();
+      // ✅ Send request with confirm_save if retrying
+      const response = await createPatient({
+        ...formData,
+        confirm_save: retryWithConfirmSave ? true : undefined,
+      }).unwrap();
 
-      // ✅ Store patientId in Redux
-      dispatch(setPatientId(response.data.id));
+      console.log("✅ API Response:", response);
 
-      console.log("Patient Created:", response.data);
-
-      // ✅ Redirect to appointment booking page
-      navigate("/book-appointment");
+      if (response.id) {
+        dispatch(setPatientId(response.id));
+        navigate("/book-appointment");
+      }
     } catch (error) {
-      console.error("Error creating patient:", error);
+      console.error("❌ Error creating patient:", error);
+
+      // ✅ If the error message contains "confirm_save=True", show the confirmation modal
+      if (
+        error.data &&
+        error.data.primary_phone &&
+        error.data.primary_phone[0].includes(
+          "Set 'confirm_save=True' to proceed."
+        )
+      ) {
+        setConfirmMessage(error.data.primary_phone[0]);
+        setShowConfirmModal(true);
+      } else {
+        setErrors(error.data || {});
+      }
     }
   };
 
-  // const attendToPatient = () => {
-  //   let validationErrors = {};
-
-  //   // Required fields validation
-  //   if (!formData.first_name) validationErrors.first_name = "Required";
-  //   if (!formData.last_name) validationErrors.last_name = "Required";
-  //   if (!formData.dob) validationErrors.dob = "Required";
-  //   if (!formData.gender) validationErrors.gender = "Required";
-  //   if (!formData.primary_phone) validationErrors.primary_phone = "Required";
-  //   if (!/^\d{10}$/.test(formData.primary_phone))
-  //     validationErrors.primary_phone = "Enter a valid 10-digit number";
-  //   if (!formData.emergencyContactName)
-  //     validationErrors.emergencyContactName = "Required";
-  //   if (!formData.emergencyContactPhone)
-  //     validationErrors.emergencyContactPhone = "Required";
-  //   if (!/^\d{10}$/.test(formData.emergencyContactPhone))
-  //     validationErrors.emergencyContactPhone = "Enter a valid 10-digit number";
-  //   if (!formData.clinic) validationErrors.clinic = "Clinic selection required";
-
-  //   setErrors(validationErrors);
-
-  //   // 🚨 Prevent navigation if errors exist
-  //   if (Object.keys(validationErrors).length > 0) {
-  //     return;
-  //   }
-
-  //   // ✅ Proceed if no validation errors
-  //   navigate("/case-history");
-  // };
+  // ✅ Handle Confirm Save
+  const handleConfirmSave = () => {
+    setShowConfirmModal(false);
+    setRetryWithConfirmSave(true); // Set flag to retry with confirm_save=True
+    handleSubmit(new Event("submit")); // Resubmit form
+  };
 
   return (
     <div className="px-72 bg-[#f9fafb] h-full w-full">
@@ -401,6 +396,13 @@ const PersonalInfo = () => {
           </button>
         </div>
       </form>
+      {/* Confirmation Modal */}
+      <ConfirmSaveModal
+        isOpen={showConfirmModal}
+        onClose={() => setShowConfirmModal(false)}
+        onConfirm={handleConfirmSave}
+        message={confirmMessage}
+      />
     </div>
   );
 };
