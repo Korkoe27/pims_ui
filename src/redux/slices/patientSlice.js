@@ -108,7 +108,7 @@ const patientSlice = createSlice({
         patientApi.endpoints.createPatient.matchFulfilled,
         (state, action) => {
           state.successMessage = "Patient created successfully";
-          state.patientsList.push(action.payload); // Add new patient to the list
+          // state.patientsList.push(action.payload); // Add new patient to the list
           state.loading = false;
         }
       )
