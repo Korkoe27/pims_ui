@@ -9,7 +9,7 @@ const ConfirmSaveModal = ({ isOpen, onClose, onConfirm, message }) => {
         <h2 className="text-xl font-semibold mb-4">Confirm Save</h2>
         <p className="text-gray-700">
           A patient with this phone number already exists. Click 'Proceed' to
-          continue or check the number and try again."
+          continue or check the number and try again.
         </p>
 
         <div className="mt-6 flex justify-end gap-4">
