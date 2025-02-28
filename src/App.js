@@ -55,10 +55,10 @@ const App = () => {
             <Route index element={<Dashboard />} />
             <Route path="/my-patients" element={<Patients />} />
             <Route path="/patients-details" element={<PatientDetails />} />
+            <Route path="/register-patient" element={<PersonalInfo />} />
             <Route path="/appointments" element={<Appointments />} />
             <Route path="/inventory" element={<Inventory />} />
             <Route path="/dispensary" element={<Dispensary />} />
-            <Route path="/register-patient" element={<PersonalInfo />} />
             <Route path="/case-history/:appointmentId" element={<CaseHistory />} />
             <Route path="/visual-acuity/:appointmentId" element={<VisualAcuity />} />
             <Route path="/externals/:appointmentId" element={<Externals />} />

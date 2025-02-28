@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { IoPhonePortraitOutline } from "react-icons/io5";
 import { useNavigate } from "react-router-dom";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
+import { setPatientId } from "../redux/slices/patientSlice";
+import { useCreatePatientMutation } from "../redux/api/features/patientApi";
 
 const PersonalInfo = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch(); // ✅ Redux dispatch for storing patient ID
   const selectedClinic = useSelector((state) => state.clinic.selectedClinic);
 
   console.log("Selected Clinic from Redux:", selectedClinic);
@@ -16,6 +19,7 @@ const PersonalInfo = () => {
     dob: "",
     gender: "",
     clinic: selectedClinic || "",
+    address: "",
     occupation: "",
     residence: "",
     region: "",
@@ -23,8 +27,8 @@ const PersonalInfo = () => {
     hometown: "",
     primary_phone: "",
     alternate_phone: "",
-    emergencyContactName: "",
-    emergencyContactPhone: "",
+    emergency_contact_name: "",
+    emergency_contact_number: "",
     hospitalId: "",
     dateOfFirstVisit: "",
     healthInsuranceProvider: "",
@@ -32,6 +36,7 @@ const PersonalInfo = () => {
   });
 
   const [errors, setErrors] = useState({});
+  const [createPatient, { isLoading, error }] = useCreatePatientMutation();
 
   useEffect(() => {
     if (selectedClinic) {
@@ -60,7 +65,7 @@ const PersonalInfo = () => {
     if (
       name === "primary_phone" ||
       name === "alternate_phone" ||
-      name === "emergencyContactPhone"
+      name === "emergency_contact_number"
     ) {
       if (!/^\d{10}$/.test(value)) {
         error = "Enter a valid 10-digit number";
@@ -81,7 +86,7 @@ const PersonalInfo = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     let validationErrors = {};
 
@@ -90,49 +95,63 @@ const PersonalInfo = () => {
     if (!formData.last_name) validationErrors.last_name = "Required";
     if (!formData.dob) validationErrors.dob = "Required";
     if (!formData.gender) validationErrors.gender = "Required";
+    if (!formData.address) validationErrors.address = "Required";
     if (!formData.primary_phone) validationErrors.primary_phone = "Required";
-    if (!formData.emergencyContactName)
-      validationErrors.emergencyContactName = "Required";
-    if (!formData.emergencyContactPhone)
-      validationErrors.emergencyContactPhone = "Required";
+    if (!formData.emergency_contact_name)
+      validationErrors.emergency_contact_name = "Required";
+    if (!formData.emergency_contact_number)
+      validationErrors.emergency_contact_number = "Required";
 
     setErrors(validationErrors);
+    if (Object.keys(validationErrors).length > 0) return; // Stop if errors exist
 
-    if (Object.keys(validationErrors).length === 0) {
+    try {
       console.log("Submitting patient data:", formData);
-      // API call logic
+
+      // ✅ Use RTK Query to create a new patient
+      const response = await createPatient(formData).unwrap();
+
+      // ✅ Store patientId in Redux
+      dispatch(setPatientId(response.data.id));
+
+      console.log("Patient Created:", response.data);
+
+      // ✅ Redirect to appointment booking page
+      navigate("/book-appointment");
+    } catch (error) {
+      console.error("Error creating patient:", error);
     }
   };
 
-  const attendToPatient = () => {
-    let validationErrors = {};
+  // const attendToPatient = () => {
+  //   let validationErrors = {};
 
-    // Required fields validation
-    if (!formData.first_name) validationErrors.first_name = "Required";
-    if (!formData.last_name) validationErrors.last_name = "Required";
-    if (!formData.dob) validationErrors.dob = "Required";
-    if (!formData.gender) validationErrors.gender = "Required";
-    if (!formData.primary_phone) validationErrors.primary_phone = "Required";
-    if (!/^\d{10}$/.test(formData.primary_phone))
-      validationErrors.primary_phone = "Enter a valid 10-digit number";
-    if (!formData.emergencyContactName)
-      validationErrors.emergencyContactName = "Required";
-    if (!formData.emergencyContactPhone)
-      validationErrors.emergencyContactPhone = "Required";
-    if (!/^\d{10}$/.test(formData.emergencyContactPhone))
-      validationErrors.emergencyContactPhone = "Enter a valid 10-digit number";
-    if (!formData.clinic) validationErrors.clinic = "Clinic selection required";
+  //   // Required fields validation
+  //   if (!formData.first_name) validationErrors.first_name = "Required";
+  //   if (!formData.last_name) validationErrors.last_name = "Required";
+  //   if (!formData.dob) validationErrors.dob = "Required";
+  //   if (!formData.gender) validationErrors.gender = "Required";
+  //   if (!formData.primary_phone) validationErrors.primary_phone = "Required";
+  //   if (!/^\d{10}$/.test(formData.primary_phone))
+  //     validationErrors.primary_phone = "Enter a valid 10-digit number";
+  //   if (!formData.emergencyContactName)
+  //     validationErrors.emergencyContactName = "Required";
+  //   if (!formData.emergencyContactPhone)
+  //     validationErrors.emergencyContactPhone = "Required";
+  //   if (!/^\d{10}$/.test(formData.emergencyContactPhone))
+  //     validationErrors.emergencyContactPhone = "Enter a valid 10-digit number";
+  //   if (!formData.clinic) validationErrors.clinic = "Clinic selection required";
 
-    setErrors(validationErrors);
+  //   setErrors(validationErrors);
 
-    // 🚨 Prevent navigation if errors exist
-    if (Object.keys(validationErrors).length > 0) {
-      return;
-    }
+  //   // 🚨 Prevent navigation if errors exist
+  //   if (Object.keys(validationErrors).length > 0) {
+  //     return;
+  //   }
 
-    // ✅ Proceed if no validation errors
-    navigate("/case-history");
-  };
+  //   // ✅ Proceed if no validation errors
+  //   navigate("/case-history");
+  // };
 
   return (
     <div className="px-72 bg-[#f9fafb] h-full w-full">
@@ -199,7 +218,6 @@ const PersonalInfo = () => {
                   checked={formData.gender === "Female"}
                   onChange={handleChange}
                 />
-                
               </div>
             </div>
           </aside>
@@ -253,7 +271,14 @@ const PersonalInfo = () => {
                 "Miscellaneous & Others",
               ]}
             />
-
+            <InputField
+              label="Address"
+              name="address"
+              value={formData.address}
+              onChange={handleChange}
+              error={errors.address}
+              placeholder="Enter Home Address"
+            />
             <InputField
               label="Residence"
               name="residence"
@@ -309,19 +334,19 @@ const PersonalInfo = () => {
             />
             <InputField
               label="Emergency Contact Name"
-              name="emergencyContactName"
-              value={formData.emergencyContactName}
+              name="emergency_contact_name"
+              value={formData.emergency_contact_name}
               onChange={handleChange}
               placeholder="Contact Name"
-              error={errors.emergencyContactName}
+              error={errors.emergency_contact_name}
             />
             <InputField
               label="Emergency Contact Phone"
-              name="emergencyContactPhone"
-              value={formData.emergencyContactPhone}
+              name="emergency_contact_number"
+              value={formData.emergency_contact_number}
               onChange={handleChange}
               placeholder="0555555555"
-              error={errors.emergencyContactPhone}
+              error={errors.emergency_contact_number}
               icon={<IoPhonePortraitOutline />}
             />
           </aside>
@@ -369,7 +394,7 @@ const PersonalInfo = () => {
           </button>
           <button
             type="button"
-            onClick={attendToPatient}
+            onClick={handleSubmit}
             className="w-56 p-4 rounded-lg text-white bg-[#2f3192]"
           >
             Attend to Patient Now
