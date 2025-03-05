@@ -408,7 +408,7 @@ const PersonalInfo = () => {
 
           <div className="flex gap-8 justify-center my-16">
             <button
-              type="submit"
+              type="button"
               onClick={handleScheduleAppointment}
               className="w-56 p-4 rounded-lg text-[#2f3192] border border-[#2f3192]"
             >
