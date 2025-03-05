@@ -167,7 +167,7 @@ const PersonalInfo = () => {
 
   const handleScheduleAppointment = () => {
     createPatientHandler((patient) => {
-      navigate("/book-appointment", { state: { patient } });
+      navigate("/createAppointment", { state: { patient } });
     });
   };
 
