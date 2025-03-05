@@ -6,6 +6,7 @@ import { setPatientId } from "../redux/slices/patientSlice";
 import { useCreatePatientMutation } from "../redux/api/features/patientApi";
 import SelectClinicModal from "../components/SelectClinicModal";
 import ConfirmSaveModal from "./ConfirmSaveModal";
+import useCreateAppointment from "../hooks/useCreateAppointment"; 
 
 const PersonalInfo = () => {
   const navigate = useNavigate();
@@ -39,6 +40,7 @@ const PersonalInfo = () => {
   });
 
   const [errors, setErrors] = useState({});
+  const { createAppointmentHandler } = useCreateAppointment();
   const [createPatient, { isLoading, error }] = useCreatePatientMutation();
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [confirmMessage, setConfirmMessage] = useState("");
@@ -159,9 +161,31 @@ const PersonalInfo = () => {
   };
 
   // ✅ Action Handlers
+  // const handleAttendPatient = () => {
+  //   createPatientHandler((patient) => {
+  //     navigate("/case-history", { state: { patient } });
+  //   });
+  // };
+
+  // ✅ Attend to Patient: Creates an appointment & redirects to consultation
   const handleAttendPatient = () => {
-    createPatientHandler((patient) => {
-      navigate("/case-history", { state: { patient } });
+    createPatientHandler(async (patient) => {
+      dispatch(setPatientId(patient.id));
+
+      // ✅ Create appointment
+      const appointmentResult = await createAppointmentHandler(patient);
+
+      if (!appointmentResult.success) {
+        alert("❌ Failed to create appointment. Please try again.");
+        return;
+      }
+
+      const appointmentId = appointmentResult.data.id; // ✅ Extract appointment ID
+
+      console.log(`✅ Redirecting to consultation with appointment ID: ${appointmentId}`);
+
+      // ✅ Redirect to the consultation page with the appointment ID
+      navigate(`/consultation/${appointmentId}`);
     });
   };
 
