@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { CiSearch } from "react-icons/ci";
 import { FaChevronDown } from "react-icons/fa6";
 import { GrAdd } from "react-icons/gr";
+import { useNavigate } from "react-router-dom";
 
 import PatientModal from "../components/SelectClinicModal";
 import { useSelector } from "react-redux";
@@ -13,6 +14,9 @@ const Navbar = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isSearchModalVisible, setSearchModalVisibility] = useState(false);
 
+  const navigate = useNavigate();
+  const [searchQuery, setSearchQuery] = useState("");
+
   const { handleLogout } = useLogout(); // Access the logout function
 
   const openModal = () => setIsModalOpen(true);
@@ -22,36 +26,54 @@ const Navbar = () => {
   // Fetch user data from Redux store
   const user = useSelector((state) => state.auth.user);
 
+  const handleSearch = (event) => {
+    event.preventDefault();
+    if (searchQuery.trim()) {
+      navigate(`/patients/search?query=${searchQuery}`);
+    }
+  };
+
   return (
     <div className="dashboard_header grid items-center grid-cols-12 h-[10%]">
-      {isModalOpen && <PatientModal setIsModalOpen={setIsModalOpen} />}
+      {/* {isModalOpen && <PatientModal setIsModalOpen={setIsModalOpen} />}
       {isSearchModalVisible && (
         <SearchModalUnfilled
           setSearchModalVisibility={setSearchModalVisibility}
         />
-      )}
+      )} */}
       <div className="col-span-4">
         <h2 className="text-2xl font-bold">
           Good{" "}
-          {`${new Date().getHours() < 12 ? "Morning" : new Date().getHours() < 18 ? "Afternoon" : "Evening"}`},{" "}
-          <span>{user?.first_name || "User"}</span> 👋🏾
+          {`${
+            new Date().getHours() < 12
+              ? "Morning"
+              : new Date().getHours() < 18
+              ? "Afternoon"
+              : "Evening"
+          }`}
+          , <span>{user?.first_name || "User"}</span> 👋🏾
         </h2>
       </div>
 
       <div className="flex items-center justify-end gap-5 h-14 col-span-7 w-90 border-[#d0d5dd]">
         <div className="flex items-center text-left gap-0 w-2/3 border bg-white rounded-md px-4">
-          <CiSearch
-            title="Search"
-            className="h-5 bg-white cursor-pointer"
-          />
+          <CiSearch title="Search" className="h-5 bg-white cursor-pointer" />
           <input
+            type="search"
+            name="search"
+            placeholder="Search"
+            className="p-4 focus:outline-none w-full"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+          {/* <input
             type="search"
             name="search"
             readOnly
             placeholder="Search"
             className="p-4 focus:outline-none w-full"
             onClick={openSearchModal}
-          />
+          /> */}
         </div>
         <div className="flex items-center">
           <button
