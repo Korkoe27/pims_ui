@@ -3,13 +3,13 @@ import { patientApi } from "../api/features/patientApi";
 
 // Initial State
 const initialState = {
-  patientsList: [], // For storing all patients
-  selectedPatient: null, // For holding detailed patient info
-  searchResults: [], // For storing search results
-  patientId: null, // For storing Patient id after patient creation
-  error: null, // For any error handling
-  loading: false, // Loading state for patient-related actions
-  successMessage: null, // Success message for actions like creating/updating a patient
+  patientsList: [], // List of all patients
+  selectedPatient: null, // Detailed patient info
+  searchResults: [], // Search results
+  patientId: null, // Patient ID after creation
+  error: null, // Error handling
+  loading: false, // Loading state for API calls
+  successMessage: null, // Success message for actions like create/update
 };
 
 // Patient Slice
@@ -17,22 +17,17 @@ const patientSlice = createSlice({
   name: "patients",
   initialState,
   reducers: {
-    // Reset patients state
+    // Reset all patient-related state
     resetPatientsState: (state) => {
-      state.patientsList = [];
-      state.selectedPatient = null;
-      state.searchResults = [];
-      state.patientId = null;
-      state.error = null;
-      state.loading = false;
-      state.successMessage = null;
+      return { ...initialState };
     },
     // Set selected patient
     setSelectedPatient: (state, action) => {
       state.selectedPatient = action.payload;
     },
+    // Store patient ID
     setPatientId: (state, action) => {
-      state.patientId = action.payload; // ✅ Store patientId in Redux
+      state.patientId = action.payload;
     },
     // Clear error state
     clearError: (state) => {
@@ -44,9 +39,7 @@ const patientSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
-    // Use RTK Query matchers for the `patientApi` endpoints
-
-    // Handle listAllPatients
+    // Handle fetching all patients
     builder
       .addMatcher(patientApi.endpoints.getAllPatients.matchPending, (state) => {
         state.loading = true;
@@ -67,7 +60,7 @@ const patientSlice = createSlice({
         }
       );
 
-    // Handle searchPatients
+    // Handle searching patients
     builder
       .addMatcher(
         patientApi.endpoints.searchPatients.matchFulfilled,
@@ -82,7 +75,7 @@ const patientSlice = createSlice({
         }
       );
 
-    // Handle fetchSinglePatientDetails
+    // Handle fetching a single patient’s details
     builder
       .addMatcher(
         patientApi.endpoints.getPatientDetails.matchFulfilled,
@@ -98,7 +91,7 @@ const patientSlice = createSlice({
         }
       );
 
-    // Handle createNewPatient
+    // Handle creating a new patient
     builder
       .addMatcher(patientApi.endpoints.createPatient.matchPending, (state) => {
         state.loading = true;
@@ -108,7 +101,14 @@ const patientSlice = createSlice({
         patientApi.endpoints.createPatient.matchFulfilled,
         (state, action) => {
           state.successMessage = "Patient created successfully";
-          // state.patientsList.push(action.payload); // Add new patient to the list
+
+          // Ensure `patientsList` is always an array before pushing
+          if (!Array.isArray(state.patientsList)) {
+            state.patientsList = [];
+          }
+
+          state.patientsList.push(action.payload);
+          state.patientId = action.payload.id;
           state.loading = false;
         }
       )
@@ -120,7 +120,7 @@ const patientSlice = createSlice({
         }
       );
 
-    // Handle updatePatientDetails
+    // Handle updating patient details
     builder
       .addMatcher(
         patientApi.endpoints.updatePatientDetails.matchPending,
@@ -133,10 +133,12 @@ const patientSlice = createSlice({
         patientApi.endpoints.updatePatientDetails.matchFulfilled,
         (state, action) => {
           state.successMessage = "Patient updated successfully";
+
           // Update the patient in the list
           state.patientsList = state.patientsList.map((patient) =>
             patient.id === action.payload.id ? action.payload : patient
           );
+
           state.loading = false;
         }
       )
@@ -145,24 +147,6 @@ const patientSlice = createSlice({
         (state, action) => {
           state.error =
             action.error?.message || "Failed to update patient details";
-          state.loading = false;
-        }
-      );
-
-    builder
-      .addMatcher(
-        patientApi.endpoints.createPatient.matchFulfilled,
-        (state, action) => {
-          state.successMessage = "Patient created successfully";
-          state.patientsList.push(action.payload);
-          state.patientId = action.payload.id; // ✅ Store patientId when patient is created
-          state.loading = false;
-        }
-      )
-      .addMatcher(
-        patientApi.endpoints.createPatient.matchRejected,
-        (state, action) => {
-          state.error = action.error?.message || "Failed to create patient";
           state.loading = false;
         }
       );
@@ -177,4 +161,5 @@ export const {
   clearError,
   clearSuccessMessage,
 } = patientSlice.actions;
+
 export default patientSlice.reducer;
