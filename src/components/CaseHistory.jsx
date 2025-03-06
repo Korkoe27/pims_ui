@@ -1,6 +1,4 @@
 import React, { useState, useEffect } from "react";
-import Radios from "./Radios";
-import Inputs from "./Inputs";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -8,55 +6,34 @@ import {
   useCreateCaseHistoryMutation,
   useUpdateCaseHistoryMutation,
 } from "../redux/api/features/consultationApi";
-import { clearError, clearSuccessMessage } from "../redux/slices/consultationSlice";
+import {
+  clearError,
+  clearSuccessMessage,
+} from "../redux/slices/consultationSlice";
+import SearchableSelect from "./SearchableSelect"; // New searchable dropdown component
+import Radios from "./Radios";
+import Inputs from "./Inputs";
+import Notes from "./Notes";
 
 const CaseHistory = ({ appointmentId }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-
-  // Fetch the current user from the Redux store
   const { user } = useSelector((state) => state.auth);
 
-
   const [formData, setFormData] = useState({
-    appointment: "",
+    appointment: appointmentId || "",
     chiefComplaint: "",
     lastEyeExamination: "",
-    burningSensation: false,
-    itching: false,
-    tearing: false,
-    doubleVision: false,
-    discharge: false,
-    pain: false,
-    fbs: false,
-    photophobia: false,
-    asthma: false,
-    ulcer: false,
-    diabetes: false,
-    hypertension: false,
-    sickleCell: false,
-    stdSti: false,
-    spectacles: false,
-    eyeSurgery: false,
-    ocularTrauma: false,
-    glaucoma: false,
-    familyAsthma: false,
-    familyUlcer: false,
-    familyDiabetes: false,
-    familyHypertension: false,
-    familySickleCell: false,
-    familyStdSti: false,
-    familySpectacles: false,
-    familyEyeSurgery: false,
-    familyOcularTrauma: false,
-    familyGlaucoma: false,
-    parentDrugHistory: "",
+    medicalHistory: [],
+    ocularHistory: [],
+    familyMedicalHistory: [],
+    familyOcularHistory: [],
+    drugHistory: "",
     allergies: "",
-    hobbies: "",
+    socialHistory: "",
   });
 
   const [caseHistoryId, setCaseHistoryId] = useState(null);
-
   const { data: fetchedCaseHistory, isLoading } = useFetchCaseHistoryQuery(
     appointmentId,
     { skip: !appointmentId }
@@ -68,26 +45,17 @@ const CaseHistory = ({ appointmentId }) => {
     if (fetchedCaseHistory) {
       setFormData(fetchedCaseHistory);
       setCaseHistoryId(fetchedCaseHistory.id);
-    } else if (appointmentId) {
-      setFormData((prev) => ({ ...prev, appointment: appointmentId }));
     }
-  }, [fetchedCaseHistory, appointmentId]);
+  }, [fetchedCaseHistory]);
 
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFormData({
-      ...formData,
-      [name]: type === "checkbox" ? checked : value,
-    });
+  const handleMultiSelectChange = (name, selectedOptions) => {
+    setFormData({ ...formData, [name]: selectedOptions });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const payload = {
-        ...formData,
-        created_by: user.id, // Add the user ID
-      };
+      const payload = { ...formData, created_by: user.id };
 
       if (caseHistoryId) {
         await updateCaseHistory({ appointmentId, ...payload });
@@ -103,199 +71,97 @@ const CaseHistory = ({ appointmentId }) => {
     }
   };
 
-  if (isLoading) {
-    return <p>Loading case history...</p>;
-  }
+  if (isLoading) return <p>Loading case history...</p>;
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-12">
-      <section className="flex gap-28">
-        <aside className="flex flex-col gap-12">
-          {/* Chief Complaint */}
-          <div className="flex flex-col">
-            <h1 className="text-base font-medium text-black">
-              Chief Complaint <span className="text-[#ff0000]">*</span>
-            </h1>
-            <textarea
-              name="chiefComplaint"
-              value={formData.chiefComplaint}
-              onChange={handleChange}
-              placeholder="Type in the patient’s chief complaint"
-              className="p-4 border border-[#d0d5dd] resize-none rounded-md w-96 h-48"
-            ></textarea>
-          </div>
+      {/* Chief Complaint */}
+      <div className="flex flex-col">
+        <h1 className="text-base font-medium">
+          Chief Complaint <span className="text-red-500">*</span>
+        </h1>
+        <textarea
+          name="chiefComplaint"
+          value={formData.chiefComplaint}
+          onChange={(e) =>
+            setFormData({ ...formData, chiefComplaint: e.target.value })
+          }
+          placeholder="Type in the patient’s chief complaint"
+          className="p-4 border border-gray-300 resize-none rounded-md w-full h-32"
+        ></textarea>
+      </div>
 
-          {/* On Direct Questioning */}
-          <div>
-            <h1 className="text-base font-medium text-black">
-              On Direct Questioning <span className="text-[#ff0000]">*</span>
-            </h1>
-            <div className="grid grid-cols-2 gap-8">
-              {[
-                { label: "Burning Sensation", name: "burningSensation" },
-                { label: "Itching", name: "itching" },
-                { label: "Tearing", name: "tearing" },
-                { label: "Double Vision", name: "doubleVision" },
-                { label: "Discharge", name: "discharge" },
-                { label: "Pain", name: "pain" },
-                { label: "FBS", name: "fbs" },
-                { label: "Photophobia", name: "photophobia" },
-              ].map((field) => (
-                <Radios
-                  key={field.name}
-                  label={field.label}
-                  name={field.name}
-                  checked={formData[field.name]}
-                  onChange={handleChange}
-                />
-              ))}
-            </div>
-          </div>
+      {/* Medical & Family History Section */}
+      <section className="grid grid-cols-2 gap-8">
+        {/* Patient's Medical History */}
+        <SearchableSelect
+          label="Patient’s Medical History"
+          name="medicalHistory"
+          options={[
+            "Asthma",
+            "Ulcer",
+            "Diabetes",
+            "Hypertension",
+            "Sickle Cell",
+            "STD/STI",
+          ]}
+          value={formData.medicalHistory}
+          onChange={(selected) =>
+            handleMultiSelectChange("medicalHistory", selected)
+          }
+        />
 
-          {/* Patient Medical History */}
-          <div>
-            <h1 className="text-base font-medium text-black">
-              Patient Medical History{" "}
-              <span className="text-[#ff0000]">*</span>
-            </h1>
-            <div className="grid grid-cols-2 gap-8">
-              {[
-                { label: "Asthma", name: "asthma" },
-                { label: "Ulcer", name: "ulcer" },
-                { label: "Diabetes", name: "diabetes" },
-                { label: "Hypertension", name: "hypertension" },
-                { label: "Sickle Cell", name: "sickleCell" },
-                { label: "STD/STI", name: "stdSti" },
-              ].map((field) => (
-                <Radios
-                  key={field.name}
-                  label={field.label}
-                  name={field.name}
-                  checked={formData[field.name]}
-                  onChange={handleChange}
-                />
-              ))}
-            </div>
-          </div>
-        </aside>
+        {/* Family Medical History */}
+        <SearchableSelect
+          label="Family Medical History"
+          name="familyMedicalHistory"
+          options={[
+            "Diabetes",
+            "Hypertension",
+            "Glaucoma",
+            "Sickle Cell Disease",
+          ]}
+          value={formData.familyMedicalHistory}
+          onChange={(selected) =>
+            handleMultiSelectChange("familyMedicalHistory", selected)
+          }
+        />
 
-        <aside className="flex flex-col gap-12">
-          {/* Patient Ocular History */}
-          <div>
-            <h1 className="text-base font-medium text-black">
-              Patient Ocular History <span className="text-[#ff0000]">*</span>
-            </h1>
-            <Inputs
-              type="date"
-              label="Last Eye Examination"
-              name="lastEyeExamination"
-              value={formData.lastEyeExamination}
-              onChange={handleChange}
-            />
-            <div className="grid grid-cols-2 gap-8">
-              {[
-                { label: "Spectacles", name: "spectacles" },
-                { label: "Eye Surgery", name: "eyeSurgery" },
-                { label: "Ocular Trauma", name: "ocularTrauma" },
-                { label: "Glaucoma", name: "glaucoma" },
-              ].map((field) => (
-                <Radios
-                  key={field.name}
-                  label={field.label}
-                  name={field.name}
-                  checked={formData[field.name]}
-                  onChange={handleChange}
-                />
-              ))}
-            </div>
-          </div>
+        {/* Family Ocular History */}
+        <SearchableSelect
+          label="Family Ocular History"
+          name="familyOcularHistory"
+          options={["Glaucoma", "Spectacles", "Cataracts", "Eye Surgery"]}
+          value={formData.familyOcularHistory}
+          onChange={(selected) =>
+            handleMultiSelectChange("familyOcularHistory", selected)
+          }
+        />
 
-          {/* Family Medical History */}
-          <div>
-            <h1 className="text-base font-medium text-black">
-              Family Medical History{" "}
-              <span className="text-[#ff0000]">*</span>
-            </h1>
-            <div className="grid grid-cols-2 gap-8">
-              {[
-                { label: "Asthma", name: "familyAsthma" },
-                { label: "Ulcer", name: "familyUlcer" },
-                { label: "Diabetes", name: "familyDiabetes" },
-                { label: "Hypertension", name: "familyHypertension" },
-                { label: "Sickle Cell", name: "familySickleCell" },
-                { label: "STD/STI", name: "familyStdSti" },
-              ].map((field) => (
-                <Radios
-                  key={field.name}
-                  label={field.label}
-                  name={field.name}
-                  checked={formData[field.name]}
-                  onChange={handleChange}
-                />
-              ))}
-            </div>
-          </div>
-
-          {/* Family Ocular History */}
-          <div>
-            <h1 className="text-base font-medium text-black">
-              Family Ocular History{" "}
-              <span className="text-[#ff0000]">*</span>
-            </h1>
-            <div className="grid grid-cols-2 gap-8">
-              {[
-                { label: "Spectacles", name: "familySpectacles" },
-                { label: "Eye Surgery", name: "familyEyeSurgery" },
-                { label: "Ocular Trauma", name: "familyOcularTrauma" },
-                { label: "Glaucoma", name: "familyGlaucoma" },
-              ].map((field) => (
-                <Radios
-                  key={field.name}
-                  label={field.label}
-                  name={field.name}
-                  checked={formData[field.name]}
-                  onChange={handleChange}
-                />
-              ))}
-            </div>
-          </div>
-
-          {/* Text Inputs */}
-          <Inputs
-            type="text"
-            label="Patient’s Drug History"
-            name="parentDrugHistory"
-            value={formData.parentDrugHistory}
-            onChange={handleChange}
-          />
-          <Inputs
-            type="text"
-            label="Patient’s Allergies"
-            name="allergies"
-            value={formData.allergies}
-            onChange={handleChange}
-          />
-          <Inputs
-            type="text"
-            label="Patient’s Hobbies"
-            name="hobbies"
-            value={formData.hobbies}
-            onChange={handleChange}
-          />
-        </aside>
+        {/* Patient's Ocular History */}
+        <SearchableSelect
+          label="Patient’s Ocular History"
+          name="ocularHistory"
+          options={["Spectacles", "Eye Surgery", "Ocular Trauma", "Glaucoma"]}
+          value={formData.ocularHistory}
+          onChange={(selected) =>
+            handleMultiSelectChange("ocularHistory", selected)
+          }
+        />
       </section>
 
-      <div className="flex gap-8 justify-evenly my-16">
+      {/* Buttons */}
+      <div className="flex justify-between mt-8">
         <button
           type="button"
           onClick={() => navigate(-1)}
-          className="w-56 p-4 rounded-lg text-[#2f3192] border border-[#2f3192]"
+          className="p-4 border border-blue-600 text-blue-600 rounded-lg w-48"
         >
           Back
         </button>
         <button
           type="submit"
-          className="w-56 p-4 rounded-lg text-white bg-[#2f3192]"
+          className="p-4 bg-blue-600 text-white rounded-lg w-48"
         >
           Save and Proceed
         </button>
