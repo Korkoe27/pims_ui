@@ -38,8 +38,8 @@ const Navbar = () => {
 
   return (
     <div className="dashboard_header grid items-center grid-cols-12 h-[10%]">
-      {/* {isModalOpen && <PatientModal setIsModalOpen={setIsModalOpen} />}
-      {isSearchModalVisible && (
+      {isModalOpen && <PatientModal setIsModalOpen={setIsModalOpen} />}
+      {/*{isSearchModalVisible && (
         <SearchModalUnfilled
           setSearchModalVisibility={setSearchModalVisibility}
         />
