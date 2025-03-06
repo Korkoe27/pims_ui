@@ -8,6 +8,7 @@ import PatientModal from "../components/SelectClinicModal";
 import { useSelector } from "react-redux";
 import SearchModalUnfilled from "./SearchModalUnfilled";
 import useLogout from "../hooks/useLogout"; // Import the useLogout hook
+import { useLazySearchPatientsQuery } from "../redux/api/features/patientApi";
 
 const Navbar = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -16,6 +17,7 @@ const Navbar = () => {
 
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
+  const [triggerSearch] = useLazySearchPatientsQuery();
 
   const { handleLogout } = useLogout(); // Access the logout function
 
@@ -26,10 +28,11 @@ const Navbar = () => {
   // Fetch user data from Redux store
   const user = useSelector((state) => state.auth.user);
 
-  const handleSearch = (event) => {
+  const handleSearch = async (event) => {
     event.preventDefault();
     if (searchQuery.trim()) {
-      navigate(`/patients/search?query=${searchQuery}`);
+      await triggerSearch(searchQuery); // Call API to prefetch search data
+      navigate(`/patients/search?query=${searchQuery}`); // Redirect user to results page
     }
   };
 
@@ -56,25 +59,20 @@ const Navbar = () => {
       </div>
 
       <div className="flex items-center justify-end gap-5 h-14 col-span-7 w-90 border-[#d0d5dd]">
-        <div className="flex items-center text-left gap-0 w-2/3 border bg-white rounded-md px-4">
+        <form
+          onSubmit={handleSearch}
+          className="flex items-center text-left gap-0 w-2/3 border bg-white rounded-md px-4"
+        >
           <CiSearch title="Search" className="h-5 bg-white cursor-pointer" />
           <input
             type="search"
             name="search"
-            placeholder="Search"
+            placeholder="Search Patients"
             className="p-4 focus:outline-none w-full"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
-          {/* <input
-            type="search"
-            name="search"
-            readOnly
-            placeholder="Search"
-            className="p-4 focus:outline-none w-full"
-            onClick={openSearchModal}
-          /> */}
-        </div>
+        </form>
         <div className="flex items-center">
           <button
             className="flex items-center p-4 h-14 text-white bg-[#2f3192] gap-2 rounded-md text-sm"

@@ -83,7 +83,8 @@ export const patientApi = apiClient.injectEndpoints({
 export const {
   useGetAllPatientsQuery,
   useGetPatientDetailsQuery,
-  useSearchPatientsQuery,
+  useSearchPatientsQuery,  // ✅ Normal query
+  useLazySearchPatientsQuery, // ✅ RTK Query automatically provides this
   useUpdatePatientDetailsMutation,
   useCreatePatientMutation,
   useGetPatientAppointmentsQuery,

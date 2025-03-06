@@ -23,6 +23,7 @@ import {
   Patients,
   PatientDetails,
   Login,
+  PatientSearchResults,
 } from "./pages";
 import Layout from "./pages/Layout";
 import ProtectedRoute from "./hooks/ProtectedRoute";
@@ -69,6 +70,7 @@ const App = () => {
             <Route path="/management" element={<Management />} />
             <Route path="/createAppointment" element={<CreateAppointment />} />
             <Route path="/consultation/:appointmentId" element={<Consultation />} />
+            <Route path="/patients/search" element={<PatientSearchResults />} />
           </Route>
         </Routes>
       </BrowserRouter>
