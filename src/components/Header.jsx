@@ -8,7 +8,7 @@ const Header = ({ patient, appointmentId }) => {
   );
 
   // Fallback to Redux state if no patient is passed as a prop
-  const patientData = patient || selectedAppointment?.patient;
+  const patientData = patient || selectedAppointment;
 
   if (!patientData) {
     return (
@@ -22,14 +22,13 @@ const Header = ({ patient, appointmentId }) => {
     <div className="flex flex-col gap-1">
       {/* Patient Name */}
       <h1 className="text-base font-normal">
-        {patientData?.first_name || "Unknown"} {patientData?.last_name || ""}
+        {patientData?.patient_name || "Unknown"}
       </h1>
 
       {/* Patient ID */}
       <h1 className="text-2xl font-semibold">
         Patient ID: {patientData?.patient_id || "Not Available"}
       </h1>
-
     </div>
   );
 };
@@ -37,8 +36,7 @@ const Header = ({ patient, appointmentId }) => {
 // PropTypes for validation
 Header.propTypes = {
   patient: PropTypes.shape({
-    first_name: PropTypes.string,
-    last_name: PropTypes.string,
+    patient_name: PropTypes.string,
     patient_id: PropTypes.string,
   }),
   appointmentId: PropTypes.string,
