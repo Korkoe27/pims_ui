@@ -244,13 +244,6 @@ const CaseHistory = ({ appointmentId }) => {
       {/* Buttons */}
       <div className="flex justify-between mt-8">
         <button
-          type="button"
-          onClick={() => navigate(-1)}
-          className="p-4 border border-blue-600 text-blue-600 rounded-lg w-48"
-        >
-          Back
-        </button>
-        <button
           type="submit"
           className="p-4 bg-blue-600 text-white rounded-lg w-48"
         >
