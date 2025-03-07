@@ -10,10 +10,8 @@ import {
   clearError,
   clearSuccessMessage,
 } from "../redux/slices/consultationSlice";
-import SearchableSelect from "./SearchableSelect"; // New searchable dropdown component
-import Radios from "./Radios";
+import SearchableSelect from "./SearchableSelect"; // Searchable dropdown component
 import Inputs from "./Inputs";
-import Notes from "./Notes";
 
 const CaseHistory = ({ appointmentId }) => {
   const navigate = useNavigate();
@@ -75,79 +73,172 @@ const CaseHistory = ({ appointmentId }) => {
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-12">
-      {/* Chief Complaint */}
-      <div className="flex flex-col">
-        <h1 className="text-base font-medium">
-          Chief Complaint <span className="text-red-500">*</span>
-        </h1>
-        <textarea
-          name="chiefComplaint"
-          value={formData.chiefComplaint}
-          onChange={(e) =>
-            setFormData({ ...formData, chiefComplaint: e.target.value })
-          }
-          placeholder="Type in the patient’s chief complaint"
-          className="p-4 border border-gray-300 resize-none rounded-md w-full h-32"
-        ></textarea>
-      </div>
-
-      {/* Medical & Family History Section */}
+      {/* Two Completely Independent Columns */}
       <section className="grid grid-cols-2 gap-8">
-        {/* Patient's Medical History */}
-        <SearchableSelect
-          label="Patient’s Medical History"
-          name="medicalHistory"
-          options={[
-            "Asthma",
-            "Ulcer",
-            "Diabetes",
-            "Hypertension",
-            "Sickle Cell",
-            "STD/STI",
-          ]}
-          value={formData.medicalHistory}
-          onChange={(selected) =>
-            handleMultiSelectChange("medicalHistory", selected)
-          }
-        />
+        {/* Left Column - Chief Complaint & On-Direct Questioning */}
+        <div className="flex flex-col gap-6 min-h-[500px] p-4">
+          {/* Chief Complaint */}
+          <div>
+            <h1 className="text-base font-medium">
+              Chief Complaint <span className="text-red-500">*</span>
+            </h1>
+            <textarea
+              name="chiefComplaint"
+              value={formData.chiefComplaint}
+              onChange={(e) =>
+                setFormData({ ...formData, chiefComplaint: e.target.value })
+              }
+              placeholder="Type in the patient’s chief complaint"
+              className="p-4 border border-gray-300 resize-none rounded-md w-full h-32"
+            ></textarea>
+          </div>
 
-        {/* Family Medical History */}
-        <SearchableSelect
-          label="Family Medical History"
-          name="familyMedicalHistory"
-          options={[
-            "Diabetes",
-            "Hypertension",
-            "Glaucoma",
-            "Sickle Cell Disease",
-          ]}
-          value={formData.familyMedicalHistory}
-          onChange={(selected) =>
-            handleMultiSelectChange("familyMedicalHistory", selected)
-          }
-        />
+          {/* On Direct Questioning */}
+          <SearchableSelect
+            label="On-Direct Questioning"
+            name="onDirectQuestioning"
+            options={[
+              "Burning Sensation",
+              "Itching",
+              "Tearing",
+              "Double Vision",
+              "Discharge",
+              "Pain",
+              "Photophobia",
+              "Foreign Body Sensation (FBS)",
+            ]}
+            value={formData.onDirectQuestioning || []}
+            onChange={(selected) =>
+              handleMultiSelectChange("onDirectQuestioning", selected)
+            }
+          />
 
-        {/* Family Ocular History */}
-        <SearchableSelect
-          label="Family Ocular History"
-          name="familyOcularHistory"
-          options={["Glaucoma", "Spectacles", "Cataracts", "Eye Surgery"]}
-          value={formData.familyOcularHistory}
-          onChange={(selected) =>
-            handleMultiSelectChange("familyOcularHistory", selected)
-          }
-        />
+          {/* Patient's Medical History */}
+          <SearchableSelect
+            label="Patient's Medical History"
+            name="medicalHistory" // ✅ Corrected the name prop
+            options={[
+              "Asthma",
+              "Ulcer",
+              "Diabetes",
+              "Hypertension",
+              "Sickle Cell",
+              "STD/STI",
+            ]}
+            value={formData.medicalHistory || []}
+            onChange={(selected) =>
+              handleMultiSelectChange("medicalHistory", selected)
+            }
+          />
 
-        {/* Patient's Ocular History */}
-        <SearchableSelect
-          label="Patient’s Ocular History"
-          name="ocularHistory"
-          options={["Spectacles", "Eye Surgery", "Ocular Trauma", "Glaucoma"]}
-          value={formData.ocularHistory}
-          onChange={(selected) =>
-            handleMultiSelectChange("ocularHistory", selected)
-          }
-        />
+          {/* Date of Last Examination */}
+          <Inputs
+            type="date"
+            label="Date of Last Examination"
+            name="lastEyeExamination"
+            value={formData.lastEyeExamination || ""}
+            onChange={(e) =>
+              setFormData({ ...formData, lastEyeExamination: e.target.value })
+            }
+          />
+          {/* Patient's Ocular History */}
+          <SearchableSelect
+            label="Patient's Ocular History"
+            name="ocularHistory"
+            options={[
+              "Spectacles",
+              "Contact Lenses",
+              "Eye Surgery",
+              "Ocular Trauma",
+              "Glaucoma",
+              "Cataracts",
+              "Retinal Detachment",
+            ]}
+            value={formData.ocularHistory || []}
+            onChange={(selected) =>
+              handleMultiSelectChange("ocularHistory", selected)
+            }
+          />
+        </div>
+
+        {/* Right Column - Family Medical & Ocular History */}
+        <div className="flex flex-col gap-6 min-h-[500px] p-4">
+          {/* Family Medical History */}
+          <SearchableSelect
+            label="Family Medical History"
+            name="familyMedicalHistory"
+            options={[
+              "Diabetes",
+              "Hypertension",
+              "Glaucoma",
+              "Sickle Cell Disease",
+            ]}
+            value={formData.familyMedicalHistory}
+            onChange={(selected) =>
+              handleMultiSelectChange("familyMedicalHistory", selected)
+            }
+          />
+
+          {/* Family Ocular History */}
+          <SearchableSelect
+            label="Family Ocular History"
+            name="familyOcularHistory"
+            options={["Glaucoma", "Spectacles", "Cataracts", "Eye Surgery"]}
+            value={formData.familyOcularHistory}
+            onChange={(selected) =>
+              handleMultiSelectChange("familyOcularHistory", selected)
+            }
+          />
+
+          {/* Patient’s Drug History */}
+          <div className="flex flex-col">
+            <Inputs
+              type="text"
+              label="Patient’s Drug History"
+              name="drugHistory"
+              value={formData.drugHistory || ""}
+              onChange={(e) =>
+                setFormData({ ...formData, drugHistory: e.target.value })
+              }
+            />
+            <button className="text-blue-600 hover:underline mt-2 flex items-center gap-1">
+              ✏️ <span>Add a note</span>
+            </button>
+          </div>
+
+          {/* Patient’s Allergies */}
+          <div className="flex flex-col">
+            <Inputs
+              type="text"
+              label="Patient’s Allergies"
+              name="allergies"
+              value={formData.allergies || ""}
+              onChange={(e) =>
+                setFormData({ ...formData, allergies: e.target.value })
+              }
+            />
+            <button className="text-blue-600 hover:underline mt-2 flex items-center gap-1">
+              ✏️ <span>Add a note</span>
+            </button>
+          </div>
+
+          {/* Patient’s Social History */}
+          <div className="flex flex-col">
+            <Inputs
+              type="text"
+              label="Patient’s Social History"
+              name="socialHistory"
+              placeholder="e.g., Driver, Smoker, Computer use"
+              value={formData.socialHistory || ""}
+              onChange={(e) =>
+                setFormData({ ...formData, socialHistory: e.target.value })
+              }
+            />
+            <button className="text-blue-600 hover:underline mt-2 flex items-center gap-1">
+              ✏️ <span>Add a note</span>
+            </button>
+          </div>
+        </div>
       </section>
 
       {/* Buttons */}
