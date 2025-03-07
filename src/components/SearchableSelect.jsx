@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import PropTypes from "prop-types";
 import { Trash2 } from "lucide-react";
 
@@ -6,32 +6,28 @@ const SearchableSelect = ({ label, name, options, value, onChange }) => {
   const [search, setSearch] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const [additionalInfo, setAdditionalInfo] = useState({});
+  const dropdownRef = useRef(null); // To detect clicks outside
 
-  const filteredOptions = options.filter((option) =>
-    option.toLowerCase().includes(search.toLowerCase())
+  // Filter options to exclude already selected items
+  const filteredOptions = options.filter(
+    (option) =>
+      !value.includes(option) &&
+      option.toLowerCase().includes(search.toLowerCase())
   );
 
+  // Handle selection & close dropdown after selecting
   const handleSelect = (selectedOption) => {
-    let newValue;
-    if (value.includes(selectedOption)) {
-      newValue = value.filter((item) => item !== selectedOption);
-    } else {
-      newValue = [...value, selectedOption];
-      setAdditionalInfo((prev) => ({
-        ...prev,
-        [selectedOption]: { laterality: "OD", note: "", symptomGrade: "" },
-      }));
-    }
-    onChange(newValue);
-  };
-
-  const handleLateralityChange = (option, laterality) => {
+    const newValue = [...value, selectedOption];
     setAdditionalInfo((prev) => ({
       ...prev,
-      [option]: { ...prev[option], laterality },
+      [selectedOption]: { laterality: "OD", note: "", symptomGrade: "" },
     }));
+    onChange(newValue);
+    setIsOpen(false); // Auto-close dropdown
+    setSearch(""); // Clear search input
   };
 
+  // Handle deleting a selected item
   const handleDelete = (option) => {
     const newValue = value.filter((item) => item !== option);
     onChange(newValue);
@@ -42,8 +38,22 @@ const SearchableSelect = ({ label, name, options, value, onChange }) => {
     });
   };
 
+  // Close dropdown if user clicks outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   return (
-    <div className="relative w-full">
+    <div className="relative w-full" ref={dropdownRef}>
       <h1 className="text-base font-medium">{label}</h1>
       <div
         className="border p-3 rounded-md cursor-pointer bg-white"
@@ -62,17 +72,19 @@ const SearchableSelect = ({ label, name, options, value, onChange }) => {
             className="w-full p-2 border-b"
           />
           <div className="max-h-40 overflow-y-auto">
-            {filteredOptions.map((option) => (
-              <div
-                key={option}
-                className={`p-2 cursor-pointer ${
-                  value.includes(option) ? "bg-blue-100" : "hover:bg-gray-100"
-                }`}
-                onClick={() => handleSelect(option)}
-              >
-                {option}
-              </div>
-            ))}
+            {filteredOptions.length > 0 ? (
+              filteredOptions.map((option) => (
+                <div
+                  key={option}
+                  className="p-2 cursor-pointer hover:bg-gray-100"
+                  onClick={() => handleSelect(option)}
+                >
+                  {option}
+                </div>
+              ))
+            ) : (
+              <p className="p-2 text-gray-400">No results found</p>
+            )}
           </div>
         </div>
       )}
@@ -104,7 +116,10 @@ const SearchableSelect = ({ label, name, options, value, onChange }) => {
                       name={`laterality-${selected}`}
                       value={side}
                       checked={additionalInfo[selected]?.laterality === side}
-                      onChange={() => handleLateralityChange(selected, side)}
+                      onChange={() => setAdditionalInfo((prev) => ({
+                        ...prev,
+                        [selected]: { ...prev[selected], laterality: side },
+                      }))}
                     />
                     <span>{side}</span>
                   </label>
