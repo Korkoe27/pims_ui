@@ -242,12 +242,12 @@ const CaseHistory = ({ appointmentId }) => {
       </section>
 
       {/* Buttons */}
-      <div className="flex justify-between mt-8">
+      <div className="flex justify-center mt-6 mb-4">
         <button
           type="submit"
-          className="p-4 bg-blue-600 text-white rounded-lg w-48"
+          className="py-2 px-6 bg-[#2F3192] text-white text-sm font-medium rounded-xl shadow-md hover:bg-[#252774] transition-all duration-300"
         >
-          Save and Proceed
+          Save and proceed
         </button>
       </div>
     </form>
