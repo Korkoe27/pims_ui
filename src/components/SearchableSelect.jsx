@@ -1,29 +1,28 @@
 import React, { useState } from "react";
 import PropTypes from "prop-types";
+import { Trash2 } from "lucide-react";
 
 const SearchableSelect = ({ label, name, options, value, onChange }) => {
   const [search, setSearch] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const [additionalInfo, setAdditionalInfo] = useState({});
 
-  // Filter out already selected items from the dropdown
-  const filteredOptions = options.filter(
-    (option) =>
-      !value.includes(option) &&
-      option.toLowerCase().includes(search.toLowerCase())
+  const filteredOptions = options.filter((option) =>
+    option.toLowerCase().includes(search.toLowerCase())
   );
 
   const handleSelect = (selectedOption) => {
-    const newValue = [...value, selectedOption];
-
-    setAdditionalInfo((prev) => ({
-      ...prev,
-      [selectedOption]: { laterality: "OD", note: "", symptomGrade: "" },
-    }));
-
+    let newValue;
+    if (value.includes(selectedOption)) {
+      newValue = value.filter((item) => item !== selectedOption);
+    } else {
+      newValue = [...value, selectedOption];
+      setAdditionalInfo((prev) => ({
+        ...prev,
+        [selectedOption]: { laterality: "OD", note: "", symptomGrade: "" },
+      }));
+    }
     onChange(newValue);
-    setIsOpen(false); // Close the dropdown after selection
-    setSearch(""); // Clear search input after selecting an item
   };
 
   const handleLateralityChange = (option, laterality) => {
@@ -63,19 +62,17 @@ const SearchableSelect = ({ label, name, options, value, onChange }) => {
             className="w-full p-2 border-b"
           />
           <div className="max-h-40 overflow-y-auto">
-            {filteredOptions.length > 0 ? (
-              filteredOptions.map((option) => (
-                <div
-                  key={option}
-                  className="p-2 cursor-pointer hover:bg-gray-100"
-                  onClick={() => handleSelect(option)}
-                >
-                  {option}
-                </div>
-              ))
-            ) : (
-              <p className="p-2 text-gray-400">No results found</p>
-            )}
+            {filteredOptions.map((option) => (
+              <div
+                key={option}
+                className={`p-2 cursor-pointer ${
+                  value.includes(option) ? "bg-blue-100" : "hover:bg-gray-100"
+                }`}
+                onClick={() => handleSelect(option)}
+              >
+                {option}
+              </div>
+            ))}
           </div>
         </div>
       )}
@@ -84,14 +81,17 @@ const SearchableSelect = ({ label, name, options, value, onChange }) => {
       {value.length > 0 && (
         <div className="mt-2 space-y-2">
           {value.map((selected) => (
-            <div key={selected} className="flex flex-col p-3 border rounded-md bg-gray-50">
+            <div
+              key={selected}
+              className="flex flex-col p-3 border rounded-md bg-gray-50"
+            >
               <div className="flex items-center justify-between">
                 <h2 className="text-sm font-medium">{selected}</h2>
                 <button
                   onClick={() => handleDelete(selected)}
                   className="text-red-500 hover:text-red-700 text-sm"
                 >
-                  ❌
+                  <Trash2 size={18} strokeWidth={2} color="red" />
                 </button>
               </div>
 
