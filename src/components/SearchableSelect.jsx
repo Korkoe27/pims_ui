@@ -49,7 +49,7 @@ const SearchableSelect = ({ label, name, options, value, onChange }) => {
         className="border p-3 rounded-md cursor-pointer bg-white"
         onClick={() => setIsOpen(!isOpen)}
       >
-        {value.length > 0 ? value.join(", ") : "Select options..."}
+        {value.length > 0 ? value.join(", ") : "Select any that apply"}
       </div>
 
       {isOpen && (
