@@ -6,22 +6,24 @@ const SearchableSelect = ({ label, name, options, value, onChange }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [additionalInfo, setAdditionalInfo] = useState({});
 
-  const filteredOptions = options.filter((option) =>
-    option.toLowerCase().includes(search.toLowerCase())
+  // Filter out already selected items from the dropdown
+  const filteredOptions = options.filter(
+    (option) =>
+      !value.includes(option) &&
+      option.toLowerCase().includes(search.toLowerCase())
   );
 
   const handleSelect = (selectedOption) => {
-    let newValue;
-    if (value.includes(selectedOption)) {
-      newValue = value.filter((item) => item !== selectedOption);
-    } else {
-      newValue = [...value, selectedOption];
-      setAdditionalInfo((prev) => ({
-        ...prev,
-        [selectedOption]: { laterality: "OD", note: "", symptomGrade: "" },
-      }));
-    }
+    const newValue = [...value, selectedOption];
+
+    setAdditionalInfo((prev) => ({
+      ...prev,
+      [selectedOption]: { laterality: "OD", note: "", symptomGrade: "" },
+    }));
+
     onChange(newValue);
+    setIsOpen(false); // Close the dropdown after selection
+    setSearch(""); // Clear search input after selecting an item
   };
 
   const handleLateralityChange = (option, laterality) => {
@@ -61,17 +63,19 @@ const SearchableSelect = ({ label, name, options, value, onChange }) => {
             className="w-full p-2 border-b"
           />
           <div className="max-h-40 overflow-y-auto">
-            {filteredOptions.map((option) => (
-              <div
-                key={option}
-                className={`p-2 cursor-pointer ${
-                  value.includes(option) ? "bg-blue-100" : "hover:bg-gray-100"
-                }`}
-                onClick={() => handleSelect(option)}
-              >
-                {option}
-              </div>
-            ))}
+            {filteredOptions.length > 0 ? (
+              filteredOptions.map((option) => (
+                <div
+                  key={option}
+                  className="p-2 cursor-pointer hover:bg-gray-100"
+                  onClick={() => handleSelect(option)}
+                >
+                  {option}
+                </div>
+              ))
+            ) : (
+              <p className="p-2 text-gray-400">No results found</p>
+            )}
           </div>
         </div>
       )}
