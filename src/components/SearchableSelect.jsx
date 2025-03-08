@@ -1,12 +1,15 @@
 import React, { useState, useEffect, useRef } from "react";
 import PropTypes from "prop-types";
-import { Trash2, ChevronDown } from "lucide-react"; // Import arrow icon
+import { Trash2, ChevronDown } from "lucide-react";
+import NotesModal from "./NotesModal"; // Import Notes Modal
 
 const SearchableSelect = ({ label, name, options, value, onChange }) => {
   const [search, setSearch] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const [additionalInfo, setAdditionalInfo] = useState({});
-  const dropdownRef = useRef(null); // To detect clicks outside
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedField, setSelectedField] = useState("");
+  const dropdownRef = useRef(null); // For closing dropdown on outside click
 
   // Filter options to exclude already selected items
   const filteredOptions = options.filter(
@@ -15,16 +18,20 @@ const SearchableSelect = ({ label, name, options, value, onChange }) => {
       option.toLowerCase().includes(search.toLowerCase())
   );
 
-  // Handle selection & close dropdown after selecting
+  // Handle selection & keep previous notes intact
   const handleSelect = (selectedOption) => {
     const newValue = [...value, selectedOption];
     setAdditionalInfo((prev) => ({
       ...prev,
-      [selectedOption]: { laterality: "OD", note: "", symptomGrade: "" },
+      [selectedOption]: prev[selectedOption] || {
+        laterality: "OD",
+        note: "",
+        symptomGrade: "",
+      },
     }));
     onChange(newValue);
-    setIsOpen(false); // Auto-close dropdown
-    setSearch(""); // Clear search input
+    setIsOpen(false);
+    setSearch("");
   };
 
   // Handle deleting a selected item
@@ -36,6 +43,20 @@ const SearchableSelect = ({ label, name, options, value, onChange }) => {
       delete newInfo[option];
       return newInfo;
     });
+  };
+
+  // Open modal for adding/updating a note
+  const openNoteModal = (field) => {
+    setSelectedField(field);
+    setModalOpen(true);
+  };
+
+  // Save note and update the UI
+  const saveNote = (note) => {
+    setAdditionalInfo((prev) => ({
+      ...prev,
+      [selectedField]: { ...prev[selectedField], note },
+    }));
   };
 
   // Close dropdown if user clicks outside
@@ -122,10 +143,12 @@ const SearchableSelect = ({ label, name, options, value, onChange }) => {
                       name={`laterality-${selected}`}
                       value={side}
                       checked={additionalInfo[selected]?.laterality === side}
-                      onChange={() => setAdditionalInfo((prev) => ({
-                        ...prev,
-                        [selected]: { ...prev[selected], laterality: side },
-                      }))}
+                      onChange={() =>
+                        setAdditionalInfo((prev) => ({
+                          ...prev,
+                          [selected]: { ...prev[selected], laterality: side },
+                        }))
+                      }
                     />
                     <span>{side}</span>
                   </label>
@@ -134,13 +157,40 @@ const SearchableSelect = ({ label, name, options, value, onChange }) => {
 
               {/* Additional Options */}
               <div className="flex space-x-4 mt-2 text-blue-600 text-sm">
-                <button className="hover:underline">✏️ Add a note</button>
+                {/* Note Button with Hover Tooltip */}
+                <div className="relative group">
+                  <button
+                    className="hover:underline"
+                    onClick={() => openNoteModal(selected)}
+                  >
+                    {additionalInfo[selected]?.note
+                      ? "✏️ Update note"
+                      : "✏️ Add a note"}
+                  </button>
+
+                  {/* Tooltip for displaying the note on hover */}
+                  {additionalInfo[selected]?.note && (
+                    <div className="absolute left-0 bottom-full mb-1 w-48 bg-gray-800 text-white text-xs p-2 rounded opacity-0 group-hover:opacity-100 transition-opacity">
+                      {additionalInfo[selected]?.note}
+                    </div>
+                  )}
+                </div>
+
+                {/* Grading Symptom Button */}
                 <button className="hover:underline">📊 Grade Symptom</button>
               </div>
             </div>
           ))}
         </div>
       )}
+
+      {/* Notes Modal */}
+      <NotesModal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        onSave={saveNote}
+        fieldLabel={selectedField}
+      />
     </div>
   );
 };
