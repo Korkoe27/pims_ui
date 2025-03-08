@@ -10,8 +10,9 @@ import {
   clearError,
   clearSuccessMessage,
 } from "../redux/slices/consultationSlice";
-import SearchableSelect from "./SearchableSelect"; // Searchable dropdown component
+import SearchableSelect from "./SearchableSelect";
 import Inputs from "./Inputs";
+import NotesModal from "./NotesModal";
 
 const CaseHistory = ({ appointmentId }) => {
   const navigate = useNavigate();
@@ -29,6 +30,7 @@ const CaseHistory = ({ appointmentId }) => {
     drugHistory: "",
     allergies: "",
     socialHistory: "",
+    notes: {}, // Store notes separately for each field
   });
 
   const [caseHistoryId, setCaseHistoryId] = useState(null);
@@ -38,6 +40,9 @@ const CaseHistory = ({ appointmentId }) => {
   );
   const [createCaseHistory] = useCreateCaseHistoryMutation();
   const [updateCaseHistory] = useUpdateCaseHistoryMutation();
+
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedField, setSelectedField] = useState("");
 
   useEffect(() => {
     if (fetchedCaseHistory) {
@@ -69,31 +74,41 @@ const CaseHistory = ({ appointmentId }) => {
     }
   };
 
+  // Open modal for adding a note
+  const openNoteModal = (field) => {
+    setSelectedField(field);
+    setModalOpen(true);
+  };
+
+  // Save note for a specific field
+  const saveNote = (note) => {
+    setFormData((prev) => ({
+      ...prev,
+      notes: { ...prev.notes, [selectedField]: note },
+    }));
+  };
+
   if (isLoading) return <p>Loading case history...</p>;
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-12">
-      {/* Two Completely Independent Columns */}
+      {/* Two Independent Columns */}
       <section className="grid grid-cols-2 gap-8">
-        {/* Left Column - Chief Complaint & On-Direct Questioning */}
+        {/* Left Column */}
         <div className="flex flex-col gap-6 min-h-[500px] p-4">
-          {/* Chief Complaint */}
-          <div>
-            <h1 className="text-base font-medium">
-              Chief Complaint <span className="text-red-500">*</span>
-            </h1>
-            <textarea
-              name="chiefComplaint"
-              value={formData.chiefComplaint}
-              onChange={(e) =>
-                setFormData({ ...formData, chiefComplaint: e.target.value })
-              }
-              placeholder="Type in the patient’s chief complaint"
-              className="p-4 border border-gray-300 resize-none rounded-md w-full h-32"
-            ></textarea>
-          </div>
+          <h1 className="text-base font-medium">
+            Chief Complaint <span className="text-red-500">*</span>
+          </h1>
+          <textarea
+            name="chiefComplaint"
+            value={formData.chiefComplaint}
+            onChange={(e) =>
+              setFormData({ ...formData, chiefComplaint: e.target.value })
+            }
+            placeholder="Type in the patient’s chief complaint"
+            className="p-4 border border-gray-300 resize-none rounded-md w-full h-32"
+          ></textarea>
 
-          {/* On Direct Questioning */}
           <SearchableSelect
             label="On-Direct Questioning"
             name="onDirectQuestioning"
@@ -113,10 +128,9 @@ const CaseHistory = ({ appointmentId }) => {
             }
           />
 
-          {/* Patient's Medical History */}
           <SearchableSelect
             label="Patient's Medical History"
-            name="medicalHistory" // ✅ Corrected the name prop
+            name="medicalHistory"
             options={[
               "Asthma",
               "Ulcer",
@@ -131,7 +145,6 @@ const CaseHistory = ({ appointmentId }) => {
             }
           />
 
-          {/* Date of Last Examination */}
           <Inputs
             type="date"
             label="Date of Last Examination"
@@ -141,7 +154,7 @@ const CaseHistory = ({ appointmentId }) => {
               setFormData({ ...formData, lastEyeExamination: e.target.value })
             }
           />
-          {/* Patient's Ocular History */}
+
           <SearchableSelect
             label="Patient's Ocular History"
             name="ocularHistory"
@@ -161,9 +174,8 @@ const CaseHistory = ({ appointmentId }) => {
           />
         </div>
 
-        {/* Right Column - Family Medical & Ocular History */}
+        {/* Right Column */}
         <div className="flex flex-col gap-6 min-h-[500px] p-4">
-          {/* Family Medical History */}
           <SearchableSelect
             label="Family Medical History"
             name="familyMedicalHistory"
@@ -179,7 +191,6 @@ const CaseHistory = ({ appointmentId }) => {
             }
           />
 
-          {/* Family Ocular History */}
           <SearchableSelect
             label="Family Ocular History"
             name="familyOcularHistory"
@@ -190,56 +201,72 @@ const CaseHistory = ({ appointmentId }) => {
             }
           />
 
-          {/* Patient’s Drug History */}
-          <div className="flex flex-col">
-            <Inputs
-              type="text"
-              label="Patient’s Drug History"
-              name="drugHistory"
-              value={formData.drugHistory || ""}
-              onChange={(e) =>
-                setFormData({ ...formData, drugHistory: e.target.value })
-              }
-            />
-            <button className="text-blue-600 hover:underline mt-2 flex items-center gap-1">
-              ✏️ <span>Add a note</span>
-            </button>
-          </div>
+          <Inputs
+            type="text"
+            label="Patient’s Drug History"
+            name="drugHistory"
+            value={formData.drugHistory || ""}
+            onChange={(e) =>
+              setFormData({ ...formData, drugHistory: e.target.value })
+            }
+          />
+          <button
+            type="button"
+            className="text-blue-600 hover:underline mt-2 flex items-center gap-1"
+            onClick={() => openNoteModal("drugHistory")}
+          >
+            ✏️ <span>Add a note</span>
+          </button>
+          {formData.notes.drugHistory && (
+            <p className="text-gray-500 text-sm mt-1">
+              {formData.notes.drugHistory}
+            </p>
+          )}
 
-          {/* Patient’s Allergies */}
-          <div className="flex flex-col">
-            <Inputs
-              type="text"
-              label="Patient’s Allergies"
-              name="allergies"
-              value={formData.allergies || ""}
-              onChange={(e) =>
-                setFormData({ ...formData, allergies: e.target.value })
-              }
-            />
-            <button className="text-blue-600 hover:underline mt-2 flex items-center gap-1">
-              ✏️ <span>Add a note</span>
-            </button>
-          </div>
+          <Inputs
+            type="text"
+            label="Patient’s Allergies"
+            name="allergies"
+            value={formData.allergies || ""}
+            onChange={(e) =>
+              setFormData({ ...formData, allergies: e.target.value })
+            }
+          />
+          <button
+            type="button"
+            className="text-blue-600 hover:underline mt-2 flex items-center gap-1"
+            onClick={() => openNoteModal("allergies")}
+          >
+            ✏️ <span>Add a note</span>
+          </button>
 
-          {/* Patient’s Social History */}
-          <div className="flex flex-col">
-            <Inputs
-              type="text"
-              label="Patient’s Social History"
-              name="socialHistory"
-              placeholder="e.g., Driver, Smoker, Computer use"
-              value={formData.socialHistory || ""}
-              onChange={(e) =>
-                setFormData({ ...formData, socialHistory: e.target.value })
-              }
-            />
-            <button className="text-blue-600 hover:underline mt-2 flex items-center gap-1">
-              ✏️ <span>Add a note</span>
-            </button>
-          </div>
+          <Inputs
+            type="text"
+            label="Patient’s Social History"
+            name="socialHistory"
+            placeholder="e.g., Driver, Smoker, Computer use"
+            value={formData.socialHistory || ""}
+            onChange={(e) =>
+              setFormData({ ...formData, socialHistory: e.target.value })
+            }
+          />
+          <button
+            type="button"
+            className="text-blue-600 hover:underline mt-2 flex items-center gap-1"
+            onClick={() => openNoteModal("socialHistory")}
+          >
+            ✏️ <span>Add a note</span>
+          </button>
         </div>
       </section>
+
+      {/* Notes Modal */}
+      <NotesModal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        onSave={saveNote}
+        fieldLabel={selectedField}
+      />
 
       {/* Buttons */}
       <div className="flex justify-center mt-6 mb-4">
