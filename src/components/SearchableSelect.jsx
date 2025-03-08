@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import PropTypes from "prop-types";
-import { Trash2 } from "lucide-react";
+import { Trash2, ChevronDown } from "lucide-react"; // Import arrow icon
 
 const SearchableSelect = ({ label, name, options, value, onChange }) => {
   const [search, setSearch] = useState("");
@@ -55,13 +55,19 @@ const SearchableSelect = ({ label, name, options, value, onChange }) => {
   return (
     <div className="relative w-full" ref={dropdownRef}>
       <h1 className="text-base font-medium">{label}</h1>
+
+      {/* Dropdown Input Field with Arrow */}
       <div
-        className="border p-3 rounded-md cursor-pointer bg-white"
+        className="flex items-center border p-3 rounded-md cursor-pointer bg-white relative"
         onClick={() => setIsOpen(!isOpen)}
       >
-        {value.length > 0 ? value.join(", ") : "Select any that apply"}
+        <span className="flex-1">
+          {value.length > 0 ? value.join(", ") : "Select any that apply"}
+        </span>
+        <ChevronDown className="text-gray-500 absolute right-3" size={18} />
       </div>
 
+      {/* Dropdown Menu */}
       {isOpen && (
         <div className="absolute w-full bg-white border rounded-md shadow-md mt-1 z-10">
           <input
