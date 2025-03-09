@@ -1,77 +1,66 @@
 import React, { useState, useEffect, useRef } from "react";
 import PropTypes from "prop-types";
 import { Trash2, ChevronDown } from "lucide-react";
-import NotesModal from "./NotesModal"; // Import Notes Modal
+import NotesModal from "./NotesModal"; // ✅ Import Notes Modal
 
 const SearchableSelect = ({ label, name, options, value, onChange }) => {
   const [search, setSearch] = useState("");
   const [isOpen, setIsOpen] = useState(false);
-  const [additionalInfo, setAdditionalInfo] = useState({});
+  const [symptomDetails, setSymptomDetails] = useState({});
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedField, setSelectedField] = useState("");
-  const dropdownRef = useRef(null); // For closing dropdown on outside click
+  const dropdownRef = useRef(null); // ✅ For closing dropdown on outside click
 
-  // Filter options to exclude already selected items
-  const filteredOptions = options.filter(
-    (option) =>
-      !value.includes(option) &&
-      option.toLowerCase().includes(search.toLowerCase())
-  );
+  // ✅ Ensure selected symptoms have unique details
+  useEffect(() => {
+    const updatedDetails = { ...symptomDetails };
 
-  // Handle selection & keep previous notes intact
+    value.forEach((symptomName) => {
+      const symptom = options.find((s) => s.name === symptomName);
+      if (symptom && !updatedDetails[symptomName]) {
+        updatedDetails[symptomName] = {
+          affectedEye: symptom.requires_affected_eye ? "" : null,
+          grading: symptom.requires_grading ? "" : null,
+          notes: symptom.requires_notes ? "" : null,
+        };
+      }
+    });
+
+    setSymptomDetails(updatedDetails);
+  }, [value, options]);
+
+  // ✅ Handle selection & initialize additional fields if required
   const handleSelect = (selectedOption) => {
-    const newValue = [...value, selectedOption];
-    setAdditionalInfo((prev) => ({
-      ...prev,
-      [selectedOption]: prev[selectedOption] || {
-        laterality: "OD",
-        note: "",
-        symptomGrade: "",
-      },
-    }));
-    onChange(newValue);
+    if (!value.includes(selectedOption.name)) {
+      onChange([...value, selectedOption.name]);
+    }
     setIsOpen(false);
     setSearch("");
   };
 
-  // Handle deleting a selected item
-  const handleDelete = (option) => {
-    const newValue = value.filter((item) => item !== option);
-    onChange(newValue);
-    setAdditionalInfo((prev) => {
-      const newInfo = { ...prev };
-      delete newInfo[option];
-      return newInfo;
+  // ✅ Handle removing a selected item
+  const handleDelete = (symptom) => {
+    onChange(value.filter((item) => item !== symptom));
+    setSymptomDetails((prev) => {
+      const updated = { ...prev };
+      delete updated[symptom];
+      return updated;
     });
   };
 
-  // Open modal for adding/updating a note
+  // ✅ Open Notes Modal
   const openNoteModal = (field) => {
     setSelectedField(field);
     setModalOpen(true);
   };
 
-  // Save note and update the UI
+  // ✅ Save Notes
   const saveNote = (note) => {
-    setAdditionalInfo((prev) => ({
+    setSymptomDetails((prev) => ({
       ...prev,
-      [selectedField]: { ...prev[selectedField], note },
+      [selectedField]: { ...prev[selectedField], notes: note },
     }));
   };
-
-  // Close dropdown if user clicks outside
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsOpen(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
 
   return (
     <div className="relative w-full" ref={dropdownRef}>
@@ -99,19 +88,21 @@ const SearchableSelect = ({ label, name, options, value, onChange }) => {
             className="w-full p-2 border-b"
           />
           <div className="max-h-40 overflow-y-auto">
-            {filteredOptions.length > 0 ? (
-              filteredOptions.map((option) => (
+            {options
+              .filter(
+                (option) =>
+                  !value.includes(option.name) &&
+                  option.name.toLowerCase().includes(search.toLowerCase())
+              )
+              .map((option) => (
                 <div
-                  key={option}
+                  key={option.name}
                   className="p-2 cursor-pointer hover:bg-gray-100"
                   onClick={() => handleSelect(option)}
                 >
-                  {option}
+                  {option.name}
                 </div>
-              ))
-            ) : (
-              <p className="p-2 text-gray-400">No results found</p>
-            )}
+              ))}
           </div>
         </div>
       )}
@@ -119,78 +110,88 @@ const SearchableSelect = ({ label, name, options, value, onChange }) => {
       {/* Display selected items with additional options */}
       {value.length > 0 && (
         <div className="mt-2 space-y-2">
-          {value.map((selected) => (
-            <div
-              key={selected}
-              className="flex flex-col p-3 border rounded-md bg-gray-50"
-            >
-              <div className="flex items-center justify-between">
-                <h2 className="text-sm font-medium">{selected}</h2>
-                <button
-                  onClick={() => handleDelete(selected)}
-                  className="text-red-500 hover:text-red-700 text-sm"
-                >
-                  <Trash2 size={18} strokeWidth={2} color="red" />
-                </button>
-              </div>
+          {value.map((selected) => {
+            const selectedOption = options.find((opt) => opt.name === selected);
+            if (!selectedOption) return null;
 
-              {/* Laterality Options */}
-              <div className="flex items-center space-x-4 mt-2">
-                {["OD", "OS", "OU"].map((side) => (
-                  <label key={side} className="flex items-center space-x-1">
-                    <input
-                      type="radio"
-                      name={`laterality-${selected}`}
-                      value={side}
-                      checked={additionalInfo[selected]?.laterality === side}
-                      onChange={() =>
-                        setAdditionalInfo((prev) => ({
-                          ...prev,
-                          [selected]: { ...prev[selected], laterality: side },
-                        }))
-                      }
-                    />
-                    <span>{side}</span>
-                  </label>
-                ))}
-              </div>
-
-              {/* Additional Options */}
-              <div className="flex space-x-4 mt-2 text-blue-600 text-sm">
-                {/* Note Button with Hover Tooltip */}
-                <div className="relative group">
+            return (
+              <div key={selected} className="flex flex-col p-3 border rounded-md bg-gray-50">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-sm font-medium">{selected}</h2>
                   <button
-                    className="hover:underline"
-                    onClick={() => openNoteModal(selected)}
+                    onClick={() => handleDelete(selected)}
+                    className="text-red-500 hover:text-red-700 text-sm"
                   >
-                    {additionalInfo[selected]?.note
-                      ? "✏️ Update note"
-                      : "✏️ Add a note"}
+                    <Trash2 size={18} strokeWidth={2} color="red" />
                   </button>
-
-                  {/* Tooltip for displaying the note on hover */}
-                  {additionalInfo[selected]?.note && (
-                    <div className="absolute left-0 bottom-full mb-1 w-48 bg-gray-800 text-white text-xs p-2 rounded opacity-0 group-hover:opacity-100 transition-opacity">
-                      {additionalInfo[selected]?.note}
-                    </div>
-                  )}
                 </div>
 
-                {/* Grading Symptom Button */}
-                <button className="hover:underline">📊 Grade Symptom</button>
+                {/* Conditionally Show Affected Eye */}
+                {selectedOption.requires_affected_eye && (
+                  <div className="mt-2">
+                    <label className="text-sm font-medium">Affected Eye</label>
+                    <select
+                      value={symptomDetails[selected]?.affectedEye || ""}
+                      onChange={(e) =>
+                        setSymptomDetails((prev) => ({
+                          ...prev,
+                          [selected]: { ...prev[selected], affectedEye: e.target.value },
+                        }))
+                      }
+                      className="p-2 border rounded-md"
+                    >
+                      <option value="OD">Right Eye</option>
+                      <option value="OS">Left Eye</option>
+                      <option value="OU">Both Eyes</option>
+                    </select>
+                  </div>
+                )}
+
+                {/* Conditionally Show Grading */}
+                {selectedOption.requires_grading && (
+                  <div className="mt-2">
+                    <label className="text-sm font-medium">Grading</label>
+                    <input
+                      type="number"
+                      min="1"
+                      max="5"
+                      value={symptomDetails[selected]?.grading || ""}
+                      onChange={(e) =>
+                        setSymptomDetails((prev) => ({
+                          ...prev,
+                          [selected]: { ...prev[selected], grading: e.target.value },
+                        }))
+                      }
+                      className="p-2 border rounded-md"
+                    />
+                  </div>
+                )}
+
+                {/* Conditionally Show Notes */}
+                {selectedOption.requires_notes && (
+                  <div className="mt-2">
+                    <label className="text-sm font-medium">Notes</label>
+                    <textarea
+                      value={symptomDetails[selected]?.notes || ""}
+                      onChange={(e) =>
+                        setSymptomDetails((prev) => ({
+                          ...prev,
+                          [selected]: { ...prev[selected], notes: e.target.value },
+                        }))
+                      }
+                      placeholder="Add notes..."
+                      className="p-3 border border-gray-300 rounded-md w-full h-20"
+                    ></textarea>
+                  </div>
+                )}
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
       {/* Notes Modal */}
-      <NotesModal
-        isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
-        onSave={saveNote}
-        fieldLabel={selectedField}
-      />
+      <NotesModal isOpen={modalOpen} onClose={() => setModalOpen(false)} onSave={saveNote} fieldLabel={selectedField} />
     </div>
   );
 };
@@ -198,7 +199,14 @@ const SearchableSelect = ({ label, name, options, value, onChange }) => {
 SearchableSelect.propTypes = {
   label: PropTypes.string.isRequired,
   name: PropTypes.string.isRequired,
-  options: PropTypes.arrayOf(PropTypes.string).isRequired,
+  options: PropTypes.arrayOf(
+    PropTypes.shape({
+      name: PropTypes.string.isRequired,
+      requires_affected_eye: PropTypes.bool,
+      requires_grading: PropTypes.bool,
+      requires_notes: PropTypes.bool,
+    })
+  ).isRequired,
   value: PropTypes.arrayOf(PropTypes.string),
   onChange: PropTypes.func.isRequired,
 };
