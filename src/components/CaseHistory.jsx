@@ -2,10 +2,10 @@ import React, { useState, useEffect } from "react";
 import {
   useFetchCaseHistoryQuery,
   useFetchSymptomsQuery,
-  useFetchMedicalConditionsQuery, // ✅ New Hook for Medical Conditions
-  useFetchOcularConditionsQuery, // ✅ New Hook for Ocular Conditions
+  useFetchMedicalConditionsQuery,
+  useFetchOcularConditionsQuery,
 } from "../redux/api/features/consultationApi";
-import SearchableSelect from "./SearchableSelect"; // ✅ Import SearchableSelect
+import SearchableSelect from "./SearchableSelect";
 
 const CaseHistory = ({ appointmentId }) => {
   // ✅ Fetch Case History
@@ -32,49 +32,59 @@ const CaseHistory = ({ appointmentId }) => {
   const [selectedFamilyOcularHistory, setSelectedFamilyOcularHistory] =
     useState([]);
   const [selectedMedicalHistory, setSelectedMedicalHistory] = useState([]);
+  const [selectedOcularHistory, setSelectedOcularHistory] = useState([]);
   const [drugHistory, setDrugHistory] = useState("");
 
-  // ✅ Update Fields when Case History is Fetched
+  // ✅ Automatically Load Data from Case History
   useEffect(() => {
     if (caseHistory) {
-      setChiefComplaint(caseHistory.chief_complaint || "");
+      setChiefComplaint(caseHistory.chief_complaint || ""); // ✅ Handle null values
 
-      if (caseHistory.on_direct_questioning) {
-        setSelectedSymptoms(
-          caseHistory.on_direct_questioning.map((s) => s.name)
-        );
+      if (caseHistory.symptoms?.length > 0) {
+        setSelectedSymptoms(caseHistory.symptoms.map((s) => s.name));
       }
 
-      if (caseHistory.family_medical_history) {
-        setSelectedFamilyMedicalHistory(
-          caseHistory.family_medical_history.map((s) => s.name)
-        );
-      }
+      if (caseHistory.patient_history) {
+        const history = caseHistory.patient_history;
 
-      if (caseHistory.family_ocular_history) {
-        setSelectedFamilyOcularHistory(
-          caseHistory.family_ocular_history.map((s) => s.name)
-        );
-      }
+        if (history.medical_conditions?.length > 0) {
+          setSelectedMedicalHistory(
+            history.medical_conditions.map((s) => s.medical_condition)
+          );
+        }
 
-      if (caseHistory.medical_history) {
-        setSelectedMedicalHistory(
-          caseHistory.medical_history.map((s) => s.name)
-        );
-      }
+        if (history.ocular_conditions?.length > 0) {
+          setSelectedOcularHistory(
+            history.ocular_conditions.map((s) => s.ocular_condition)
+          );
+        }
 
-      setDrugHistory(caseHistory.drug_history || "");
+        if (history.family_medical_history?.length > 0) {
+          setSelectedFamilyMedicalHistory(
+            history.family_medical_history.map((s) => s.medical_condition)
+          );
+        }
+
+        if (history.family_ocular_history?.length > 0) {
+          setSelectedFamilyOcularHistory(
+            history.family_ocular_history.map((s) => s.ocular_condition)
+          );
+        }
+      }
     }
   }, [caseHistory]);
 
-  if (isCaseHistoryLoading || isSymptomsLoading || isMedicalLoading || isOcularLoading)
+  if (
+    isCaseHistoryLoading ||
+    isSymptomsLoading ||
+    isMedicalLoading ||
+    isOcularLoading
+  )
     return <p>Loading Case History...</p>;
 
   return (
     <div className="p-6 bg-white shadow-md rounded-lg max-w-6xl mx-auto">
-      {/* ✅ Two-Column Layout */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {/* ✅ Left Column - Chief Complaint & On-Direct Questioning */}
         <div className="flex flex-col gap-6 p-6 border rounded-lg bg-gray-50 shadow-sm">
           <h2 className="text-lg font-semibold">
             Chief Complaint <span className="text-red-500">*</span>
@@ -99,25 +109,27 @@ const CaseHistory = ({ appointmentId }) => {
           <SearchableSelect
             label="Select any that apply"
             name="medicalHistory"
-            options={medicalConditionsData || []} // ✅ Replaced Hardcoded Options
+            options={medicalConditionsData || []}
             value={selectedMedicalHistory}
             onChange={setSelectedMedicalHistory}
           />
 
-          <h2 className="text-lg font-semibold">Last Eye Examination</h2>
-          <input
-            type="date"
-            className="p-3 border border-gray-300 rounded-md w-full focus:ring focus:ring-blue-200"
+          <h2 className="text-lg font-semibold">Patient’s Ocular History</h2>
+          <SearchableSelect
+            label="Select any that apply"
+            name="ocularHistory"
+            options={ocularConditionsData || []}
+            value={selectedOcularHistory}
+            onChange={setSelectedOcularHistory}
           />
         </div>
 
-        {/* ✅ Right Column - Family Medical History, Family Ocular History, & Drug History */}
         <div className="flex flex-col gap-6 p-6 border rounded-lg bg-gray-50 shadow-sm">
           <h2 className="text-lg font-semibold">Family Medical History</h2>
           <SearchableSelect
             label="Select any that apply"
             name="familyMedicalHistory"
-            options={medicalConditionsData || []} // ✅ Replaced Hardcoded Options
+            options={medicalConditionsData || []}
             value={selectedFamilyMedicalHistory}
             onChange={setSelectedFamilyMedicalHistory}
           />
@@ -126,7 +138,7 @@ const CaseHistory = ({ appointmentId }) => {
           <SearchableSelect
             label="Select any that apply"
             name="familyOcularHistory"
-            options={ocularConditionsData || []} // ✅ Replaced Hardcoded Options
+            options={ocularConditionsData || []}
             value={selectedFamilyOcularHistory}
             onChange={setSelectedFamilyOcularHistory}
           />
@@ -141,7 +153,6 @@ const CaseHistory = ({ appointmentId }) => {
         </div>
       </div>
 
-      {/* ✅ Save and Proceed Button */}
       <div className="flex justify-center mt-8">
         <button className="px-6 py-3 bg-blue-600 text-white text-lg font-semibold rounded-lg shadow-md hover:bg-blue-700 transition-all">
           Save and Proceed
