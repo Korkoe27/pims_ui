@@ -61,11 +61,17 @@ export const getAppointmentsDetailsUrl = (appointmentId) =>
 // Case History
 /////////////////////////
 
-export const createCaseHistoryUrl = "/tests/api/case-history/";
+export const createCaseHistoryUrl = "/tests/api/case-histories/";
 export const updateCaseHistoryUrl = (appointmentId) =>
-  `/tests/api/case-history/${appointmentId}/`;
+  `/tests/api/case-histories/${appointmentId}/`;
 export const fetchCaseHistoryUrl = (appointmentId) =>
-  `/tests/api/case-history/${appointmentId}/`;
+  `/tests/api/case-histories/${appointmentId}/`;
+
+/////////////////////////
+// Symptoms
+/////////////////////////
+
+export const fetchSymptomsUrl = "/tests/api/symptoms/"; // ✅ Add this
 
 /////////////////////////
 // Visual Acuity
