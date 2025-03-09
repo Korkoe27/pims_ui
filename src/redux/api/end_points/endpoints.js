@@ -14,7 +14,7 @@
 export const loginUrl = "auth/auth/jwt/create/";
 export const logoutUrl = "/auth/api/logout/";
 export const checkSessionUrl = "auth/api/check-session/";
-export const getUserUrl = "auth/auth/users/me/"
+export const getUserUrl = "auth/auth/users/me/";
 
 /////////////////////////
 // Dashboard
@@ -41,10 +41,10 @@ export const updatePatientDetailsUrl = (patientId) =>
 // List all patients
 export const listAllPatientsUrl = `/clients/api/patients/`;
 
-// Create a new patient (removed patientId, as it's not required for creating a new resource)
+// Create a new patient
 export const createNewPatientUrl = "/clients/api/patients/";
 
-//Fetch patient appointments =
+// Fetch patient appointments
 export const fetchPatientAppointmentsUrl = (patientId) =>
   `/clients/api/${patientId}/appointments/`;
 
@@ -71,7 +71,14 @@ export const fetchCaseHistoryUrl = (appointmentId) =>
 // Symptoms
 /////////////////////////
 
-export const fetchSymptomsUrl = "/tests/api/symptoms/"; // ✅ Add this
+export const fetchSymptomsUrl = "/tests/api/symptoms/";
+
+/////////////////////////
+// Medical & Ocular Conditions
+/////////////////////////
+
+export const fetchMedicalConditionsUrl = "/tests/api/medical-conditions/";
+export const fetchOcularConditionsUrl = "/tests/api/ocular-conditions/";
 
 /////////////////////////
 // Visual Acuity

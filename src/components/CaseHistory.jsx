@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import {
   useFetchCaseHistoryQuery,
   useFetchSymptomsQuery,
+  useFetchMedicalConditionsQuery, // ✅ New Hook for Medical Conditions
+  useFetchOcularConditionsQuery, // ✅ New Hook for Ocular Conditions
 } from "../redux/api/features/consultationApi";
 import SearchableSelect from "./SearchableSelect"; // ✅ Import SearchableSelect
 
@@ -12,9 +14,15 @@ const CaseHistory = ({ appointmentId }) => {
       skip: !appointmentId,
     });
 
-  // ✅ Fetch On-Direct Questioning Symptoms
+  // ✅ Fetch Symptoms
   const { data: symptomsData, isLoading: isSymptomsLoading } =
     useFetchSymptomsQuery();
+
+  // ✅ Fetch Medical & Ocular Conditions
+  const { data: medicalConditionsData, isLoading: isMedicalLoading } =
+    useFetchMedicalConditionsQuery();
+  const { data: ocularConditionsData, isLoading: isOcularLoading } =
+    useFetchOcularConditionsQuery();
 
   // ✅ State Management
   const [chiefComplaint, setChiefComplaint] = useState("");
@@ -59,7 +67,7 @@ const CaseHistory = ({ appointmentId }) => {
     }
   }, [caseHistory]);
 
-  if (isCaseHistoryLoading || isSymptomsLoading)
+  if (isCaseHistoryLoading || isSymptomsLoading || isMedicalLoading || isOcularLoading)
     return <p>Loading Case History...</p>;
 
   return (
@@ -91,14 +99,7 @@ const CaseHistory = ({ appointmentId }) => {
           <SearchableSelect
             label="Select any that apply"
             name="medicalHistory"
-            options={[
-              "Asthma",
-              "Ulcer",
-              "Diabetes",
-              "Hypertension",
-              "Sickle Cell",
-              "STD/STI",
-            ]}
+            options={medicalConditionsData || []} // ✅ Replaced Hardcoded Options
             value={selectedMedicalHistory}
             onChange={setSelectedMedicalHistory}
           />
@@ -114,23 +115,18 @@ const CaseHistory = ({ appointmentId }) => {
         <div className="flex flex-col gap-6 p-6 border rounded-lg bg-gray-50 shadow-sm">
           <h2 className="text-lg font-semibold">Family Medical History</h2>
           <SearchableSelect
-            label="Select any more that apply"
+            label="Select any that apply"
             name="familyMedicalHistory"
-            options={[
-              "Diabetes",
-              "Hypertension",
-              "Glaucoma",
-              "Sickle Cell Disease",
-            ]}
+            options={medicalConditionsData || []} // ✅ Replaced Hardcoded Options
             value={selectedFamilyMedicalHistory}
             onChange={setSelectedFamilyMedicalHistory}
           />
 
           <h2 className="text-lg font-semibold">Family Ocular History</h2>
           <SearchableSelect
-            label="Select any more that apply"
+            label="Select any that apply"
             name="familyOcularHistory"
-            options={["Glaucoma", "Spectacles", "Cataracts", "Eye Surgery"]}
+            options={ocularConditionsData || []} // ✅ Replaced Hardcoded Options
             value={selectedFamilyOcularHistory}
             onChange={setSelectedFamilyOcularHistory}
           />

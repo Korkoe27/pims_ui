@@ -3,7 +3,9 @@ import {
   createCaseHistoryUrl,
   updateCaseHistoryUrl,
   fetchCaseHistoryUrl,
-  fetchSymptomsUrl, // ✅ New Symptoms URL
+  fetchSymptomsUrl, // ✅ Symptoms URL
+  fetchMedicalConditionsUrl, // ✅ New Medical Conditions URL
+  fetchOcularConditionsUrl, // ✅ New Ocular Conditions URL
 } from "../end_points/endpoints";
 
 export const consultationApi = apiClient.injectEndpoints({
@@ -36,6 +38,18 @@ export const consultationApi = apiClient.injectEndpoints({
       query: () => fetchSymptomsUrl,
       providesTags: ["Symptoms"],
     }),
+
+    /** ✅ Fetch Medical Conditions Dynamically **/
+    fetchMedicalConditions: builder.query({
+      query: () => fetchMedicalConditionsUrl,
+      providesTags: ["MedicalConditions"],
+    }),
+
+    /** ✅ Fetch Ocular Conditions Dynamically **/
+    fetchOcularConditions: builder.query({
+      query: () => fetchOcularConditionsUrl,
+      providesTags: ["OcularConditions"],
+    }),
   }),
 });
 
@@ -44,4 +58,6 @@ export const {
   useCreateCaseHistoryMutation,
   useUpdateCaseHistoryMutation,
   useFetchSymptomsQuery, // ✅ Export the new hook
+  useFetchMedicalConditionsQuery, // ✅ Export Medical Conditions hook
+  useFetchOcularConditionsQuery, // ✅ Export Ocular Conditions hook
 } = consultationApi;
