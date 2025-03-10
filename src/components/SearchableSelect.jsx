@@ -213,6 +213,6 @@ SearchableSelect.propTypes = {
 
 SearchableSelect.defaultProps = {
   value: [],
-};
+};  1
 
 export default SearchableSelect;

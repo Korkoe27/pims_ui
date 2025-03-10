@@ -150,7 +150,6 @@ const CaseHistory = ({ appointmentId }) => {
 
           <h2 className="text-lg font-semibold">On-Direct Questioning</h2>
           <SearchableSelect
-            label="Select Symptoms"
             name="onDirectQuestioning"
             options={symptomsData || []}
             value={selectedSymptoms}
@@ -159,7 +158,6 @@ const CaseHistory = ({ appointmentId }) => {
 
           <h2 className="text-lg font-semibold">Patient’s Medical History</h2>
           <SearchableSelect
-            label="Select any that apply"
             options={medicalConditionsData || []}
             value={selectedMedicalHistory}
             onChange={setSelectedMedicalHistory}
@@ -167,7 +165,6 @@ const CaseHistory = ({ appointmentId }) => {
 
           <h2 className="text-lg font-semibold">Patient’s Ocular History</h2>
           <SearchableSelect
-            label="Select any that apply"
             options={ocularConditionsData || []}
             value={selectedOcularHistory}
             onChange={setSelectedOcularHistory}
@@ -177,7 +174,6 @@ const CaseHistory = ({ appointmentId }) => {
         <div className="flex flex-col gap-6 p-6 border rounded-lg bg-gray-50 shadow-sm">
           <h2 className="text-lg font-semibold">Family Medical History</h2>
           <SearchableSelect
-            label="Select any that apply"
             options={medicalConditionsData || []}
             value={selectedFamilyMedicalHistory}
             onChange={setSelectedFamilyMedicalHistory}
@@ -185,7 +181,6 @@ const CaseHistory = ({ appointmentId }) => {
 
           <h2 className="text-lg font-semibold">Family Ocular History</h2>
           <SearchableSelect
-            label="Select any that apply"
             options={ocularConditionsData || []}
             value={selectedFamilyOcularHistory}
             onChange={setSelectedFamilyOcularHistory}
