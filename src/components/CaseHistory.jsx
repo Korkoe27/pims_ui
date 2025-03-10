@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   useFetchCaseHistoryQuery,
   useFetchSymptomsQuery,
@@ -6,204 +6,195 @@ import {
   useFetchOcularConditionsQuery,
   useCreateCaseHistoryMutation,
 } from "../redux/api/features/consultationApi";
-import SearchableSelect from "./SearchableSelect";
 
 const CaseHistory = ({ appointmentId }) => {
-  // ✅ Fetch Data
-  const { data: caseHistory, isLoading: isCaseHistoryLoading } =
-    useFetchCaseHistoryQuery(appointmentId, { skip: !appointmentId });
-  const { data: symptomsData, isLoading: isSymptomsLoading } =
-    useFetchSymptomsQuery();
-  const { data: medicalConditionsData, isLoading: isMedicalLoading } =
-    useFetchMedicalConditionsQuery();
-  const { data: ocularConditionsData, isLoading: isOcularLoading } =
-    useFetchOcularConditionsQuery();
+  // Fetch existing case history
+  const { data: caseHistory, error: caseHistoryError, isLoading: caseHistoryLoading } = useFetchCaseHistoryQuery(appointmentId);
+  
+  // Fetch dropdown options
+  const { data: symptoms } = useFetchSymptomsQuery();
+  const { data: medicalConditions } = useFetchMedicalConditionsQuery();
+  const { data: ocularConditions } = useFetchOcularConditionsQuery();
 
-  // ✅ Mutation for Creating Case History
-  const [createCaseHistory, { isLoading: isCreating }] =
-    useCreateCaseHistoryMutation();
+  // Mutation for creating a new case history
+  const [createCaseHistory] = useCreateCaseHistoryMutation();
 
-  // ✅ State Management
+  // State for form submission
   const [chiefComplaint, setChiefComplaint] = useState("");
   const [selectedSymptoms, setSelectedSymptoms] = useState([]);
-  const [selectedMedicalHistory, setSelectedMedicalHistory] = useState([]);
-  const [selectedOcularHistory, setSelectedOcularHistory] = useState([]);
-  const [selectedFamilyMedicalHistory, setSelectedFamilyMedicalHistory] =
-    useState([]);
-  const [selectedFamilyOcularHistory, setSelectedFamilyOcularHistory] =
-    useState([]);
-  const [drugHistory, setDrugHistory] = useState("");
-  const [errorMessage, setErrorMessage] = useState(null);
+  const [selectedMedicalConditions, setSelectedMedicalConditions] = useState([]);
+  const [selectedOcularConditions, setSelectedOcularConditions] = useState([]);
 
-  // ✅ Convert Symptom Names to UUIDs
-  const getSymptomUUIDs = (selectedNames) => {
-    if (!symptomsData) return [];
-    return selectedNames
-      .map((name) => {
-        const symptom = symptomsData.find((s) => s.name === name);
-        return symptom ? symptom.id : null;
-      })
-      .filter(Boolean); // ✅ Remove null values
+  const handleSymptomChange = (id, field, value) => {
+    setSelectedSymptoms((prev) => {
+      const updatedSymptoms = prev.map((symptom) =>
+        symptom.id === id ? { ...symptom, [field]: value } : symptom
+      );
+      return prev.some((s) => s.id === id) ? updatedSymptoms : [...prev, { id, [field]: value }];
+    });
   };
 
-  // ✅ Load Case History Data
-  useEffect(() => {
-    if (caseHistory) {
-      setChiefComplaint(caseHistory.chief_complaint || "");
-      setDrugHistory(caseHistory.drug_history || "");
-
-      if (caseHistory.symptoms?.length > 0) {
-        setSelectedSymptoms(caseHistory.symptoms.map((s) => s.name));
-      }
-
-      if (caseHistory.patient_history) {
-        const history = caseHistory.patient_history;
-        setSelectedMedicalHistory(
-          history.medical_conditions?.map((s) => s.id) || []
-        );
-        setSelectedOcularHistory(
-          history.ocular_conditions?.map((s) => s.id) || []
-        );
-        setSelectedFamilyMedicalHistory(
-          history.family_medical_history?.map((s) => s.id) || []
-        );
-        setSelectedFamilyOcularHistory(
-          history.family_ocular_history?.map((s) => s.id) || []
-        );
-      }
-    }
-  }, [caseHistory]);
-
-  // ✅ Handle "Save and Proceed"
-  const handleSaveAndProceed = async () => {
-    setErrorMessage(null);
-
-    if (!chiefComplaint.trim()) {
-      setErrorMessage("Chief Complaint is required.");
-      return;
-    }
-
-    const caseHistoryData = {
+  const handleSubmit = async () => {
+    const newCaseHistory = {
       appointment: appointmentId,
       chief_complaint: chiefComplaint,
-      symptoms: getSymptomUUIDs(selectedSymptoms).map((id) => ({
-        symptom: id,
-      })), // ✅ Send UUIDs
-      patient_history: {
-        medical_conditions: selectedMedicalHistory.map((id) => ({
-          medical_condition: id,
-        })),
-        ocular_conditions: selectedOcularHistory.map((id) => ({
-          ocular_condition: id,
-        })),
-        family_medical_history: selectedFamilyMedicalHistory.map((id) => ({
-          medical_condition: id,
-        })),
-        family_ocular_history: selectedFamilyOcularHistory.map((id) => ({
-          ocular_condition: id,
-        })),
-      },
-      drug_history: drugHistory,
+      symptoms: selectedSymptoms,
+      medical_conditions: selectedMedicalConditions,
+      ocular_conditions: selectedOcularConditions,
     };
 
-    try {
-      await createCaseHistory(caseHistoryData);
-      alert("New Case History version created successfully!");
-    } catch (error) {
-      console.error("Error creating case history:", error);
-      setErrorMessage(
-        error.data?.appointment?.[0] ||
-          error.data?.chief_complaint?.[0] ||
-          error.data?.symptoms?.[0]?.symptom?.[0] ||
-          "Failed to save case history."
-      );
-    }
+    await createCaseHistory(newCaseHistory);
+    alert("Case history submitted!");
   };
 
-  if (
-    isCaseHistoryLoading ||
-    isSymptomsLoading ||
-    isMedicalLoading ||
-    isOcularLoading
-  )
-    return <p>Loading Case History...</p>;
+  if (caseHistoryLoading) return <p>Loading case history...</p>;
+  if (caseHistoryError) return <p>Error loading case history</p>;
 
   return (
-    <div className="p-6 bg-white shadow-md rounded-lg max-w-6xl mx-auto">
-      {errorMessage && (
-        <div className="mb-4 p-3 bg-red-100 text-red-600 border border-red-400 rounded">
-          {errorMessage}
-        </div>
-      )}
+    <div>
+      <h2>Case History</h2>
+      <pre>{JSON.stringify(caseHistory, null, 2)}</pre>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div className="flex flex-col gap-6 p-6 border rounded-lg bg-gray-50 shadow-sm">
-          <h2 className="text-lg font-semibold">
-            Chief Complaint <span className="text-red-500">*</span>
-          </h2>
-          <textarea
-            value={chiefComplaint}
-            onChange={(e) => setChiefComplaint(e.target.value)}
-            placeholder="Enter the patient's chief complaint..."
-            className="p-3 border border-gray-300 rounded-md w-full h-32 focus:ring focus:ring-blue-200"
-          ></textarea>
-
-          <h2 className="text-lg font-semibold">On-Direct Questioning</h2>
-          <SearchableSelect
-            name="onDirectQuestioning"
-            options={symptomsData || []}
-            value={selectedSymptoms}
-            onChange={setSelectedSymptoms}
-          />
-
-          <h2 className="text-lg font-semibold">Patient’s Medical History</h2>
-          <SearchableSelect
-            options={medicalConditionsData || []}
-            value={selectedMedicalHistory}
-            onChange={setSelectedMedicalHistory}
-          />
-
-          <h2 className="text-lg font-semibold">Patient’s Ocular History</h2>
-          <SearchableSelect
-            options={ocularConditionsData || []}
-            value={selectedOcularHistory}
-            onChange={setSelectedOcularHistory}
-          />
-        </div>
-
-        <div className="flex flex-col gap-6 p-6 border rounded-lg bg-gray-50 shadow-sm">
-          <h2 className="text-lg font-semibold">Family Medical History</h2>
-          <SearchableSelect
-            options={medicalConditionsData || []}
-            value={selectedFamilyMedicalHistory}
-            onChange={setSelectedFamilyMedicalHistory}
-          />
-
-          <h2 className="text-lg font-semibold">Family Ocular History</h2>
-          <SearchableSelect
-            options={ocularConditionsData || []}
-            value={selectedFamilyOcularHistory}
-            onChange={setSelectedFamilyOcularHistory}
-          />
-
-          <h2 className="text-lg font-semibold">Drug History</h2>
-          <textarea
-            value={drugHistory}
-            onChange={(e) => setDrugHistory(e.target.value)}
-            placeholder="Enter drug history..."
-            className="p-3 border border-gray-300 rounded-md w-full h-32"
-          ></textarea>
-        </div>
+      <h2>Create New Case History</h2>
+      <div>
+        <label>Chief Complaint:</label>
+        <input 
+          type="text" 
+          value={chiefComplaint} 
+          onChange={(e) => setChiefComplaint(e.target.value)} 
+          placeholder="Enter chief complaint" 
+        />
       </div>
 
-      <div className="flex justify-center mt-8">
-        <button
-          onClick={handleSaveAndProceed}
-          className="px-6 py-3 bg-blue-600 text-white rounded-lg"
-        >
-          Save and Proceed
-        </button>
+      <div>
+        <h3>Symptoms</h3>
+        {symptoms?.map(symptom => (
+          <div key={symptom.id} style={{ marginBottom: "10px" }}>
+            <label>
+              <input
+                type="checkbox"
+                value={symptom.id}
+                onChange={(e) => {
+                  if (e.target.checked) {
+                    setSelectedSymptoms([...selectedSymptoms, { id: symptom.id }]);
+                  } else {
+                    setSelectedSymptoms(selectedSymptoms.filter(s => s.id !== symptom.id));
+                  }
+                }}
+              />
+              {symptom.name}
+            </label>
+
+            {symptom.requires_affected_eye && (
+              <select onChange={(e) => handleSymptomChange(symptom.id, "affected_eye", e.target.value)}>
+                <option value="">Select Eye</option>
+                <option value="OS">OS (Left Eye)</option>
+                <option value="OD">OD (Right Eye)</option>
+                <option value="OU">OU (Both Eyes)</option>
+              </select>
+            )}
+
+            {symptom.requires_grading && (
+              <input
+                type="number"
+                min="1"
+                max="5"
+                placeholder="Grading"
+                onChange={(e) => handleSymptomChange(symptom.id, "grading", e.target.value)}
+              />
+            )}
+
+            {symptom.requires_notes && (
+              <input
+                type="text"
+                placeholder="Notes"
+                onChange={(e) => handleSymptomChange(symptom.id, "notes", e.target.value)}
+              />
+            )}
+          </div>
+        ))}
       </div>
+
+      <div>
+        <h3>Medical Conditions</h3>
+        {medicalConditions?.map(condition => (
+          <div key={condition.id}>
+            <label>
+              <input
+                type="checkbox"
+                value={condition.id}
+                onChange={(e) => {
+                  if (e.target.checked) {
+                    setSelectedMedicalConditions([...selectedMedicalConditions, condition.id]);
+                  } else {
+                    setSelectedMedicalConditions(selectedMedicalConditions.filter(id => id !== condition.id));
+                  }
+                }}
+              />
+              {condition.name}
+            </label>
+
+            {condition.requires_notes && (
+              <input
+                type="text"
+                placeholder="Notes"
+                onChange={(e) => handleSymptomChange(condition.id, "notes", e.target.value)}
+              />
+            )}
+          </div>
+        ))}
+      </div>
+
+      <div>
+        <h3>Ocular Conditions</h3>
+        {ocularConditions?.map(condition => (
+          <div key={condition.id}>
+            <label>
+              <input
+                type="checkbox"
+                value={condition.id}
+                onChange={(e) => {
+                  if (e.target.checked) {
+                    setSelectedOcularConditions([...selectedOcularConditions, condition.id]);
+                  } else {
+                    setSelectedOcularConditions(selectedOcularConditions.filter(id => id !== condition.id));
+                  }
+                }}
+              />
+              {condition.name}
+            </label>
+
+            {condition.requires_affected_eye && (
+              <select onChange={(e) => handleSymptomChange(condition.id, "affected_eye", e.target.value)}>
+                <option value="">Select Eye</option>
+                <option value="OS">OS (Left Eye)</option>
+                <option value="OD">OD (Right Eye)</option>
+                <option value="OU">OU (Both Eyes)</option>
+              </select>
+            )}
+
+            {condition.requires_grading && (
+              <input
+                type="number"
+                min="1"
+                max="5"
+                placeholder="Grading"
+                onChange={(e) => handleSymptomChange(condition.id, "grading", e.target.value)}
+              />
+            )}
+
+            {condition.requires_notes && (
+              <input
+                type="text"
+                placeholder="Notes"
+                onChange={(e) => handleSymptomChange(condition.id, "notes", e.target.value)}
+              />
+            )}
+          </div>
+        ))}
+      </div>
+
+      <button onClick={handleSubmit}>Submit Case History</button>
     </div>
   );
 };
