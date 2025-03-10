@@ -4,6 +4,7 @@ import {
   useFetchSymptomsQuery,
   useFetchMedicalConditionsQuery,
   useFetchOcularConditionsQuery,
+  useCreateCaseHistoryMutation, // ✅ Mutation for saving new records
 } from "../redux/api/features/consultationApi";
 import SearchableSelect from "./SearchableSelect";
 
@@ -14,15 +15,17 @@ const CaseHistory = ({ appointmentId }) => {
       skip: !appointmentId,
     });
 
-  // ✅ Fetch Symptoms
+  // ✅ Fetch Symptoms & Conditions
   const { data: symptomsData, isLoading: isSymptomsLoading } =
     useFetchSymptomsQuery();
-
-  // ✅ Fetch Medical & Ocular Conditions
   const { data: medicalConditionsData, isLoading: isMedicalLoading } =
     useFetchMedicalConditionsQuery();
   const { data: ocularConditionsData, isLoading: isOcularLoading } =
     useFetchOcularConditionsQuery();
+
+  // ✅ Mutation for Creating New Case History
+  const [createCaseHistory, { isLoading: isCreating }] =
+    useCreateCaseHistoryMutation();
 
   // ✅ State Management
   const [chiefComplaint, setChiefComplaint] = useState("");
@@ -38,7 +41,7 @@ const CaseHistory = ({ appointmentId }) => {
   // ✅ Automatically Load Data from Case History
   useEffect(() => {
     if (caseHistory) {
-      setChiefComplaint(caseHistory.chief_complaint || ""); // ✅ Handle null values
+      setChiefComplaint(caseHistory.chief_complaint || "");
 
       if (caseHistory.symptoms?.length > 0) {
         setSelectedSymptoms(caseHistory.symptoms.map((s) => s.name));
@@ -73,6 +76,40 @@ const CaseHistory = ({ appointmentId }) => {
       }
     }
   }, [caseHistory]);
+
+  // ✅ Handle "Save and Proceed"
+  const handleSaveAndProceed = async () => {
+    const caseHistoryData = {
+      appointment: appointmentId,
+      chief_complaint: chiefComplaint,
+      symptoms: selectedSymptoms.map((symptom) => ({ symptom })),
+      patient_history: {
+        medical_conditions: selectedMedicalHistory.map((condition) => ({
+          medical_condition: condition,
+        })),
+        ocular_conditions: selectedOcularHistory.map((condition) => ({
+          ocular_condition: condition,
+        })),
+        family_medical_history: selectedFamilyMedicalHistory.map(
+          (condition) => ({
+            medical_condition: condition,
+          })
+        ),
+        family_ocular_history: selectedFamilyOcularHistory.map((condition) => ({
+          ocular_condition: condition,
+        })),
+      },
+      drug_history: drugHistory,
+    };
+
+    try {
+      await createCaseHistory(caseHistoryData);
+      alert("New Case History version created successfully!");
+    } catch (error) {
+      console.error("Error creating case history:", error);
+      alert("Failed to save case history. Please try again.");
+    }
+  };
 
   if (
     isCaseHistoryLoading ||
@@ -154,8 +191,14 @@ const CaseHistory = ({ appointmentId }) => {
       </div>
 
       <div className="flex justify-center mt-8">
-        <button className="px-6 py-3 bg-blue-600 text-white text-lg font-semibold rounded-lg shadow-md hover:bg-blue-700 transition-all">
-          Save and Proceed
+        <button
+          onClick={handleSaveAndProceed}
+          className={`px-6 py-3 text-white text-lg font-semibold rounded-lg shadow-md transition-all ${
+            isCreating ? "bg-gray-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
+          }`}
+          disabled={isCreating}
+        >
+          {isCreating ? "Saving..." : "Save and Proceed"}
         </button>
       </div>
     </div>
@@ -163,3 +206,4 @@ const CaseHistory = ({ appointmentId }) => {
 };
 
 export default CaseHistory;
+
