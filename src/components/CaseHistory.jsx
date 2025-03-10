@@ -4,18 +4,14 @@ import {
   useFetchSymptomsQuery,
   useFetchMedicalConditionsQuery,
   useFetchOcularConditionsQuery,
-  useCreateCaseHistoryMutation, // ✅ Mutation for saving new records
+  useCreateCaseHistoryMutation,
 } from "../redux/api/features/consultationApi";
 import SearchableSelect from "./SearchableSelect";
 
 const CaseHistory = ({ appointmentId }) => {
-  // ✅ Fetch Case History
+  // ✅ Fetch Data
   const { data: caseHistory, isLoading: isCaseHistoryLoading } =
-    useFetchCaseHistoryQuery(appointmentId, {
-      skip: !appointmentId,
-    });
-
-  // ✅ Fetch Symptoms & Conditions
+    useFetchCaseHistoryQuery(appointmentId, { skip: !appointmentId });
   const { data: symptomsData, isLoading: isSymptomsLoading } =
     useFetchSymptomsQuery();
   const { data: medicalConditionsData, isLoading: isMedicalLoading } =
@@ -23,25 +19,38 @@ const CaseHistory = ({ appointmentId }) => {
   const { data: ocularConditionsData, isLoading: isOcularLoading } =
     useFetchOcularConditionsQuery();
 
-  // ✅ Mutation for Creating New Case History
+  // ✅ Mutation for Creating Case History
   const [createCaseHistory, { isLoading: isCreating }] =
     useCreateCaseHistoryMutation();
 
   // ✅ State Management
   const [chiefComplaint, setChiefComplaint] = useState("");
   const [selectedSymptoms, setSelectedSymptoms] = useState([]);
+  const [selectedMedicalHistory, setSelectedMedicalHistory] = useState([]);
+  const [selectedOcularHistory, setSelectedOcularHistory] = useState([]);
   const [selectedFamilyMedicalHistory, setSelectedFamilyMedicalHistory] =
     useState([]);
   const [selectedFamilyOcularHistory, setSelectedFamilyOcularHistory] =
     useState([]);
-  const [selectedMedicalHistory, setSelectedMedicalHistory] = useState([]);
-  const [selectedOcularHistory, setSelectedOcularHistory] = useState([]);
   const [drugHistory, setDrugHistory] = useState("");
+  const [errorMessage, setErrorMessage] = useState(null);
 
-  // ✅ Automatically Load Data from Case History
+  // ✅ Convert Symptom Names to UUIDs
+  const getSymptomUUIDs = (selectedNames) => {
+    if (!symptomsData) return [];
+    return selectedNames
+      .map((name) => {
+        const symptom = symptomsData.find((s) => s.name === name);
+        return symptom ? symptom.id : null;
+      })
+      .filter(Boolean); // ✅ Remove null values
+  };
+
+  // ✅ Load Case History Data
   useEffect(() => {
     if (caseHistory) {
       setChiefComplaint(caseHistory.chief_complaint || "");
+      setDrugHistory(caseHistory.drug_history || "");
 
       if (caseHistory.symptoms?.length > 0) {
         setSelectedSymptoms(caseHistory.symptoms.map((s) => s.name));
@@ -49,54 +58,49 @@ const CaseHistory = ({ appointmentId }) => {
 
       if (caseHistory.patient_history) {
         const history = caseHistory.patient_history;
-
-        if (history.medical_conditions?.length > 0) {
-          setSelectedMedicalHistory(
-            history.medical_conditions.map((s) => s.medical_condition)
-          );
-        }
-
-        if (history.ocular_conditions?.length > 0) {
-          setSelectedOcularHistory(
-            history.ocular_conditions.map((s) => s.ocular_condition)
-          );
-        }
-
-        if (history.family_medical_history?.length > 0) {
-          setSelectedFamilyMedicalHistory(
-            history.family_medical_history.map((s) => s.medical_condition)
-          );
-        }
-
-        if (history.family_ocular_history?.length > 0) {
-          setSelectedFamilyOcularHistory(
-            history.family_ocular_history.map((s) => s.ocular_condition)
-          );
-        }
+        setSelectedMedicalHistory(
+          history.medical_conditions?.map((s) => s.id) || []
+        );
+        setSelectedOcularHistory(
+          history.ocular_conditions?.map((s) => s.id) || []
+        );
+        setSelectedFamilyMedicalHistory(
+          history.family_medical_history?.map((s) => s.id) || []
+        );
+        setSelectedFamilyOcularHistory(
+          history.family_ocular_history?.map((s) => s.id) || []
+        );
       }
     }
   }, [caseHistory]);
 
   // ✅ Handle "Save and Proceed"
   const handleSaveAndProceed = async () => {
+    setErrorMessage(null);
+
+    if (!chiefComplaint.trim()) {
+      setErrorMessage("Chief Complaint is required.");
+      return;
+    }
+
     const caseHistoryData = {
       appointment: appointmentId,
       chief_complaint: chiefComplaint,
-      symptoms: selectedSymptoms.map((symptom) => ({ symptom })),
+      symptoms: getSymptomUUIDs(selectedSymptoms).map((id) => ({
+        symptom: id,
+      })), // ✅ Send UUIDs
       patient_history: {
-        medical_conditions: selectedMedicalHistory.map((condition) => ({
-          medical_condition: condition,
+        medical_conditions: selectedMedicalHistory.map((id) => ({
+          medical_condition: id,
         })),
-        ocular_conditions: selectedOcularHistory.map((condition) => ({
-          ocular_condition: condition,
+        ocular_conditions: selectedOcularHistory.map((id) => ({
+          ocular_condition: id,
         })),
-        family_medical_history: selectedFamilyMedicalHistory.map(
-          (condition) => ({
-            medical_condition: condition,
-          })
-        ),
-        family_ocular_history: selectedFamilyOcularHistory.map((condition) => ({
-          ocular_condition: condition,
+        family_medical_history: selectedFamilyMedicalHistory.map((id) => ({
+          medical_condition: id,
+        })),
+        family_ocular_history: selectedFamilyOcularHistory.map((id) => ({
+          ocular_condition: id,
         })),
       },
       drug_history: drugHistory,
@@ -107,7 +111,12 @@ const CaseHistory = ({ appointmentId }) => {
       alert("New Case History version created successfully!");
     } catch (error) {
       console.error("Error creating case history:", error);
-      alert("Failed to save case history. Please try again.");
+      setErrorMessage(
+        error.data?.appointment?.[0] ||
+          error.data?.chief_complaint?.[0] ||
+          error.data?.symptoms?.[0]?.symptom?.[0] ||
+          "Failed to save case history."
+      );
     }
   };
 
@@ -121,6 +130,12 @@ const CaseHistory = ({ appointmentId }) => {
 
   return (
     <div className="p-6 bg-white shadow-md rounded-lg max-w-6xl mx-auto">
+      {errorMessage && (
+        <div className="mb-4 p-3 bg-red-100 text-red-600 border border-red-400 rounded">
+          {errorMessage}
+        </div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div className="flex flex-col gap-6 p-6 border rounded-lg bg-gray-50 shadow-sm">
           <h2 className="text-lg font-semibold">
@@ -145,7 +160,6 @@ const CaseHistory = ({ appointmentId }) => {
           <h2 className="text-lg font-semibold">Patient’s Medical History</h2>
           <SearchableSelect
             label="Select any that apply"
-            name="medicalHistory"
             options={medicalConditionsData || []}
             value={selectedMedicalHistory}
             onChange={setSelectedMedicalHistory}
@@ -154,7 +168,6 @@ const CaseHistory = ({ appointmentId }) => {
           <h2 className="text-lg font-semibold">Patient’s Ocular History</h2>
           <SearchableSelect
             label="Select any that apply"
-            name="ocularHistory"
             options={ocularConditionsData || []}
             value={selectedOcularHistory}
             onChange={setSelectedOcularHistory}
@@ -165,7 +178,6 @@ const CaseHistory = ({ appointmentId }) => {
           <h2 className="text-lg font-semibold">Family Medical History</h2>
           <SearchableSelect
             label="Select any that apply"
-            name="familyMedicalHistory"
             options={medicalConditionsData || []}
             value={selectedFamilyMedicalHistory}
             onChange={setSelectedFamilyMedicalHistory}
@@ -174,18 +186,17 @@ const CaseHistory = ({ appointmentId }) => {
           <h2 className="text-lg font-semibold">Family Ocular History</h2>
           <SearchableSelect
             label="Select any that apply"
-            name="familyOcularHistory"
             options={ocularConditionsData || []}
             value={selectedFamilyOcularHistory}
             onChange={setSelectedFamilyOcularHistory}
           />
 
-          <h2 className="text-lg font-semibold">Patient’s Drug History</h2>
+          <h2 className="text-lg font-semibold">Drug History</h2>
           <textarea
             value={drugHistory}
             onChange={(e) => setDrugHistory(e.target.value)}
-            placeholder="Enter patient’s drug history..."
-            className="p-3 border border-gray-300 rounded-md w-full h-24 focus:ring focus:ring-blue-200"
+            placeholder="Enter drug history..."
+            className="p-3 border border-gray-300 rounded-md w-full h-32"
           ></textarea>
         </div>
       </div>
@@ -193,12 +204,9 @@ const CaseHistory = ({ appointmentId }) => {
       <div className="flex justify-center mt-8">
         <button
           onClick={handleSaveAndProceed}
-          className={`px-6 py-3 text-white text-lg font-semibold rounded-lg shadow-md transition-all ${
-            isCreating ? "bg-gray-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
-          }`}
-          disabled={isCreating}
+          className="px-6 py-3 bg-blue-600 text-white rounded-lg"
         >
-          {isCreating ? "Saving..." : "Save and Proceed"}
+          Save and Proceed
         </button>
       </div>
     </div>
@@ -206,4 +214,3 @@ const CaseHistory = ({ appointmentId }) => {
 };
 
 export default CaseHistory;
-
