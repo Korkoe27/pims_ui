@@ -8,24 +8,31 @@ import {
   useCreateCaseHistoryMutation,
 } from "../redux/api/features/consultationApi";
 
-const CaseHistory = ({ appointmentId }) => {
+const CaseHistory = ({ appointmentId, setActiveTab }) => {
   const navigate = useNavigate(); // ✅ Redirect Hook
 
   // Fetch existing case history
-  const { data: caseHistory, error: caseHistoryError, isLoading: caseHistoryLoading } = useFetchCaseHistoryQuery(appointmentId);
-  
+  const {
+    data: caseHistory,
+    error: caseHistoryError,
+    isLoading: caseHistoryLoading,
+  } = useFetchCaseHistoryQuery(appointmentId);
+
   // Fetch dropdown options
   const { data: symptoms } = useFetchSymptomsQuery();
   const { data: medicalConditions } = useFetchMedicalConditionsQuery();
   const { data: ocularConditions } = useFetchOcularConditionsQuery();
 
   // Mutation for creating a new case history
-  const [createCaseHistory, { isLoading: isSubmitting }] = useCreateCaseHistoryMutation();
+  const [createCaseHistory, { isLoading: isSubmitting }] =
+    useCreateCaseHistoryMutation();
 
   // State for form submission
   const [chiefComplaint, setChiefComplaint] = useState("");
   const [selectedSymptoms, setSelectedSymptoms] = useState([]);
-  const [selectedMedicalConditions, setSelectedMedicalConditions] = useState([]);
+  const [selectedMedicalConditions, setSelectedMedicalConditions] = useState(
+    []
+  );
   const [selectedOcularConditions, setSelectedOcularConditions] = useState([]);
   const [errorMessage, setErrorMessage] = useState(null); // ✅ Store API Errors
 
@@ -48,7 +55,7 @@ const CaseHistory = ({ appointmentId }) => {
       if (checked) {
         return [...prev, { symptom: symptomId }];
       } else {
-        return prev.filter(s => s.symptom !== symptomId);
+        return prev.filter((s) => s.symptom !== symptomId);
       }
     });
   };
@@ -72,7 +79,7 @@ const CaseHistory = ({ appointmentId }) => {
       .map(({ symptom, affected_eye, grading, notes }) => {
         const symptomObj = { symptom }; // ✅ Always include symptom ID
         const requiredSymptom = symptoms?.find((s) => s.id === symptom);
-        
+
         if (requiredSymptom?.requires_affected_eye && affected_eye) {
           symptomObj.affected_eye = affected_eye;
         }
@@ -88,8 +95,12 @@ const CaseHistory = ({ appointmentId }) => {
       .filter((symptom) => Object.keys(symptom).length > 1); // ✅ Remove empty objects
 
     // ✅ Ensure medical and ocular conditions are only IDs
-    const formattedMedicalConditions = selectedMedicalConditions.filter(id => id);
-    const formattedOcularConditions = selectedOcularConditions.filter(id => id);
+    const formattedMedicalConditions = selectedMedicalConditions.filter(
+      (id) => id
+    );
+    const formattedOcularConditions = selectedOcularConditions.filter(
+      (id) => id
+    );
 
     const newCaseHistory = {
       appointment: appointmentId,
@@ -99,14 +110,17 @@ const CaseHistory = ({ appointmentId }) => {
       ocular_conditions: formattedOcularConditions,
     };
 
-    console.log("Submitting Case History:", JSON.stringify(newCaseHistory, null, 2));
-
     try {
       await createCaseHistory(newCaseHistory).unwrap();
-      navigate("/visual-acuity"); // ✅ Redirect on success
+
+      // ✅ Switch to the "Visual Acuity" tab instead of redirecting
+      setErrorMessage(null);
+      setActiveTab("visual acuity");
     } catch (error) {
       console.error("Error creating case history:", error);
-      setErrorMessage(error?.data || { general: ["An unexpected error occurred."] });
+      setErrorMessage(
+        error?.data || { general: ["An unexpected error occurred."] }
+      );
     }
   };
 
@@ -132,29 +146,39 @@ const CaseHistory = ({ appointmentId }) => {
 
       <div>
         <label>Chief Complaint:</label>
-        <input 
-          type="text" 
-          value={chiefComplaint} 
-          onChange={(e) => setChiefComplaint(e.target.value)} 
-          placeholder="Enter chief complaint" 
+        <input
+          type="text"
+          value={chiefComplaint}
+          onChange={(e) => setChiefComplaint(e.target.value)}
+          placeholder="Enter chief complaint"
         />
       </div>
 
       <div>
         <h3>Symptoms</h3>
-        {symptoms?.map(symptom => (
+        {symptoms?.map((symptom) => (
           <div key={symptom.id} style={{ marginBottom: "10px" }}>
             <label>
               <input
                 type="checkbox"
                 value={symptom.id}
-                onChange={(e) => handleSymptomCheckbox(symptom.id, e.target.checked)}
+                onChange={(e) =>
+                  handleSymptomCheckbox(symptom.id, e.target.checked)
+                }
               />
               {symptom.name}
             </label>
 
             {symptom.requires_affected_eye && (
-              <select onChange={(e) => handleSymptomChange(symptom.id, "affected_eye", e.target.value)}>
+              <select
+                onChange={(e) =>
+                  handleSymptomChange(
+                    symptom.id,
+                    "affected_eye",
+                    e.target.value
+                  )
+                }
+              >
                 <option value="">Select Eye</option>
                 <option value="OS">OS (Left Eye)</option>
                 <option value="OD">OD (Right Eye)</option>
@@ -168,7 +192,9 @@ const CaseHistory = ({ appointmentId }) => {
                 min="1"
                 max="5"
                 placeholder="Grading"
-                onChange={(e) => handleSymptomChange(symptom.id, "grading", e.target.value)}
+                onChange={(e) =>
+                  handleSymptomChange(symptom.id, "grading", e.target.value)
+                }
               />
             )}
 
@@ -176,7 +202,9 @@ const CaseHistory = ({ appointmentId }) => {
               <input
                 type="text"
                 placeholder="Notes"
-                onChange={(e) => handleSymptomChange(symptom.id, "notes", e.target.value)}
+                onChange={(e) =>
+                  handleSymptomChange(symptom.id, "notes", e.target.value)
+                }
               />
             )}
           </div>

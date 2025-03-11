@@ -38,7 +38,7 @@ const Consultation = () => {
   const renderTabContent = () => {
     switch (activeTab) {
       case "case history":
-        return <CaseHistory appointmentId={appointmentId} />;
+        return <CaseHistory appointmentId={appointmentId} setActiveTab={setActiveTab}/>;
       case "visual acuity":
         return <VisualAcuity appointmentId={appointmentId} />;
       case "externals":
