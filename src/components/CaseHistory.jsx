@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   useFetchCaseHistoryQuery,
   useFetchSymptomsQuery,
@@ -8,6 +9,8 @@ import {
 } from "../redux/api/features/consultationApi";
 
 const CaseHistory = ({ appointmentId }) => {
+  const navigate = useNavigate(); // ✅ Redirect Hook
+
   // Fetch existing case history
   const { data: caseHistory, error: caseHistoryError, isLoading: caseHistoryLoading } = useFetchCaseHistoryQuery(appointmentId);
   
@@ -17,15 +20,16 @@ const CaseHistory = ({ appointmentId }) => {
   const { data: ocularConditions } = useFetchOcularConditionsQuery();
 
   // Mutation for creating a new case history
-  const [createCaseHistory] = useCreateCaseHistoryMutation();
+  const [createCaseHistory, { isLoading: isSubmitting }] = useCreateCaseHistoryMutation();
 
   // State for form submission
   const [chiefComplaint, setChiefComplaint] = useState("");
   const [selectedSymptoms, setSelectedSymptoms] = useState([]);
   const [selectedMedicalConditions, setSelectedMedicalConditions] = useState([]);
   const [selectedOcularConditions, setSelectedOcularConditions] = useState([]);
+  const [errorMessage, setErrorMessage] = useState(null); // ✅ Store API Errors
 
-  // Handle symptom selection and field updates
+  // ✅ Handle symptom selection
   const handleSymptomChange = (symptomId, field, value) => {
     setSelectedSymptoms((prev) => {
       const updatedSymptoms = prev.map((symptom) =>
@@ -38,7 +42,7 @@ const CaseHistory = ({ appointmentId }) => {
     });
   };
 
-  // Handle checkbox selection for symptoms
+  // ✅ Handle symptom checkbox selection
   const handleSymptomCheckbox = (symptomId, checked) => {
     setSelectedSymptoms((prev) => {
       if (checked) {
@@ -49,42 +53,61 @@ const CaseHistory = ({ appointmentId }) => {
     });
   };
 
-  // Handle submit
+  // ✅ Handle Form Submission
   const handleSubmit = async () => {
+    setErrorMessage(null); // Reset errors before submitting
+
     if (!chiefComplaint.trim()) {
-        alert("Chief complaint is required!");
-        return;
+      setErrorMessage({ chief_complaint: ["Chief complaint is required."] });
+      return;
     }
 
     if (selectedSymptoms.length === 0) {
-        alert("At least one symptom must be selected.");
-        return;
+      setErrorMessage({ symptoms: ["At least one symptom must be selected."] });
+      return;
     }
 
-    // ✅ Filter out empty objects from symptoms
+    // ✅ Ensure All Symptoms Have Required Fields
     const formattedSymptoms = selectedSymptoms
-      .filter(s => s.symptom) // Removes empty objects
-      .map(({ symptom, ...rest }) => ({
-        symptom, // ✅ Only valid symptom IDs
-        ...rest
-      }));
+      .map(({ symptom, affected_eye, grading, notes }) => {
+        const symptomObj = { symptom }; // ✅ Always include symptom ID
+        const requiredSymptom = symptoms?.find((s) => s.id === symptom);
+        
+        if (requiredSymptom?.requires_affected_eye && affected_eye) {
+          symptomObj.affected_eye = affected_eye;
+        }
+        if (requiredSymptom?.requires_grading && grading) {
+          symptomObj.grading = grading;
+        }
+        if (requiredSymptom?.requires_notes && notes) {
+          symptomObj.notes = notes;
+        }
 
-    // ✅ Filter valid IDs for medical & ocular conditions
+        return symptomObj;
+      })
+      .filter((symptom) => Object.keys(symptom).length > 1); // ✅ Remove empty objects
+
+    // ✅ Ensure medical and ocular conditions are only IDs
     const formattedMedicalConditions = selectedMedicalConditions.filter(id => id);
     const formattedOcularConditions = selectedOcularConditions.filter(id => id);
 
     const newCaseHistory = {
-        appointment: appointmentId,
-        chief_complaint: chiefComplaint,
-        symptoms: formattedSymptoms,
-        medical_conditions: formattedMedicalConditions,
-        ocular_conditions: formattedOcularConditions,
+      appointment: appointmentId,
+      chief_complaint: chiefComplaint,
+      symptoms: formattedSymptoms,
+      medical_conditions: formattedMedicalConditions,
+      ocular_conditions: formattedOcularConditions,
     };
 
     console.log("Submitting Case History:", JSON.stringify(newCaseHistory, null, 2));
 
-    await createCaseHistory(newCaseHistory);
-    alert("Case history submitted!");
+    try {
+      await createCaseHistory(newCaseHistory).unwrap();
+      navigate("/visual-acuity"); // ✅ Redirect on success
+    } catch (error) {
+      console.error("Error creating case history:", error);
+      setErrorMessage(error?.data || { general: ["An unexpected error occurred."] });
+    }
   };
 
   if (caseHistoryLoading) return <p>Loading case history...</p>;
@@ -96,6 +119,17 @@ const CaseHistory = ({ appointmentId }) => {
       <pre>{JSON.stringify(caseHistory, null, 2)}</pre>
 
       <h2>Create New Case History</h2>
+
+      {errorMessage && (
+        <div style={{ color: "red" }}>
+          {Object.entries(errorMessage).map(([key, messages]) => (
+            <p key={key}>
+              <strong>{key.replace("_", " ")}:</strong> {messages.join(", ")}
+            </p>
+          ))}
+        </div>
+      )}
+
       <div>
         <label>Chief Complaint:</label>
         <input 
@@ -149,51 +183,9 @@ const CaseHistory = ({ appointmentId }) => {
         ))}
       </div>
 
-      <div>
-        <h3>Medical Conditions</h3>
-        {medicalConditions?.map(condition => (
-          <div key={condition.id}>
-            <label>
-              <input
-                type="checkbox"
-                value={condition.id}
-                onChange={(e) => {
-                  if (e.target.checked) {
-                    setSelectedMedicalConditions([...selectedMedicalConditions, condition.id]);
-                  } else {
-                    setSelectedMedicalConditions(selectedMedicalConditions.filter(id => id !== condition.id));
-                  }
-                }}
-              />
-              {condition.name}
-            </label>
-          </div>
-        ))}
-      </div>
-
-      <div>
-        <h3>Ocular Conditions</h3>
-        {ocularConditions?.map(condition => (
-          <div key={condition.id}>
-            <label>
-              <input
-                type="checkbox"
-                value={condition.id}
-                onChange={(e) => {
-                  if (e.target.checked) {
-                    setSelectedOcularConditions([...selectedOcularConditions, condition.id]);
-                  } else {
-                    setSelectedOcularConditions(selectedOcularConditions.filter(id => id !== condition.id));
-                  }
-                }}
-              />
-              {condition.name}
-            </label>
-          </div>
-        ))}
-      </div>
-
-      <button onClick={handleSubmit}>Submit Case History</button>
+      <button onClick={handleSubmit} disabled={isSubmitting}>
+        {isSubmitting ? "Submitting..." : "Submit Case History"}
+      </button>
     </div>
   );
 };
