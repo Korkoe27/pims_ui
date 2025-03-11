@@ -25,23 +25,63 @@ const CaseHistory = ({ appointmentId }) => {
   const [selectedMedicalConditions, setSelectedMedicalConditions] = useState([]);
   const [selectedOcularConditions, setSelectedOcularConditions] = useState([]);
 
-  const handleSymptomChange = (id, field, value) => {
+  // Handle symptom selection and field updates
+  const handleSymptomChange = (symptomId, field, value) => {
     setSelectedSymptoms((prev) => {
       const updatedSymptoms = prev.map((symptom) =>
-        symptom.id === id ? { ...symptom, [field]: value } : symptom
+        symptom.symptom === symptomId ? { ...symptom, [field]: value } : symptom
       );
-      return prev.some((s) => s.id === id) ? updatedSymptoms : [...prev, { id, [field]: value }];
+
+      return prev.some((s) => s.symptom === symptomId)
+        ? updatedSymptoms
+        : [...prev, { symptom: symptomId, [field]: value }];
     });
   };
 
+  // Handle checkbox selection for symptoms
+  const handleSymptomCheckbox = (symptomId, checked) => {
+    setSelectedSymptoms((prev) => {
+      if (checked) {
+        return [...prev, { symptom: symptomId }];
+      } else {
+        return prev.filter(s => s.symptom !== symptomId);
+      }
+    });
+  };
+
+  // Handle submit
   const handleSubmit = async () => {
+    if (!chiefComplaint.trim()) {
+        alert("Chief complaint is required!");
+        return;
+    }
+
+    if (selectedSymptoms.length === 0) {
+        alert("At least one symptom must be selected.");
+        return;
+    }
+
+    // ✅ Filter out empty objects from symptoms
+    const formattedSymptoms = selectedSymptoms
+      .filter(s => s.symptom) // Removes empty objects
+      .map(({ symptom, ...rest }) => ({
+        symptom, // ✅ Only valid symptom IDs
+        ...rest
+      }));
+
+    // ✅ Filter valid IDs for medical & ocular conditions
+    const formattedMedicalConditions = selectedMedicalConditions.filter(id => id);
+    const formattedOcularConditions = selectedOcularConditions.filter(id => id);
+
     const newCaseHistory = {
-      appointment: appointmentId,
-      chief_complaint: chiefComplaint,
-      symptoms: selectedSymptoms,
-      medical_conditions: selectedMedicalConditions,
-      ocular_conditions: selectedOcularConditions,
+        appointment: appointmentId,
+        chief_complaint: chiefComplaint,
+        symptoms: formattedSymptoms,
+        medical_conditions: formattedMedicalConditions,
+        ocular_conditions: formattedOcularConditions,
     };
+
+    console.log("Submitting Case History:", JSON.stringify(newCaseHistory, null, 2));
 
     await createCaseHistory(newCaseHistory);
     alert("Case history submitted!");
@@ -74,13 +114,7 @@ const CaseHistory = ({ appointmentId }) => {
               <input
                 type="checkbox"
                 value={symptom.id}
-                onChange={(e) => {
-                  if (e.target.checked) {
-                    setSelectedSymptoms([...selectedSymptoms, { id: symptom.id }]);
-                  } else {
-                    setSelectedSymptoms(selectedSymptoms.filter(s => s.id !== symptom.id));
-                  }
-                }}
+                onChange={(e) => handleSymptomCheckbox(symptom.id, e.target.checked)}
               />
               {symptom.name}
             </label>
@@ -133,14 +167,6 @@ const CaseHistory = ({ appointmentId }) => {
               />
               {condition.name}
             </label>
-
-            {condition.requires_notes && (
-              <input
-                type="text"
-                placeholder="Notes"
-                onChange={(e) => handleSymptomChange(condition.id, "notes", e.target.value)}
-              />
-            )}
           </div>
         ))}
       </div>
@@ -163,33 +189,6 @@ const CaseHistory = ({ appointmentId }) => {
               />
               {condition.name}
             </label>
-
-            {condition.requires_affected_eye && (
-              <select onChange={(e) => handleSymptomChange(condition.id, "affected_eye", e.target.value)}>
-                <option value="">Select Eye</option>
-                <option value="OS">OS (Left Eye)</option>
-                <option value="OD">OD (Right Eye)</option>
-                <option value="OU">OU (Both Eyes)</option>
-              </select>
-            )}
-
-            {condition.requires_grading && (
-              <input
-                type="number"
-                min="1"
-                max="5"
-                placeholder="Grading"
-                onChange={(e) => handleSymptomChange(condition.id, "grading", e.target.value)}
-              />
-            )}
-
-            {condition.requires_notes && (
-              <input
-                type="text"
-                placeholder="Notes"
-                onChange={(e) => handleSymptomChange(condition.id, "notes", e.target.value)}
-              />
-            )}
           </div>
         ))}
       </div>
