@@ -61,11 +61,26 @@ export const getAppointmentsDetailsUrl = (appointmentId) =>
 // Case History
 /////////////////////////
 
-export const createCaseHistoryUrl = "/tests/api/case-histories/";
+export const createCaseHistoryUrl = "/tests/api/case-history/";
 export const updateCaseHistoryUrl = (appointmentId) =>
-  `/tests/api/case-histories/${appointmentId}/`;
+  `/tests/api/case-history/${appointmentId}/`;
 export const fetchCaseHistoryUrl = (appointmentId) =>
-  `/tests/api/case-histories/${appointmentId}/`;
+  `/tests/api/case-history/${appointmentId}/`;
+
+/////////////////////////
+// Patient History
+/////////////////////////
+
+// Fetch a patient's medical history
+export const fetchPatientHistoryUrl = (patientId) =>
+  `/tests/api/patient-history/${patientId}/`;
+
+// Create a new patient history (only if none exists)
+export const createPatientHistoryUrl = "/tests/api/patient-history/";
+
+// Update an existing patient history
+export const updatePatientHistoryUrl = (historyId) =>
+  `/tests/api/patient-history/${historyId}/`;
 
 /////////////////////////
 // Symptoms

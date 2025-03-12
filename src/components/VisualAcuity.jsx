@@ -71,7 +71,7 @@ const VisualAcuity = ({ appointmentId }) => {
           {/* Distance VA (unaided) */}
           <div>
             <h1 className="text-base font-medium">
-              Distance VA (unaided)<span className="text-[#d42620]">*</span>
+              Distance VA <span className="text-[#d42620]">*</span>
             </h1>
             <div className="flex gap-4">
               <div className="flex flex-col justify-end gap-4 items-baseline">
@@ -80,7 +80,7 @@ const VisualAcuity = ({ appointmentId }) => {
               </div>
               <div className="flex gap-4">
                 {[
-                  { label: "Standard", name: "distanceVaOdStandard", osName: "distanceVaOsStandard" },
+                  { label: "Unaided", name: "distanceVaOdStandard", osName: "distanceVaOsStandard" },
                   { label: "PH", name: "distanceVaOdPh", osName: "distanceVaOsPh" },
                   { label: "+1.00", name: "distanceVaOdPlus", osName: "distanceVaOsPlus" },
                 ].map((field) => (
