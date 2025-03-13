@@ -9,13 +9,14 @@ import { persistStore, persistReducer } from "redux-persist";
 import storage from "redux-persist/lib/storage"; // Defaults to localStorage
 import { authApi } from "../api/features/authApi"; // Authentication API slice
 import { patientApi } from "../api/features/patientApi"; // Patient API slice
-import { consultationApi } from "../api/features/consultationApi"; // Consultation API slice
+import { caseHistoryApi } from "../api/features/caseHistoryApi"; // Consultation API slice
+import { visualAcuityApi } from "../api/features/visualAcuityApi"; // ✅ Visual Acuity API slice
 import authReducer from "../slices/authSlice"; // Authentication state slice
 import dashboardReducer from "../slices/dashboardSlice"; // Dashboard state slice
 import patientReducer from "../slices/patientSlice"; // Patient state slice
 import appointmentsReducer from "../slices/appointmentsSlice"; // Appointments state slice
-import consultationReducer from "../slices/consultationSlice"; // Consultation state slice
-import clinicReducer from "../slices/clinicSlice"
+import caseHistoryReducer from "../slices/consultationSlice"; // Consultation state slice
+import clinicReducer from "../slices/clinicSlice"; // Clinic state slice
 
 // Persistence configuration for the auth slice
 const persistConfig = {
@@ -33,11 +34,12 @@ export const store = configureStore({
     dashboard: dashboardReducer, // Dashboard state slice
     patients: patientReducer, // Patient state slice
     appointments: appointmentsReducer, // Appointments state slice
-    consultation: consultationReducer, // Consultation state slice
+    caseHistory: caseHistoryReducer, // Consultation state slice
     clinic: clinicReducer, // Clinic state slice
     [authApi.reducerPath]: authApi.reducer, // RTK Query reducer for authentication API
     [patientApi.reducerPath]: patientApi.reducer, // RTK Query reducer for patient API
-    [consultationApi.reducerPath]: consultationApi.reducer, // RTK Query reducer for consultation API
+    [caseHistoryApi.reducerPath]: caseHistoryApi.reducer, // RTK Query reducer for consultation API
+    [visualAcuityApi.reducerPath]: visualAcuityApi.reducer, // ✅ RTK Query reducer for Visual Acuity API
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
@@ -45,7 +47,8 @@ export const store = configureStore({
     })
       .concat(authApi.middleware) // RTK Query middleware for authentication API
       .concat(patientApi.middleware) // RTK Query middleware for patient API
-      .concat(consultationApi.middleware), // RTK Query middleware for consultation API
+      .concat(caseHistoryApi.middleware) // RTK Query middleware for consultation API
+      .concat(visualAcuityApi.middleware), // ✅ RTK Query middleware for Visual Acuity API
 });
 
 export const persistor = persistStore(store);

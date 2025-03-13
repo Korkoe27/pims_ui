@@ -8,7 +8,7 @@ import {
   useFetchMedicalConditionsQuery,
   useFetchOcularConditionsQuery,
   useCreateCaseHistoryMutation,
-} from "../redux/api/features/consultationApi";
+} from "../redux/api/features/caseHistoryApi";
 import SearchableSelect from "../components/SearchableSelect";
 
 const CaseHistory = ({ patient, appointmentId, setActiveTab }) => {

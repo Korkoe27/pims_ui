@@ -10,7 +10,7 @@ import {
   updatePatientHistoryUrl, // ✅ New: Update Patient History
 } from "../end_points/endpoints";
 
-export const consultationApi = apiClient.injectEndpoints({
+export const caseHistoryApi = apiClient.injectEndpoints({
   endpoints: (builder) => ({
     /** ✅ Fetch Latest Case History for an Appointment **/
     fetchCaseHistory: builder.query({
@@ -83,4 +83,4 @@ export const {
   useFetchPatientHistoryQuery, // ✅ Export Patient History Fetch
   useCreatePatientHistoryMutation, // ✅ Export Patient History Create
   useUpdatePatientHistoryMutation, // ✅ Export Patient History Update
-} = consultationApi;
+} = caseHistoryApi;

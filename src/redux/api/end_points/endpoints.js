@@ -99,10 +99,15 @@ export const fetchOcularConditionsUrl = "/tests/api/ocular-conditions/";
 // Visual Acuity
 /////////////////////////
 
+// ✅ Create a new Visual Acuity record
 export const createVisualAcuityUrl = "/tests/api/visual-acuity/";
-export const updateVisualAcuityUrl = (appointmentId) =>
-  `/tests/api/visual-acuity/${appointmentId}/`;
+
+// ✅ Fetch an existing Visual Acuity record by appointment ID
 export const fetchVisualAcuityUrl = (appointmentId) =>
+  `/tests/api/visual-acuity/${appointmentId}/`;
+
+// ✅ Update an existing Visual Acuity record
+export const updateVisualAcuityUrl = (appointmentId) =>
   `/tests/api/visual-acuity/${appointmentId}/`;
 
 /////////////////////////
