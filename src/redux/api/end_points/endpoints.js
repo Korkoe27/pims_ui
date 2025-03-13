@@ -14,7 +14,7 @@
 export const loginUrl = "auth/auth/jwt/create/";
 export const logoutUrl = "/auth/api/logout/";
 export const checkSessionUrl = "auth/api/check-session/";
-export const getUserUrl = "auth/auth/users/me/"
+export const getUserUrl = "auth/auth/users/me/";
 
 /////////////////////////
 // Dashboard
@@ -41,10 +41,10 @@ export const updatePatientDetailsUrl = (patientId) =>
 // List all patients
 export const listAllPatientsUrl = `/clients/api/patients/`;
 
-// Create a new patient (removed patientId, as it's not required for creating a new resource)
+// Create a new patient
 export const createNewPatientUrl = "/clients/api/patients/";
 
-//Fetch patient appointments =
+// Fetch patient appointments
 export const fetchPatientAppointmentsUrl = (patientId) =>
   `/clients/api/${patientId}/appointments/`;
 
@@ -68,13 +68,46 @@ export const fetchCaseHistoryUrl = (appointmentId) =>
   `/tests/api/case-history/${appointmentId}/`;
 
 /////////////////////////
+// Patient History
+/////////////////////////
+
+// Fetch a patient's medical history
+export const fetchPatientHistoryUrl = (patientId) =>
+  `/tests/api/patient-history/${patientId}/`;
+
+// Create a new patient history (only if none exists)
+export const createPatientHistoryUrl = "/tests/api/patient-history/";
+
+// Update an existing patient history
+export const updatePatientHistoryUrl = (historyId) =>
+  `/tests/api/patient-history/${historyId}/`;
+
+/////////////////////////
+// Symptoms
+/////////////////////////
+
+export const fetchSymptomsUrl = "/tests/api/symptoms/";
+
+/////////////////////////
+// Medical & Ocular Conditions
+/////////////////////////
+
+export const fetchMedicalConditionsUrl = "/tests/api/medical-conditions/";
+export const fetchOcularConditionsUrl = "/tests/api/ocular-conditions/";
+
+/////////////////////////
 // Visual Acuity
 /////////////////////////
 
+// ✅ Create a new Visual Acuity record
 export const createVisualAcuityUrl = "/tests/api/visual-acuity/";
-export const updateVisualAcuityUrl = (appointmentId) =>
-  `/tests/api/visual-acuity/${appointmentId}/`;
+
+// ✅ Fetch an existing Visual Acuity record by appointment ID
 export const fetchVisualAcuityUrl = (appointmentId) =>
+  `/tests/api/visual-acuity/${appointmentId}/`;
+
+// ✅ Update an existing Visual Acuity record
+export const updateVisualAcuityUrl = (appointmentId) =>
   `/tests/api/visual-acuity/${appointmentId}/`;
 
 /////////////////////////

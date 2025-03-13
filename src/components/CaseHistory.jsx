@@ -1,306 +1,257 @@
 import React, { useState, useEffect } from "react";
-import Radios from "./Radios";
-import Inputs from "./Inputs";
-import { useNavigate } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
+import PropTypes from "prop-types";
 import {
+  useFetchPatientHistoryQuery,
   useFetchCaseHistoryQuery,
+  useFetchSymptomsQuery,
+  useFetchMedicalConditionsQuery,
+  useFetchOcularConditionsQuery,
   useCreateCaseHistoryMutation,
-  useUpdateCaseHistoryMutation,
-} from "../redux/api/features/consultationApi";
-import { clearError, clearSuccessMessage } from "../redux/slices/consultationSlice";
+} from "../redux/api/features/caseHistoryApi";
+import SearchableSelect from "../components/SearchableSelect";
 
-const CaseHistory = ({ appointmentId }) => {
-  const navigate = useNavigate();
-  const dispatch = useDispatch();
-
-  // Fetch the current user from the Redux store
-  const { user } = useSelector((state) => state.auth);
-
-
-  const [formData, setFormData] = useState({
-    appointment: "",
-    chiefComplaint: "",
-    lastEyeExamination: "",
-    burningSensation: false,
-    itching: false,
-    tearing: false,
-    doubleVision: false,
-    discharge: false,
-    pain: false,
-    fbs: false,
-    photophobia: false,
-    asthma: false,
-    ulcer: false,
-    diabetes: false,
-    hypertension: false,
-    sickleCell: false,
-    stdSti: false,
-    spectacles: false,
-    eyeSurgery: false,
-    ocularTrauma: false,
-    glaucoma: false,
-    familyAsthma: false,
-    familyUlcer: false,
-    familyDiabetes: false,
-    familyHypertension: false,
-    familySickleCell: false,
-    familyStdSti: false,
-    familySpectacles: false,
-    familyEyeSurgery: false,
-    familyOcularTrauma: false,
-    familyGlaucoma: false,
-    parentDrugHistory: "",
-    allergies: "",
-    hobbies: "",
-  });
-
-  const [caseHistoryId, setCaseHistoryId] = useState(null);
-
-  const { data: fetchedCaseHistory, isLoading } = useFetchCaseHistoryQuery(
-    appointmentId,
-    { skip: !appointmentId }
+const CaseHistory = ({ patient, appointmentId, setActiveTab }) => {
+  const selectedAppointment = useSelector(
+    (state) => state.appointments.selectedAppointment
   );
-  const [createCaseHistory] = useCreateCaseHistoryMutation();
-  const [updateCaseHistory] = useUpdateCaseHistoryMutation();
 
+  const patientData = patient || selectedAppointment;
+  const patientId = patientData?.patient;
+
+  /** === Fetch Data === */
+  const { data: patientHistory, isLoading: loadingHistory } =
+    useFetchPatientHistoryQuery(patientId, { skip: !patientId });
+
+  const { data: caseHistory, isLoading: loadingCaseHistory } =
+    useFetchCaseHistoryQuery(appointmentId);
+
+  const { data: symptoms } = useFetchSymptomsQuery();
+  const { data: medicalConditions } = useFetchMedicalConditionsQuery();
+  const { data: ocularConditions } = useFetchOcularConditionsQuery();
+  const [createCaseHistory, { isLoading: isSubmitting }] =
+    useCreateCaseHistoryMutation();
+
+  /** === State Management === */
+  const [chiefComplaint, setChiefComplaint] = useState("");
+  const [directQuestioning, setDirectQuestioning] = useState("");
+  const [selectedSymptoms, setSelectedSymptoms] = useState([]);
+  const [selectedMedicalConditions, setSelectedMedicalConditions] = useState([]);
+  const [selectedOcularConditions, setSelectedOcularConditions] = useState([]);
+  const [drugHistory, setDrugHistory] = useState("");
+  const [allergies, setAllergies] = useState("");
+  const [socialHistory, setSocialHistory] = useState("");
+  const [errorMessage, setErrorMessage] = useState(null);
+
+  /** === Pre-fill Existing Data === */
   useEffect(() => {
-    if (fetchedCaseHistory) {
-      setFormData(fetchedCaseHistory);
-      setCaseHistoryId(fetchedCaseHistory.id);
-    } else if (appointmentId) {
-      setFormData((prev) => ({ ...prev, appointment: appointmentId }));
+    if (caseHistory) {
+      setChiefComplaint(caseHistory.chief_complaint || "");
+      setSelectedSymptoms(caseHistory.symptoms || []);
     }
-  }, [fetchedCaseHistory, appointmentId]);
+    if (patientHistory) {
+      setSelectedMedicalConditions(patientHistory.medical_conditions || []);
+      setSelectedOcularConditions(patientHistory.ocular_conditions || []);
+      setDrugHistory(patientHistory.drug_history || "");
+      setAllergies(patientHistory.allergies || "");
+      setSocialHistory(patientHistory.social_history || "");
+    }
+  }, [caseHistory, patientHistory]);
 
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFormData({
-      ...formData,
-      [name]: type === "checkbox" ? checked : value,
-    });
-  };
+  /** === Handle Form Submission === */
+  const handleSubmit = async () => {
+    setErrorMessage(null);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+    if (!chiefComplaint.trim()) {
+      setErrorMessage({ chief_complaint: ["Chief complaint is required."] });
+      return;
+    }
+
+    if (selectedSymptoms.length === 0) {
+      setErrorMessage({ symptoms: ["At least one symptom must be selected."] });
+      return;
+    }
+
+    if (!patientId) {
+      setErrorMessage({
+        patient: ["Patient ID is required but was not found."],
+      });
+      return;
+    }
+
+    // ✅ Format Payload
+    const newCaseHistory = {
+      appointment: appointmentId,
+      chief_complaint: chiefComplaint,
+      on_direct_questioning: directQuestioning,
+      symptoms: selectedSymptoms.map(({ symptom, affected_eye, grading, notes }) => ({
+        symptom,
+        affected_eye: affected_eye || "OU",
+        grading: grading || 1,
+        notes: notes || "",
+      })),
+      patient_history: {
+        id: patientId,
+        medical_conditions: selectedMedicalConditions,
+        ocular_conditions: selectedOcularConditions,
+        drug_history: drugHistory,
+        allergies: allergies,
+        social_history: socialHistory,
+      },
+    };
+
     try {
-      const payload = {
-        ...formData,
-        created_by: user.id, // Add the user ID
-      };
-
-      if (caseHistoryId) {
-        await updateCaseHistory({ appointmentId, ...payload });
-        alert("Case history updated successfully!");
-      } else {
-        await createCaseHistory(payload);
-        alert("Case history created successfully!");
-      }
-      dispatch(clearSuccessMessage());
+      await createCaseHistory(newCaseHistory).unwrap();
+      setActiveTab("visual acuity");
     } catch (error) {
-      console.error("Error submitting case history:", error);
-      dispatch(clearError());
+      console.error("🚨 Error creating case history:", error);
+      setErrorMessage(
+        error?.data || { general: ["An unexpected error occurred."] }
+      );
     }
   };
-
-  if (isLoading) {
-    return <p>Loading case history...</p>;
-  }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-12">
-      <section className="flex gap-28">
-        <aside className="flex flex-col gap-12">
+    <div className="p-6 bg-white shadow-md rounded-md">
+      <h2 className="font-bold text-2xl mb-4 text-gray-700">Case History</h2>
+
+      {/* ✅ Display Patient ID */}
+      {/* <div className="p-4 bg-gray-100 border rounded-md mb-4">
+        <p className="font-bold text-gray-700">Patient ID:</p>
+        <p className="text-blue-600 font-bold text-lg">
+          {patientId || "Not Available"}
+        </p>
+      </div> */}
+
+      {/* ✅ Handle Loading */}
+      {(loadingHistory || loadingCaseHistory) && (
+        <p className="text-gray-500">Loading Case History...</p>
+      )}
+
+      {/* ✅ Handle Errors */}
+      {errorMessage && (
+        <div className="text-red-500 mb-4">
+          {Object.entries(errorMessage).map(([field, messages]) => (
+            <p key={field}>{`${field}: ${messages}`}</p>
+          ))}
+        </div>
+      )}
+
+      {/* ✅ Case History Form (2-Column Layout) */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* ✅ Left Column */}
+        <div className="space-y-4">
           {/* Chief Complaint */}
-          <div className="flex flex-col">
-            <h1 className="text-base font-medium text-black">
-              Chief Complaint <span className="text-[#ff0000]">*</span>
-            </h1>
+          <div>
+            <label className="font-medium text-gray-600">
+              Chief Complaint <span className="text-red-500">*</span>
+            </label>
             <textarea
-              name="chiefComplaint"
-              value={formData.chiefComplaint}
-              onChange={handleChange}
-              placeholder="Type in the patient’s chief complaint"
-              className="p-4 border border-[#d0d5dd] resize-none rounded-md w-96 h-48"
-            ></textarea>
+              value={chiefComplaint}
+              onChange={(e) => setChiefComplaint(e.target.value)}
+              className="w-full p-3 border rounded-md"
+              placeholder="Describe the patient's main issue"
+            />
           </div>
 
           {/* On Direct Questioning */}
           <div>
-            <h1 className="text-base font-medium text-black">
-              On Direct Questioning <span className="text-[#ff0000]">*</span>
-            </h1>
-            <div className="grid grid-cols-2 gap-8">
-              {[
-                { label: "Burning Sensation", name: "burningSensation" },
-                { label: "Itching", name: "itching" },
-                { label: "Tearing", name: "tearing" },
-                { label: "Double Vision", name: "doubleVision" },
-                { label: "Discharge", name: "discharge" },
-                { label: "Pain", name: "pain" },
-                { label: "FBS", name: "fbs" },
-                { label: "Photophobia", name: "photophobia" },
-              ].map((field) => (
-                <Radios
-                  key={field.name}
-                  label={field.label}
-                  name={field.name}
-                  checked={formData[field.name]}
-                  onChange={handleChange}
-                />
-              ))}
-            </div>
+            <label className="font-medium text-gray-600">
+              On Direct Questioning
+            </label>
           </div>
 
-          {/* Patient Medical History */}
-          <div>
-            <h1 className="text-base font-medium text-black">
-              Patient Medical History{" "}
-              <span className="text-[#ff0000]">*</span>
-            </h1>
-            <div className="grid grid-cols-2 gap-8">
-              {[
-                { label: "Asthma", name: "asthma" },
-                { label: "Ulcer", name: "ulcer" },
-                { label: "Diabetes", name: "diabetes" },
-                { label: "Hypertension", name: "hypertension" },
-                { label: "Sickle Cell", name: "sickleCell" },
-                { label: "STD/STI", name: "stdSti" },
-              ].map((field) => (
-                <Radios
-                  key={field.name}
-                  label={field.label}
-                  name={field.name}
-                  checked={formData[field.name]}
-                  onChange={handleChange}
-                />
-              ))}
-            </div>
-          </div>
-        </aside>
+          {/* Symptoms */}
+          <SearchableSelect
+            // label="Symptoms"
+            name="symptoms"
+            options={symptoms || []}
+            value={selectedSymptoms}
+            onChange={setSelectedSymptoms}
+          />
 
-        <aside className="flex flex-col gap-12">
-          {/* Patient Ocular History */}
-          <div>
-            <h1 className="text-base font-medium text-black">
-              Patient Ocular History <span className="text-[#ff0000]">*</span>
-            </h1>
-            <Inputs
-              type="date"
-              label="Last Eye Examination"
-              name="lastEyeExamination"
-              value={formData.lastEyeExamination}
-              onChange={handleChange}
-            />
-            <div className="grid grid-cols-2 gap-8">
-              {[
-                { label: "Spectacles", name: "spectacles" },
-                { label: "Eye Surgery", name: "eyeSurgery" },
-                { label: "Ocular Trauma", name: "ocularTrauma" },
-                { label: "Glaucoma", name: "glaucoma" },
-              ].map((field) => (
-                <Radios
-                  key={field.name}
-                  label={field.label}
-                  name={field.name}
-                  checked={formData[field.name]}
-                  onChange={handleChange}
-                />
-              ))}
-            </div>
-          </div>
+          {/* Medical History
+          <SearchableSelect
+            label="Patient's Medical History"
+            name="medical_conditions"
+            options={medicalConditions || []}
+            value={selectedMedicalConditions}
+            onChange={setSelectedMedicalConditions}
+          /> */}
 
+          {/* Last Eye Exam */}
+          {/* <div>
+            <label className="font-medium text-gray-600">Last Eye Exam</label>
+            <p className="text-gray-600">
+              {patientHistory?.last_eye_exam || "Not Available"}
+            </p>
+          </div> */}
+
+          {/* Ocular History */}
+          {/* <SearchableSelect
+            label="Patient's Ocular History"
+            name="ocular_conditions"
+            options={ocularConditions || []}
+            value={selectedOcularConditions}
+            onChange={setSelectedOcularConditions}
+          /> */}
+        </div>
+
+        {/* ✅ Right Column */}
+        <div className="space-y-4">
           {/* Family Medical History */}
-          <div>
-            <h1 className="text-base font-medium text-black">
-              Family Medical History{" "}
-              <span className="text-[#ff0000]">*</span>
-            </h1>
-            <div className="grid grid-cols-2 gap-8">
-              {[
-                { label: "Asthma", name: "familyAsthma" },
-                { label: "Ulcer", name: "familyUlcer" },
-                { label: "Diabetes", name: "familyDiabetes" },
-                { label: "Hypertension", name: "familyHypertension" },
-                { label: "Sickle Cell", name: "familySickleCell" },
-                { label: "STD/STI", name: "familyStdSti" },
-              ].map((field) => (
-                <Radios
-                  key={field.name}
-                  label={field.label}
-                  name={field.name}
-                  checked={formData[field.name]}
-                  onChange={handleChange}
-                />
-              ))}
-            </div>
-          </div>
+          {/* <SearchableSelect
+            label="Family Medical History"
+            name="family_medical_history"
+            options={medicalConditions || []}
+            value={selectedMedicalConditions}
+            onChange={setSelectedMedicalConditions}
+          /> */}
 
           {/* Family Ocular History */}
-          <div>
-            <h1 className="text-base font-medium text-black">
-              Family Ocular History{" "}
-              <span className="text-[#ff0000]">*</span>
-            </h1>
-            <div className="grid grid-cols-2 gap-8">
-              {[
-                { label: "Spectacles", name: "familySpectacles" },
-                { label: "Eye Surgery", name: "familyEyeSurgery" },
-                { label: "Ocular Trauma", name: "familyOcularTrauma" },
-                { label: "Glaucoma", name: "familyGlaucoma" },
-              ].map((field) => (
-                <Radios
-                  key={field.name}
-                  label={field.label}
-                  name={field.name}
-                  checked={formData[field.name]}
-                  onChange={handleChange}
-                />
-              ))}
-            </div>
-          </div>
+          {/* <SearchableSelect
+            label="Family Ocular History"
+            name="family_ocular_history"
+            options={ocularConditions || []}
+            value={selectedOcularConditions}
+            onChange={setSelectedOcularConditions}
+          /> */}
 
-          {/* Text Inputs */}
-          <Inputs
-            type="text"
-            label="Patient’s Drug History"
-            name="parentDrugHistory"
-            value={formData.parentDrugHistory}
-            onChange={handleChange}
-          />
-          <Inputs
-            type="text"
-            label="Patient’s Allergies"
+          {/* Drug History */}
+          {/* <SearchableSelect
+            label="Patient's Drug History"
+            name="drug_history"
+            value={drugHistory}
+            onChange={setDrugHistory}
+          /> */}
+
+          {/* Allergies */}
+          {/* <SearchableSelect
+            label="Patient's Allergies"
             name="allergies"
-            value={formData.allergies}
-            onChange={handleChange}
-          />
-          <Inputs
-            type="text"
-            label="Patient’s Hobbies"
-            name="hobbies"
-            value={formData.hobbies}
-            onChange={handleChange}
-          />
-        </aside>
-      </section>
+            value={allergies}
+            onChange={setAllergies}
+          /> */}
 
-      <div className="flex gap-8 justify-evenly my-16">
-        <button
-          type="button"
-          onClick={() => navigate(-1)}
-          className="w-56 p-4 rounded-lg text-[#2f3192] border border-[#2f3192]"
-        >
-          Back
-        </button>
-        <button
-          type="submit"
-          className="w-56 p-4 rounded-lg text-white bg-[#2f3192]"
-        >
-          Save and Proceed
-        </button>
+          {/* Social History */}
+         {/* <SearchableSelect
+            label="Patient's Social History"
+            name="social_history"
+            value={socialHistory}
+            onChange={setSocialHistory}
+          />  */}
+        </div>
       </div>
-    </form>
+
+      {/* ✅ Submit Button */}
+      <button
+        onClick={handleSubmit}
+        disabled={isSubmitting}
+        className="bg-blue-500 text-white px-6 py-2 rounded-md hover:bg-blue-600 disabled:bg-gray-400 mt-4"
+      >
+        {isSubmitting ? "Saving..." : "Save & Proceed"}
+      </button>
+    </div>
   );
 };
 
