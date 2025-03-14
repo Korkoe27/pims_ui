@@ -86,11 +86,10 @@ const Appointments = () => {
                 <tr key={appointment.id} className="bg-white border-b">
                   <td className="px-6 py-4">{appointment?.appointment_date}</td>
                   <td className="px-6 py-4">
-                    {appointment?.patient?.patient_id}
+                    {appointment?.patient_id}
                   </td>
                   <td className="px-6 py-4">
-                    {appointment?.patient?.first_name}{" "}
-                    {appointment?.patient?.last_name}
+                    {appointment?.patient_name}
                   </td>
                   <td className="px-6 py-4">{appointment?.appointment_type}</td>
                   <td className="w-fit mx-auto">

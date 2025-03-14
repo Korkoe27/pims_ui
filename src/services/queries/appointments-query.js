@@ -3,7 +3,7 @@
 
 // export  const   useAppointments =   ()  =>  {
 //     const   result  =   useQuery({queryKey:['appointments'],queryFn:()=>    handleAppointments()});
-//     console.log(result)
+
 //     return result;
 // }
 

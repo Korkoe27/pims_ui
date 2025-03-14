@@ -20,7 +20,6 @@ const Dashboard = () => {
   const dispatch = useDispatch();
 
   const { user } = useSelector((state) => state.auth);
-  console.log(user);
 
   const {
     data: dashboardData,
@@ -105,18 +104,17 @@ const Dashboard = () => {
             <tbody>
               {todayAppointments
                 .filter((appointment) => appointment.status === "Scheduled")
-                .slice(0, 3)
+                .slice(0, 5)
                 .map((appointment) => (
                   <tr key={appointment.id} className="bg-white border-b">
                     <td className="px-3 py-3">
                       {appointment.appointment_date}
                     </td>
                     <td className="px-3 py-3">
-                      {appointment.patient.patient_id}
+                      {appointment.patient_id}
                     </td>
                     <td className="px-3 py-3">
-                      {appointment.patient.first_name}{" "}
-                      {appointment.patient.last_name}
+                      {appointment.patient_name}
                     </td>
                     <td className="px-3 py-3">
                       {appointment.appointment_type}

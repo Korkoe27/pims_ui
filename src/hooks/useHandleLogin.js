@@ -24,8 +24,6 @@ const useHandleLogin = () => {
       // Step 4: Dispatch user data to Redux store
       dispatch(setUser(user));
 
-      console.log("Login successful!");
-
       // Step 5: Navigate to the home route
       navigate("/");
     } catch (err) {
