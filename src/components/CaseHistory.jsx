@@ -2,7 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import useCaseHistoryData from "../hooks/useCaseHistoryData";
 import SearchableSelect from "../components/SearchableSelect";
-import { useCreateCaseHistoryMutation } from "../redux/api/features/caseHistoryApi"; // ✅ Import mutation
+import { useCreateCaseHistoryMutation } from "../redux/api/features/caseHistoryApi";
+import ErrorModal from "../components/ErrorModal"; // ✅ Import Error Modal
 
 const CaseHistory = ({ patient, appointmentId, setActiveTab }) => {
   const selectedAppointment = useSelector(
@@ -17,6 +18,7 @@ const CaseHistory = ({ patient, appointmentId, setActiveTab }) => {
   const [chiefComplaint, setChiefComplaint] = useState("");
   const [conditionDetails, setConditionDetails] = useState([]);
   const [errorMessage, setErrorMessage] = useState(null);
+  const [showErrorModal, setShowErrorModal] = useState(false); // ✅ State for error modal
   const [createCaseHistory, { isLoading: isSubmitting }] =
     useCreateCaseHistoryMutation();
 
@@ -31,9 +33,9 @@ const CaseHistory = ({ patient, appointmentId, setActiveTab }) => {
           caseHistory.condition_details.map((cond) => ({
             ocular_condition: cond.ocular_condition,
             ocular_condition_name: cond.ocular_condition_name,
-            affected_eye: cond.affected_eye ?? "", // ✅ Ensure affected_eye is stored
-            grading: cond.grading ?? "", // ✅ Ensure grading is properly stored
-            notes: cond.notes ?? "", // ✅ Ensure notes are properly stored
+            affected_eye: cond.affected_eye ?? "",
+            grading: cond.grading ?? "",
+            notes: cond.notes ?? "",
           }))
         );
       }
@@ -42,9 +44,11 @@ const CaseHistory = ({ patient, appointmentId, setActiveTab }) => {
 
   const handleSaveAndProceed = async () => {
     setErrorMessage(null);
+    setShowErrorModal(false);
 
     if (!chiefComplaint.trim()) {
       setErrorMessage({ chief_complaint: ["Chief complaint is required."] });
+      setShowErrorModal(true);
       return;
     }
 
@@ -52,6 +56,7 @@ const CaseHistory = ({ patient, appointmentId, setActiveTab }) => {
       setErrorMessage({
         condition_details: ["At least one ocular condition must be selected."],
       });
+      setShowErrorModal(true);
       return;
     }
 
@@ -59,6 +64,7 @@ const CaseHistory = ({ patient, appointmentId, setActiveTab }) => {
       setErrorMessage({
         patient: ["Patient ID is required but was not found."],
       });
+      setShowErrorModal(true);
       return;
     }
 
@@ -70,15 +76,15 @@ const CaseHistory = ({ patient, appointmentId, setActiveTab }) => {
           const data = { ocular_condition };
 
           if (affected_eye) {
-            data.affected_eye = affected_eye; // ✅ Ensure affected_eye is included
+            data.affected_eye = affected_eye;
           }
 
           if (grading !== "" && grading !== undefined) {
-            data.grading = grading; // ✅ Only include grading if provided
+            data.grading = grading;
           }
 
           if (notes !== "" && notes !== undefined) {
-            data.notes = notes; // ✅ Only include notes if provided
+            data.notes = notes;
           }
 
           return data;
@@ -87,16 +93,19 @@ const CaseHistory = ({ patient, appointmentId, setActiveTab }) => {
       patient_history: { id: patientId },
     };
 
-    console.log("🚀 Data Being Sent:", newCaseHistory); // ✅ Debugging: Log request payload
+    console.log("🚀 Data Being Sent:", newCaseHistory);
 
     try {
       await createCaseHistory(newCaseHistory).unwrap();
       setActiveTab("visual acuity");
     } catch (error) {
       console.error("🚨 Error saving case history:", error);
-      setErrorMessage(
-        error?.data || { general: ["An unexpected error occurred."] }
-      );
+      if (error?.data) {
+        setErrorMessage(error.data); // ✅ Pass the error object directly
+      } else {
+        setErrorMessage({ general: ["An unexpected error occurred."] });
+      }
+      setShowErrorModal(true);
     }
   };
 
@@ -105,9 +114,6 @@ const CaseHistory = ({ patient, appointmentId, setActiveTab }) => {
       <h2 className="font-bold text-2xl mb-4 text-gray-700">Case History</h2>
 
       {isLoading && <p className="text-gray-500">Loading Data...</p>}
-      {errorMessage && (
-        <div className="text-red-500 mb-4">{errorMessage.general}</div>
-      )}
 
       <textarea
         value={chiefComplaint}
@@ -131,6 +137,14 @@ const CaseHistory = ({ patient, appointmentId, setActiveTab }) => {
       >
         {isSubmitting ? "Saving..." : "Save & Proceed"}
       </button>
+
+      {/* ✅ Error Modal */}
+      {showErrorModal && errorMessage && (
+        <ErrorModal
+          message={errorMessage}
+          onClose={() => setShowErrorModal(false)}
+        />
+      )}
     </div>
   );
 };
