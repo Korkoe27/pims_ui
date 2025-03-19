@@ -31,6 +31,7 @@ const CaseHistory = ({ patient, appointmentId, setActiveTab }) => {
           caseHistory.condition_details.map((cond) => ({
             ocular_condition: cond.ocular_condition,
             ocular_condition_name: cond.ocular_condition_name,
+            affected_eye: cond.affected_eye ?? "", // ✅ Ensure affected_eye is stored
             grading: cond.grading ?? "", // ✅ Ensure grading is properly stored
             notes: cond.notes ?? "", // ✅ Ensure notes are properly stored
           }))
@@ -64,19 +65,25 @@ const CaseHistory = ({ patient, appointmentId, setActiveTab }) => {
     const newCaseHistory = {
       appointment: appointmentId,
       chief_complaint: chiefComplaint,
-      condition_details: conditionDetails.map(({ ocular_condition, grading, notes }) => {
-        const data = { ocular_condition };
+      condition_details: conditionDetails.map(
+        ({ ocular_condition, affected_eye, grading, notes }) => {
+          const data = { ocular_condition };
 
-        if (grading !== "" && grading !== undefined) {
-          data.grading = grading; // ✅ Only include grading if provided
+          if (affected_eye) {
+            data.affected_eye = affected_eye; // ✅ Ensure affected_eye is included
+          }
+
+          if (grading !== "" && grading !== undefined) {
+            data.grading = grading; // ✅ Only include grading if provided
+          }
+
+          if (notes !== "" && notes !== undefined) {
+            data.notes = notes; // ✅ Only include notes if provided
+          }
+
+          return data;
         }
-
-        if (notes !== "" && notes !== undefined) {
-          data.notes = notes; // ✅ Only include notes if provided
-        }
-
-        return data;
-      }),
+      ),
       patient_history: { id: patientId },
     };
 
