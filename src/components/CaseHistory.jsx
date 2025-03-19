@@ -31,8 +31,8 @@ const CaseHistory = ({ patient, appointmentId, setActiveTab }) => {
           caseHistory.condition_details.map((cond) => ({
             ocular_condition: cond.ocular_condition,
             ocular_condition_name: cond.ocular_condition_name,
-            grading: cond.grading || "1",
-            notes: cond.notes || "",
+            grading: cond.grading ?? "", // ✅ Ensure grading is properly stored
+            notes: cond.notes ?? "", // ✅ Ensure notes are properly stored
           }))
         );
       }
@@ -64,20 +64,32 @@ const CaseHistory = ({ patient, appointmentId, setActiveTab }) => {
     const newCaseHistory = {
       appointment: appointmentId,
       chief_complaint: chiefComplaint,
-      condition_details: conditionDetails.map(({ ocular_condition, grading, notes }) => ({
-        ocular_condition,
-        grading,
-        notes,
-      })),
+      condition_details: conditionDetails.map(({ ocular_condition, grading, notes }) => {
+        const data = { ocular_condition };
+
+        if (grading !== "" && grading !== undefined) {
+          data.grading = grading; // ✅ Only include grading if provided
+        }
+
+        if (notes !== "" && notes !== undefined) {
+          data.notes = notes; // ✅ Only include notes if provided
+        }
+
+        return data;
+      }),
       patient_history: { id: patientId },
     };
+
+    console.log("🚀 Data Being Sent:", newCaseHistory); // ✅ Debugging: Log request payload
 
     try {
       await createCaseHistory(newCaseHistory).unwrap();
       setActiveTab("visual acuity");
     } catch (error) {
       console.error("🚨 Error saving case history:", error);
-      setErrorMessage(error?.data || { general: ["An unexpected error occurred."] });
+      setErrorMessage(
+        error?.data || { general: ["An unexpected error occurred."] }
+      );
     }
   };
 
@@ -86,7 +98,9 @@ const CaseHistory = ({ patient, appointmentId, setActiveTab }) => {
       <h2 className="font-bold text-2xl mb-4 text-gray-700">Case History</h2>
 
       {isLoading && <p className="text-gray-500">Loading Data...</p>}
-      {errorMessage && <div className="text-red-500 mb-4">{errorMessage.general}</div>}
+      {errorMessage && (
+        <div className="text-red-500 mb-4">{errorMessage.general}</div>
+      )}
 
       <textarea
         value={chiefComplaint}
@@ -103,7 +117,11 @@ const CaseHistory = ({ patient, appointmentId, setActiveTab }) => {
         onChange={setConditionDetails}
       />
 
-      <button onClick={handleSaveAndProceed} disabled={isSubmitting} className="bg-blue-600 text-white px-6 py-2 rounded-md">
+      <button
+        onClick={handleSaveAndProceed}
+        disabled={isSubmitting}
+        className="bg-blue-600 text-white px-6 py-2 rounded-md"
+      >
         {isSubmitting ? "Saving..." : "Save & Proceed"}
       </button>
     </div>
