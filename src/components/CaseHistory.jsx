@@ -13,12 +13,8 @@ const CaseHistory = ({ patient, appointmentId, setActiveTab }) => {
   const patientId = patientData?.patient;
 
   /** === Fetch Data Using Custom Hook === */
-  const {
-    patientHistory,
-    caseHistory,
-    ocularConditions,
-    isLoading,
-  } = useCaseHistoryData(patientId, appointmentId);
+  const { patientHistory, caseHistory, ocularConditions, isLoading } =
+    useCaseHistoryData(patientId, appointmentId);
 
   /** === State Management === */
   const [chiefComplaint, setChiefComplaint] = useState("");
@@ -31,13 +27,16 @@ const CaseHistory = ({ patient, appointmentId, setActiveTab }) => {
   /** === Pre-fill Data When Case History is Available === */
   useEffect(() => {
     if (caseHistory) {
+      console.log("📄 Case History Data Fetched:", caseHistory); // ✅ Log what we are fetching
+
       setChiefComplaint(caseHistory.chief_complaint || "");
 
-      // ✅ Pre-fill Selected Conditions from Case History
+      // ✅ Pre-fill Selected Conditions with Names
       if (caseHistory.condition_details) {
         setConditionDetails(
           caseHistory.condition_details.map((cond) => ({
-            ocular_condition: cond.ocular_condition.id,
+            ocular_condition: cond.ocular_condition, // ✅ Store ID
+            ocular_condition_name: cond.ocular_condition_name, // ✅ Store Name
             grading: cond.grading || "1",
             notes: cond.notes || "",
           }))
@@ -72,11 +71,13 @@ const CaseHistory = ({ patient, appointmentId, setActiveTab }) => {
     const newCaseHistory = {
       appointment: appointmentId,
       chief_complaint: chiefComplaint,
-      condition_details: conditionDetails.map(({ ocular_condition, grading, notes }) => ({
-        ocular_condition,
-        grading,
-        notes,
-      })),
+      condition_details: conditionDetails.map(
+        ({ ocular_condition, grading, notes }) => ({
+          ocular_condition,
+          grading,
+          notes,
+        })
+      ),
       patient_history: {
         id: patientId,
       },
@@ -87,15 +88,15 @@ const CaseHistory = ({ patient, appointmentId, setActiveTab }) => {
       setActiveTab("visual acuity"); // ✅ Move to the next step
     } catch (error) {
       console.error("🚨 Error saving case history:", error);
-      setErrorMessage(error?.data || { general: ["An unexpected error occurred."] });
+      setErrorMessage(
+        error?.data || { general: ["An unexpected error occurred."] }
+      );
     }
   };
 
   return (
     <div className="p-6 bg-white shadow-md rounded-md">
-      <h2 className="font-bold text-2xl mb-4 text-gray-700">
-        Case History
-      </h2>
+      <h2 className="font-bold text-2xl mb-4 text-gray-700">Case History</h2>
 
       {/* Loading Indicator */}
       {isLoading && <p className="text-gray-500">Loading Data...</p>}
@@ -131,18 +132,36 @@ const CaseHistory = ({ patient, appointmentId, setActiveTab }) => {
           label="Select Ocular Conditions"
           name="condition_details"
           options={ocularConditions || []}
-          value={conditionDetails}
+          value={conditionDetails.map((cond) => ({
+            id: cond.ocular_condition, // ✅ Use ID for selection
+            name: cond.ocular_condition_name, // ✅ Display Name
+          }))}
           onChange={(selected) =>
             setConditionDetails(
               selected.map((condition) => ({
-                ocular_condition: condition.ocular_condition || condition.id,
-                grading: condition.grading || "1",
-                notes: condition.notes || "",
+                ocular_condition: condition.id, // ✅ Store ID
+                ocular_condition_name: condition.name, // ✅ Store Name
+                grading: "1", // Default grading
+                notes: "", // Default notes
               }))
             )
           }
         />
       </div>
+
+      {/* ✅ Display Selected Ocular Conditions */}
+      {conditionDetails.length > 0 && (
+        <div className="mb-4">
+          <h3 className="font-bold text-lg text-gray-700">Selected Conditions</h3>
+          <ul className="list-disc pl-5">
+            {conditionDetails.map((cond) => (
+              <li key={cond.ocular_condition}>
+                {cond.ocular_condition_name} - Grading: {cond.grading}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {/* Display Data */}
       <div className="space-y-4">
