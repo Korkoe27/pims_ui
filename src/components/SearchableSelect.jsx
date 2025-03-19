@@ -1,14 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
-import PropTypes from "prop-types";
-import { Trash2, ChevronDown, Pencil } from "lucide-react";
+import { ChevronDown, Pencil } from "lucide-react";
 import GradeSelector from "./GradeSelector";
 import AddNoteModal from "./NotesModal";
-
-const DEFAULT_AFFECTED_EYE_OPTIONS = [
-  { value: "OD", label: "Right Eye" },
-  { value: "OS", label: "Left Eye" },
-  { value: "OU", label: "Both Eyes" },
-];
 
 const SearchableSelect = ({ label, name, options = [], value = [], onChange }) => {
   const [search, setSearch] = useState("");
@@ -29,6 +22,7 @@ const SearchableSelect = ({ label, name, options = [], value = [], onChange }) =
         ...selectedSymptoms,
         {
           ocular_condition: selectedOption.id,
+          ocular_condition_name: selectedOption.name, // ✅ Store name
           affected_eye: "OU",
           grading: "1",
           notes: "",
@@ -41,7 +35,6 @@ const SearchableSelect = ({ label, name, options = [], value = [], onChange }) =
     setSearch("");
   };
 
-  // ✅ Ensure selected items display
   return (
     <div className="relative w-full" ref={dropdownRef}>
       <h1 className="text-base font-medium">{label}</h1>
@@ -53,9 +46,7 @@ const SearchableSelect = ({ label, name, options = [], value = [], onChange }) =
       >
         <span className="flex-1">
           {selectedSymptoms.length > 0
-            ? selectedSymptoms
-                .map((s) => options.find((o) => o.id === s.ocular_condition)?.name)
-                .join(", ")
+            ? selectedSymptoms.map((s) => s.ocular_condition_name).join(", ")
             : "Select any that apply"}
         </span>
         <ChevronDown className="text-gray-500 absolute right-3" size={18} />
@@ -91,12 +82,11 @@ const SearchableSelect = ({ label, name, options = [], value = [], onChange }) =
       {selectedSymptoms.length > 0 && (
         <div className="mt-2 space-y-2">
           {selectedSymptoms.map((selected) => {
-            const selectedOption = options.find((opt) => opt.id === selected.ocular_condition);
-            if (!selectedOption) return null;
+            const displayName = selected.ocular_condition_name || "Unknown Condition";
 
             return (
               <div key={selected.ocular_condition} className="flex flex-col p-3 border rounded-md bg-gray-50">
-                <h2 className="text-sm font-medium">{selectedOption.name}</h2>
+                <h2 className="text-sm font-medium">{displayName}</h2>
 
                 {/* Grading */}
                 <GradeSelector
@@ -116,9 +106,9 @@ const SearchableSelect = ({ label, name, options = [], value = [], onChange }) =
                     setEditingSymptomId(selected.ocular_condition);
                     setNoteModalOpen(true);
                   }}
-                  className="text-blue-600 hover:underline mt-2"
+                  className="text-blue-600 hover:underline mt-2 flex items-center"
                 >
-                  <Pencil size={14} /> Add a Note
+                  <Pencil size={14} className="mr-1" /> Add a Note
                 </button>
               </div>
             );

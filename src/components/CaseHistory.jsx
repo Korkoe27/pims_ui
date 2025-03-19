@@ -4,7 +4,6 @@ import useCaseHistoryData from "../hooks/useCaseHistoryData";
 import SearchableSelect from "../components/SearchableSelect";
 import { useCreateCaseHistoryMutation } from "../redux/api/features/caseHistoryApi"; // ✅ Import mutation
 
-/** === CaseHistory Component === */
 const CaseHistory = ({ patient, appointmentId, setActiveTab }) => {
   const selectedAppointment = useSelector(
     (state) => state.appointments.selectedAppointment
@@ -12,31 +11,26 @@ const CaseHistory = ({ patient, appointmentId, setActiveTab }) => {
   const patientData = patient || selectedAppointment;
   const patientId = patientData?.patient;
 
-  /** === Fetch Data Using Custom Hook === */
   const { patientHistory, caseHistory, ocularConditions, isLoading } =
     useCaseHistoryData(patientId, appointmentId);
 
-  /** === State Management === */
   const [chiefComplaint, setChiefComplaint] = useState("");
   const [conditionDetails, setConditionDetails] = useState([]);
   const [errorMessage, setErrorMessage] = useState(null);
-
   const [createCaseHistory, { isLoading: isSubmitting }] =
-    useCreateCaseHistoryMutation(); // ✅ API Mutation Hook
+    useCreateCaseHistoryMutation();
 
-  /** === Pre-fill Data When Case History is Available === */
   useEffect(() => {
     if (caseHistory) {
-      console.log("📄 Case History Data Fetched:", caseHistory); // ✅ Log what we are fetching
+      console.log("📄 Case History Data Fetched:", caseHistory);
 
       setChiefComplaint(caseHistory.chief_complaint || "");
 
-      // ✅ Pre-fill Selected Conditions with Names
       if (caseHistory.condition_details) {
         setConditionDetails(
           caseHistory.condition_details.map((cond) => ({
-            ocular_condition: cond.ocular_condition, // ✅ Store ID
-            ocular_condition_name: cond.ocular_condition_name, // ✅ Store Name
+            ocular_condition: cond.ocular_condition,
+            ocular_condition_name: cond.ocular_condition_name,
             grading: cond.grading || "1",
             notes: cond.notes || "",
           }))
@@ -45,7 +39,6 @@ const CaseHistory = ({ patient, appointmentId, setActiveTab }) => {
     }
   }, [caseHistory]);
 
-  /** === Handle Save & Proceed === */
   const handleSaveAndProceed = async () => {
     setErrorMessage(null);
 
@@ -71,26 +64,20 @@ const CaseHistory = ({ patient, appointmentId, setActiveTab }) => {
     const newCaseHistory = {
       appointment: appointmentId,
       chief_complaint: chiefComplaint,
-      condition_details: conditionDetails.map(
-        ({ ocular_condition, grading, notes }) => ({
-          ocular_condition,
-          grading,
-          notes,
-        })
-      ),
-      patient_history: {
-        id: patientId,
-      },
+      condition_details: conditionDetails.map(({ ocular_condition, grading, notes }) => ({
+        ocular_condition,
+        grading,
+        notes,
+      })),
+      patient_history: { id: patientId },
     };
 
     try {
       await createCaseHistory(newCaseHistory).unwrap();
-      setActiveTab("visual acuity"); // ✅ Move to the next step
+      setActiveTab("visual acuity");
     } catch (error) {
       console.error("🚨 Error saving case history:", error);
-      setErrorMessage(
-        error?.data || { general: ["An unexpected error occurred."] }
-      );
+      setErrorMessage(error?.data || { general: ["An unexpected error occurred."] });
     }
   };
 
@@ -98,90 +85,25 @@ const CaseHistory = ({ patient, appointmentId, setActiveTab }) => {
     <div className="p-6 bg-white shadow-md rounded-md">
       <h2 className="font-bold text-2xl mb-4 text-gray-700">Case History</h2>
 
-      {/* Loading Indicator */}
       {isLoading && <p className="text-gray-500">Loading Data...</p>}
+      {errorMessage && <div className="text-red-500 mb-4">{errorMessage.general}</div>}
 
-      {/* Errors */}
-      {errorMessage && (
-        <div className="text-red-500 mb-4">
-          {Object.entries(errorMessage).map(([field, messages]) => (
-            <p key={field}>{`${field}: ${messages}`}</p>
-          ))}
-        </div>
-      )}
+      <textarea
+        value={chiefComplaint}
+        onChange={(e) => setChiefComplaint(e.target.value)}
+        className="w-full p-3 border rounded-md"
+        placeholder="Describe the patient's main issue"
+      />
 
-      {/* Chief Complaint */}
-      <div className="mb-4">
-        <label className="font-medium text-gray-600">
-          Chief Complaint <span className="text-red-500">*</span>
-        </label>
-        <textarea
-          value={chiefComplaint}
-          onChange={(e) => setChiefComplaint(e.target.value)}
-          className="w-full p-3 border rounded-md"
-          placeholder="Describe the patient's main issue"
-        />
-      </div>
+      <SearchableSelect
+        label="Select Ocular Conditions"
+        name="condition_details"
+        options={ocularConditions || []}
+        value={conditionDetails}
+        onChange={setConditionDetails}
+      />
 
-      {/* On Direct Questioning (Ocular Conditions) */}
-      <div className="mb-4">
-        <label className="font-medium text-gray-600">
-          On Direct Questioning <span className="text-red-500">*</span>
-        </label>
-        <SearchableSelect
-          label="Select Ocular Conditions"
-          name="condition_details"
-          options={ocularConditions || []}
-          value={conditionDetails.map((cond) => ({
-            id: cond.ocular_condition, // ✅ Use ID for selection
-            name: cond.ocular_condition_name, // ✅ Display Name
-          }))}
-          onChange={(selected) =>
-            setConditionDetails(
-              selected.map((condition) => ({
-                ocular_condition: condition.id, // ✅ Store ID
-                ocular_condition_name: condition.name, // ✅ Store Name
-                grading: "1", // Default grading
-                notes: "", // Default notes
-              }))
-            )
-          }
-        />
-      </div>
-
-      {/* ✅ Display Selected Ocular Conditions */}
-      {conditionDetails.length > 0 && (
-        <div className="mb-4">
-          <h3 className="font-bold text-lg text-gray-700">Selected Conditions</h3>
-          <ul className="list-disc pl-5">
-            {conditionDetails.map((cond) => (
-              <li key={cond.ocular_condition}>
-                {cond.ocular_condition_name} - Grading: {cond.grading}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      {/* Display Data */}
-      <div className="space-y-4">
-        {/* Patient History */}
-        {patientHistory && (
-          <div>
-            <h3 className="font-bold text-lg">Patient History</h3>
-            <pre className="p-3 bg-gray-100 rounded">
-              {JSON.stringify(patientHistory, null, 2)}
-            </pre>
-          </div>
-        )}
-      </div>
-
-      {/* ✅ Save & Proceed Button */}
-      <button
-        onClick={handleSaveAndProceed}
-        disabled={isSubmitting}
-        className="bg-[#2F3192] text-white px-6 py-2 rounded-md hover:bg-[#252774] disabled:bg-gray-400 mt-4"
-      >
+      <button onClick={handleSaveAndProceed} disabled={isSubmitting} className="bg-blue-600 text-white px-6 py-2 rounded-md">
         {isSubmitting ? "Saving..." : "Save & Proceed"}
       </button>
     </div>
