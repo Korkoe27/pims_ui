@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
 import PropTypes from "prop-types";
-import { Trash2, ChevronDown } from "lucide-react";
+import { Trash2, ChevronDown, Pencil } from "lucide-react";
+import GradeSelector from "./GradeSelector";
+import AddNoteModal from "./NotesModal";
 
-// ✅ Manually Define Affected Eye Options (Since They're Missing from Backend)
 const DEFAULT_AFFECTED_EYE_OPTIONS = [
   { value: "OD", label: "Right Eye" },
   { value: "OS", label: "Left Eye" },
@@ -13,6 +14,8 @@ const SearchableSelect = ({ label, name, options = [], value = [], onChange }) =
   const [search, setSearch] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const [selectedSymptoms, setSelectedSymptoms] = useState(value);
+  const [noteModalOpen, setNoteModalOpen] = useState(false);
+  const [editingSymptomId, setEditingSymptomId] = useState(null);
   const dropdownRef = useRef(null);
 
   useEffect(() => {
@@ -21,45 +24,24 @@ const SearchableSelect = ({ label, name, options = [], value = [], onChange }) =
 
   // ✅ Handles Selecting a Symptom
   const handleSelect = (selectedOption) => {
-    if (!selectedSymptoms.some((s) => s.symptom === selectedOption.id)) {
+    if (!selectedSymptoms.some((s) => s.ocular_condition === selectedOption.id)) {
       const newSymptoms = [
         ...selectedSymptoms,
         {
-          symptom: selectedOption.id,
-          affected_eye: selectedOption.requires_affected_eye ? "OU" : null, // Default to "Both Eyes"
-          grading: selectedOption.requires_grading ? 1 : null,
-          notes: selectedOption.requires_notes ? "" : null,
+          ocular_condition: selectedOption.id,
+          affected_eye: "OU",
+          grading: "1",
+          notes: "",
         },
       ];
       setSelectedSymptoms(newSymptoms);
-      onChange(newSymptoms); // ✅ Pass updated symptoms back to `CaseHistory`
+      onChange(newSymptoms);
     }
     setIsOpen(false);
     setSearch("");
   };
 
-  // ✅ Handles Updating `affected_eye`
-  const handleAffectedEyeChange = (symptomId, affectedEye) => {
-    const updatedSymptoms = selectedSymptoms.map((s) =>
-      s.symptom === symptomId ? { ...s, affected_eye: affectedEye } : s
-    );
-    setSelectedSymptoms(updatedSymptoms);
-    onChange(updatedSymptoms); // ✅ Ensure `affected_eye` updates in `CaseHistory`
-  };
-
-  // ✅ Handles Removing a Selected Symptom
-  const handleDelete = (symptomId) => {
-    const updatedSymptoms = selectedSymptoms.filter((s) => s.symptom !== symptomId);
-    setSelectedSymptoms(updatedSymptoms);
-    onChange(updatedSymptoms);
-  };
-
-  // ✅ Debugging: Log Data Being Fetched
-  useEffect(() => {
-    console.log(`🔍 [SearchableSelect] Fetched Options (${name}):`, options);
-    console.log(`📝 [SearchableSelect] Current Selected Symptoms (${name}):`, selectedSymptoms);
-  }, [options, selectedSymptoms]);
-
+  // ✅ Ensure selected items display
   return (
     <div className="relative w-full" ref={dropdownRef}>
       <h1 className="text-base font-medium">{label}</h1>
@@ -71,7 +53,9 @@ const SearchableSelect = ({ label, name, options = [], value = [], onChange }) =
       >
         <span className="flex-1">
           {selectedSymptoms.length > 0
-            ? selectedSymptoms.map((s) => options.find((o) => o.id === s.symptom)?.name).join(", ")
+            ? selectedSymptoms
+                .map((s) => options.find((o) => o.id === s.ocular_condition)?.name)
+                .join(", ")
             : "Select any that apply"}
         </span>
         <ChevronDown className="text-gray-500 absolute right-3" size={18} />
@@ -91,7 +75,7 @@ const SearchableSelect = ({ label, name, options = [], value = [], onChange }) =
             {options
               .filter(
                 (option) =>
-                  !selectedSymptoms.some((s) => s.symptom === option.id) &&
+                  !selectedSymptoms.some((s) => s.ocular_condition === option.id) &&
                   option.name.toLowerCase().includes(search.toLowerCase())
               )
               .map((option) => (
@@ -103,100 +87,49 @@ const SearchableSelect = ({ label, name, options = [], value = [], onChange }) =
         </div>
       )}
 
-      {/* Selected Symptoms List */}
+      {/* Selected Conditions */}
       {selectedSymptoms.length > 0 && (
         <div className="mt-2 space-y-2">
           {selectedSymptoms.map((selected) => {
-            const selectedOption = options.find((opt) => opt.id === selected.symptom);
+            const selectedOption = options.find((opt) => opt.id === selected.ocular_condition);
             if (!selectedOption) return null;
 
             return (
-              <div key={selected.symptom} className="flex flex-col p-3 border rounded-md bg-gray-50">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-sm font-medium">{selectedOption.name}</h2>
-                  <button onClick={() => handleDelete(selected.symptom)} className="text-red-500 hover:text-red-700">
-                    <Trash2 size={18} strokeWidth={2} color="red" />
-                  </button>
-                </div>
+              <div key={selected.ocular_condition} className="flex flex-col p-3 border rounded-md bg-gray-50">
+                <h2 className="text-sm font-medium">{selectedOption.name}</h2>
 
-                {/* ✅ Provide Affected Eye Options Manually */}
-                {selectedOption.requires_affected_eye && (
-                  <div className="mt-2">
-                    <label className="text-sm font-medium">Affected Eye</label>
-                    <select
-                      value={selected.affected_eye || "OU"}
-                      onChange={(e) => handleAffectedEyeChange(selected.symptom, e.target.value)}
-                      className="p-2 border rounded-md"
-                    >
-                      {DEFAULT_AFFECTED_EYE_OPTIONS.map((eye) => (
-                        <option key={eye.value} value={eye.value}>
-                          {eye.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                )}
+                {/* Grading */}
+                <GradeSelector
+                  selectedGrade={selected.grading}
+                  onGradeChange={(newGrade) => {
+                    setSelectedSymptoms((prev) =>
+                      prev.map((s) =>
+                        s.ocular_condition === selected.ocular_condition ? { ...s, grading: newGrade } : s
+                      )
+                    );
+                  }}
+                />
 
-                {/* ✅ Conditionally Show Grading Field */}
-                {selectedOption.requires_grading && (
-                  <div className="mt-2">
-                    <label className="text-sm font-medium">Grading</label>
-                    <input
-                      type="number"
-                      min="1"
-                      max="5"
-                      value={selected.grading || 1}
-                      onChange={(e) => {
-                        const newGrading = e.target.value;
-                        const updatedSymptoms = selectedSymptoms.map((s) =>
-                          s.symptom === selected.symptom ? { ...s, grading: newGrading } : s
-                        );
-                        setSelectedSymptoms(updatedSymptoms);
-                        onChange(updatedSymptoms);
-                      }}
-                      className="p-2 border rounded-md"
-                    />
-                  </div>
-                )}
-
-                {/* ✅ Conditionally Show Notes Field */}
-                {selectedOption.requires_notes && (
-                  <div className="mt-2">
-                    <label className="text-sm font-medium">Notes</label>
-                    <textarea
-                      value={selected.notes || ""}
-                      onChange={(e) => {
-                        const newNotes = e.target.value;
-                        const updatedSymptoms = selectedSymptoms.map((s) =>
-                          s.symptom === selected.symptom ? { ...s, notes: newNotes } : s
-                        );
-                        setSelectedSymptoms(updatedSymptoms);
-                        onChange(updatedSymptoms);
-                      }}
-                      placeholder="Enter notes..."
-                      className="p-3 border border-gray-300 rounded-md w-full h-20"
-                    ></textarea>
-                  </div>
-                )}
+                {/* Notes */}
+                <button
+                  onClick={() => {
+                    setEditingSymptomId(selected.ocular_condition);
+                    setNoteModalOpen(true);
+                  }}
+                  className="text-blue-600 hover:underline mt-2"
+                >
+                  <Pencil size={14} /> Add a Note
+                </button>
               </div>
             );
           })}
         </div>
       )}
+
+      {/* Note Modal */}
+      <AddNoteModal isOpen={noteModalOpen} onClose={() => setNoteModalOpen(false)} onSave={() => {}} />
     </div>
   );
-};
-
-SearchableSelect.propTypes = {
-  label: PropTypes.string.isRequired,
-  name: PropTypes.string.isRequired,
-  options: PropTypes.array.isRequired,
-  value: PropTypes.array,
-  onChange: PropTypes.func.isRequired,
-};
-
-SearchableSelect.defaultProps = {
-  value: [],
 };
 
 export default SearchableSelect;
