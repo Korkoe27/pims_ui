@@ -78,10 +78,6 @@ export const fetchPatientHistoryUrl = (patientId) =>
 // Create a new patient history (only if none exists)
 export const createPatientHistoryUrl = "/tests/api/patient-history/";
 
-// Update an existing patient history
-export const updatePatientHistoryUrl = (historyId) =>
-  `/tests/api/patient-history/${historyId}/`;
-
 /////////////////////////
 // Symptoms
 /////////////////////////

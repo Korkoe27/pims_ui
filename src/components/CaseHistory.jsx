@@ -3,42 +3,55 @@ import { useSelector } from "react-redux";
 import useCaseHistoryData from "../hooks/useCaseHistoryData";
 import SearchableSelect from "../components/SearchableSelect";
 import { useCreateCaseHistoryMutation } from "../redux/api/features/caseHistoryApi";
-import ErrorModal from "../components/ErrorModal"; // ✅ Import Error Modal
+import ErrorModal from "../components/ErrorModal";
 
-const CaseHistory = ({ patient, appointmentId, setActiveTab }) => {
+const CaseHistory = ({ appointmentId, setActiveTab }) => {
   const selectedAppointment = useSelector(
     (state) => state.appointments.selectedAppointment
   );
-  const patientData = patient || selectedAppointment;
-  const patientId = patientData?.patient;
+  const patientId = selectedAppointment?.patient;
 
-  const { patientHistory, caseHistory, ocularConditions, isLoading } =
+  const { caseHistory, ocularConditions, medicalConditions, isLoading } =
     useCaseHistoryData(patientId, appointmentId);
 
   const [chiefComplaint, setChiefComplaint] = useState("");
   const [conditionDetails, setConditionDetails] = useState([]);
   const [errorMessage, setErrorMessage] = useState(null);
-  const [showErrorModal, setShowErrorModal] = useState(false); // ✅ State for error modal
+  const [showErrorModal, setShowErrorModal] = useState(false);
   const [createCaseHistory, { isLoading: isSubmitting }] =
     useCreateCaseHistoryMutation();
+
+  const [medicalHistory, setMedicalHistory] = useState([]);
+  const [ocularHistory, setOcularHistory] = useState([]);
+  const [familyMedicalHistory, setFamilyMedicalHistory] = useState([]);
+  const [familyOcularHistory, setFamilyOcularHistory] = useState([]);
+  const [drugHistory, setDrugHistory] = useState("");
+  const [lastEyeExamination, setLastEyeExamination] = useState("");
+
+  // ✅ Dropdown Options for Last Eye Examination
+  const lastEyeExamOptions = [
+    { value: "Never", label: "Never" },
+    { value: "<1 week", label: "<1 week" },
+    { value: "<3 months", label: "<3 months" },
+    { value: "6 months - 1 year", label: "6 months - 1 year" },
+    { value: "1 - 3 years", label: "1 - 3 years" },
+    { value: ">3 years", label: ">3 years" },
+  ];
 
   useEffect(() => {
     if (caseHistory) {
       console.log("📄 Case History Data Fetched:", caseHistory);
 
       setChiefComplaint(caseHistory.chief_complaint || "");
+      setMedicalHistory(caseHistory.medical_history || []);
+      setOcularHistory(caseHistory.ocular_history || []);
+      setFamilyMedicalHistory(caseHistory.family_medical_history || []);
+      setFamilyOcularHistory(caseHistory.family_ocular_history || []);
+      setDrugHistory(caseHistory.drug_history || "");
+      setLastEyeExamination(caseHistory.last_eye_examination || "");
 
-      if (caseHistory.condition_details) {
-        setConditionDetails(
-          caseHistory.condition_details.map((cond) => ({
-            ocular_condition: cond.ocular_condition,
-            ocular_condition_name: cond.ocular_condition_name,
-            affected_eye: cond.affected_eye ?? "",
-            grading: cond.grading ?? "",
-            notes: cond.notes ?? "",
-          }))
-        );
-      }
+      // ✅ Directly setting condition details from API response
+      setConditionDetails(caseHistory.condition_details || []);
     }
   }, [caseHistory]);
 
@@ -72,39 +85,30 @@ const CaseHistory = ({ patient, appointmentId, setActiveTab }) => {
       appointment: appointmentId,
       chief_complaint: chiefComplaint,
       condition_details: conditionDetails.map(
-        ({ ocular_condition, affected_eye, grading, notes }) => {
-          const data = { ocular_condition };
-
-          if (affected_eye) {
-            data.affected_eye = affected_eye;
-          }
-
-          if (grading !== "" && grading !== undefined) {
-            data.grading = grading;
-          }
-
-          if (notes !== "" && notes !== undefined) {
-            data.notes = notes;
-          }
-
-          return data;
-        }
+        ({ ocular_condition, affected_eye, grading, notes }) => ({
+          ocular_condition,
+          affected_eye: affected_eye || null,
+          grading: grading || null,
+          notes: notes || null,
+        })
       ),
       patient_history: { id: patientId },
+      medical_history: medicalHistory,
+      ocular_history: ocularHistory,
+      family_medical_history: familyMedicalHistory,
+      family_ocular_history: familyOcularHistory,
+      drug_history: drugHistory,
+      last_eye_examination: lastEyeExamination,
     };
-
-    console.log("🚀 Data Being Sent:", newCaseHistory);
 
     try {
       await createCaseHistory(newCaseHistory).unwrap();
       setActiveTab("visual acuity");
     } catch (error) {
       console.error("🚨 Error saving case history:", error);
-      if (error?.data) {
-        setErrorMessage(error.data); // ✅ Pass the error object directly
-      } else {
-        setErrorMessage({ general: ["An unexpected error occurred."] });
-      }
+      setErrorMessage(
+        error?.data || { general: ["An unexpected error occurred."] }
+      );
       setShowErrorModal(true);
     }
   };
@@ -115,30 +119,44 @@ const CaseHistory = ({ patient, appointmentId, setActiveTab }) => {
 
       {isLoading && <p className="text-gray-500">Loading Data...</p>}
 
-      <textarea
-        value={chiefComplaint}
-        onChange={(e) => setChiefComplaint(e.target.value)}
-        className="w-full p-3 border rounded-md"
-        placeholder="Describe the patient's main issue"
-      />
+      {/* Two-Column Layout */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Left Column */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700">
+            Chief Complaint <span className="text-red-500">*</span>
+          </label>
+          <textarea
+            value={chiefComplaint}
+            onChange={(e) => setChiefComplaint(e.target.value)}
+            className="w-full p-3 border rounded-md mt-2"
+            placeholder="Describe the patient's main issue"
+          />
 
-      <SearchableSelect
-        label="Select Ocular Conditions"
-        name="condition_details"
-        options={ocularConditions || []}
-        value={conditionDetails}
-        onChange={setConditionDetails}
-      />
+          {/* ✅ On-Direct Questioning */}
+          <SearchableSelect
+            label="On-Direct Questioning"
+            options={ocularConditions || []}
+            value={conditionDetails.map((cond) => ({
+              value: cond.ocular_condition,
+              label: cond.ocular_condition_name,
+            }))}
+            onChange={setConditionDetails}
+          />
 
-      <button
-        onClick={handleSaveAndProceed}
-        disabled={isSubmitting}
-        className="bg-blue-600 text-white px-6 py-2 rounded-md"
-      >
-        {isSubmitting ? "Saving..." : "Save & Proceed"}
-      </button>
+        </div>
+      </div>
 
-      {/* ✅ Error Modal */}
+      <div className="mt-6">
+        <button
+          onClick={handleSaveAndProceed}
+          disabled={isSubmitting}
+          className="bg-blue-600 text-white px-6 py-2 rounded-md w-full transition duration-300 hover:bg-blue-700"
+        >
+          {isSubmitting ? "Saving..." : "Save & Proceed"}
+        </button>
+      </div>
+
       {showErrorModal && errorMessage && (
         <ErrorModal
           message={errorMessage}

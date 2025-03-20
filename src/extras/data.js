@@ -40,6 +40,10 @@ export const Consultation_nav = [
     link: "/case-history",
   },
   {
+    name: "personal history",
+    link: "/personal-history",
+  },
+  {
     name: "visual acuity",
     link: "/visual-acuity",
   },
