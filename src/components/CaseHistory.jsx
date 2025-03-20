@@ -23,7 +23,6 @@ const CaseHistory = ({ appointmentId, setActiveTab }) => {
 
   useEffect(() => {
     if (caseHistory) {
-      console.log("📄 Case History Data Fetched:", caseHistory);
       setChiefComplaint(caseHistory.chief_complaint || "");
       setConditionDetails(caseHistory.condition_details || []);
     }
