@@ -11,7 +11,7 @@ const CaseHistory = ({ appointmentId, setActiveTab }) => {
   );
   const patientId = selectedAppointment?.patient;
 
-  const { caseHistory, ocularConditions, medicalConditions, isLoading } =
+  const { caseHistory, ocularConditions, isLoading } =
     useCaseHistoryData(patientId, appointmentId);
 
   const [chiefComplaint, setChiefComplaint] = useState("");
@@ -21,36 +21,10 @@ const CaseHistory = ({ appointmentId, setActiveTab }) => {
   const [createCaseHistory, { isLoading: isSubmitting }] =
     useCreateCaseHistoryMutation();
 
-  const [medicalHistory, setMedicalHistory] = useState([]);
-  const [ocularHistory, setOcularHistory] = useState([]);
-  const [familyMedicalHistory, setFamilyMedicalHistory] = useState([]);
-  const [familyOcularHistory, setFamilyOcularHistory] = useState([]);
-  const [drugHistory, setDrugHistory] = useState("");
-  const [lastEyeExamination, setLastEyeExamination] = useState("");
-
-  // ✅ Dropdown Options for Last Eye Examination
-  const lastEyeExamOptions = [
-    { value: "Never", label: "Never" },
-    { value: "<1 week", label: "<1 week" },
-    { value: "<3 months", label: "<3 months" },
-    { value: "6 months - 1 year", label: "6 months - 1 year" },
-    { value: "1 - 3 years", label: "1 - 3 years" },
-    { value: ">3 years", label: ">3 years" },
-  ];
-
   useEffect(() => {
     if (caseHistory) {
       console.log("📄 Case History Data Fetched:", caseHistory);
-
       setChiefComplaint(caseHistory.chief_complaint || "");
-      setMedicalHistory(caseHistory.medical_history || []);
-      setOcularHistory(caseHistory.ocular_history || []);
-      setFamilyMedicalHistory(caseHistory.family_medical_history || []);
-      setFamilyOcularHistory(caseHistory.family_ocular_history || []);
-      setDrugHistory(caseHistory.drug_history || "");
-      setLastEyeExamination(caseHistory.last_eye_examination || "");
-
-      // ✅ Directly setting condition details from API response
       setConditionDetails(caseHistory.condition_details || []);
     }
   }, [caseHistory]);
@@ -93,17 +67,11 @@ const CaseHistory = ({ appointmentId, setActiveTab }) => {
         })
       ),
       patient_history: { id: patientId },
-      medical_history: medicalHistory,
-      ocular_history: ocularHistory,
-      family_medical_history: familyMedicalHistory,
-      family_ocular_history: familyOcularHistory,
-      drug_history: drugHistory,
-      last_eye_examination: lastEyeExamination,
     };
 
     try {
       await createCaseHistory(newCaseHistory).unwrap();
-      setActiveTab("visual acuity");
+      setActiveTab("personal history");
     } catch (error) {
       console.error("🚨 Error saving case history:", error);
       setErrorMessage(
@@ -114,14 +82,18 @@ const CaseHistory = ({ appointmentId, setActiveTab }) => {
   };
 
   return (
-    <div className="p-6 bg-white shadow-md rounded-md">
-      <h2 className="font-bold text-2xl mb-4 text-gray-700">Case History</h2>
+    <div className="p-6 bg-white shadow-lg rounded-lg max-w-4xl mx-auto">
+      <h2 className="text-2xl font-semibold text-gray-700 mb-4">
+        📝 Case History
+      </h2>
 
-      {isLoading && <p className="text-gray-500">Loading Data...</p>}
+      {isLoading && (
+        <p className="text-gray-500 animate-pulse">Fetching Data...</p>
+      )}
 
-      {/* Two-Column Layout */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Left Column */}
+      {/* 🚀 Form Fields */}
+      <div className="space-y-6">
+        {/* ✅ Chief Complaint */}
         <div>
           <label className="block text-sm font-medium text-gray-700">
             Chief Complaint <span className="text-red-500">*</span>
@@ -129,11 +101,13 @@ const CaseHistory = ({ appointmentId, setActiveTab }) => {
           <textarea
             value={chiefComplaint}
             onChange={(e) => setChiefComplaint(e.target.value)}
-            className="w-full p-3 border rounded-md mt-2"
+            className="w-full p-3 border border-gray-300 rounded-md mt-2 focus:ring-2 focus:ring-blue-400 focus:border-blue-500 transition"
             placeholder="Describe the patient's main issue"
           />
+        </div>
 
-          {/* ✅ On-Direct Questioning */}
+        {/* ✅ On-Direct Questioning */}
+        <div>
           <SearchableSelect
             label="On-Direct Questioning"
             options={ocularConditions || []}
@@ -143,20 +117,21 @@ const CaseHistory = ({ appointmentId, setActiveTab }) => {
             }))}
             onChange={setConditionDetails}
           />
-
         </div>
       </div>
 
+      {/* 🚀 Submit Button */}
       <div className="mt-6">
         <button
           onClick={handleSaveAndProceed}
           disabled={isSubmitting}
-          className="bg-blue-600 text-white px-6 py-2 rounded-md w-full transition duration-300 hover:bg-blue-700"
+          className="w-full bg-blue-600 text-white px-6 py-3 rounded-md font-semibold shadow-md transition duration-300 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isSubmitting ? "Saving..." : "Save & Proceed"}
         </button>
       </div>
 
+      {/* 🚀 Error Modal */}
       {showErrorModal && errorMessage && (
         <ErrorModal
           message={errorMessage}
