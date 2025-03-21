@@ -2,11 +2,20 @@ import React, { useState, useEffect } from "react";
 import useCaseHistoryData from "../hooks/useCaseHistoryData";
 import SearchableSelect from "./SearchableSelect";
 import CaseHistoryConditionItem from "./CaseHistoryConditionItem";
+import ErrorModal from "./ErrorModal";
 
 const CaseHistory = ({ patientId, appointmentId }) => {
-  const { caseHistory, ocularConditions, isLoading } = useCaseHistoryData(patientId, appointmentId);
+  const {
+    caseHistory,
+    ocularConditions,
+    isLoading,
+    createCaseHistory,
+    createCaseHistoryStatus: { isLoading: isSaving },
+  } = useCaseHistoryData(patientId, appointmentId);
+
   const [chiefComplaint, setChiefComplaint] = useState("");
   const [selectedConditions, setSelectedConditions] = useState([]);
+  const [errorMessage, setErrorMessage] = useState(null); // ✅ For ErrorModal
 
   // Populate existing case history on load
   useEffect(() => {
@@ -16,48 +25,69 @@ const CaseHistory = ({ patientId, appointmentId }) => {
     }
   }, [caseHistory]);
 
+  // Handle adding new condition (Ensures affected_eye is included)
   const handleSelect = (newCondition) => {
     setSelectedConditions((prev) => [
       ...prev,
       {
         ...newCondition,
-        affected_eye: "",
+        affected_eye: "", // ✅ Ensure affected_eye is initialized
         grading: "",
         notes: "",
       },
     ]);
   };
 
+  // Handle updates to condition detail
   const handleUpdate = (updatedCondition) => {
     setSelectedConditions((prev) =>
       prev.map((c) => (c.id === updatedCondition.id ? updatedCondition : c))
     );
   };
 
+  // Handle deletion
   const handleDelete = (id) => {
     setSelectedConditions((prev) => prev.filter((c) => c.id !== id));
   };
 
-  const handleSave = () => {
-    const caseHistoryData = {
+  // Handle saving to API
+  const handleSave = async () => {
+    const payload = {
+      appointment: appointmentId, // ✅ match backend format
       chief_complaint: chiefComplaint,
-      ocular_conditions: selectedConditions,
+      condition_details: selectedConditions.map(
+        ({ id, affected_eye, grading, notes }) => ({
+          ocular_condition: id, // ✅ correct key name
+          affected_eye, // ✅ Ensure affected_eye is sent
+          grading,
+          notes,
+        })
+      ),
     };
-    console.log("📝 Case History to save:", caseHistoryData);
-    // Trigger API mutation here
+
+    try {
+      await createCaseHistory(payload).unwrap();
+      alert("✅ Case history saved successfully!");
+    } catch (error) {
+      console.error("❌ Error saving case history:", error);
+      const errResponse = error?.data || { detail: "Something went wrong." };
+      setErrorMessage(errResponse); // ✅ show error modal
+    }
   };
 
-  if (isLoading) return <p>Loading case history...</p>;
-
+  // Map fetched conditions to searchable options
   const formattedOcularOptions = (ocularConditions || []).map((c) => ({
     value: c.id,
     label: c.name,
   }));
 
+  if (isLoading) return <p>Loading case history...</p>;
+
   return (
     <div className="space-y-6 p-6 bg-white rounded-md shadow-md max-w-3xl mx-auto">
       <h2 className="text-2xl font-semibold mb-2">Patient Case History</h2>
 
+      {/* Chief Complaint */}
       <div>
         <label className="block font-medium mb-1">Chief Complaint</label>
         <textarea
@@ -68,6 +98,7 @@ const CaseHistory = ({ patientId, appointmentId }) => {
         />
       </div>
 
+      {/* Ocular Conditions Select */}
       <SearchableSelect
         label="Ocular Conditions"
         options={formattedOcularOptions}
@@ -77,6 +108,7 @@ const CaseHistory = ({ patientId, appointmentId }) => {
         conditionNameKey="name"
       />
 
+      {/* Ocular Condition Details */}
       {selectedConditions.map((condition) => (
         <CaseHistoryConditionItem
           key={condition.id}
@@ -87,14 +119,28 @@ const CaseHistory = ({ patientId, appointmentId }) => {
         />
       ))}
 
+      {/* Save Button */}
       <div className="flex justify-end pt-4">
         <button
           onClick={handleSave}
-          className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition"
+          disabled={isSaving}
+          className={`px-6 py-2 rounded-md transition ${
+            isSaving
+              ? "bg-gray-400 text-white"
+              : "bg-blue-600 hover:bg-blue-700 text-white"
+          }`}
         >
-          Save and Proceed
+          {isSaving ? "Saving..." : "Save and Proceed"}
         </button>
       </div>
+
+      {/* Error Modal */}
+      {errorMessage && (
+        <ErrorModal
+          message={errorMessage}
+          onClose={() => setErrorMessage(null)}
+        />
+      )}
     </div>
   );
 };
