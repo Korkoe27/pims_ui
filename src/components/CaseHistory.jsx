@@ -21,7 +21,15 @@ const CaseHistory = ({ patientId, appointmentId }) => {
   useEffect(() => {
     if (caseHistory) {
       setChiefComplaint(caseHistory?.chief_complaint || "");
-      setSelectedConditions(caseHistory?.ocular_conditions || []);
+      setSelectedConditions(
+        (caseHistory?.condition_details || []).map((detail) => ({
+          id: detail.ocular_condition, // for tracking and identifying
+          name: detail.ocular_condition_name, // show label in CaseHistoryConditionItem
+          affected_eye: detail.affected_eye || "",
+          grading: detail.grading || "",
+          notes: detail.notes || "",
+        }))
+      );
     }
   }, [caseHistory]);
 
@@ -64,6 +72,8 @@ const CaseHistory = ({ patientId, appointmentId }) => {
         })
       ),
     };
+
+    console.log("📦 Payload being sent to API:", payload); // ✅ Add this line
 
     try {
       await createCaseHistory(payload).unwrap();
