@@ -1,21 +1,23 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import useCaseHistoryData from "../hooks/useCaseHistoryData";
 import SearchableSelect from "./SearchableSelect";
 import CaseHistoryConditionItem from "./CaseHistoryConditionItem";
 
-// Dummy options - replace with your fetched options
-const OCULAR_CONDITIONS = [
-  { value: 1, label: "Cataract" },
-  { value: 2, label: "Glaucoma" },
-  { value: 3, label: "Macular Degeneration" },
-];
-
-const CaseHistory = () => {
+const CaseHistory = ({ patientId, appointmentId }) => {
+  const { caseHistory, ocularConditions, isLoading } = useCaseHistoryData(patientId, appointmentId);
   const [chiefComplaint, setChiefComplaint] = useState("");
-  const [ocularConditions, setOcularConditions] = useState([]);
+  const [selectedConditions, setSelectedConditions] = useState([]);
 
-  /** Handle new selection */
+  // Populate existing case history on load
+  useEffect(() => {
+    if (caseHistory) {
+      setChiefComplaint(caseHistory?.chief_complaint || "");
+      setSelectedConditions(caseHistory?.ocular_conditions || []);
+    }
+  }, [caseHistory]);
+
   const handleSelect = (newCondition) => {
-    setOcularConditions((prev) => [
+    setSelectedConditions((prev) => [
       ...prev,
       {
         ...newCondition,
@@ -26,36 +28,36 @@ const CaseHistory = () => {
     ]);
   };
 
-  /** Update condition details */
   const handleUpdate = (updatedCondition) => {
-    setOcularConditions((prev) =>
+    setSelectedConditions((prev) =>
       prev.map((c) => (c.id === updatedCondition.id ? updatedCondition : c))
     );
   };
 
-  /** Delete a condition */
   const handleDelete = (id) => {
-    setOcularConditions((prev) => prev.filter((c) => c.id !== id));
+    setSelectedConditions((prev) => prev.filter((c) => c.id !== id));
   };
 
-  /** Final case history object */
-  const caseHistoryData = {
-    chief_complaint: chiefComplaint,
-    ocular_conditions: ocularConditions,
-  };
-
-  /** Handle Save */
   const handleSave = () => {
-    console.log("📝 Case History Saved:", caseHistoryData);
-    // You can call an API or move to the next step here
-    alert("Case history saved successfully!");
+    const caseHistoryData = {
+      chief_complaint: chiefComplaint,
+      ocular_conditions: selectedConditions,
+    };
+    console.log("📝 Case History to save:", caseHistoryData);
+    // Trigger API mutation here
   };
+
+  if (isLoading) return <p>Loading case history...</p>;
+
+  const formattedOcularOptions = (ocularConditions || []).map((c) => ({
+    value: c.id,
+    label: c.name,
+  }));
 
   return (
     <div className="space-y-6 p-6 bg-white rounded-md shadow-md max-w-3xl mx-auto">
       <h2 className="text-2xl font-semibold mb-2">Patient Case History</h2>
 
-      {/* ✅ Chief Complaint */}
       <div>
         <label className="block font-medium mb-1">Chief Complaint</label>
         <textarea
@@ -66,29 +68,25 @@ const CaseHistory = () => {
         />
       </div>
 
-      {/* ✅ Ocular Conditions */}
-      <div>
-        <SearchableSelect
-          label="Ocular Conditions"
-          options={OCULAR_CONDITIONS}
-          selectedValues={ocularConditions}
-          onSelect={handleSelect}
-          conditionKey="id"
-          conditionNameKey="name"
+      <SearchableSelect
+        label="Ocular Conditions"
+        options={formattedOcularOptions}
+        selectedValues={selectedConditions}
+        onSelect={handleSelect}
+        conditionKey="id"
+        conditionNameKey="name"
+      />
+
+      {selectedConditions.map((condition) => (
+        <CaseHistoryConditionItem
+          key={condition.id}
+          condition={condition}
+          type="ocular"
+          onUpdate={handleUpdate}
+          onDelete={handleDelete}
         />
+      ))}
 
-        {ocularConditions.map((condition) => (
-          <CaseHistoryConditionItem
-            key={condition.id}
-            condition={condition}
-            type="ocular"
-            onUpdate={handleUpdate}
-            onDelete={handleDelete}
-          />
-        ))}
-      </div>
-
-      {/* ✅ Action Buttons */}
       <div className="flex justify-end pt-4">
         <button
           onClick={handleSave}
@@ -97,11 +95,6 @@ const CaseHistory = () => {
           Save and Proceed
         </button>
       </div>
-
-      {/* ✅ Optional: Debug Output */}
-      {/* <pre className="bg-gray-100 p-3 rounded-md text-sm">
-        {JSON.stringify(caseHistoryData, null, 2)}
-      </pre> */}
     </div>
   );
 };
