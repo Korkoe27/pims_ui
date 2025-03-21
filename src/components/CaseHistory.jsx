@@ -73,7 +73,6 @@ const CaseHistory = ({ patientId, appointmentId }) => {
       ),
     };
 
-    console.log("📦 Payload being sent to API:", payload); // ✅ Add this line
 
     try {
       await createCaseHistory(payload).unwrap();
