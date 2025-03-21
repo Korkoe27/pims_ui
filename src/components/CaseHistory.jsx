@@ -17,21 +17,56 @@ const CaseHistory = ({ patientId, appointmentId, nextTab, setActiveTab }) => {
   const [errorMessage, setErrorMessage] = useState(null);
   const [showErrorModal, setShowErrorModal] = useState(false);
 
+  const gradingOptions = [
+    { value: "1", label: "1" },
+    { value: "2", label: "2" },
+    { value: "3", label: "3" },
+    { value: "4", label: "4" },
+    { value: "5", label: "5" },
+    { value: "NA", label: "Not Applicable" },
+  ];
+
   useEffect(() => {
     if (caseHistory) {
-      console.log("🔥 Fetched case history:", caseHistory);
       setChiefComplaint(caseHistory?.chief_complaint || "");
 
       const mapped = (caseHistory?.condition_details || []).map((item) => ({
         id: item.ocular_condition,
         name: item.ocular_condition_name || "",
+        affected_eye: item.affected_eye || "",
+        grading: item.grading || "",
+        notes: item.notes || "",
       }));
 
       setSelectedConditions(mapped);
     }
   }, [caseHistory]);
 
-  // ✅ Save and proceed with only chiefComplaint for now
+  const handleSelect = (option) => {
+    if (selectedConditions.some((c) => c.id === option.value)) {
+      setErrorMessage({ detail: "This condition is already selected." });
+      setShowErrorModal(true);
+      return;
+    }
+
+    setSelectedConditions((prev) => [
+      ...prev,
+      {
+        id: option.value,
+        name: option.label,
+        affected_eye: "",
+        grading: "",
+        notes: "",
+      },
+    ]);
+  };
+
+  const updateCondition = (id, field, value) => {
+    setSelectedConditions((prev) =>
+      prev.map((c) => (c.id === id ? { ...c, [field]: value } : c))
+    );
+  };
+
   const handleSaveAndProceed = async () => {
     setErrorMessage(null);
     setShowErrorModal(false);
@@ -45,7 +80,12 @@ const CaseHistory = ({ patientId, appointmentId, nextTab, setActiveTab }) => {
     const payload = {
       appointment: appointmentId,
       chief_complaint: chiefComplaint,
-      condition_details: [], // conditions will be added later
+      condition_details: selectedConditions.map((c) => ({
+        ocular_condition: c.id,
+        affected_eye: c.affected_eye,
+        grading: c.grading,
+        notes: c.notes,
+      })),
     };
 
     try {
@@ -63,7 +103,6 @@ const CaseHistory = ({ patientId, appointmentId, nextTab, setActiveTab }) => {
 
   if (isLoading) return <p>Loading case history...</p>;
 
-  // ✅ Format for SearchableSelect: value + label
   const formattedOcularOptions = (ocularConditions || []).map((c) => ({
     value: c.id,
     label: c.name,
@@ -84,7 +123,7 @@ const CaseHistory = ({ patientId, appointmentId, nextTab, setActiveTab }) => {
         />
       </div>
 
-      {/* Ocular Conditions Dropdown */}
+      {/* Ocular Conditions Selection */}
       <div className="mb-6">
         <SearchableSelect
           label="Ocular Conditions"
@@ -93,33 +132,71 @@ const CaseHistory = ({ patientId, appointmentId, nextTab, setActiveTab }) => {
             value: c.id,
             label: c.name,
           }))}
-          onSelect={(option) => {
-            if (selectedConditions.some((c) => c.id === option.value)) {
-              setErrorMessage({
-                detail: "This condition is already selected.",
-              });
-              setShowErrorModal(true);
-              return;
-            }
-
-            setSelectedConditions((prev) => [
-              ...prev,
-              { id: option.value, name: option.label },
-            ]);
-          }}
+          onSelect={handleSelect}
           conditionKey="value"
           conditionNameKey="label"
         />
 
-        {/* Display selected condition names */}
         {selectedConditions.length > 0 && (
-          <ul className="mt-4 space-y-2">
+          <div className="mt-4 space-y-4">
             {selectedConditions.map((c) => (
-              <li key={c.id} className="p-2 bg-gray-100 rounded">
-                {c.name}
-              </li>
+              <div key={c.id} className="p-4 bg-gray-50 border rounded">
+                <h4 className="font-semibold">{c.name}</h4>
+
+                {/* Affected Eye */}
+                <div className="mt-2">
+                  <label className="block text-sm font-medium">
+                    Affected Eye
+                  </label>
+                  <select
+                    value={c.affected_eye}
+                    onChange={(e) =>
+                      updateCondition(c.id, "affected_eye", e.target.value)
+                    }
+                    className="w-full border rounded p-2"
+                  >
+                    <option value="">Select...</option>
+                    <option value="OD">Right Eye</option>
+                    <option value="OS">Left Eye</option>
+                    <option value="OU">Both Eyes</option>
+                  </select>
+                </div>
+
+                {/* Grading (Dropdown) */}
+                <div className="mt-2">
+                  <label className="block text-sm font-medium">Grading</label>
+                  <select
+                    value={c.grading}
+                    onChange={(e) =>
+                      updateCondition(c.id, "grading", e.target.value)
+                    }
+                    className="w-full border rounded p-2"
+                  >
+                    <option value="">Select grading</option>
+                    {gradingOptions.map((g) => (
+                      <option key={g.value} value={g.value}>
+                        {g.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Notes */}
+                <div className="mt-2">
+                  <label className="block text-sm font-medium">Notes</label>
+                  <textarea
+                    value={c.notes}
+                    onChange={(e) =>
+                      updateCondition(c.id, "notes", e.target.value)
+                    }
+                    className="w-full border rounded p-2"
+                    rows={2}
+                    placeholder="Additional notes..."
+                  />
+                </div>
+              </div>
             ))}
-          </ul>
+          </div>
         )}
       </div>
 
