@@ -3,8 +3,9 @@ import useCaseHistoryData from "../hooks/useCaseHistoryData";
 import SearchableSelect from "./SearchableSelect";
 import CaseHistoryConditionItem from "./CaseHistoryConditionItem";
 import ErrorModal from "./ErrorModal";
+import SaveAndProceedButton from "./SaveAndProceedButton"; // Import the SaveAndProceedButton component
 
-const CaseHistory = ({ patientId, appointmentId }) => {
+const CaseHistory = ({ patientId, appointmentId, nextTab, setActiveTab }) => {
   const {
     caseHistory,
     ocularConditions,
@@ -58,24 +59,24 @@ const CaseHistory = ({ patientId, appointmentId }) => {
     setSelectedConditions((prev) => prev.filter((c) => c.id !== id));
   };
 
+  // Define getPayload function
+  const getPayload = () => ({
+    appointment: appointmentId, // ✅ match backend format
+    chief_complaint: chiefComplaint,
+    condition_details: selectedConditions.map(
+      ({ id, affected_eye, grading, notes }) => ({
+        ocular_condition: id, // ✅ correct key name
+        affected_eye, // ✅ Ensure affected_eye is sent
+        grading,
+        notes,
+      })
+    ),
+  });
+
   // Handle saving to API
-  const handleSave = async () => {
-    const payload = {
-      appointment: appointmentId, // ✅ match backend format
-      chief_complaint: chiefComplaint,
-      condition_details: selectedConditions.map(
-        ({ id, affected_eye, grading, notes }) => ({
-          ocular_condition: id, // ✅ correct key name
-          affected_eye, // ✅ Ensure affected_eye is sent
-          grading,
-          notes,
-        })
-      ),
-    };
-
-
+  const handleSave = async (payload) => {
     try {
-      await createCaseHistory(payload).unwrap();
+      await createCaseHistory(payload);
       alert("✅ Case history saved successfully!");
     } catch (error) {
       console.error("❌ Error saving case history:", error);
@@ -130,17 +131,16 @@ const CaseHistory = ({ patientId, appointmentId }) => {
 
       {/* Save Button */}
       <div className="flex justify-end pt-4">
-        <button
-          onClick={handleSave}
-          disabled={isSaving}
-          className={`px-6 py-2 rounded-md transition ${
-            isSaving
-              ? "bg-gray-400 text-white"
-              : "bg-blue-600 hover:bg-blue-700 text-white"
-          }`}
-        >
-          {isSaving ? "Saving..." : "Save and Proceed"}
-        </button>
+        <SaveAndProceedButton
+          getPayload={getPayload}
+          saveFunction={handleSave}
+          isSaving={isSaving}
+          nextTab={nextTab}
+          setActiveTab={setActiveTab}
+          onError={(error) =>
+            setErrorMessage(error?.data || { detail: "Something went wrong." })
+          }
+        />
       </div>
 
       {/* Error Modal */}

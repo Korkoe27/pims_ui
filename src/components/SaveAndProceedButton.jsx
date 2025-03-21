@@ -13,7 +13,7 @@ const SaveAndProceedButton = ({
   const handleClick = async () => {
     try {
       const payload = getPayload(); // Dynamically get payload
-      await saveFunction(payload).unwrap(); // Call API
+      await saveFunction(payload); // Call API
       setActiveTab(nextTab); // Move to next tab
     } catch (error) {
       console.error("❌ Error in SaveAndProceedButton:", error);
@@ -28,7 +28,11 @@ const SaveAndProceedButton = ({
       <button
         onClick={handleClick}
         disabled={isSaving}
-        className={`px-6 py-2 rounded-md transition ${isSaving ? "bg-gray-400 text-white" : "bg-blue-600 hover:bg-blue-700 text-white"} ${className}`}
+        className={`px-6 py-2 rounded-md transition ${
+          isSaving
+            ? "bg-gray-400 text-white"
+            : "bg-blue-600 hover:bg-blue-700 text-white"
+        } ${className}`}
       >
         {isSaving ? "Saving..." : buttonText}
       </button>
