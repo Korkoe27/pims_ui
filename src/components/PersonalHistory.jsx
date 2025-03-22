@@ -1,8 +1,7 @@
 import React, { useState } from "react";
 import { useSelector } from "react-redux";
-import useCaseHistoryData from "../hooks/useCaseHistoryData";
+import usePersonalHistoryData from "../hooks/usePersonalHistoryData";
 import SearchableSelect from "../components/SearchableSelect";
-import { useCreateCaseHistoryMutation } from "../redux/api/features/caseHistoryApi";
 import ErrorModal from "../components/ErrorModal";
 import GradingSelect from "../components/GradingSelect";
 import NotesTextArea from "../components/NotesTextArea";
@@ -14,21 +13,53 @@ const PersonalHistory = ({ patient, appointmentId, setActiveTab }) => {
   const patientData = patient || selectedAppointment;
   const patientId = patientData?.patient;
 
-  const { medicalConditions, isLoading } = useCaseHistoryData(
-    patientId,
-    appointmentId
-  );
+  const {
+    medicalConditions,
+    ocularConditions,
+    createPatientHistory,
+    createPatientHistoryStatus: { isLoading: isSubmitting },
+    isLoading,
+  } = usePersonalHistoryData(patientId, appointmentId);
 
   const formattedMedicalConditions = (medicalConditions || []).map((c) => ({
     value: c.id,
     label: c.name,
   }));
 
+  const [ocularHistory, setOcularHistory] = useState([]);
+
+  const formattedOcularConditions = (ocularConditions || []).map((c) => ({
+    value: c.id,
+    label: c.name,
+  }));
+
+  const handleOcularSelect = (option) => {
+    if (ocularHistory.some((o) => o.id === option.value)) {
+      setErrorMessage({ detail: "This condition is already selected." });
+      setShowErrorModal(true);
+      return;
+    }
+
+    setOcularHistory((prev) => [
+      ...prev,
+      {
+        id: option.value,
+        name: option.label,
+        grading: "",
+        notes: "",
+      },
+    ]);
+  };
+
+  const updateOcularCondition = (id, field, value) => {
+    setOcularHistory((prev) =>
+      prev.map((o) => (o.id === id ? { ...o, [field]: value } : o))
+    );
+  };
+
   const [medicalHistory, setMedicalHistory] = useState([]);
   const [errorMessage, setErrorMessage] = useState(null);
   const [showErrorModal, setShowErrorModal] = useState(false);
-  const [createCaseHistory, { isLoading: isSubmitting }] =
-    useCreateCaseHistoryMutation();
 
   const handleSelect = (option) => {
     if (medicalHistory.some((m) => m.id === option.value)) {
@@ -70,10 +101,15 @@ const PersonalHistory = ({ patient, appointmentId, setActiveTab }) => {
       appointment: appointmentId,
       patient: patientId,
       medical_history: medicalHistory.map((m) => m.id),
+      condition_details: medicalHistory.map((m) => ({
+        ocular_condition: m.id,
+        grading: m.grading,
+        notes: m.notes,
+      })),
     };
 
     try {
-      await createCaseHistory(newPersonalHistory).unwrap();
+      await createPatientHistory(newPersonalHistory).unwrap();
       setActiveTab("visual acuity");
     } catch (error) {
       console.error("🚨 Error saving personal history:", error);
@@ -96,7 +132,10 @@ const PersonalHistory = ({ patient, appointmentId, setActiveTab }) => {
         <SearchableSelect
           label="Patient Medical History"
           options={formattedMedicalConditions}
-          selectedValues={medicalHistory.map((m) => ({ value: m.id, label: m.name }))}
+          selectedValues={medicalHistory.map((m) => ({
+            value: m.id,
+            label: m.name,
+          }))}
           onSelect={handleSelect}
           conditionKey="value"
           conditionNameKey="label"
@@ -116,6 +155,42 @@ const PersonalHistory = ({ patient, appointmentId, setActiveTab }) => {
                 <NotesTextArea
                   value={m.notes}
                   onChange={(val) => updateCondition(m.id, "notes", val)}
+                />
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div>
+        <SearchableSelect
+          label="Patient Ocular History"
+          options={formattedOcularConditions}
+          selectedValues={ocularHistory.map((o) => ({
+            value: o.id,
+            label: o.name,
+          }))}
+          onSelect={handleOcularSelect}
+          conditionKey="value"
+          conditionNameKey="label"
+        />
+
+        {ocularHistory.length > 0 && (
+          <div className="mt-4 space-y-4">
+            {ocularHistory.map((o) => (
+              <div key={o.id} className="p-4 bg-gray-50 border rounded">
+                <h4 className="font-semibold mb-2">{o.name}</h4>
+
+                <GradingSelect
+                  value={o.grading}
+                  onChange={(val) =>
+                    updateOcularCondition(o.id, "grading", val)
+                  }
+                />
+
+                <NotesTextArea
+                  value={o.notes}
+                  onChange={(val) => updateOcularCondition(o.id, "notes", val)}
                 />
               </div>
             ))}
