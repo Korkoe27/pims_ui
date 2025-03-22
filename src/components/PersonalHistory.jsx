@@ -4,8 +4,6 @@ import useCaseHistoryData from "../hooks/useCaseHistoryData";
 import SearchableSelect from "../components/SearchableSelect";
 import { useCreateCaseHistoryMutation } from "../redux/api/features/caseHistoryApi";
 import ErrorModal from "../components/ErrorModal";
-import TextAreaField from "../components/TextAreaField";
-import AffectedEyeSelect from "../components/AffectedEyeSelect";
 import GradingSelect from "../components/GradingSelect";
 import NotesTextArea from "../components/NotesTextArea";
 
@@ -16,7 +14,7 @@ const PersonalHistory = ({ patient, appointmentId, setActiveTab }) => {
   const patientData = patient || selectedAppointment;
   const patientId = patientData?.patient;
 
-  const { medicalConditions, ocularConditions, isLoading } = useCaseHistoryData(
+  const { medicalConditions, isLoading } = useCaseHistoryData(
     patientId,
     appointmentId
   );
@@ -26,47 +24,24 @@ const PersonalHistory = ({ patient, appointmentId, setActiveTab }) => {
     label: c.name,
   }));
 
-  const formattedOcularConditions = (ocularConditions || []).map((c) => ({
-    value: c.id,
-    label: c.name,
-  }));
-
   const [medicalHistory, setMedicalHistory] = useState([]);
-  const [ocularHistory, setOcularHistory] = useState([]);
-  const [familyMedicalHistory, setFamilyMedicalHistory] = useState([]);
-  const [familyOcularHistory, setFamilyOcularHistory] = useState([]);
-  const [drugHistory, setDrugHistory] = useState("");
-  const [allergies, setAllergies] = useState("");
-  const [socialHistory, setSocialHistory] = useState("");
-  const [lastEyeExamination, setLastEyeExamination] = useState("");
-  const [selectedConditions, setSelectedConditions] = useState([]);
   const [errorMessage, setErrorMessage] = useState(null);
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [createCaseHistory, { isLoading: isSubmitting }] =
     useCreateCaseHistoryMutation();
 
-  const lastEyeExamOptions = [
-    { value: "Never", label: "Never" },
-    { value: "<1 week", label: "<1 week" },
-    { value: "<3 months", label: "<3 months" },
-    { value: "6 months - 1 year", label: "6 months - 1 year" },
-    { value: "1 - 3 years", label: "1 - 3 years" },
-    { value: ">3 years", label: ">3 years" },
-  ];
-
-  const handleConditionSelect = (option) => {
-    if (selectedConditions.some((c) => c.id === option.value)) {
+  const handleSelect = (option) => {
+    if (medicalHistory.some((m) => m.id === option.value)) {
       setErrorMessage({ detail: "This condition is already selected." });
       setShowErrorModal(true);
       return;
     }
 
-    setSelectedConditions((prev) => [
+    setMedicalHistory((prev) => [
       ...prev,
       {
         id: option.value,
         name: option.label,
-        affected_eye: "",
         grading: "",
         notes: "",
       },
@@ -74,8 +49,8 @@ const PersonalHistory = ({ patient, appointmentId, setActiveTab }) => {
   };
 
   const updateCondition = (id, field, value) => {
-    setSelectedConditions((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, [field]: value } : c))
+    setMedicalHistory((prev) =>
+      prev.map((m) => (m.id === id ? { ...m, [field]: value } : m))
     );
   };
 
@@ -94,20 +69,7 @@ const PersonalHistory = ({ patient, appointmentId, setActiveTab }) => {
     const newPersonalHistory = {
       appointment: appointmentId,
       patient: patientId,
-      medical_history: medicalHistory,
-      ocular_history: ocularHistory,
-      family_medical_history: familyMedicalHistory,
-      family_ocular_history: familyOcularHistory,
-      drug_history: drugHistory,
-      allergies: allergies,
-      social_history: socialHistory,
-      last_eye_examination: lastEyeExamination,
-      condition_details: selectedConditions.map((c) => ({
-        ocular_condition: c.id,
-        affected_eye: c.affected_eye,
-        grading: c.grading,
-        notes: c.notes,
-      })),
+      medical_history: medicalHistory.map((m) => m.id),
     };
 
     try {
@@ -125,127 +87,35 @@ const PersonalHistory = ({ patient, appointmentId, setActiveTab }) => {
   return (
     <div className="p-6 bg-white shadow-md rounded-md">
       <h2 className="font-bold text-2xl mb-4 text-gray-700">
-        Personal History
+        Personal Medical History
       </h2>
 
       {isLoading && <p className="text-gray-500">Loading Data...</p>}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Left Column */}
-        <div>
-          <SearchableSelect
-            label="Patient Medical History"
-            options={formattedMedicalConditions}
-            selectedValues={medicalHistory}
-            onSelect={setMedicalHistory}
-            conditionKey="value"
-            conditionNameKey="label"
-          />
-          <SearchableSelect
-            label="Patient Ocular History"
-            options={formattedOcularConditions}
-            selectedValues={ocularHistory}
-            onSelect={setOcularHistory}
-            conditionKey="value"
-            conditionNameKey="label"
-          />
-
-          {/* Standard Dropdown for Last Eye Examination */}
-          <div className="mt-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Last Eye Examination
-            </label>
-            <select
-              value={lastEyeExamination}
-              onChange={(e) => setLastEyeExamination(e.target.value)}
-              className="w-full border p-2 rounded-md"
-            >
-              <option value="">Select one...</option>
-              {lastEyeExamOptions.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        {/* Right Column */}
-        <div>
-          <SearchableSelect
-            label="Family Medical History"
-            options={formattedMedicalConditions}
-            selectedValues={familyMedicalHistory}
-            onSelect={setFamilyMedicalHistory}
-            conditionKey="value"
-            conditionNameKey="label"
-          />
-          <SearchableSelect
-            label="Family Ocular History"
-            options={formattedOcularConditions}
-            selectedValues={familyOcularHistory}
-            onSelect={setFamilyOcularHistory}
-            conditionKey="value"
-            conditionNameKey="label"
-          />
-
-          <TextAreaField
-            label="Patient's Drug History"
-            value={drugHistory}
-            onChange={setDrugHistory}
-            required
-            placeholder="Enter drug history"
-          />
-
-          <TextAreaField
-            label="Allergies"
-            value={allergies}
-            onChange={setAllergies}
-            placeholder="Enter allergies"
-          />
-
-          <TextAreaField
-            label="Social History"
-            value={socialHistory}
-            onChange={setSocialHistory}
-            placeholder="Enter social history"
-          />
-        </div>
-      </div>
-
-      {/* Ocular Condition Details */}
-      <div className="mt-6">
+      <div>
         <SearchableSelect
-          label="Additional Ocular Conditions"
-          options={formattedOcularConditions}
-          selectedValues={selectedConditions.map((c) => ({
-            value: c.id,
-            label: c.name,
-          }))}
-          onSelect={handleConditionSelect}
+          label="Patient Medical History"
+          options={formattedMedicalConditions}
+          selectedValues={medicalHistory.map((m) => ({ value: m.id, label: m.name }))}
+          onSelect={handleSelect}
           conditionKey="value"
           conditionNameKey="label"
         />
 
-        {selectedConditions.length > 0 && (
+        {medicalHistory.length > 0 && (
           <div className="mt-4 space-y-4">
-            {selectedConditions.map((c) => (
-              <div key={c.id} className="p-4 bg-gray-50 border rounded">
-                <h4 className="font-semibold mb-2">{c.name}</h4>
-
-                <AffectedEyeSelect
-                  value={c.affected_eye}
-                  onChange={(val) => updateCondition(c.id, "affected_eye", val)}
-                />
+            {medicalHistory.map((m) => (
+              <div key={m.id} className="p-4 bg-gray-50 border rounded">
+                <h4 className="font-semibold mb-2">{m.name}</h4>
 
                 <GradingSelect
-                  value={c.grading}
-                  onChange={(val) => updateCondition(c.id, "grading", val)}
+                  value={m.grading}
+                  onChange={(val) => updateCondition(m.id, "grading", val)}
                 />
 
                 <NotesTextArea
-                  value={c.notes}
-                  onChange={(val) => updateCondition(c.id, "notes", val)}
+                  value={m.notes}
+                  onChange={(val) => updateCondition(m.id, "notes", val)}
                 />
               </div>
             ))}
