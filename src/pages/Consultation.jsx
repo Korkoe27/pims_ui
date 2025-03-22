@@ -41,7 +41,7 @@ const Consultation = () => {
       case "case history":
         return <CaseHistory appointmentId={appointmentId} setActiveTab={setActiveTab}/>;
       case "personal history":
-        return <PersonalHistory appointmentId={appointmentId} />;
+        return <PersonalHistory appointmentId={appointmentId} setActiveTab={setActiveTab} />;
       case "visual acuity":
         return <VisualAcuity appointmentId={appointmentId} />;
       case "externals":

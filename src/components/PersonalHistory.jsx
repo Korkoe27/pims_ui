@@ -5,6 +5,7 @@ import SearchableSelect from "../components/SearchableSelect";
 import ErrorModal from "../components/ErrorModal";
 import GradingSelect from "../components/GradingSelect";
 import NotesTextArea from "../components/NotesTextArea";
+import AffectedEyeSelect from "../components/AffectedEyeSelect";
 
 const PersonalHistory = ({ patient, appointmentId, setActiveTab }) => {
   const selectedAppointment = useSelector(
@@ -26,38 +27,13 @@ const PersonalHistory = ({ patient, appointmentId, setActiveTab }) => {
     label: c.name,
   }));
 
-  const [ocularHistory, setOcularHistory] = useState([]);
-
   const formattedOcularConditions = (ocularConditions || []).map((c) => ({
     value: c.id,
     label: c.name,
   }));
 
-  const handleOcularSelect = (option) => {
-    if (ocularHistory.some((o) => o.id === option.value)) {
-      setErrorMessage({ detail: "This condition is already selected." });
-      setShowErrorModal(true);
-      return;
-    }
-
-    setOcularHistory((prev) => [
-      ...prev,
-      {
-        id: option.value,
-        name: option.label,
-        grading: "",
-        notes: "",
-      },
-    ]);
-  };
-
-  const updateOcularCondition = (id, field, value) => {
-    setOcularHistory((prev) =>
-      prev.map((o) => (o.id === id ? { ...o, [field]: value } : o))
-    );
-  };
-
   const [medicalHistory, setMedicalHistory] = useState([]);
+  const [ocularHistory, setOcularHistory] = useState([]);
   const [errorMessage, setErrorMessage] = useState(null);
   const [showErrorModal, setShowErrorModal] = useState(false);
 
@@ -79,9 +55,34 @@ const PersonalHistory = ({ patient, appointmentId, setActiveTab }) => {
     ]);
   };
 
+  const handleOcularSelect = (option) => {
+    if (ocularHistory.some((o) => o.id === option.value)) {
+      setErrorMessage({ detail: "This condition is already selected." });
+      setShowErrorModal(true);
+      return;
+    }
+
+    setOcularHistory((prev) => [
+      ...prev,
+      {
+        id: option.value,
+        name: option.label,
+        affected_eye: "",
+        grading: "",
+        notes: "",
+      },
+    ]);
+  };
+
   const updateCondition = (id, field, value) => {
     setMedicalHistory((prev) =>
       prev.map((m) => (m.id === id ? { ...m, [field]: value } : m))
+    );
+  };
+
+  const updateOcularCondition = (id, field, value) => {
+    setOcularHistory((prev) =>
+      prev.map((o) => (o.id === id ? { ...o, [field]: value } : o))
     );
   };
 
@@ -101,10 +102,12 @@ const PersonalHistory = ({ patient, appointmentId, setActiveTab }) => {
       appointment: appointmentId,
       patient: patientId,
       medical_history: medicalHistory.map((m) => m.id),
-      condition_details: medicalHistory.map((m) => ({
-        ocular_condition: m.id,
-        grading: m.grading,
-        notes: m.notes,
+      ocular_history: ocularHistory.map((o) => o.id),
+      condition_details: ocularHistory.map((o) => ({
+        ocular_condition: o.id,
+        affected_eye: o.affected_eye,
+        grading: o.grading,
+        notes: o.notes,
       })),
     };
 
@@ -123,12 +126,13 @@ const PersonalHistory = ({ patient, appointmentId, setActiveTab }) => {
   return (
     <div className="p-6 bg-white shadow-md rounded-md">
       <h2 className="font-bold text-2xl mb-4 text-gray-700">
-        Personal Medical History
+        Personal Medical & Ocular History
       </h2>
 
       {isLoading && <p className="text-gray-500">Loading Data...</p>}
 
-      <div>
+      {/* Medical History Section */}
+      <div className="mb-10">
         <SearchableSelect
           label="Patient Medical History"
           options={formattedMedicalConditions}
@@ -162,7 +166,8 @@ const PersonalHistory = ({ patient, appointmentId, setActiveTab }) => {
         )}
       </div>
 
-      <div>
+      {/* Ocular History Section */}
+      <div className="mb-10">
         <SearchableSelect
           label="Patient Ocular History"
           options={formattedOcularConditions}
@@ -181,6 +186,13 @@ const PersonalHistory = ({ patient, appointmentId, setActiveTab }) => {
               <div key={o.id} className="p-4 bg-gray-50 border rounded">
                 <h4 className="font-semibold mb-2">{o.name}</h4>
 
+                <AffectedEyeSelect
+                  value={o.affected_eye || ""}
+                  onChange={(val) =>
+                    updateOcularCondition(o.id, "affected_eye", val)
+                  }
+                />
+
                 <GradingSelect
                   value={o.grading}
                   onChange={(val) =>
@@ -190,7 +202,9 @@ const PersonalHistory = ({ patient, appointmentId, setActiveTab }) => {
 
                 <NotesTextArea
                   value={o.notes}
-                  onChange={(val) => updateOcularCondition(o.id, "notes", val)}
+                  onChange={(val) =>
+                    updateOcularCondition(o.id, "notes", val)
+                  }
                 />
               </div>
             ))}
@@ -198,6 +212,7 @@ const PersonalHistory = ({ patient, appointmentId, setActiveTab }) => {
         )}
       </div>
 
+      {/* Submit Button */}
       <div className="mt-6">
         <button
           onClick={handleSaveAndProceed}
