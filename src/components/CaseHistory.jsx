@@ -4,6 +4,7 @@ import SearchableSelect from "./SearchableSelect";
 import ErrorModal from "./ErrorModal";
 import AffectedEyeSelect from "./AffectedEyeSelect";
 import GradingSelect from "./GradingSelect";
+import NotesTextArea from "./NotesTextArea";
 
 const CaseHistory = ({ patientId, appointmentId, nextTab, setActiveTab }) => {
   const {
@@ -158,18 +159,10 @@ const CaseHistory = ({ patientId, appointmentId, nextTab, setActiveTab }) => {
                 />
 
                 {/* Notes */}
-                <div className="mt-2">
-                  <label className="block text-sm font-medium">Notes</label>
-                  <textarea
-                    value={c.notes}
-                    onChange={(e) =>
-                      updateCondition(c.id, "notes", e.target.value)
-                    }
-                    className="w-full border rounded p-2"
-                    rows={2}
-                    placeholder="Additional notes..."
-                  />
-                </div>
+                <NotesTextArea
+                  value={c.notes}
+                  onChange={(val) => updateCondition(c.id, "notes", val)}
+                />
               </div>
             ))}
           </div>
