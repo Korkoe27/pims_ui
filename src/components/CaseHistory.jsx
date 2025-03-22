@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import useCaseHistoryData from "../hooks/useCaseHistoryData";
 import SearchableSelect from "./SearchableSelect";
 import ErrorModal from "./ErrorModal";
+import AffectedEyeSelect from "./AffectedEyeSelect";
 
 const CaseHistory = ({ patientId, appointmentId, nextTab, setActiveTab }) => {
   const {
@@ -144,23 +145,10 @@ const CaseHistory = ({ patientId, appointmentId, nextTab, setActiveTab }) => {
                 <h4 className="font-semibold">{c.name}</h4>
 
                 {/* Affected Eye */}
-                <div className="mt-2">
-                  <label className="block text-sm font-medium">
-                    Affected Eye
-                  </label>
-                  <select
-                    value={c.affected_eye}
-                    onChange={(e) =>
-                      updateCondition(c.id, "affected_eye", e.target.value)
-                    }
-                    className="w-full border rounded p-2"
-                  >
-                    <option value="">Select...</option>
-                    <option value="OD">Right Eye</option>
-                    <option value="OS">Left Eye</option>
-                    <option value="OU">Both Eyes</option>
-                  </select>
-                </div>
+                <AffectedEyeSelect
+                  value={c.affected_eye}
+                  onChange={(val) => updateCondition(c.id, "affected_eye", val)}
+                />
 
                 {/* Grading (Dropdown) */}
                 <div className="mt-2">
