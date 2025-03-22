@@ -3,6 +3,7 @@ import useCaseHistoryData from "../hooks/useCaseHistoryData";
 import SearchableSelect from "./SearchableSelect";
 import ErrorModal from "./ErrorModal";
 import AffectedEyeSelect from "./AffectedEyeSelect";
+import GradingSelect from "./GradingSelect";
 
 const CaseHistory = ({ patientId, appointmentId, nextTab, setActiveTab }) => {
   const {
@@ -151,23 +152,10 @@ const CaseHistory = ({ patientId, appointmentId, nextTab, setActiveTab }) => {
                 />
 
                 {/* Grading (Dropdown) */}
-                <div className="mt-2">
-                  <label className="block text-sm font-medium">Grading</label>
-                  <select
-                    value={c.grading}
-                    onChange={(e) =>
-                      updateCondition(c.id, "grading", e.target.value)
-                    }
-                    className="w-full border rounded p-2"
-                  >
-                    <option value="">Select grading</option>
-                    {gradingOptions.map((g) => (
-                      <option key={g.value} value={g.value}>
-                        {g.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                <GradingSelect
+                  value={c.grading}
+                  onChange={(val) => updateCondition(c.id, "grading", val)}
+                />
 
                 {/* Notes */}
                 <div className="mt-2">
