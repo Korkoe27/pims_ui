@@ -1,5 +1,9 @@
 import React, { useEffect, useState } from "react";
-import useCaseHistoryData from "../hooks/useCaseHistoryData";
+import useFetchConditionsData from "../hooks/useFetchConditionsData";
+import {
+  useCreateCaseHistoryMutation,
+  useFetchCaseHistoryQuery,
+} from "../redux/api/features/caseHistoryApi";
 import SearchableSelect from "./SearchableSelect";
 import ErrorModal from "./ErrorModal";
 import AffectedEyeSelect from "./AffectedEyeSelect";
@@ -7,27 +11,22 @@ import GradingSelect from "./GradingSelect";
 import NotesTextArea from "./NotesTextArea";
 
 const CaseHistory = ({ patientId, appointmentId, nextTab, setActiveTab }) => {
-  const {
-    caseHistory,
-    ocularConditions,
-    isLoading,
-    createCaseHistory,
-    createCaseHistoryStatus: { isLoading: isSaving },
-  } = useCaseHistoryData(patientId, appointmentId);
+  const { data: caseHistory, isLoading: loadingCaseHistory } =
+    useFetchCaseHistoryQuery(appointmentId, {
+      skip: !appointmentId,
+    });
+
+  const { ocularConditions, isLoading: loadingConditions } =
+    useFetchConditionsData();
+  const [createCaseHistory, { isLoading: isSaving }] =
+    useCreateCaseHistoryMutation();
 
   const [chiefComplaint, setChiefComplaint] = useState("");
   const [selectedConditions, setSelectedConditions] = useState([]);
   const [errorMessage, setErrorMessage] = useState(null);
   const [showErrorModal, setShowErrorModal] = useState(false);
 
-  const gradingOptions = [
-    { value: "1", label: "1" },
-    { value: "2", label: "2" },
-    { value: "3", label: "3" },
-    { value: "4", label: "4" },
-    { value: "5", label: "5" },
-    { value: "NA", label: "Not Applicable" },
-  ];
+  const isLoading = loadingCaseHistory || loadingConditions;
 
   useEffect(() => {
     if (caseHistory) {
