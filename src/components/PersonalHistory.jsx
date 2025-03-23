@@ -202,9 +202,7 @@ const PersonalHistory = ({ patient, appointmentId, setActiveTab }) => {
 
                 <NotesTextArea
                   value={o.notes}
-                  onChange={(val) =>
-                    updateOcularCondition(o.id, "notes", val)
-                  }
+                  onChange={(val) => updateOcularCondition(o.id, "notes", val)}
                 />
               </div>
             ))}
@@ -213,11 +211,24 @@ const PersonalHistory = ({ patient, appointmentId, setActiveTab }) => {
       </div>
 
       {/* Submit Button */}
-      <div className="mt-6">
+      <div className="mt-6 flex justify-between gap-4">
+        {/* Back Button */}
+        <button
+          onClick={() => setActiveTab("case history")}
+          className="bg-gray-200 text-gray-800 px-6 py-2 rounded-md w-full hover:bg-gray-300"
+        >
+          Back
+        </button>
+
+        {/* Submit Button */}
         <button
           onClick={handleSaveAndProceed}
           disabled={isSubmitting}
-          className="bg-blue-600 text-white px-6 py-2 rounded-md w-full"
+          className={`text-white px-6 py-2 rounded-md w-full ${
+            isSubmitting
+              ? "bg-gray-400 cursor-not-allowed"
+              : "bg-blue-600 hover:bg-blue-700"
+          }`}
         >
           {isSubmitting ? "Saving..." : "Save & Proceed"}
         </button>
