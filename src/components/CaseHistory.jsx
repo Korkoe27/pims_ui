@@ -9,6 +9,7 @@ import ErrorModal from "./ErrorModal";
 import AffectedEyeSelect from "./AffectedEyeSelect";
 import GradingSelect from "./GradingSelect";
 import NotesTextArea from "./NotesTextArea";
+import DeleteButton from "./DeleteButton";
 
 const CaseHistory = ({ patientId, appointmentId, nextTab, setActiveTab }) => {
   const { data: caseHistory, isLoading: loadingCaseHistory } =
@@ -67,6 +68,10 @@ const CaseHistory = ({ patientId, appointmentId, nextTab, setActiveTab }) => {
     setSelectedConditions((prev) =>
       prev.map((c) => (c.id === id ? { ...c, [field]: value } : c))
     );
+  };
+
+  const handleDeleteCondition = (id) => {
+    setSelectedConditions((prev) => prev.filter((c) => c.id !== id));
   };
 
   const handleSaveAndProceed = async () => {
@@ -143,7 +148,10 @@ const CaseHistory = ({ patientId, appointmentId, nextTab, setActiveTab }) => {
           <div className="mt-4 space-y-4">
             {selectedConditions.map((c) => (
               <div key={c.id} className="p-4 bg-gray-50 border rounded">
-                <h4 className="font-semibold">{c.name}</h4>
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="font-semibold">{c.name}</h4>
+                  <DeleteButton onClick={() => handleDeleteCondition(c.id)} />
+                </div>
 
                 {/* Affected Eye */}
                 <AffectedEyeSelect
