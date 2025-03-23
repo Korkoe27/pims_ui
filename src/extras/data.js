@@ -1,9 +1,8 @@
 import React from "react";
 import { RxDashboard } from "react-icons/rx";
-import { MdOutlineRestorePage } from "react-icons/md";
 import { IoCalendarClearOutline } from "react-icons/io5";
 import { LuUsers2 } from "react-icons/lu";
-import { BsBoxSeam } from "react-icons/bs";
+
 
 export const Sidebar_links = [
   {
@@ -39,10 +38,10 @@ export const Consultation_nav = [
     name: "case history",
     link: "/case-history",
   },
-  {
-    name: "personal history",
-    link: "/personal-history",
-  },
+  // {
+  //   name: "personal history",
+  //   link: "/personal-history",
+  // },
   {
     name: "visual acuity",
     link: "/visual-acuity",

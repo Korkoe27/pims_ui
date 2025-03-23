@@ -106,7 +106,7 @@ const CaseHistory = ({ patientId, appointmentId, nextTab, setActiveTab }) => {
     try {
       await createCaseHistory(payload).unwrap();
       console.log("✅ Case history saved");
-      setActiveTab("personal history");
+      setActiveTab("visual acuity");
     } catch (error) {
       console.error("❌ Error saving:", error);
       setErrorMessage(

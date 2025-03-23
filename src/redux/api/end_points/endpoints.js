@@ -77,11 +77,6 @@ export const fetchPatientHistoryUrl = (patientId) =>
 // Create a new patient history (only if none exists)
 export const createPatientHistoryUrl = "/tests/api/patient-history/";
 
-/////////////////////////
-// Symptoms
-/////////////////////////
-
-export const fetchSymptomsUrl = "/tests/api/symptoms/";
 
 /////////////////////////
 // Medical & Ocular Conditions
@@ -101,9 +96,6 @@ export const createVisualAcuityUrl = "/tests/api/visual-acuity/";
 export const fetchVisualAcuityUrl = (appointmentId) =>
   `/tests/api/visual-acuity/${appointmentId}/`;
 
-// ✅ Update an existing Visual Acuity record
-export const updateVisualAcuityUrl = (appointmentId) =>
-  `/tests/api/visual-acuity/${appointmentId}/`;
 
 /////////////////////////
 // Externals
