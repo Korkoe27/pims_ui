@@ -79,7 +79,7 @@ const CaseHistory = ({ patientId, appointmentId, nextTab, setActiveTab }) => {
     setShowErrorModal(false);
 
     if (!chiefComplaint.trim()) {
-      setErrorMessage({ detail: "Chief complaint cannot be empty." });
+      setErrorMessage({ detail: "Chief complaint cannot be empty. 👍" });
       setShowErrorModal(true);
       return;
     }
