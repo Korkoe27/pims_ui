@@ -84,6 +84,14 @@ const CaseHistory = ({ patientId, appointmentId, nextTab, setActiveTab }) => {
       return;
     }
 
+    if (selectedConditions.length === 0) {
+      setErrorMessage({
+        detail: "Select at least one on_direct question to continue. 👍"
+      });
+      setShowErrorModal(true);
+      return;
+    }
+
     const payload = {
       appointment: appointmentId,
       chief_complaint: chiefComplaint,
@@ -133,7 +141,7 @@ const CaseHistory = ({ patientId, appointmentId, nextTab, setActiveTab }) => {
       {/* Ocular Conditions Selection */}
       <div className="mb-6">
         <SearchableSelect
-          label="Ocular Conditions"
+          label="On-Direct Questioning"
           options={formattedOcularOptions}
           selectedValues={selectedConditions.map((c) => ({
             value: c.id,
