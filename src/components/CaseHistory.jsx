@@ -86,7 +86,7 @@ const CaseHistory = ({ patientId, appointmentId, nextTab, setActiveTab }) => {
 
     if (selectedConditions.length === 0) {
       setErrorMessage({
-        detail: "Select at least one on_direct question to continue. 👍"
+        detail: "Select at least one on_direct question to continue. 👍",
       });
       setShowErrorModal(true);
       return;
@@ -129,7 +129,9 @@ const CaseHistory = ({ patientId, appointmentId, nextTab, setActiveTab }) => {
 
       {/* Chief Complaint Input */}
       <div className="mb-4">
-        <label className="block font-semibold mb-1">Chief Complaint</label>
+        <label className="block font-semibold mb-1">
+          Chief Complaint <span className="text-red-500">*</span>
+        </label>
         <textarea
           value={chiefComplaint}
           onChange={(e) => setChiefComplaint(e.target.value)}
@@ -141,7 +143,11 @@ const CaseHistory = ({ patientId, appointmentId, nextTab, setActiveTab }) => {
       {/* Ocular Conditions Selection */}
       <div className="mb-6">
         <SearchableSelect
-          label="On-Direct Questioning"
+          label={
+            <span>
+              On-Direct Questioning <span className="text-red-500">*</span>
+            </span>
+          }
           options={formattedOcularOptions}
           selectedValues={selectedConditions.map((c) => ({
             value: c.id,
