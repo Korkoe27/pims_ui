@@ -17,7 +17,12 @@ const lastEyeExamOptions = [
   { value: ">3 years", label: "More than 3 years" },
 ];
 
-const PersonalHistory = ({ patientId, appointmentId, nextTab, setActiveTab }) => {
+const PersonalHistory = ({
+  patientId,
+  appointmentId,
+  nextTab,
+  setActiveTab,
+}) => {
   const {
     personalHistory,
     isLoading,
@@ -41,25 +46,30 @@ const PersonalHistory = ({ patientId, appointmentId, nextTab, setActiveTab }) =>
     if (personalHistory) {
       setLastEyeExam(personalHistory.last_eye_examination || "");
 
-      const medicalMapped = (personalHistory.medical_history || []).map((item) => ({
-        id: item.medical_condition,
-        name: item.medical_condition_name,
-        notes: item.notes || "",
-      }));
+      const medicalMapped = (personalHistory.medical_history || []).map(
+        (item) => ({
+          id: item.medical_condition,
+          name: item.medical_condition_name,
+          notes: item.notes || "",
+        })
+      );
       setSelectedMedical(medicalMapped);
 
-      const ocularMapped = (personalHistory.ocular_history || []).map((item) => ({
-        id: item.ocular_condition,
-        name: item.ocular_condition_name,
-        affected_eye: item.affected_eye || "",
-        grading: item.grading || "",
-        notes: item.notes || "",
-      }));
+      const ocularMapped = (personalHistory.ocular_history || []).map(
+        (item) => ({
+          id: item.ocular_condition,
+          name: item.ocular_condition_name,
+          affected_eye: item.affected_eye || "",
+          grading: item.grading || "",
+          notes: item.notes || "",
+        })
+      );
       setSelectedOcular(ocularMapped);
     }
   }, [personalHistory]);
 
-  const formatOptions = (list) => list?.map((item) => ({ value: item.id, label: item.name })) || [];
+  const formatOptions = (list) =>
+    list?.map((item) => ({ value: item.id, label: item.name })) || [];
 
   const handleSelect = (setter, existingList) => (option) => {
     if (existingList.some((item) => item.id === option.value)) return;
@@ -76,11 +86,49 @@ const PersonalHistory = ({ patientId, appointmentId, nextTab, setActiveTab }) =>
   };
 
   const updateEntry = (id, field, value, list, setter) => {
-    setter(list.map((item) => (item.id === id ? { ...item, [field]: value } : item)));
+    setter(
+      list.map((item) => (item.id === id ? { ...item, [field]: value } : item))
+    );
   };
 
   const handleDelete = (id, list, setter) => {
     setter(list.filter((item) => item.id !== id));
+  };
+
+  const handleSave = async () => {
+    setErrorMessage(null);
+    setShowErrorModal(false);
+
+    if (!lastEyeExam) {
+      setErrorMessage({
+        detail: "Please select the last eye examination date.",
+      });
+      setShowErrorModal(true);
+      return;
+    }
+
+    const payload = {
+      patient: patientId,
+      appointment: appointmentId,
+      last_eye_examination: lastEyeExam,
+      medical_history: selectedMedical.map((item) => item.id),
+      ocular_history: selectedOcular.map((item) => ({
+        ocular_condition: item.id,
+        affected_eye: item.affected_eye,
+        grading: item.grading,
+        notes: item.notes,
+      })),
+    };
+
+    try {
+      await createPatientHistory(payload).unwrap();
+      console.log("✅ Personal history saved");
+      setActiveTab(nextTab);
+    } catch (err) {
+      console.error("❌ Error saving personal history:", err);
+      setErrorMessage(err?.data || { detail: "An unexpected error occurred." });
+      setShowErrorModal(true);
+    }
   };
 
   return (
@@ -104,13 +152,19 @@ const PersonalHistory = ({ patientId, appointmentId, nextTab, setActiveTab }) =>
         </select>
       </div>
 
-
       {/* Ocular History */}
       <div className="mb-6">
         <SearchableSelect
-          label={<span>Ocular History <span className="text-red-500">*</span></span>}
+          label={
+            <span>
+              Ocular History <span className="text-red-500">*</span>
+            </span>
+          }
           options={formatOptions(ocularConditions)}
-          selectedValues={selectedOcular.map((c) => ({ value: c.id, label: c.name }))}
+          selectedValues={selectedOcular.map((c) => ({
+            value: c.id,
+            label: c.name,
+          }))}
           onSelect={handleSelect(setSelectedOcular, selectedOcular)}
           conditionKey="value"
           conditionNameKey="label"
@@ -122,22 +176,47 @@ const PersonalHistory = ({ patientId, appointmentId, nextTab, setActiveTab }) =>
               <div key={c.id} className="p-4 bg-gray-50 border rounded">
                 <div className="flex items-center justify-between mb-2">
                   <h4 className="font-semibold">{c.name}</h4>
-                  <DeleteButton onClick={() => handleDelete(c.id, selectedOcular, setSelectedOcular)} />
+                  <DeleteButton
+                    onClick={() =>
+                      handleDelete(c.id, selectedOcular, setSelectedOcular)
+                    }
+                  />
                 </div>
-
                 <AffectedEyeSelect
                   value={c.affected_eye}
-                  onChange={(val) => updateEntry(c.id, "affected_eye", val, selectedOcular, setSelectedOcular)}
+                  onChange={(val) =>
+                    updateEntry(
+                      c.id,
+                      "affected_eye",
+                      val,
+                      selectedOcular,
+                      setSelectedOcular
+                    )
+                  }
                 />
-
                 <GradingSelect
                   value={c.grading}
-                  onChange={(val) => updateEntry(c.id, "grading", val, selectedOcular, setSelectedOcular)}
+                  onChange={(val) =>
+                    updateEntry(
+                      c.id,
+                      "grading",
+                      val,
+                      selectedOcular,
+                      setSelectedOcular
+                    )
+                  }
                 />
-
                 <NotesTextArea
                   value={c.notes}
-                  onChange={(val) => updateEntry(c.id, "notes", val, selectedOcular, setSelectedOcular)}
+                  onChange={(val) =>
+                    updateEntry(
+                      c.id,
+                      "notes",
+                      val,
+                      selectedOcular,
+                      setSelectedOcular
+                    )
+                  }
                 />
               </div>
             ))}
@@ -148,7 +227,7 @@ const PersonalHistory = ({ patientId, appointmentId, nextTab, setActiveTab }) =>
       {/* Save Button */}
       <div className="flex justify-end pt-4">
         <button
-          onClick={() => console.log("Save logic here")}
+          onClick={handleSave}
           disabled={isSaving}
           className={`px-6 py-2 font-semibold text-white rounded-full shadow-md transition-colors duration-200 ${
             isSaving ? "bg-gray-400" : "bg-indigo-600 hover:bg-indigo-700"
@@ -159,7 +238,10 @@ const PersonalHistory = ({ patientId, appointmentId, nextTab, setActiveTab }) =>
       </div>
 
       {showErrorModal && errorMessage && (
-        <ErrorModal message={errorMessage} onClose={() => setShowErrorModal(false)} />
+        <ErrorModal
+          message={errorMessage}
+          onClose={() => setShowErrorModal(false)}
+        />
       )}
     </div>
   );
