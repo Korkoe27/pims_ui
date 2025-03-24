@@ -38,10 +38,10 @@ export const Consultation_nav = [
     name: "case history",
     link: "/case-history",
   },
-  // {
-  //   name: "personal history",
-  //   link: "/personal-history",
-  // },
+  {
+    name: "personal history",
+    link: "/personal-history",
+  },
   {
     name: "visual acuity",
     link: "/visual-acuity",

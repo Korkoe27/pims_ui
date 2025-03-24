@@ -19,8 +19,12 @@ const PRESCRIPTION_TYPES = ["Spectacles", "Contact Lenses"];
 
 export default function VisualAcuityForm({
   onBack,
-  onProceed,
   isSaving = false,
+  appointmentId,
+  createVisualAcuity,
+  setActiveTab,
+  setErrorMessage,
+  setShowErrorModal,
 }) {
   const [vaChart, setVaChart] = useState("");
   const [distanceVA, setDistanceVA] = useState({
@@ -49,8 +53,34 @@ export default function VisualAcuityForm({
     }));
   };
 
-  const handleSaveAndProceed = () => {
+  const handleSaveAndProceed = async () => {
+    setErrorMessage(null);
+    setShowErrorModal(false);
+
+    // Validation
+    if (!vaChart) {
+      setErrorMessage({ detail: "Please select the VA chart used. 👍" });
+      setShowErrorModal(true);
+      return;
+    }
+
+    const isDistanceVAValid = Object.values(distanceVA).every(
+      (eye) => eye.unaided || eye.ph || eye.plusOne
+    );
+    if (!isDistanceVAValid) {
+      setErrorMessage({ detail: "Enter at least one Distance VA per eye. 👍" });
+      setShowErrorModal(true);
+      return;
+    }
+
+    if (!nearVA.OD || !nearVA.OS) {
+      setErrorMessage({ detail: "Select Near VA for both eyes. 👍" });
+      setShowErrorModal(true);
+      return;
+    }
+
     const payload = {
+      appointment: appointmentId,
       va_chart_used: vaChart,
       distance_va: distanceVA,
       near_va: nearVA,
@@ -59,13 +89,21 @@ export default function VisualAcuityForm({
       current_prescription: hasPrescription ? currentRx : null,
     };
 
-    if (onProceed) {
-      onProceed(payload);
+    try {
+      await createVisualAcuity(payload).unwrap();
+      console.log("✅ Visual acuity saved");
+      setActiveTab("refraction");
+    } catch (error) {
+      console.error("❌ Error saving visual acuity:", error);
+      setErrorMessage(
+        error?.data || { detail: "An unexpected error occurred." }
+      );
+      setShowErrorModal(true);
     }
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 pb-12">
       {/* VA Chart */}
       <div>
         <label className="block font-semibold mb-1">VA Chart used</label>
@@ -83,22 +121,24 @@ export default function VisualAcuityForm({
         </select>
       </div>
 
-      {/* Distance VA */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      {/* Distance VA + Near VA */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
         {/* Distance VA */}
         <div>
-          <h3 className="font-semibold text-lg">
+          <h3 className="font-semibold text-lg mb-2">
             Distance VA<span className="text-red-500">*</span>
           </h3>
-          <div className="grid grid-cols-4 gap-4 mt-2">
-            <div />
+          <div className="grid grid-cols-4 gap-4 text-sm font-medium mb-2">
+            <div></div>
             <div>Unaided</div>
             <div>PH</div>
             <div>+1.00</div>
+          </div>
 
+          <div className="grid grid-cols-4 gap-4">
             {EYES.map((eye) => (
               <React.Fragment key={eye}>
-                <div className="font-bold">{eye}</div>
+                <div className="font-bold self-center">{eye}</div>
                 {["unaided", "ph", "plusOne"].map((field) => (
                   <select
                     key={field}
@@ -123,13 +163,13 @@ export default function VisualAcuityForm({
 
         {/* Near VA */}
         <div>
-          <h3 className="font-semibold text-lg">
+          <h3 className="font-semibold text-lg mb-2">
             Near VA (unaided)<span className="text-red-500">*</span>
           </h3>
-          <div className="grid grid-cols-2 gap-4 mt-2">
+          <div className="grid grid-cols-2 gap-4">
             {EYES.map((eye) => (
               <div key={eye} className="flex flex-col">
-                <label className="font-bold">{eye}</label>
+                <label className="font-bold mb-1">{eye}</label>
                 <select
                   value={nearVA[eye]}
                   onChange={(e) =>
@@ -151,26 +191,28 @@ export default function VisualAcuityForm({
       </div>
 
       {/* Prescription Info */}
-      <div className="flex items-center gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
         <div>
-          <label className="block mb-1">
+          <label className="block mb-1 font-medium">
             Did patient come with a prescription?
           </label>
-          <div className="flex gap-4">
-            <label>
+          <div className="flex gap-4 mt-1">
+            <label className="flex items-center gap-1">
               <input
                 type="radio"
                 name="prescription"
+                checked={hasPrescription === true}
                 onChange={() => setHasPrescription(true)}
-              />{" "}
+              />
               Yes
             </label>
-            <label>
+            <label className="flex items-center gap-1">
               <input
                 type="radio"
                 name="prescription"
+                checked={hasPrescription === false}
                 onChange={() => setHasPrescription(false)}
-              />{" "}
+              />
               No
             </label>
           </div>
@@ -178,11 +220,13 @@ export default function VisualAcuityForm({
 
         {hasPrescription && (
           <div>
-            <label className="block mb-1">Type of Prescription</label>
+            <label className="block mb-1 font-medium">
+              Type of Prescription
+            </label>
             <select
               value={prescriptionType}
               onChange={(e) => setPrescriptionType(e.target.value)}
-              className="border rounded px-4 py-2"
+              className="border rounded px-4 py-2 w-full"
             >
               <option value="">Select an option</option>
               {PRESCRIPTION_TYPES.map((type) => (
@@ -197,23 +241,25 @@ export default function VisualAcuityForm({
 
       {/* Current Prescription */}
       {hasPrescription && (
-        <div>
-          <h3 className="font-semibold text-lg">
+        <div className="mt-6">
+          <h3 className="font-semibold text-lg mb-2">
             Patient’s Current Prescription
             <span className="text-red-500">*</span>
           </h3>
-          <div className="grid grid-cols-7 gap-4 text-sm font-semibold">
-            <div />
+          <div className="grid grid-cols-7 gap-4 text-sm font-semibold mb-1">
+            <div></div>
             <div>SPH</div>
             <div>CYL</div>
             <div>AXIS</div>
             <div>VA</div>
             <div>ADD</div>
             <div>VA (near)</div>
+          </div>
 
+          <div className="grid grid-cols-7 gap-4">
             {EYES.map((eye) => (
               <React.Fragment key={eye}>
-                <div className="font-bold">{eye}</div>
+                <div className="font-bold self-center">{eye}</div>
                 {["sph", "cyl", "axis", "va", "add", "nearVa"].map((field) => (
                   <input
                     key={field}
@@ -230,7 +276,7 @@ export default function VisualAcuityForm({
       )}
 
       {/* Navigation Buttons */}
-      <div className="flex justify-between pt-8">
+      <div className="flex justify-end gap-4 pt-10">
         <button
           type="button"
           onClick={onBack}
@@ -238,7 +284,6 @@ export default function VisualAcuityForm({
         >
           Back
         </button>
-
         <button
           type="button"
           onClick={handleSaveAndProceed}

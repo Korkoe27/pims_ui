@@ -5,6 +5,7 @@ import Header from "../components/Header";
 import ProgressBar from "../components/ProgressBar";
 import NavMenu from "../components/NavMenu";
 import CaseHistory from "../components/CaseHistory";
+import PersonalHistory from "../components/PersonalHistory";
 import VisualAcuity from "../components/VisualAcuity";
 import Externals from "../components/Externals";
 import Internals from "../components/Internals";
@@ -39,8 +40,8 @@ const Consultation = () => {
     switch (activeTab) {
       case "case history":
         return <CaseHistory appointmentId={appointmentId} setActiveTab={setActiveTab}/>;
-      // case "personal history":
-      //   return <PersonalHistory appointmentId={appointmentId} setActiveTab={setActiveTab} />;
+      case "personal history":
+        return <PersonalHistory appointmentId={appointmentId} setActiveTab={setActiveTab} />;
       case "visual acuity":
         return <VisualAcuity appointmentId={appointmentId} />;
       case "externals":
