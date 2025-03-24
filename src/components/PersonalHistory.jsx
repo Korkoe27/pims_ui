@@ -17,12 +17,7 @@ const lastEyeExamOptions = [
   { value: ">3 years", label: "More than 3 years" },
 ];
 
-const PersonalHistory = ({
-  patientId,
-  appointmentId,
-  nextTab,
-  setActiveTab,
-}) => {
+const PersonalHistory = ({ patientId, appointmentId, nextTab, setActiveTab }) => {
   const {
     personalHistory,
     isLoading,
@@ -31,13 +26,12 @@ const PersonalHistory = ({
     createPatientHistory,
     createPatientHistoryStatus,
   } = usePersonalHistoryData(patientId, appointmentId);
+
   const { medicalConditions, ocularConditions } = useFetchConditionsData();
 
   const [lastEyeExam, setLastEyeExam] = useState("");
   const [selectedMedical, setSelectedMedical] = useState([]);
   const [selectedOcular, setSelectedOcular] = useState([]);
-  const [selectedFamilyMedical, setSelectedFamilyMedical] = useState([]);
-  const [selectedFamilyOcular, setSelectedFamilyOcular] = useState([]);
   const [errorMessage, setErrorMessage] = useState(null);
   const [showErrorModal, setShowErrorModal] = useState(false);
 
@@ -47,34 +41,30 @@ const PersonalHistory = ({
     if (personalHistory) {
       setLastEyeExam(personalHistory.last_eye_examination || "");
 
-      const mapHistory = (items, type) =>
-        (items || []).map((item) => ({
-          id: item[type],
-          name: item[`${type}_name`],
-          affected_eye: item.affected_eye || "",
-          grading: item.grading || "",
-          notes: item.notes || "",
-        }));
+      const medicalMapped = (personalHistory.medical_history || []).map((item) => ({
+        id: item.medical_condition,
+        name: item.medical_condition_name,
+        notes: item.notes || "",
+      }));
+      setSelectedMedical(medicalMapped);
 
-      setSelectedMedical(
-        mapHistory(personalHistory.medical_history, "medical_condition")
-      );
-      setSelectedOcular(
-        mapHistory(personalHistory.ocular_history, "ocular_condition")
-      );
-      setSelectedFamilyMedical(
-        mapHistory(personalHistory.family_medical_history, "medical_condition")
-      );
-      setSelectedFamilyOcular(
-        mapHistory(personalHistory.family_ocular_history, "ocular_condition")
-      );
+      const ocularMapped = (personalHistory.ocular_history || []).map((item) => ({
+        id: item.ocular_condition,
+        name: item.ocular_condition_name,
+        affected_eye: item.affected_eye || "",
+        grading: item.grading || "",
+        notes: item.notes || "",
+      }));
+      setSelectedOcular(ocularMapped);
     }
   }, [personalHistory]);
 
-  const handleSelect = (setter, list, type) => (option) => {
-    if (list.some((item) => item.id === option.value)) return;
+  const formatOptions = (list) => list?.map((item) => ({ value: item.id, label: item.name })) || [];
+
+  const handleSelect = (setter, existingList) => (option) => {
+    if (existingList.some((item) => item.id === option.value)) return;
     setter([
-      ...list,
+      ...existingList,
       {
         id: option.value,
         name: option.label,
@@ -85,57 +75,13 @@ const PersonalHistory = ({
     ]);
   };
 
-  const updateEntry = (list, setter, id, field, value) => {
-    setter(
-      list.map((item) => (item.id === id ? { ...item, [field]: value } : item))
-    );
+  const updateEntry = (id, field, value, list, setter) => {
+    setter(list.map((item) => (item.id === id ? { ...item, [field]: value } : item)));
   };
 
-  const handleDelete = (setter, list, id) => {
+  const handleDelete = (id, list, setter) => {
     setter(list.filter((item) => item.id !== id));
   };
-
-  const formatOptions = (items) =>
-    (items || []).map((c) => ({ value: c.id, label: c.name }));
-
-  const handleSave = async () => {
-    const payload = {
-      appointment: appointmentId,
-      last_eye_examination: lastEyeExam,
-      medical_history: selectedMedical.map((item) => item.id),
-      ocular_history: selectedOcular.map((item) => ({
-        ocular_condition: item.id,
-        affected_eye: item.affected_eye,
-        grading: item.grading,
-        notes: item.notes,
-      })),
-      family_medical_history: selectedFamilyMedical.map((item) => item.id),
-      family_ocular_history: selectedFamilyOcular.map((item) => ({
-        ocular_condition: item.id,
-        affected_eye: item.affected_eye,
-        grading: item.grading,
-        notes: item.notes,
-      })),
-    };
-
-    try {
-      await createPatientHistory(payload).unwrap();
-      setActiveTab(nextTab);
-    } catch (err) {
-      setErrorMessage(
-        err?.data || { detail: "Failed to save personal history." }
-      );
-      setShowErrorModal(true);
-    }
-  };
-
-  if (isLoading) return <p>Loading...</p>;
-  if (isError)
-    return (
-      <p className="text-red-500">
-        Error: {error?.data?.detail || "Something went wrong."}
-      </p>
-    );
 
   return (
     <div className="p-6 max-w-4xl mx-auto space-y-6">
@@ -158,54 +104,51 @@ const PersonalHistory = ({
         </select>
       </div>
 
-      {/* Medical History */}
-      <div>
-        <SearchableSelect
-          label="Medical History"
-          options={formatOptions(medicalConditions)}
-          selectedValues={selectedMedical.map((c) => ({
-            value: c.id,
-            label: c.name,
-          }))}
-          onSelect={handleSelect(
-            setSelectedMedical,
-            selectedMedical,
-            "medical_condition"
-          )}
-        />
-        {selectedMedical.map((item) => (
-          <div key={item.id} className="border rounded p-3 mt-2">
-            <div className="flex justify-between">
-              <span>{item.name}</span>
-              <DeleteButton
-                onClick={() =>
-                  handleDelete(setSelectedMedical, selectedMedical, item.id)
-                }
-              />
-            </div>
-            <NotesTextArea
-              value={item.notes}
-              onChange={(val) =>
-                updateEntry(
-                  selectedMedical,
-                  setSelectedMedical,
-                  item.id,
-                  "notes",
-                  val
-                )
-              }
-            />
-          </div>
-        ))}
-      </div>
 
-      {/* Repeat the same UI structure for other history types: selectedOcular, selectedFamilyMedical, selectedFamilyOcular */}
-      {/* ... (same pattern, let me know if you'd like to expand those here too) */}
+      {/* Ocular History */}
+      <div className="mb-6">
+        <SearchableSelect
+          label={<span>Ocular History <span className="text-red-500">*</span></span>}
+          options={formatOptions(ocularConditions)}
+          selectedValues={selectedOcular.map((c) => ({ value: c.id, label: c.name }))}
+          onSelect={handleSelect(setSelectedOcular, selectedOcular)}
+          conditionKey="value"
+          conditionNameKey="label"
+        />
+
+        {selectedOcular.length > 0 && (
+          <div className="mt-4 space-y-4">
+            {selectedOcular.map((c) => (
+              <div key={c.id} className="p-4 bg-gray-50 border rounded">
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="font-semibold">{c.name}</h4>
+                  <DeleteButton onClick={() => handleDelete(c.id, selectedOcular, setSelectedOcular)} />
+                </div>
+
+                <AffectedEyeSelect
+                  value={c.affected_eye}
+                  onChange={(val) => updateEntry(c.id, "affected_eye", val, selectedOcular, setSelectedOcular)}
+                />
+
+                <GradingSelect
+                  value={c.grading}
+                  onChange={(val) => updateEntry(c.id, "grading", val, selectedOcular, setSelectedOcular)}
+                />
+
+                <NotesTextArea
+                  value={c.notes}
+                  onChange={(val) => updateEntry(c.id, "notes", val, selectedOcular, setSelectedOcular)}
+                />
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
 
       {/* Save Button */}
       <div className="flex justify-end pt-4">
         <button
-          onClick={handleSave}
+          onClick={() => console.log("Save logic here")}
           disabled={isSaving}
           className={`px-6 py-2 font-semibold text-white rounded-full shadow-md transition-colors duration-200 ${
             isSaving ? "bg-gray-400" : "bg-indigo-600 hover:bg-indigo-700"
@@ -216,10 +159,7 @@ const PersonalHistory = ({
       </div>
 
       {showErrorModal && errorMessage && (
-        <ErrorModal
-          message={errorMessage}
-          onClose={() => setShowErrorModal(false)}
-        />
+        <ErrorModal message={errorMessage} onClose={() => setShowErrorModal(false)} />
       )}
     </div>
   );
