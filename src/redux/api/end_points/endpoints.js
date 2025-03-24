@@ -72,7 +72,7 @@ export const fetchCaseHistoryUrl = (appointmentId) =>
 /////////////////////////
 
 export const fetchPatientHistoryUrl = (patientId) =>
-  `/tests/api/patient-history/?patient=${patientId}`;
+  `/tests/api/patient-history/latest/?patient=${patientId}`;
 
 // Create a new patient history (only if none exists)
 export const createPatientHistoryUrl = "/tests/api/patient-history/";
