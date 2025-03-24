@@ -123,7 +123,7 @@ const PersonalHistory = ({
     try {
       await createPatientHistory(payload).unwrap();
       console.log("✅ Personal history saved");
-      setActiveTab(nextTab);
+      setActiveTab("visual acuity");
     } catch (err) {
       console.error("❌ Error saving personal history:", err);
       setErrorMessage(err?.data || { detail: "An unexpected error occurred." });
