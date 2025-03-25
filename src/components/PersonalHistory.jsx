@@ -23,12 +23,8 @@ const PersonalHistory = ({
   nextTab,
   setActiveTab,
 }) => {
-  const {
-    personalHistory,
-    isLoading,
-    createPatientHistory,
-    createPatientHistoryStatus,
-  } = usePersonalHistoryData(patientId, appointmentId);
+  const { personalHistory, createPatientHistory, createPatientHistoryStatus } =
+    usePersonalHistoryData(patientId, appointmentId);
 
   const { medicalConditions, ocularConditions } = useFetchConditionsData();
 
@@ -146,7 +142,7 @@ const PersonalHistory = ({
     <div className="p-6 max-w-6xl mx-auto">
       <h1 className="text-2xl font-bold mb-6">Personal History</h1>
 
-      <div className="flex flex-col gap-6 md:flex-row md:gap-10">
+      <div className="flex flex-col md:flex-row md:items-start gap-10">
         {/* Left Column */}
         <div className="flex-1 space-y-6">
           {/* Last Eye Exam */}
@@ -216,10 +212,11 @@ const PersonalHistory = ({
             />
           </div>
         </div>
+
         {/* Right Column */}
         <div className="flex-1 space-y-6">
           {/* Ocular History */}
-          <div className="mt-10 mb-6">
+          <div>
             <SearchableSelect
               label={
                 <span>
@@ -293,27 +290,27 @@ const PersonalHistory = ({
             )}
           </div>
         </div>
-
-        {/* Save Button */}
-        <div className="col-span-2 flex justify-end pt-4">
-          <button
-            onClick={handleSave}
-            disabled={isSaving}
-            className={`px-6 py-2 font-semibold text-white rounded-full shadow-md transition-colors duration-200 ${
-              isSaving ? "bg-gray-400" : "bg-indigo-600 hover:bg-indigo-700"
-            }`}
-          >
-            {isSaving ? "Saving..." : "Save and Proceed"}
-          </button>
-        </div>
-
-        {showErrorModal && errorMessage && (
-          <ErrorModal
-            message={errorMessage}
-            onClose={() => setShowErrorModal(false)}
-          />
-        )}
       </div>
+
+      {/* Save Button */}
+      <div className="mt-8 flex justify-end">
+        <button
+          onClick={handleSave}
+          disabled={isSaving}
+          className={`px-6 py-2 font-semibold text-white rounded-full shadow-md transition-colors duration-200 ${
+            isSaving ? "bg-gray-400" : "bg-indigo-600 hover:bg-indigo-700"
+          }`}
+        >
+          {isSaving ? "Saving..." : "Save and Proceed"}
+        </button>
+      </div>
+
+      {showErrorModal && errorMessage && (
+        <ErrorModal
+          message={errorMessage}
+          onClose={() => setShowErrorModal(false)}
+        />
+      )}
     </div>
   );
 };
