@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import ErrorModal from "./ErrorModal";
 
 const EYES = ["OD", "OS"];
 const CHART_OPTIONS = ["Snellen", "LogMAR"];
@@ -10,8 +11,6 @@ export default function VisualAcuityForm({
   appointmentId,
   createVisualAcuity,
   setActiveTab,
-  setErrorMessage,
-  setShowErrorModal,
 }) {
   const [vaChart, setVaChart] = useState("");
   const [distanceVA, setDistanceVA] = useState({
@@ -25,6 +24,9 @@ export default function VisualAcuityForm({
     OD: { sph: "", cyl: "", axis: "", va: "", add: "", nearVa: "" },
     OS: { sph: "", cyl: "", axis: "", va: "", add: "", nearVa: "" },
   });
+
+  const [errorMessage, setErrorMessage] = useState(null);
+  const [showErrorModal, setShowErrorModal] = useState(false);
 
   const handleDistanceVAChange = (eye, field, value) => {
     setDistanceVA((prev) => ({
@@ -90,6 +92,8 @@ export default function VisualAcuityForm({
 
   return (
     <div className="space-y-8 pb-12">
+      <h1 className="text-2xl font-bold mb-6">Visual Acuity</h1>
+
       {/* VA Chart */}
       <div>
         <label className="block font-semibold mb-1">VA Chart used</label>
@@ -267,6 +271,13 @@ export default function VisualAcuityForm({
           {isSaving ? "Saving..." : "Save & Proceed"}
         </button>
       </div>
+
+      {showErrorModal && errorMessage && (
+        <ErrorModal
+          message={errorMessage}
+          onClose={() => setShowErrorModal(false)}
+        />
+      )}
     </div>
   );
 }

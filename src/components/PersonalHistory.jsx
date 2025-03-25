@@ -140,7 +140,10 @@ const PersonalHistory = ({
       drug_entries: [{ name: drugHistory, notes: drugNotes }],
       allergy_entries: [{ name: allergyHistory, notes: allergyNotes }],
       social_entries: [{ name: socialHistory, notes: socialNotes }],
-      medical_history: selectedMedical.map((item) => item.id),
+      medical_history: selectedMedical.map((item) => ({
+        medical_condition: item.id,
+        notes: item.notes || ""
+      })),      
       ocular_history: selectedOcular.map((item) => ({
         ocular_condition: item.id,
         affected_eye: item.affected_eye,
@@ -242,6 +245,53 @@ const PersonalHistory = ({
               onChange={setSocialNotes}
               label="Notes"
             />
+          </div>
+
+          <div>
+            <SearchableSelect
+              label="Medical History"
+              options={formatOptions(medicalConditions)}
+              selectedValues={selectedMedical.map((c) => ({
+                value: c.id,
+                label: c.name,
+              }))}
+              onSelect={handleSelect(setSelectedMedical, selectedMedical)}
+              conditionKey="value"
+              conditionNameKey="label"
+            />
+
+            {selectedMedical.length > 0 && (
+              <div className="mt-4 space-y-4">
+                {selectedMedical.map((c) => (
+                  <div key={c.id} className="p-4 bg-gray-50 border rounded">
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="font-semibold">{c.name}</h4>
+                      <DeleteButton
+                        onClick={() =>
+                          handleDelete(
+                            c.id,
+                            selectedMedical,
+                            setSelectedMedical
+                          )
+                        }
+                      />
+                    </div>
+                    <NotesTextArea
+                      value={c.notes}
+                      onChange={(val) =>
+                        updateEntry(
+                          c.id,
+                          "notes",
+                          val,
+                          selectedMedical,
+                          setSelectedMedical
+                        )
+                      }
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
