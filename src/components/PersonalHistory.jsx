@@ -26,8 +26,6 @@ const PersonalHistory = ({
   const {
     personalHistory,
     isLoading,
-    isError,
-    error,
     createPatientHistory,
     createPatientHistoryStatus,
   } = usePersonalHistoryData(patientId, appointmentId);
@@ -35,6 +33,12 @@ const PersonalHistory = ({
   const { medicalConditions, ocularConditions } = useFetchConditionsData();
 
   const [lastEyeExam, setLastEyeExam] = useState("");
+  const [drugHistory, setDrugHistory] = useState("");
+  const [drugNotes, setDrugNotes] = useState("");
+  const [allergyHistory, setAllergyHistory] = useState("");
+  const [allergyNotes, setAllergyNotes] = useState("");
+  const [socialHistory, setSocialHistory] = useState("");
+  const [socialNotes, setSocialNotes] = useState("");
   const [selectedMedical, setSelectedMedical] = useState([]);
   const [selectedOcular, setSelectedOcular] = useState([]);
   const [errorMessage, setErrorMessage] = useState(null);
@@ -45,26 +49,30 @@ const PersonalHistory = ({
   useEffect(() => {
     if (personalHistory) {
       setLastEyeExam(personalHistory.last_eye_examination || "");
+      setDrugHistory(personalHistory.drug_history || "");
+      setDrugNotes(personalHistory.drug_notes || "");
+      setAllergyHistory(personalHistory.allergies || "");
+      setAllergyNotes(personalHistory.allergy_notes || "");
+      setSocialHistory(personalHistory.social_history || "");
+      setSocialNotes(personalHistory.social_notes || "");
 
-      const medicalMapped = (personalHistory.medical_history || []).map(
-        (item) => ({
+      setSelectedMedical(
+        (personalHistory.medical_history || []).map((item) => ({
           id: item.medical_condition,
           name: item.medical_condition_name,
           notes: item.notes || "",
-        })
+        }))
       );
-      setSelectedMedical(medicalMapped);
 
-      const ocularMapped = (personalHistory.ocular_history || []).map(
-        (item) => ({
+      setSelectedOcular(
+        (personalHistory.ocular_history || []).map((item) => ({
           id: item.ocular_condition,
           name: item.ocular_condition_name,
           affected_eye: item.affected_eye || "",
           grading: item.grading || "",
           notes: item.notes || "",
-        })
+        }))
       );
-      setSelectedOcular(ocularMapped);
     }
   }, [personalHistory]);
 
@@ -111,6 +119,9 @@ const PersonalHistory = ({
       patient: patientId,
       appointment: appointmentId,
       last_eye_examination: lastEyeExam,
+      drug_entries: [{ name: drugHistory, notes: drugNotes }],
+      allergy_entries: [{ name: allergyHistory, notes: allergyNotes }],
+      social_entries: [{ name: socialHistory, notes: socialNotes }],
       medical_history: selectedMedical.map((item) => item.id),
       ocular_history: selectedOcular.map((item) => ({
         ocular_condition: item.id,
@@ -132,28 +143,78 @@ const PersonalHistory = ({
   };
 
   return (
-    <div className="p-6 max-w-4xl mx-auto space-y-6">
-      <h1 className="text-2xl font-bold">Personal History</h1>
+    <div className="p-6 max-w-6xl mx-auto">
+      <h1 className="text-2xl font-bold mb-6">Personal History</h1>
 
-      {/* Last Eye Exam Dropdown */}
-      <div>
-        <label className="block font-medium">Last Eye Examination</label>
-        <select
-          value={lastEyeExam}
-          onChange={(e) => setLastEyeExam(e.target.value)}
-          className="w-full border p-2 rounded"
-        >
-          <option value="">-- Select --</option>
-          {lastEyeExamOptions.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Last Eye Exam */}
+        <div>
+          <label className="block font-medium mb-1">Last Eye Examination</label>
+          <select
+            value={lastEyeExam}
+            onChange={(e) => setLastEyeExam(e.target.value)}
+            className="w-full border p-2 rounded"
+          >
+            <option value="">-- Select --</option>
+            {lastEyeExamOptions.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Drug History */}
+        <div>
+          <label className="block font-medium mb-1">Drug History</label>
+          <input
+            value={drugHistory}
+            onChange={(e) => setDrugHistory(e.target.value)}
+            className="w-full border p-2 rounded"
+            placeholder="E.g., Paracetamol"
+          />
+          <NotesTextArea
+            value={drugNotes}
+            onChange={setDrugNotes}
+            label="Notes"
+          />
+        </div>
+
+        {/* Allergy History */}
+        <div>
+          <label className="block font-medium mb-1">Allergies</label>
+          <input
+            value={allergyHistory}
+            onChange={(e) => setAllergyHistory(e.target.value)}
+            className="w-full border p-2 rounded"
+            placeholder="E.g., Penicillin"
+          />
+          <NotesTextArea
+            value={allergyNotes}
+            onChange={setAllergyNotes}
+            label="Notes"
+          />
+        </div>
+
+        {/* Social History */}
+        <div>
+          <label className="block font-medium mb-1">Social History</label>
+          <input
+            value={socialHistory}
+            onChange={(e) => setSocialHistory(e.target.value)}
+            className="w-full border p-2 rounded"
+            placeholder="E.g., Smoker, Driver"
+          />
+          <NotesTextArea
+            value={socialNotes}
+            onChange={setSocialNotes}
+            label="Notes"
+          />
+        </div>
       </div>
 
       {/* Ocular History */}
-      <div className="mb-6">
+      <div className="mt-10 mb-6">
         <SearchableSelect
           label={
             <span>
@@ -182,6 +243,7 @@ const PersonalHistory = ({
                     }
                   />
                 </div>
+
                 <AffectedEyeSelect
                   value={c.affected_eye}
                   onChange={(val) =>
@@ -194,6 +256,7 @@ const PersonalHistory = ({
                     )
                   }
                 />
+
                 <GradingSelect
                   value={c.grading}
                   onChange={(val) =>
@@ -206,6 +269,7 @@ const PersonalHistory = ({
                     )
                   }
                 />
+
                 <NotesTextArea
                   value={c.notes}
                   onChange={(val) =>
