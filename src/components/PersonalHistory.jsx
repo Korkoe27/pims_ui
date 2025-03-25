@@ -37,6 +37,10 @@ const PersonalHistory = ({
   const [socialNotes, setSocialNotes] = useState("");
   const [selectedMedical, setSelectedMedical] = useState([]);
   const [selectedOcular, setSelectedOcular] = useState([]);
+
+  const [familyMedicalHistory, setFamilyMedicalHistory] = useState([]);
+  const [familyOcularHistory, setFamilyOcularHistory] = useState([]);
+
   const [errorMessage, setErrorMessage] = useState(null);
   const [showErrorModal, setShowErrorModal] = useState(false);
 
@@ -62,6 +66,24 @@ const PersonalHistory = ({
 
       setSelectedOcular(
         (personalHistory.ocular_history || []).map((item) => ({
+          id: item.ocular_condition,
+          name: item.ocular_condition_name,
+          affected_eye: item.affected_eye || "",
+          grading: item.grading || "",
+          notes: item.notes || "",
+        }))
+      );
+
+      setFamilyMedicalHistory(
+        (personalHistory.family_medical_history || []).map((item) => ({
+          id: item.medical_condition,
+          name: item.medical_condition_name,
+          notes: item.notes || "",
+        }))
+      );
+
+      setFamilyOcularHistory(
+        (personalHistory.family_ocular_history || []).map((item) => ({
           id: item.ocular_condition,
           name: item.ocular_condition_name,
           affected_eye: item.affected_eye || "",
@@ -120,6 +142,16 @@ const PersonalHistory = ({
       social_entries: [{ name: socialHistory, notes: socialNotes }],
       medical_history: selectedMedical.map((item) => item.id),
       ocular_history: selectedOcular.map((item) => ({
+        ocular_condition: item.id,
+        affected_eye: item.affected_eye,
+        grading: item.grading,
+        notes: item.notes,
+      })),
+      family_medical_history: familyMedicalHistory.map((item) => ({
+        medical_condition: item.id,
+        notes: item.notes,
+      })),
+      family_ocular_history: familyOcularHistory.map((item) => ({
         ocular_condition: item.id,
         affected_eye: item.affected_eye,
         grading: item.grading,
@@ -281,6 +313,131 @@ const PersonalHistory = ({
                           val,
                           selectedOcular,
                           setSelectedOcular
+                        )
+                      }
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          {/* Family Medical History */}
+          <div>
+            <SearchableSelect
+              label="Family Medical History"
+              options={formatOptions(medicalConditions)}
+              selectedValues={familyMedicalHistory.map((c) => ({
+                value: c.id,
+                label: c.name,
+              }))}
+              onSelect={handleSelect(
+                setFamilyMedicalHistory,
+                familyMedicalHistory
+              )}
+              conditionKey="value"
+              conditionNameKey="label"
+            />
+
+            {familyMedicalHistory.length > 0 && (
+              <div className="mt-4 space-y-4">
+                {familyMedicalHistory.map((c) => (
+                  <div key={c.id} className="p-4 bg-gray-50 border rounded">
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="font-semibold">{c.name}</h4>
+                      <DeleteButton
+                        onClick={() =>
+                          handleDelete(
+                            c.id,
+                            familyMedicalHistory,
+                            setFamilyMedicalHistory
+                          )
+                        }
+                      />
+                    </div>
+                    <NotesTextArea
+                      value={c.notes}
+                      onChange={(val) =>
+                        updateEntry(
+                          c.id,
+                          "notes",
+                          val,
+                          familyMedicalHistory,
+                          setFamilyMedicalHistory
+                        )
+                      }
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Family Ocular History */}
+          <div>
+            <SearchableSelect
+              label="Family Ocular History"
+              options={formatOptions(ocularConditions)}
+              selectedValues={familyOcularHistory.map((c) => ({
+                value: c.id,
+                label: c.name,
+              }))}
+              onSelect={handleSelect(
+                setFamilyOcularHistory,
+                familyOcularHistory
+              )}
+              conditionKey="value"
+              conditionNameKey="label"
+            />
+
+            {familyOcularHistory.length > 0 && (
+              <div className="mt-4 space-y-4">
+                {familyOcularHistory.map((c) => (
+                  <div key={c.id} className="p-4 bg-gray-50 border rounded">
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="font-semibold">{c.name}</h4>
+                      <DeleteButton
+                        onClick={() =>
+                          handleDelete(
+                            c.id,
+                            familyOcularHistory,
+                            setFamilyOcularHistory
+                          )
+                        }
+                      />
+                    </div>
+                    <AffectedEyeSelect
+                      value={c.affected_eye}
+                      onChange={(val) =>
+                        updateEntry(
+                          c.id,
+                          "affected_eye",
+                          val,
+                          familyOcularHistory,
+                          setFamilyOcularHistory
+                        )
+                      }
+                    />
+                    <GradingSelect
+                      value={c.grading}
+                      onChange={(val) =>
+                        updateEntry(
+                          c.id,
+                          "grading",
+                          val,
+                          familyOcularHistory,
+                          setFamilyOcularHistory
+                        )
+                      }
+                    />
+                    <NotesTextArea
+                      value={c.notes}
+                      onChange={(val) =>
+                        updateEntry(
+                          c.id,
+                          "notes",
+                          val,
+                          familyOcularHistory,
+                          setFamilyOcularHistory
                         )
                       }
                     />
