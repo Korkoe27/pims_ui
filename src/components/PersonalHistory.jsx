@@ -146,7 +146,7 @@ const PersonalHistory = ({
     <div className="p-6 max-w-6xl mx-auto">
       <h1 className="text-2xl font-bold mb-6">Personal History</h1>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
         {/* Last Eye Exam */}
         <div>
           <label className="block font-medium mb-1">Last Eye Examination</label>
@@ -165,7 +165,7 @@ const PersonalHistory = ({
         </div>
 
         {/* Drug History */}
-        <div>
+        <div className="space-y-2">
           <label className="block font-medium mb-1">Drug History</label>
           <input
             value={drugHistory}
@@ -211,102 +211,103 @@ const PersonalHistory = ({
             label="Notes"
           />
         </div>
-      </div>
 
-      {/* Ocular History */}
-      <div className="mt-10 mb-6">
-        <SearchableSelect
-          label={
-            <span>
-              Ocular History <span className="text-red-500">*</span>
-            </span>
-          }
-          options={formatOptions(ocularConditions)}
-          selectedValues={selectedOcular.map((c) => ({
-            value: c.id,
-            label: c.name,
-          }))}
-          onSelect={handleSelect(setSelectedOcular, selectedOcular)}
-          conditionKey="value"
-          conditionNameKey="label"
-        />
+        {/* Ocular History */}
+        <div className="mt-10 mb-6">
+          <SearchableSelect
+            label={
+              <span>
+                Ocular History <span className="text-red-500">*</span>
+              </span>
+            }
+            options={formatOptions(ocularConditions)}
+            selectedValues={selectedOcular.map((c) => ({
+              value: c.id,
+              label: c.name,
+            }))}
+            onSelect={handleSelect(setSelectedOcular, selectedOcular)}
+            conditionKey="value"
+            conditionNameKey="label"
+          />
 
-        {selectedOcular.length > 0 && (
-          <div className="mt-4 space-y-4">
-            {selectedOcular.map((c) => (
-              <div key={c.id} className="p-4 bg-gray-50 border rounded">
-                <div className="flex items-center justify-between mb-2">
-                  <h4 className="font-semibold">{c.name}</h4>
-                  <DeleteButton
-                    onClick={() =>
-                      handleDelete(c.id, selectedOcular, setSelectedOcular)
+          {selectedOcular.length > 0 && (
+            <div className="mt-4 space-y-4">
+              {selectedOcular.map((c) => (
+                <div key={c.id} className="p-4 bg-gray-50 border rounded">
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="font-semibold">{c.name}</h4>
+                    <DeleteButton
+                      onClick={() =>
+                        handleDelete(c.id, selectedOcular, setSelectedOcular)
+                      }
+                    />
+                  </div>
+
+                  <AffectedEyeSelect
+                    value={c.affected_eye}
+                    onChange={(val) =>
+                      updateEntry(
+                        c.id,
+                        "affected_eye",
+                        val,
+                        selectedOcular,
+                        setSelectedOcular
+                      )
+                    }
+                  />
+
+                  <GradingSelect
+                    value={c.grading}
+                    onChange={(val) =>
+                      updateEntry(
+                        c.id,
+                        "grading",
+                        val,
+                        selectedOcular,
+                        setSelectedOcular
+                      )
+                    }
+                  />
+
+                  <NotesTextArea
+                    value={c.notes}
+                    onChange={(val) =>
+                      updateEntry(
+                        c.id,
+                        "notes",
+                        val,
+                        selectedOcular,
+                        setSelectedOcular
+                      )
                     }
                   />
                 </div>
+              ))}
+            </div>
+          )}
+        </div>
 
-                <AffectedEyeSelect
-                  value={c.affected_eye}
-                  onChange={(val) =>
-                    updateEntry(
-                      c.id,
-                      "affected_eye",
-                      val,
-                      selectedOcular,
-                      setSelectedOcular
-                    )
-                  }
-                />
+        {/* Save Button */}
+        {/* Save Button */}
+        <div className="col-span-2 flex justify-end pt-4">
+          <button
+            onClick={handleSave}
+            disabled={isSaving}
+            className={`px-6 py-2 font-semibold text-white rounded-full shadow-md transition-colors duration-200 ${
+              isSaving ? "bg-gray-400" : "bg-indigo-600 hover:bg-indigo-700"
+            }`}
+          >
+            {isSaving ? "Saving..." : "Save and Proceed"}
+          </button>
+        </div>
 
-                <GradingSelect
-                  value={c.grading}
-                  onChange={(val) =>
-                    updateEntry(
-                      c.id,
-                      "grading",
-                      val,
-                      selectedOcular,
-                      setSelectedOcular
-                    )
-                  }
-                />
-
-                <NotesTextArea
-                  value={c.notes}
-                  onChange={(val) =>
-                    updateEntry(
-                      c.id,
-                      "notes",
-                      val,
-                      selectedOcular,
-                      setSelectedOcular
-                    )
-                  }
-                />
-              </div>
-            ))}
-          </div>
+        {showErrorModal && errorMessage && (
+          <ErrorModal
+            message={errorMessage}
+            onClose={() => setShowErrorModal(false)}
+          />
         )}
       </div>
-
-      {/* Save Button */}
-      <div className="flex justify-end pt-4">
-        <button
-          onClick={handleSave}
-          disabled={isSaving}
-          className={`px-6 py-2 font-semibold text-white rounded-full shadow-md transition-colors duration-200 ${
-            isSaving ? "bg-gray-400" : "bg-indigo-600 hover:bg-indigo-700"
-          }`}
-        >
-          {isSaving ? "Saving..." : "Save and Proceed"}
-        </button>
-      </div>
-
-      {showErrorModal && errorMessage && (
-        <ErrorModal
-          message={errorMessage}
-          onClose={() => setShowErrorModal(false)}
-        />
-      )}
     </div>
   );
 };
