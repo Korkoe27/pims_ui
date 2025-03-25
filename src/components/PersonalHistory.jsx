@@ -146,148 +146,154 @@ const PersonalHistory = ({
     <div className="p-6 max-w-6xl mx-auto">
       <h1 className="text-2xl font-bold mb-6">Personal History</h1>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-        {/* Last Eye Exam */}
-        <div>
-          <label className="block font-medium mb-1">Last Eye Examination</label>
-          <select
-            value={lastEyeExam}
-            onChange={(e) => setLastEyeExam(e.target.value)}
-            className="w-full border p-2 rounded"
-          >
-            <option value="">-- Select --</option>
-            {lastEyeExamOptions.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
+      <div className="flex flex-col gap-6 md:flex-row md:gap-10">
+        {/* Left Column */}
+        <div className="flex-1 space-y-6">
+          {/* Last Eye Exam */}
+          <div>
+            <label className="block font-medium mb-1">
+              Last Eye Examination
+            </label>
+            <select
+              value={lastEyeExam}
+              onChange={(e) => setLastEyeExam(e.target.value)}
+              className="w-full border p-2 rounded"
+            >
+              <option value="">-- Select --</option>
+              {lastEyeExamOptions.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Drug History */}
+          <div className="space-y-2">
+            <label className="block font-medium mb-1">Drug History</label>
+            <input
+              value={drugHistory}
+              onChange={(e) => setDrugHistory(e.target.value)}
+              className="w-full border p-2 rounded"
+              placeholder="E.g., Paracetamol"
+            />
+            <NotesTextArea
+              value={drugNotes}
+              onChange={setDrugNotes}
+              label="Notes"
+            />
+          </div>
+
+          {/* Allergy History */}
+          <div>
+            <label className="block font-medium mb-1">Allergies</label>
+            <input
+              value={allergyHistory}
+              onChange={(e) => setAllergyHistory(e.target.value)}
+              className="w-full border p-2 rounded"
+              placeholder="E.g., Penicillin"
+            />
+            <NotesTextArea
+              value={allergyNotes}
+              onChange={setAllergyNotes}
+              label="Notes"
+            />
+          </div>
+
+          {/* Social History */}
+          <div>
+            <label className="block font-medium mb-1">Social History</label>
+            <input
+              value={socialHistory}
+              onChange={(e) => setSocialHistory(e.target.value)}
+              className="w-full border p-2 rounded"
+              placeholder="E.g., Smoker, Driver"
+            />
+            <NotesTextArea
+              value={socialNotes}
+              onChange={setSocialNotes}
+              label="Notes"
+            />
+          </div>
         </div>
+        {/* Right Column */}
+        <div className="flex-1 space-y-6">
+          {/* Ocular History */}
+          <div className="mt-10 mb-6">
+            <SearchableSelect
+              label={
+                <span>
+                  Ocular History <span className="text-red-500">*</span>
+                </span>
+              }
+              options={formatOptions(ocularConditions)}
+              selectedValues={selectedOcular.map((c) => ({
+                value: c.id,
+                label: c.name,
+              }))}
+              onSelect={handleSelect(setSelectedOcular, selectedOcular)}
+              conditionKey="value"
+              conditionNameKey="label"
+            />
 
-        {/* Drug History */}
-        <div className="space-y-2">
-          <label className="block font-medium mb-1">Drug History</label>
-          <input
-            value={drugHistory}
-            onChange={(e) => setDrugHistory(e.target.value)}
-            className="w-full border p-2 rounded"
-            placeholder="E.g., Paracetamol"
-          />
-          <NotesTextArea
-            value={drugNotes}
-            onChange={setDrugNotes}
-            label="Notes"
-          />
-        </div>
+            {selectedOcular.length > 0 && (
+              <div className="mt-4 space-y-4">
+                {selectedOcular.map((c) => (
+                  <div key={c.id} className="p-4 bg-gray-50 border rounded">
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="font-semibold">{c.name}</h4>
+                      <DeleteButton
+                        onClick={() =>
+                          handleDelete(c.id, selectedOcular, setSelectedOcular)
+                        }
+                      />
+                    </div>
 
-        {/* Allergy History */}
-        <div>
-          <label className="block font-medium mb-1">Allergies</label>
-          <input
-            value={allergyHistory}
-            onChange={(e) => setAllergyHistory(e.target.value)}
-            className="w-full border p-2 rounded"
-            placeholder="E.g., Penicillin"
-          />
-          <NotesTextArea
-            value={allergyNotes}
-            onChange={setAllergyNotes}
-            label="Notes"
-          />
-        </div>
+                    <AffectedEyeSelect
+                      value={c.affected_eye}
+                      onChange={(val) =>
+                        updateEntry(
+                          c.id,
+                          "affected_eye",
+                          val,
+                          selectedOcular,
+                          setSelectedOcular
+                        )
+                      }
+                    />
 
-        {/* Social History */}
-        <div>
-          <label className="block font-medium mb-1">Social History</label>
-          <input
-            value={socialHistory}
-            onChange={(e) => setSocialHistory(e.target.value)}
-            className="w-full border p-2 rounded"
-            placeholder="E.g., Smoker, Driver"
-          />
-          <NotesTextArea
-            value={socialNotes}
-            onChange={setSocialNotes}
-            label="Notes"
-          />
-        </div>
+                    <GradingSelect
+                      value={c.grading}
+                      onChange={(val) =>
+                        updateEntry(
+                          c.id,
+                          "grading",
+                          val,
+                          selectedOcular,
+                          setSelectedOcular
+                        )
+                      }
+                    />
 
-        {/* Ocular History */}
-        <div className="mt-10 mb-6">
-          <SearchableSelect
-            label={
-              <span>
-                Ocular History <span className="text-red-500">*</span>
-              </span>
-            }
-            options={formatOptions(ocularConditions)}
-            selectedValues={selectedOcular.map((c) => ({
-              value: c.id,
-              label: c.name,
-            }))}
-            onSelect={handleSelect(setSelectedOcular, selectedOcular)}
-            conditionKey="value"
-            conditionNameKey="label"
-          />
-
-          {selectedOcular.length > 0 && (
-            <div className="mt-4 space-y-4">
-              {selectedOcular.map((c) => (
-                <div key={c.id} className="p-4 bg-gray-50 border rounded">
-                  <div className="flex items-center justify-between mb-2">
-                    <h4 className="font-semibold">{c.name}</h4>
-                    <DeleteButton
-                      onClick={() =>
-                        handleDelete(c.id, selectedOcular, setSelectedOcular)
+                    <NotesTextArea
+                      value={c.notes}
+                      onChange={(val) =>
+                        updateEntry(
+                          c.id,
+                          "notes",
+                          val,
+                          selectedOcular,
+                          setSelectedOcular
+                        )
                       }
                     />
                   </div>
-
-                  <AffectedEyeSelect
-                    value={c.affected_eye}
-                    onChange={(val) =>
-                      updateEntry(
-                        c.id,
-                        "affected_eye",
-                        val,
-                        selectedOcular,
-                        setSelectedOcular
-                      )
-                    }
-                  />
-
-                  <GradingSelect
-                    value={c.grading}
-                    onChange={(val) =>
-                      updateEntry(
-                        c.id,
-                        "grading",
-                        val,
-                        selectedOcular,
-                        setSelectedOcular
-                      )
-                    }
-                  />
-
-                  <NotesTextArea
-                    value={c.notes}
-                    onChange={(val) =>
-                      updateEntry(
-                        c.id,
-                        "notes",
-                        val,
-                        selectedOcular,
-                        setSelectedOcular
-                      )
-                    }
-                  />
-                </div>
-              ))}
-            </div>
-          )}
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* Save Button */}
         {/* Save Button */}
         <div className="col-span-2 flex justify-end pt-4">
           <button

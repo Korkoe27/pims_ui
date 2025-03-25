@@ -1,19 +1,6 @@
 import React, { useState } from "react";
 
 const EYES = ["OD", "OS"];
-const VA_OPTIONS = [
-  "6/6",
-  "6/9",
-  "6/12",
-  "6/18",
-  "6/24",
-  "6/36",
-  "6/60",
-  "CF",
-  "HM",
-  "PL",
-  "NLP",
-];
 const CHART_OPTIONS = ["Snellen", "LogMAR"];
 const PRESCRIPTION_TYPES = ["Spectacles", "Contact Lenses"];
 
@@ -57,7 +44,6 @@ export default function VisualAcuityForm({
     setErrorMessage(null);
     setShowErrorModal(false);
 
-    // Validation
     if (!vaChart) {
       setErrorMessage({ detail: "Please select the VA chart used. 👍" });
       setShowErrorModal(true);
@@ -74,7 +60,7 @@ export default function VisualAcuityForm({
     }
 
     if (!nearVA.OD || !nearVA.OS) {
-      setErrorMessage({ detail: "Select Near VA for both eyes. 👍" });
+      setErrorMessage({ detail: "Enter Near VA for both eyes. 👍" });
       setShowErrorModal(true);
       return;
     }
@@ -140,21 +126,15 @@ export default function VisualAcuityForm({
               <React.Fragment key={eye}>
                 <div className="font-bold self-center">{eye}</div>
                 {["unaided", "ph", "plusOne"].map((field) => (
-                  <select
+                  <input
                     key={field}
+                    type="text"
                     value={distanceVA[eye][field]}
                     onChange={(e) =>
                       handleDistanceVAChange(eye, field, e.target.value)
                     }
                     className="border rounded px-2 py-1"
-                  >
-                    <option value="">Select</option>
-                    {VA_OPTIONS.map((opt) => (
-                      <option key={opt} value={opt}>
-                        {opt}
-                      </option>
-                    ))}
-                  </select>
+                  />
                 ))}
               </React.Fragment>
             ))}
@@ -170,20 +150,14 @@ export default function VisualAcuityForm({
             {EYES.map((eye) => (
               <div key={eye} className="flex flex-col">
                 <label className="font-bold mb-1">{eye}</label>
-                <select
+                <input
+                  type="text"
                   value={nearVA[eye]}
                   onChange={(e) =>
                     setNearVA({ ...nearVA, [eye]: e.target.value })
                   }
                   className="border rounded px-2 py-1"
-                >
-                  <option value="">Select</option>
-                  {VA_OPTIONS.map((opt) => (
-                    <option key={opt} value={opt}>
-                      {opt}
-                    </option>
-                  ))}
-                </select>
+                />
               </div>
             ))}
           </div>
