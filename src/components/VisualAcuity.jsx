@@ -2,6 +2,9 @@ import React, { useState, useEffect } from "react";
 import ErrorModal from "./ErrorModal";
 import useVisualAcuityData from "../hooks/useVisualAcuityData";
 import VisualAcuitySection, { validateVASection } from "./VisualAcuitySection";
+import PrescriptionSection, {
+  validatePrescription,
+} from "./PrescriptionSection";
 
 const EYES = ["OD", "OS"];
 const CHART_OPTIONS = [
@@ -28,6 +31,13 @@ export default function VisualAcuityForm({
     OS: { near: "" },
   });
 
+  const [hasPrescription, setHasPrescription] = useState(null);
+  const [prescriptionType, setPrescriptionType] = useState("");
+  const [currentRx, setCurrentRx] = useState({
+    OD: { sph: "", cyl: "", axis: "", va: "", add: "", nearVa: "" },
+    OS: { sph: "", cyl: "", axis: "", va: "", add: "", nearVa: "" },
+  });
+
   const [errorMessage, setErrorMessage] = useState(null);
   const [showErrorModal, setShowErrorModal] = useState(false);
 
@@ -44,6 +54,36 @@ export default function VisualAcuityForm({
           unaided: visualAcuity.distance_unaided_os || "",
           ph: visualAcuity.distance_ph_os || "",
           plusOne: visualAcuity.distance_plus1_os || "",
+        },
+      });
+      setNearVA({
+        OD: { near: visualAcuity.near_va_od || "" },
+        OS: { near: visualAcuity.near_va_os || "" },
+      });
+      setHasPrescription(visualAcuity.came_with_prescription ?? null);
+      setPrescriptionType(
+        visualAcuity.prescription_type === "GLASSES"
+          ? "Spectacles"
+          : visualAcuity.prescription_type === "CONTACTS"
+          ? "Contact Lenses"
+          : ""
+      );
+      setCurrentRx({
+        OD: {
+          sph: visualAcuity.rx_sph_od || "",
+          cyl: visualAcuity.rx_cyl_od || "",
+          axis: visualAcuity.rx_axis_od || "",
+          va: visualAcuity.rx_va1_od || "",
+          add: visualAcuity.rx_add_od || "",
+          nearVa: visualAcuity.rx_va2_od || "",
+        },
+        OS: {
+          sph: visualAcuity.rx_sph_os || "",
+          cyl: visualAcuity.rx_cyl_os || "",
+          axis: visualAcuity.rx_axis_os || "",
+          va: visualAcuity.rx_va1_os || "",
+          add: visualAcuity.rx_add_os || "",
+          nearVa: visualAcuity.rx_va2_os || "",
         },
       });
     }
@@ -63,10 +103,11 @@ export default function VisualAcuityForm({
     }));
   };
 
-  const isValidSnellen = (value) => /^\d{1,2}\/\d{1,2}$/.test(value.trim());
-  const isValidLogMAR = (value) => {
-    const num = parseFloat(value);
-    return !isNaN(num) && num >= -0.02 && num <= 3.5;
+  const handleRxChange = (eye, field, value) => {
+    setCurrentRx((prev) => ({
+      ...prev,
+      [eye]: { ...prev[eye], [field]: value },
+    }));
   };
 
   const handleSaveAndProceed = async () => {
@@ -103,6 +144,15 @@ export default function VisualAcuityForm({
       return;
     }
 
+    if (hasPrescription) {
+      const result = validatePrescription(currentRx);
+      if (!result.valid) {
+        setErrorMessage({ detail: result.message });
+        setShowErrorModal(true);
+        return;
+      }
+    }
+
     const payload = {
       appointment: appointmentId,
       va_chart_used: vaChart,
@@ -114,6 +164,25 @@ export default function VisualAcuityForm({
       distance_plus1_os: distanceVA.OS.plusOne,
       near_va_od: nearVA.OD.near,
       near_va_os: nearVA.OS.near,
+      came_with_prescription: hasPrescription,
+      prescription_type:
+        hasPrescription && prescriptionType === "Spectacles"
+          ? "GLASSES"
+          : hasPrescription && prescriptionType === "Contact Lenses"
+          ? "CONTACTS"
+          : null,
+      rx_sph_od: currentRx.OD.sph,
+      rx_cyl_od: currentRx.OD.cyl,
+      rx_axis_od: currentRx.OD.axis,
+      rx_va1_od: currentRx.OD.va,
+      rx_add_od: currentRx.OD.add,
+      rx_va2_od: currentRx.OD.nearVa,
+      rx_sph_os: currentRx.OS.sph,
+      rx_cyl_os: currentRx.OS.cyl,
+      rx_axis_os: currentRx.OS.axis,
+      rx_va1_os: currentRx.OS.va,
+      rx_add_os: currentRx.OS.add,
+      rx_va2_os: currentRx.OS.nearVa,
     };
 
     try {
@@ -131,7 +200,7 @@ export default function VisualAcuityForm({
 
   return (
     <div className="space-y-8 pb-12">
-      <h1 className="text-2xl font-bold mb-6">Distance Visual Acuity</h1>
+      <h1 className="text-2xl font-bold mb-6">Visual Acuity</h1>
 
       <div>
         <label className="block font-semibold mb-1">VA Chart used</label>
@@ -163,6 +232,15 @@ export default function VisualAcuityForm({
         vaData={nearVA}
         onChange={handleNearVAChange}
         vaChart={vaChart}
+      />
+
+      <PrescriptionSection
+        hasPrescription={hasPrescription}
+        setHasPrescription={setHasPrescription}
+        prescriptionType={prescriptionType}
+        setPrescriptionType={setPrescriptionType}
+        currentRx={currentRx}
+        onRxChange={handleRxChange}
       />
 
       <div className="flex justify-end gap-4 pt-10">
