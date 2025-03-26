@@ -2,6 +2,12 @@ import React, { useEffect, useState } from "react";
 import { FaChevronDown, FaChevronUp } from "react-icons/fa";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { useFetchExternalConditionsQuery } from "../redux/api/features/externalsApi";
+import SearchableSelect from "./SearchableSelect";
+import AffectedEyeSelect from "./AffectedEyeSelect";
+import GradingSelect from "./GradingSelect";
+import NotesTextArea from "./NotesTextArea";
+import DeleteButton from "./DeleteButton";
+import ErrorModal from "./ErrorModal";
 
 const Externals = () => {
   const { appointmentId } = useParams();
@@ -11,6 +17,9 @@ const Externals = () => {
 
   const [dropdowns, setDropdowns] = useState({});
   const [formData, setFormData] = useState({});
+  const [errorMessage, setErrorMessage] = useState(null);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+
   const { data: conditions = [], isLoading } =
     useFetchExternalConditionsQuery();
 
@@ -25,16 +34,43 @@ const Externals = () => {
     setDropdowns((prev) => ({ ...prev, [groupName]: !prev[groupName] }));
   };
 
-  const handleInputChange = (group, eye, conditionId, value) => {
+  const handleSelectCondition = (groupName, selectedOption) => {
+    const selectedId = selectedOption.value;
+    const selectedName = selectedOption.label;
+
+    setFormData((prev) => {
+      const groupData = prev[groupName] || [];
+      if (groupData.some((item) => item.id === selectedId)) return prev;
+
+      return {
+        ...prev,
+        [groupName]: [
+          ...groupData,
+          {
+            id: selectedId,
+            name: selectedName,
+            affected_eye: "",
+            grading: "",
+            notes: "",
+          },
+        ],
+      };
+    });
+  };
+
+  const handleFieldChange = (groupName, conditionId, field, value) => {
     setFormData((prev) => ({
       ...prev,
-      [group]: {
-        ...prev[group],
-        [eye]: {
-          ...prev[group]?.[eye],
-          [conditionId]: value,
-        },
-      },
+      [groupName]: prev[groupName].map((item) =>
+        item.id === conditionId ? { ...item, [field]: value } : item
+      ),
+    }));
+  };
+
+  const handleDeleteCondition = (groupName, conditionId) => {
+    setFormData((prev) => ({
+      ...prev,
+      [groupName]: prev[groupName].filter((item) => item.id !== conditionId),
     }));
   };
 
@@ -45,87 +81,123 @@ const Externals = () => {
     navigate("/internals");
   };
 
-  const renderFields = (groupName, conditionsList) => (
-    <div className="flex flex-col gap-6 px-8">
-      <div className="flex justify-between font-bold text-lg">
-        <span>OD</span>
-        <span>OS</span>
-      </div>
-      {conditionsList.map(({ id, name }) => (
-        <div key={id} className="flex justify-between items-center">
-          <div className="flex gap-4">
-            <label>
-              <input
-                type="radio"
-                name={`${groupName}-od-${id}`}
-                value="yes"
-                onChange={() => handleInputChange(groupName, "od", id, "yes")}
-              />{" "}
-              Yes
-            </label>
-            <label>
-              <input
-                type="radio"
-                name={`${groupName}-od-${id}`}
-                value="no"
-                onChange={() => handleInputChange(groupName, "od", id, "no")}
-              />{" "}
-              No
-            </label>
-          </div>
-          <span>{name}</span>
-          <div className="flex gap-4">
-            <label>
-              <input
-                type="radio"
-                name={`${groupName}-os-${id}`}
-                value="yes"
-                onChange={() => handleInputChange(groupName, "os", id, "yes")}
-              />{" "}
-              Yes
-            </label>
-            <label>
-              <input
-                type="radio"
-                name={`${groupName}-os-${id}`}
-                value="no"
-                onChange={() => handleInputChange(groupName, "os", id, "no")}
-              />{" "}
-              No
-            </label>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-
   return (
     <div className="min-h-screen bg-gray-100 p-8">
-      <h1 className="text-2xl font-bold mb-4">Externals</h1>
+      <h1 className="text-2xl font-bold mb-6">Externals</h1>
       {isLoading ? (
         <p>Loading conditions...</p>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-8">
-          {Object.entries(groupedConditions).map(([groupName, conditions]) => (
-            <div key={groupName} className="bg-white shadow p-4 rounded">
-              <button
-                type="button"
-                onClick={() => toggleSection(groupName)}
-                className="w-full flex justify-between items-center text-left font-semibold"
-              >
-                <span className="capitalize">{groupName}</span>
-                {dropdowns[groupName] ? <FaChevronUp /> : <FaChevronDown />}
-              </button>
-              {dropdowns[groupName] && renderFields(groupName, conditions)}
-            </div>
-          ))}
-          <button
-            type="submit"
-            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-          >
-            Save and Proceed
-          </button>
+          {Object.entries(groupedConditions).map(
+            ([groupName, groupConditions]) => {
+              const options = groupConditions.map((c) => ({
+                value: c.id,
+                label: c.name,
+              }));
+
+              const selectedGroupConditions = formData[groupName] || [];
+
+              return (
+                <div key={groupName} className="bg-white shadow p-4 rounded">
+                  <button
+                    type="button"
+                    onClick={() => toggleSection(groupName)}
+                    className="w-full flex justify-between items-center text-left font-semibold"
+                  >
+                    <span>{groupName}</span>
+                    {dropdowns[groupName] ? <FaChevronUp /> : <FaChevronDown />}
+                  </button>
+
+                  {dropdowns[groupName] && (
+                    <div className="mt-4 space-y-4">
+                      <SearchableSelect
+                        label={`Add ${groupName} condition`}
+                        options={options}
+                        selectedValues={selectedGroupConditions.map((c) => ({
+                          value: c.id,
+                          label: c.name,
+                        }))}
+                        onSelect={(option) =>
+                          handleSelectCondition(groupName, option)
+                        }
+                        conditionKey="value"
+                        conditionNameKey="label"
+                      />
+
+                      {selectedGroupConditions.map((item) => (
+                        <div
+                          key={item.id}
+                          className="p-4 bg-gray-50 border rounded space-y-4"
+                        >
+                          <div className="flex justify-between items-center">
+                            <h4 className="font-semibold">{item.name}</h4>
+                            <DeleteButton
+                              onClick={() =>
+                                handleDeleteCondition(groupName, item.id)
+                              }
+                            />
+                          </div>
+
+                          <AffectedEyeSelect
+                            value={item.affected_eye}
+                            onChange={(val) =>
+                              handleFieldChange(
+                                groupName,
+                                item.id,
+                                "affected_eye",
+                                val
+                              )
+                            }
+                          />
+
+                          <GradingSelect
+                            value={item.grading}
+                            onChange={(val) =>
+                              handleFieldChange(
+                                groupName,
+                                item.id,
+                                "grading",
+                                val
+                              )
+                            }
+                          />
+
+                          <NotesTextArea
+                            value={item.notes}
+                            onChange={(val) =>
+                              handleFieldChange(
+                                groupName,
+                                item.id,
+                                "notes",
+                                val
+                              )
+                            }
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            }
+          )}
+
+          <div className="flex justify-end pt-6">
+            <button
+              type="submit"
+              className="px-6 py-2 font-semibold text-white bg-blue-600 rounded hover:bg-blue-700"
+            >
+              Save and Proceed
+            </button>
+          </div>
         </form>
+      )}
+
+      {showErrorModal && errorMessage && (
+        <ErrorModal
+          message={errorMessage}
+          onClose={() => setShowErrorModal(false)}
+        />
       )}
     </div>
   );
