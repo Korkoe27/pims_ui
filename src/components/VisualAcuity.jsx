@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import ErrorModal from "./ErrorModal";
 import useVisualAcuityData from "../hooks/useVisualAcuityData";
-import VisualAcuitySection from "./VisualAcuitySection";
+import VisualAcuitySection, { validateVASection } from "./VisualAcuitySection";
 
 const EYES = ["OD", "OS"];
 const CHART_OPTIONS = [
@@ -79,36 +79,23 @@ export default function VisualAcuityForm({
       return;
     }
 
-    const isDistanceVAValid = Object.values(distanceVA).every(
+    const isDistancePresent = Object.values(distanceVA).every(
       (eye) => eye.unaided || eye.ph || eye.plusOne
     );
-    if (!isDistanceVAValid) {
+
+    if (!isDistancePresent) {
       setErrorMessage({ detail: "Enter at least one Distance VA per eye. 👍" });
       setShowErrorModal(true);
       return;
     }
 
-    const allDistanceValues = [
-      distanceVA.OD.unaided,
-      distanceVA.OD.ph,
-      distanceVA.OD.plusOne,
-      distanceVA.OS.unaided,
-      distanceVA.OS.ph,
-      distanceVA.OS.plusOne,
-    ];
+    const isDistanceValid = validateVASection(distanceVA, vaChart);
+    const isNearValid = validateVASection(nearVA, vaChart);
 
-    const isValidVAEntry = (value) => {
-      if (!value) return true;
-      if (vaChart === "SNELLEN") return isValidSnellen(value);
-      if (vaChart === "LOGMAR") return isValidLogMAR(value);
-      return false;
-    };
-
-    const allVAEntriesValid = allDistanceValues.every(isValidVAEntry);
-    if (!allVAEntriesValid) {
+    if (!isDistanceValid || !isNearValid) {
       setErrorMessage({
         detail:
-          vaChart === "Snellen"
+          vaChart === "SNELLEN"
             ? "All VA entries must be in the format e.g. 6/6 or 6/18 for Snellen chart. 👍"
             : "All VA entries must be decimal values between -0.02 and 3.50 for LogMAR chart. 👍",
       });
@@ -125,6 +112,8 @@ export default function VisualAcuityForm({
       distance_unaided_os: distanceVA.OS.unaided,
       distance_ph_os: distanceVA.OS.ph,
       distance_plus1_os: distanceVA.OS.plusOne,
+      near_va_od: nearVA.OD.near,
+      near_va_os: nearVA.OS.near,
     };
 
     try {

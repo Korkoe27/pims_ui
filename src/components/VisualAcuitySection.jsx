@@ -2,6 +2,21 @@ import React from "react";
 
 const EYES = ["OD", "OS"];
 
+export const isValidSnellen = (value) => /^\d{1,2}\/\d{1,2}$/.test(value.trim());
+export const isValidLogMAR = (value) => {
+  const num = parseFloat(value);
+  return !isNaN(num) && num >= -0.02 && num <= 3.5;
+};
+
+export const validateVASection = (sectionData, chartType) => {
+  const validator = chartType === "SNELLEN" ? isValidSnellen : isValidLogMAR;
+  return Object.values(sectionData).every((eye) =>
+    Object.values(eye).every((val) => !val || validator(val))
+  );
+};
+
+const getPlaceholder = (chartType) => (chartType === "SNELLEN" ? "6/6" : "0.00");
+
 export default function VisualAcuitySection({
   title,
   fields,
@@ -9,8 +24,6 @@ export default function VisualAcuitySection({
   onChange,
   vaChart,
 }) {
-  const getPlaceholder = () => (vaChart === "SNELLEN" ? "6/6" : "0.00");
-
   return (
     <div>
       <h3 className="font-semibold text-lg mb-2">
@@ -21,7 +34,9 @@ export default function VisualAcuitySection({
         <div className="grid grid-cols-[80px_repeat(3,_1fr)] gap-4 text-sm font-medium mb-2">
           <div></div>
           {fields.map((f) => (
-            <div key={f}>{f === "plusOne" ? "+1.00" : f.charAt(0).toUpperCase() + f.slice(1)}</div>
+            <div key={f}>
+              {f === "plusOne" ? "+1.00" : f.charAt(0).toUpperCase() + f.slice(1)}
+            </div>
           ))}
         </div>
       )}
@@ -34,7 +49,7 @@ export default function VisualAcuitySection({
               <input
                 key={field}
                 type="text"
-                placeholder={getPlaceholder()}
+                placeholder={getPlaceholder(vaChart)}
                 value={vaData[eye][field]}
                 onChange={(e) => onChange(eye, field, e.target.value)}
                 className="border rounded px-2 py-1"
