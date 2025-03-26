@@ -111,7 +111,7 @@ const Externals = () => {
                   {dropdowns[groupName] && (
                     <div className="mt-4 space-y-4">
                       <SearchableSelect
-                        label={`Add ${groupName} condition`}
+                        // label={`Add ${groupName} condition`}
                         options={options}
                         selectedValues={selectedGroupConditions.map((c) => ({
                           value: c.id,
