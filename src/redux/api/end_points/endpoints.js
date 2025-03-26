@@ -101,11 +101,10 @@ export const fetchVisualAcuityUrl = (appointmentId) =>
 // Externals
 /////////////////////////
 
-export const createExternalsUrl = "/tests/api/externals/";
-export const updateExternalsUrl = (appointmentId) =>
-  `/tests/api/externals/${appointmentId}/`;
-export const fetchExternalsUrl = (appointmentId) =>
-  `/tests/api/externals/${appointmentId}/`;
+export const fetchExternalConditionsUrl = "/tests/api/external-conditions/";
+export const createExternalObservationUrl = "/tests/api/externals-observations/";
+export const fetchExternalObservationsUrl = (appointmentId) =>
+  `/tests/api/externals-observations/${appointmentId}/`;
 
 /////////////////////////
 // Internals
