@@ -110,6 +110,25 @@ export default function VisualAcuityForm({
     }));
   };
 
+  const formatErrorMessage = (data) => {
+    if (!data) return { detail: "An unexpected error occurred." };
+
+    if (typeof data.detail === "string") return { detail: data.detail };
+
+    if (typeof data === "object") {
+      const messages = Object.entries(data)
+        .map(([key, value]) => {
+          const label = key.replace(/_/g, " ").toUpperCase();
+          const msg = Array.isArray(value) ? value.join(", ") : value;
+          return `${label}: ${msg}`;
+        })
+        .join("\n");
+      return { detail: messages };
+    }
+
+    return { detail: "An unexpected error occurred." };
+  };
+
   const handleSaveAndProceed = async () => {
     setErrorMessage(null);
     setShowErrorModal(false);
@@ -188,12 +207,12 @@ export default function VisualAcuityForm({
     try {
       await createVisualAcuity(payload).unwrap();
       console.log("✅ Visual acuity saved");
-      setActiveTab("refraction");
+      setActiveTab("externals");
     } catch (error) {
       console.error("❌ Error saving visual acuity:", error);
-      setErrorMessage(
-        error?.data || { detail: "An unexpected error occurred." }
-      );
+      const formatted = formatErrorMessage(error?.data);
+      console.log("📦 Formatted error:", formatted);
+      setErrorMessage(formatted);
       setShowErrorModal(true);
     }
   };
@@ -241,6 +260,7 @@ export default function VisualAcuityForm({
         setPrescriptionType={setPrescriptionType}
         currentRx={currentRx}
         onRxChange={handleRxChange}
+        errorMessage={errorMessage} 
       />
 
       <div className="flex justify-end gap-4 pt-10">

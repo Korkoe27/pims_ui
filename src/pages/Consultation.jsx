@@ -54,7 +54,7 @@ const Consultation = () => {
           />
         );
       case "visual acuity":
-        return <VisualAcuity appointmentId={appointmentId} />;
+        return <VisualAcuity appointmentId={appointmentId} setActiveTab={setActiveTab} />;
       case "externals":
         return <Externals appointmentId={appointmentId} />;
       case "internals":
