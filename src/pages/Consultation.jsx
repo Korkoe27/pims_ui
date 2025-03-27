@@ -68,7 +68,12 @@ const Consultation = () => {
           />
         );
       case "internals":
-        return <Internals appointmentId={appointmentId} />;
+        return (
+          <Internals
+            appointmentId={appointmentId}
+            setActiveTab={setActiveTab}
+          />
+        );
       case "refraction":
         return <Refraction appointmentId={appointmentId} />;
       case "extra tests":
