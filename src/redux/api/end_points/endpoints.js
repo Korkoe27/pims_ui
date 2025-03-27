@@ -123,8 +123,7 @@ export const createInternalsUrl = (appointmentId) =>
 // Refraction
 /////////////////////////
 
-export const createRefractionUrl = "/tests/api/refraction/";
-export const updateRefractionUrl = (appointmentId) =>
+export const createRefractionUrl = (appointmentId) =>
   `/tests/api/refraction/${appointmentId}/`;
 export const fetchRefractionUrl = (appointmentId) =>
   `/tests/api/refraction/${appointmentId}/`;
