@@ -519,30 +519,6 @@ const PersonalHistory = ({
           onClose={() => setShowErrorModal(false)}
         />
       )}
-
-      {/* Preview Selected Data */}
-      <div className="mt-10 p-4 bg-white border rounded shadow">
-        <h2 className="text-xl font-semibold mb-4">Selected Data Preview</h2>
-        <pre className="overflow-auto whitespace-pre-wrap text-sm bg-gray-100 p-4 rounded max-h-[400px]">
-          {JSON.stringify(
-            {
-              last_eye_examination: lastEyeExam,
-              drug_history: drugHistory,
-              drug_notes: drugNotes,
-              allergy_history: allergyHistory,
-              allergy_notes: allergyNotes,
-              social_history: socialHistory,
-              social_notes: socialNotes,
-              medical_history: selectedMedical,
-              ocular_history: selectedOcular,
-              family_medical_history: familyMedicalHistory,
-              family_ocular_history: familyOcularHistory,
-            },
-            null,
-            2
-          )}
-        </pre>
-      </div>
     </div>
   );
 };

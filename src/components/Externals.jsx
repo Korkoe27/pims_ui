@@ -24,7 +24,7 @@ const Externals = () => {
     useFetchExternalConditionsQuery();
 
   const groupedConditions = conditions.reduce((acc, condition) => {
-    const groupName = condition.group.name;
+    const groupName = condition.group_name;
     if (!acc[groupName]) acc[groupName] = [];
     acc[groupName].push(condition);
     return acc;
