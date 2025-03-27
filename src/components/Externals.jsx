@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FaChevronDown, FaChevronUp } from "react-icons/fa";
 import { useParams } from "react-router-dom";
 import useExternalObservationData from "../hooks/useExternalObservationData";
@@ -26,12 +26,41 @@ const Externals = ({ setActiveTab }) => {
     createExternalObservation,
   } = useExternalObservationData(appointmentId);
 
+  // Group conditions by group_name
   const groupedConditions = conditions.reduce((acc, condition) => {
     const groupName = condition.group_name;
     if (!acc[groupName]) acc[groupName] = [];
     acc[groupName].push(condition);
     return acc;
   }, {});
+
+  // Populate formData from existing observations
+  useEffect(() => {
+    if (externals && conditions.length > 0) {
+      const initialFormData = {};
+
+      externals.forEach((obs) => {
+        const condition = conditions.find((c) => c.id === obs.condition);
+        if (!condition) return;
+
+        const groupName = condition.group_name;
+
+        if (!initialFormData[groupName]) {
+          initialFormData[groupName] = [];
+        }
+
+        initialFormData[groupName].push({
+          id: condition.id,
+          name: condition.name,
+          affected_eye: obs.affected_eye,
+          grading: obs.grading,
+          notes: obs.notes,
+        });
+      });
+
+      setFormData(initialFormData);
+    }
+  }, [externals, conditions]);
 
   const toggleSection = (groupName) => {
     setDropdowns((prev) => ({ ...prev, [groupName]: !prev[groupName] }));
@@ -105,9 +134,7 @@ const Externals = ({ setActiveTab }) => {
     try {
       await createExternalObservation({ appointmentId, observations }).unwrap();
       console.log("✅ Externals saved");
-      if (setActiveTab) {
-        setActiveTab("internals"); // go to next tab
-      }
+      if (setActiveTab) setActiveTab("internals");
     } catch (error) {
       console.error("❌ Failed to save externals:", error);
       setErrorMessage({
@@ -121,7 +148,7 @@ const Externals = ({ setActiveTab }) => {
     <div className="min-h-screen bg-gray-100 p-8">
       <h1 className="text-2xl font-bold mb-6">Externals</h1>
 
-      {loadingConditions ? (
+      {loadingConditions || loadingExternals ? (
         <p>Loading conditions...</p>
       ) : conditionsError ? (
         <p className="text-red-500">Failed to load external conditions.</p>
