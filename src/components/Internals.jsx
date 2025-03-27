@@ -132,7 +132,7 @@ const Internals = ({ setActiveTab }) => {
     try {
       await createInternalObservation({ appointmentId, observations }).unwrap();
       console.log("✅ Internals saved");
-      if (setActiveTab) setActiveTab("on_direct_questioning"); // or next tab
+      if (setActiveTab) setActiveTab("refraction"); // or next tab
     } catch (error) {
       console.error("❌ Failed to save internals:", error);
       setErrorMessage({
