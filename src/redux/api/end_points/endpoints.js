@@ -77,7 +77,6 @@ export const fetchPatientHistoryUrl = (patientId) =>
 // Create a new patient history (only if none exists)
 export const createPatientHistoryUrl = "/tests/api/patient-history/";
 
-
 /////////////////////////
 // Medical & Ocular Conditions
 /////////////////////////
@@ -96,15 +95,15 @@ export const createVisualAcuityUrl = "/tests/api/visual-acuity/";
 export const fetchVisualAcuityUrl = (appointmentId) =>
   `/tests/api/visual-acuity/${appointmentId}/`;
 
-
 /////////////////////////
 // Externals
 /////////////////////////
 
 export const fetchExternalConditionsUrl = "/tests/api/external-conditions/";
-export const createExternalObservationUrl = "/tests/api/externals-observations/";
+export const createExternalObservationUrl = (appointmentId) =>
+  `/tests/api/external-observations/${appointmentId}/`;
 export const fetchExternalObservationsUrl = (appointmentId) =>
-  `/tests/api/externals-observations/${appointmentId}/`;
+  `/tests/api/external-observations/${appointmentId}/`;
 
 /////////////////////////
 // Internals

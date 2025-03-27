@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { FaChevronDown, FaChevronUp } from "react-icons/fa";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
-import { useFetchExternalConditionsQuery } from "../redux/api/features/externalsApi";
+import useExternalObservationData from "../hooks/useExternalObservationData";
 import SearchableSelect from "./SearchableSelect";
 import AffectedEyeSelect from "./AffectedEyeSelect";
 import GradingSelect from "./GradingSelect";
@@ -20,8 +20,14 @@ const Externals = () => {
   const [errorMessage, setErrorMessage] = useState(null);
   const [showErrorModal, setShowErrorModal] = useState(false);
 
-  const { data: conditions = [], isLoading } =
-    useFetchExternalConditionsQuery();
+  const {
+    externals,
+    loadingExternals,
+    conditions,
+    loadingConditions,
+    conditionsError,
+    createExternalObservation,
+  } = useExternalObservationData(appointmentId);
 
   const groupedConditions = conditions.reduce((acc, condition) => {
     const groupName = condition.group_name;
@@ -74,18 +80,45 @@ const Externals = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("📝 Final form data:", formData);
-    alert("Externals data saved successfully!");
-    navigate("/internals");
+
+    try {
+      const observations = [];
+
+      Object.entries(formData).forEach(([groupName, entries]) => {
+        entries.forEach((entry) => {
+          observations.push({
+            appointment: appointmentId,
+            condition: entry.id,
+            affected_eye: entry.affected_eye,
+            grading: entry.grading,
+            notes: entry.notes,
+          });
+        });
+      });
+
+      for (const obs of observations) {
+        await createExternalObservation(obs).unwrap();
+      }
+
+      alert("Externals data saved successfully!");
+      navigate("/internals");
+    } catch (error) {
+      console.error("❌ Failed to submit observations:", error);
+      setErrorMessage("Failed to save observations. Please try again.");
+      setShowErrorModal(true);
+    }
   };
 
   return (
     <div className="min-h-screen bg-gray-100 p-8">
       <h1 className="text-2xl font-bold mb-6">Externals</h1>
-      {isLoading ? (
+
+      {loadingConditions ? (
         <p>Loading conditions...</p>
+      ) : conditionsError ? (
+        <p className="text-red-500">Failed to load external conditions.</p>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-8">
           {Object.entries(groupedConditions).map(
@@ -111,7 +144,6 @@ const Externals = () => {
                   {dropdowns[groupName] && (
                     <div className="mt-4 space-y-4">
                       <SearchableSelect
-                        // label={`Add ${groupName} condition`}
                         options={options}
                         selectedValues={selectedGroupConditions.map((c) => ({
                           value: c.id,
