@@ -109,11 +109,15 @@ export const fetchExternalObservationsUrl = (appointmentId) =>
 // Internals
 /////////////////////////
 
-export const createInternalsUrl = "/tests/api/internals/";
-export const updateInternalsUrl = (appointmentId) =>
-  `/tests/api/internals/${appointmentId}/`;
+/////////////////////////
+// Internals
+/////////////////////////
+
+export const fetchInternalConditionsUrl = "/tests/api/internal-conditions/";
 export const fetchInternalsUrl = (appointmentId) =>
-  `/tests/api/internals/${appointmentId}/`;
+  `/tests/api/internal-observations/${appointmentId}/`;
+export const createInternalsUrl = (appointmentId) =>
+  `/tests/api/internal-observations/${appointmentId}/`;
 
 /////////////////////////
 // Refraction
