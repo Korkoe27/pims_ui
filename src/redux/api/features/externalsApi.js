@@ -21,10 +21,10 @@ export const externalsApi = apiClient.injectEndpoints({
 
     /** ✅ Create an External Observation **/
     createExternalObservation: builder.mutation({
-      query: (data) => ({
-        url: createExternalObservationUrl,
+      query: ({ appointmentId, observations }) => ({
+        url: createExternalObservationUrl(appointmentId),
         method: "POST",
-        body: data,
+        body: { observations }, // wrap observations list in an object
       }),
       invalidatesTags: ["ExternalObservations"],
     }),

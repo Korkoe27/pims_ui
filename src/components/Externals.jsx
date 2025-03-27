@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { FaChevronDown, FaChevronUp } from "react-icons/fa";
-import { useNavigate, useParams, useLocation } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import useExternalObservationData from "../hooks/useExternalObservationData";
 import SearchableSelect from "./SearchableSelect";
 import AffectedEyeSelect from "./AffectedEyeSelect";
@@ -9,11 +9,8 @@ import NotesTextArea from "./NotesTextArea";
 import DeleteButton from "./DeleteButton";
 import ErrorModal from "./ErrorModal";
 
-const Externals = () => {
+const Externals = ({ setActiveTab }) => {
   const { appointmentId } = useParams();
-  const location = useLocation();
-  const { patient } = location.state || {};
-  const navigate = useNavigate();
 
   const [dropdowns, setDropdowns] = useState({});
   const [formData, setFormData] = useState({});
@@ -80,33 +77,42 @@ const Externals = () => {
     }));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSaveAndProceed = async () => {
+    setErrorMessage(null);
+    setShowErrorModal(false);
 
-    try {
-      const observations = [];
+    const observations = [];
 
-      Object.entries(formData).forEach(([groupName, entries]) => {
-        entries.forEach((entry) => {
-          observations.push({
-            appointment: appointmentId,
-            condition: entry.id,
-            affected_eye: entry.affected_eye,
-            grading: entry.grading,
-            notes: entry.notes,
-          });
+    Object.entries(formData).forEach(([groupName, entries]) => {
+      entries.forEach((entry) => {
+        observations.push({
+          condition: entry.id,
+          affected_eye: entry.affected_eye,
+          grading: entry.grading,
+          notes: entry.notes,
         });
       });
+    });
 
-      for (const obs of observations) {
-        await createExternalObservation(obs).unwrap();
+    if (observations.length === 0) {
+      setErrorMessage({
+        detail: "Please select and fill at least one condition. 👍",
+      });
+      setShowErrorModal(true);
+      return;
+    }
+
+    try {
+      await createExternalObservation({ appointmentId, observations }).unwrap();
+      console.log("✅ Externals saved");
+      if (setActiveTab) {
+        setActiveTab("internals"); // go to next tab
       }
-
-      alert("Externals data saved successfully!");
-      navigate("/internals");
     } catch (error) {
-      console.error("❌ Failed to submit observations:", error);
-      setErrorMessage("Failed to save observations. Please try again.");
+      console.error("❌ Failed to save externals:", error);
+      setErrorMessage({
+        detail: "Failed to save observations. Please try again.",
+      });
       setShowErrorModal(true);
     }
   };
@@ -120,7 +126,7 @@ const Externals = () => {
       ) : conditionsError ? (
         <p className="text-red-500">Failed to load external conditions.</p>
       ) : (
-        <form onSubmit={handleSubmit} className="space-y-8">
+        <div className="space-y-8">
           {Object.entries(groupedConditions).map(
             ([groupName, groupConditions]) => {
               const options = groupConditions.map((c) => ({
@@ -216,13 +222,14 @@ const Externals = () => {
 
           <div className="flex justify-end pt-6">
             <button
-              type="submit"
+              type="button"
+              onClick={handleSaveAndProceed}
               className="px-6 py-2 font-semibold text-white bg-blue-600 rounded hover:bg-blue-700"
             >
               Save and Proceed
             </button>
           </div>
-        </form>
+        </div>
       )}
 
       {showErrorModal && errorMessage && (
