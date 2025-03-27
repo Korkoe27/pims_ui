@@ -176,7 +176,7 @@ const PersonalHistory = ({
 
   return (
     <div className="p-6 max-w-6xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">Personal History</h1>
+      <h1 className="text-2xl font-bold mb-6">Oculo-Medical History</h1>
 
       <div className="flex flex-col md:flex-row md:items-start gap-10">
         {/* Left Column */}

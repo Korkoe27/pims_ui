@@ -39,7 +39,7 @@ export const Consultation_nav = [
     link: "/case-history",
   },
   {
-    name: "personal history",
+    name: "Oculo-Medical History",
     link: "/personal-history",
   },
   {

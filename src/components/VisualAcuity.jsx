@@ -239,7 +239,7 @@ export default function VisualAcuityForm({
 
       <VisualAcuitySection
         title="Distance VA"
-        fields={["unaided", "ph", "plusOne"]}
+        fields={["unaided", "pH", "plusOne"]}
         vaData={distanceVA}
         onChange={handleDistanceVAChange}
         vaChart={vaChart}
