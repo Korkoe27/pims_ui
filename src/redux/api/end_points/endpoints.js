@@ -71,22 +71,11 @@ export const fetchCaseHistoryUrl = (appointmentId) =>
 // Patient History
 /////////////////////////
 
-// Fetch a patient's medical history
 export const fetchPatientHistoryUrl = (patientId) =>
-  `/tests/api/patient-history/${patientId}/`;
+  `/tests/api/patient-history/latest/?patient=${patientId}`;
 
 // Create a new patient history (only if none exists)
 export const createPatientHistoryUrl = "/tests/api/patient-history/";
-
-// Update an existing patient history
-export const updatePatientHistoryUrl = (historyId) =>
-  `/tests/api/patient-history/${historyId}/`;
-
-/////////////////////////
-// Symptoms
-/////////////////////////
-
-export const fetchSymptomsUrl = "/tests/api/symptoms/";
 
 /////////////////////////
 // Medical & Ocular Conditions
@@ -106,36 +95,35 @@ export const createVisualAcuityUrl = "/tests/api/visual-acuity/";
 export const fetchVisualAcuityUrl = (appointmentId) =>
   `/tests/api/visual-acuity/${appointmentId}/`;
 
-// ✅ Update an existing Visual Acuity record
-export const updateVisualAcuityUrl = (appointmentId) =>
-  `/tests/api/visual-acuity/${appointmentId}/`;
-
 /////////////////////////
 // Externals
 /////////////////////////
 
-export const createExternalsUrl = "/tests/api/externals/";
-export const updateExternalsUrl = (appointmentId) =>
-  `/tests/api/externals/${appointmentId}/`;
-export const fetchExternalsUrl = (appointmentId) =>
-  `/tests/api/externals/${appointmentId}/`;
+export const fetchExternalConditionsUrl = "/tests/api/external-conditions/";
+export const createExternalObservationUrl = (appointmentId) =>
+  `/tests/api/external-observations/${appointmentId}/`;
+export const fetchExternalObservationsUrl = (appointmentId) =>
+  `/tests/api/external-observations/${appointmentId}/`;
 
 /////////////////////////
 // Internals
 /////////////////////////
 
-export const createInternalsUrl = "/tests/api/internals/";
-export const updateInternalsUrl = (appointmentId) =>
-  `/tests/api/internals/${appointmentId}/`;
+/////////////////////////
+// Internals
+/////////////////////////
+
+export const fetchInternalConditionsUrl = "/tests/api/internal-conditions/";
 export const fetchInternalsUrl = (appointmentId) =>
-  `/tests/api/internals/${appointmentId}/`;
+  `/tests/api/internal-observations/${appointmentId}/`;
+export const createInternalsUrl = (appointmentId) =>
+  `/tests/api/internal-observations/${appointmentId}/`;
 
 /////////////////////////
 // Refraction
 /////////////////////////
 
-export const createRefractionUrl = "/tests/api/refraction/";
-export const updateRefractionUrl = (appointmentId) =>
+export const createRefractionUrl = (appointmentId) =>
   `/tests/api/refraction/${appointmentId}/`;
 export const fetchRefractionUrl = (appointmentId) =>
   `/tests/api/refraction/${appointmentId}/`;

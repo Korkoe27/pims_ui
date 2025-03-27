@@ -44,11 +44,6 @@ const Refraction = () => {
     { label: "VA@6m", name: "cycloplegic-va6m" },
   ];
 
-  const phoriaFields = [
-    { label: "Amount", name: "phoria-amount", placeholder: "e.g., 2PD" },
-    { label: "Direction", name: "phoria-direction", placeholder: "Eso/Exo" },
-  ];
-
   return (
     <div className="my-8 px-16 flex flex-col gap-12">
       <h1 className="text-xl font-bold text-center mb-4">Refraction Results</h1>
@@ -103,20 +98,7 @@ const Refraction = () => {
             </div>
           )}
 
-          <button
-            onClick={togglePhoria}
-            className="text-[#2f3192] font-semibold flex items-center gap-2"
-            type="button"
-          >
-            <GrAdd className="w-5 h-5" />
-            {showPhoria ? "Remove Phoria Results" : "Add Phoria Results"}
-          </button>
-          {showPhoria && (
-            <div className="flex flex-col gap-4">
-              <h1 className="text-[#101928] text-medium text-base">Phoria</h1>
-              {renderFields(phoriaFields)}
-            </div>
-          )}
+          
         </section>
 
         <button

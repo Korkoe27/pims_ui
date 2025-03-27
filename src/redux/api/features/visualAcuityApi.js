@@ -2,7 +2,6 @@ import { apiClient } from "../api_client/apiClient";
 import {
   createVisualAcuityUrl,
   fetchVisualAcuityUrl,
-  updateVisualAcuityUrl,
 } from "../end_points/endpoints";
 
 export const visualAcuityApi = apiClient.injectEndpoints({
@@ -23,20 +22,11 @@ export const visualAcuityApi = apiClient.injectEndpoints({
       invalidatesTags: ["VisualAcuity"],
     }),
 
-    /** ✅ Update an Existing Visual Acuity Record */
-    updateVisualAcuity: builder.mutation({
-      query: ({ appointmentId, data }) => ({
-        url: updateVisualAcuityUrl(appointmentId),
-        method: "PATCH",
-        body: data,
-      }),
-      invalidatesTags: ["VisualAcuity"],
-    }),
+   
   }),
 });
 
 export const {
   useFetchVisualAcuityQuery,
   useCreateVisualAcuityMutation,
-  useUpdateVisualAcuityMutation,
 } = visualAcuityApi;
