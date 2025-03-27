@@ -260,22 +260,27 @@ export default function VisualAcuityForm({
         setPrescriptionType={setPrescriptionType}
         currentRx={currentRx}
         onRxChange={handleRxChange}
-        errorMessage={errorMessage} 
+        errorMessage={errorMessage}
       />
 
-      <div className="flex justify-end gap-4 pt-10">
+      <div className="mt-8 flex justify-between items-center">
         <button
           type="button"
-          onClick={onBack}
-          className="px-4 py-2 border border-gray-400 rounded hover:bg-gray-100"
+          onClick={() => setActiveTab("personal history")}
+          className="px-6 py-2 font-semibold text-indigo-600 border border-indigo-600 rounded-full shadow-sm hover:bg-indigo-50 transition-colors duration-200"
         >
-          Back
+          ← Back to Personal History
         </button>
+
         <button
           type="button"
           onClick={handleSaveAndProceed}
           disabled={createVASubmissionStatus.isLoading}
-          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+          className={`px-6 py-2 font-semibold text-white rounded-full shadow-md transition-colors duration-200 ${
+            createVASubmissionStatus.isLoading
+              ? "bg-gray-400"
+              : "bg-indigo-600 hover:bg-indigo-700"
+          }`}
         >
           {createVASubmissionStatus.isLoading ? "Saving..." : "Save & Proceed"}
         </button>
