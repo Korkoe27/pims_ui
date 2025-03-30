@@ -110,28 +110,7 @@ export default function PrescriptionSection({
       )}
 
       {/* ✅ Debug Section */}
-      <div className="mt-10 p-4 border rounded bg-gray-50 text-sm">
-        <h4 className="font-semibold mb-2">🔍 Prescription Debug Data</h4>
-        <pre className="whitespace-pre-wrap">
-          {JSON.stringify(
-            {
-              has_prescription: hasPrescription ? "Yes" : "No",
-              prescription_type: prescriptionType,
-              currentRx,
-            },
-            null,
-            2
-          )}
-        </pre>
-
-        {/* 🔥 Error message display */}
-        {errorMessage?.detail && (
-          <div className="mt-4 text-red-600 whitespace-pre-wrap">
-            <strong>API Error:</strong> <br />
-            {errorMessage.detail}
-          </div>
-        )}
-      </div>
+      
     </div>
   );
 }

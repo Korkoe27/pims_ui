@@ -2,8 +2,9 @@ import React, { useState, useEffect } from "react";
 import { GrAdd } from "react-icons/gr";
 import { useParams } from "react-router-dom";
 import useRefractionData from "../hooks/useRefractionData";
+import ErrorModal from "./ErrorModal"; // ✅ Import ErrorModal
 
-const Refraction = () => {
+const Refraction = ({ setActiveTab, nextTab }) => {
   const { appointmentId } = useParams();
   const { refraction, loadingRefraction, createRefraction } =
     useRefractionData(appointmentId);
@@ -25,6 +26,8 @@ const Refraction = () => {
   });
 
   const [showCycloplegic, setShowCycloplegic] = useState(false);
+  const [errorMessage, setErrorMessage] = useState(null);
+  const [showErrorModal, setShowErrorModal] = useState(false);
 
   useEffect(() => {
     if (refraction) {
@@ -80,8 +83,26 @@ const Refraction = () => {
     try {
       await createRefraction({ appointmentId, ...payload }).unwrap();
       console.log("✅ Refraction saved");
+      return true;
     } catch (error) {
       console.error("❌ Failed to save refraction", error);
+      setErrorMessage({
+        detail: "Failed to save refraction results. Please try again.",
+      });
+      setShowErrorModal(true);
+      return false;
+    }
+  };
+
+  const handleSaveAndProceed = async () => {
+    const success = await handleSave();
+    if (success) {
+      console.log("➡️ Proceeding to tab:", nextTab);
+      if (nextTab && setActiveTab) {
+        setActiveTab(nextTab);
+      } else {
+        console.warn("Missing setActiveTab or nextTab");
+      }
     }
   };
 
@@ -197,14 +218,32 @@ const Refraction = () => {
           )}
         </section>
 
-        <button
-          onClick={handleSave}
-          className="text-white bg-[#2f3192] w-48 h-14 p-4 rounded-lg"
-          type="button"
-        >
-          Save and Finish
-        </button>
+        <div className="mt-8 flex justify-between items-center">
+          <button
+            type="button"
+            onClick={() => setActiveTab("internals")}
+            className="px-6 py-2 font-semibold text-indigo-600 border border-indigo-600 rounded-full shadow-sm hover:bg-indigo-50 transition-colors duration-200"
+          >
+            ← Back to Internals
+          </button>
+
+          <button
+            type="button"
+            onClick={handleSaveAndProceed}
+            className="px-6 py-2 font-semibold text-white rounded-full shadow-md transition-colors duration-200 bg-indigo-600 hover:bg-indigo-700"
+          >
+            Save and Proceed
+          </button>
+        </div>
       </form>
+
+      {/* Error Modal */}
+      {showErrorModal && errorMessage && (
+        <ErrorModal
+          message={errorMessage}
+          onClose={() => setShowErrorModal(false)}
+        />
+      )}
     </div>
   );
 };

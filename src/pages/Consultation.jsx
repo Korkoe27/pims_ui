@@ -75,7 +75,12 @@ const Consultation = () => {
           />
         );
       case "refraction":
-        return <Refraction appointmentId={appointmentId} />;
+        return (
+          <Refraction
+            appointmentId={appointmentId}
+            setActiveTab={setActiveTab}
+          />
+        );
       case "extra tests":
         return <ExtraTests appointmentId={appointmentId} />;
       default:
