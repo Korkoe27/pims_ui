@@ -1,307 +1,218 @@
-import React, { useState, useEffect } from "react";
-import Radios from "./Radios";
-import Inputs from "./Inputs";
-import { useNavigate } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
+import React, { useEffect, useState } from "react";
+import useFetchConditionsData from "../hooks/useFetchConditionsData";
 import {
-  useFetchCaseHistoryQuery,
   useCreateCaseHistoryMutation,
-  useUpdateCaseHistoryMutation,
-} from "../redux/api/features/consultationApi";
-import { clearError, clearSuccessMessage } from "../redux/slices/consultationSlice";
+  useFetchCaseHistoryQuery,
+} from "../redux/api/features/caseHistoryApi";
+import SearchableSelect from "./SearchableSelect";
+import ErrorModal from "./ErrorModal";
+import AffectedEyeSelect from "./AffectedEyeSelect";
+import GradingSelect from "./GradingSelect";
+import NotesTextArea from "./NotesTextArea";
+import DeleteButton from "./DeleteButton";
 
-const CaseHistory = ({ appointmentId }) => {
-  const navigate = useNavigate();
-  const dispatch = useDispatch();
+const CaseHistory = ({ patientId, appointmentId, nextTab, setActiveTab }) => {
+  const { data: caseHistory, isLoading: loadingCaseHistory } =
+    useFetchCaseHistoryQuery(appointmentId, {
+      skip: !appointmentId,
+    });
 
-  // Fetch the current user from the Redux store
-  const { user } = useSelector((state) => state.auth);
+  const { ocularConditions, isLoading: loadingConditions } =
+    useFetchConditionsData();
+  const [createCaseHistory, { isLoading: isSaving }] =
+    useCreateCaseHistoryMutation();
 
-  console.log("User:", user);
+  const [chiefComplaint, setChiefComplaint] = useState("");
+  const [selectedConditions, setSelectedConditions] = useState([]);
+  const [errorMessage, setErrorMessage] = useState(null);
+  const [showErrorModal, setShowErrorModal] = useState(false);
 
-  const [formData, setFormData] = useState({
-    appointment: "",
-    chiefComplaint: "",
-    lastEyeExamination: "",
-    burningSensation: false,
-    itching: false,
-    tearing: false,
-    doubleVision: false,
-    discharge: false,
-    pain: false,
-    fbs: false,
-    photophobia: false,
-    asthma: false,
-    ulcer: false,
-    diabetes: false,
-    hypertension: false,
-    sickleCell: false,
-    stdSti: false,
-    spectacles: false,
-    eyeSurgery: false,
-    ocularTrauma: false,
-    glaucoma: false,
-    familyAsthma: false,
-    familyUlcer: false,
-    familyDiabetes: false,
-    familyHypertension: false,
-    familySickleCell: false,
-    familyStdSti: false,
-    familySpectacles: false,
-    familyEyeSurgery: false,
-    familyOcularTrauma: false,
-    familyGlaucoma: false,
-    parentDrugHistory: "",
-    allergies: "",
-    hobbies: "",
-  });
-
-  const [caseHistoryId, setCaseHistoryId] = useState(null);
-
-  const { data: fetchedCaseHistory, isLoading } = useFetchCaseHistoryQuery(
-    appointmentId,
-    { skip: !appointmentId }
-  );
-  const [createCaseHistory] = useCreateCaseHistoryMutation();
-  const [updateCaseHistory] = useUpdateCaseHistoryMutation();
+  const isLoading = loadingCaseHistory || loadingConditions;
 
   useEffect(() => {
-    if (fetchedCaseHistory) {
-      setFormData(fetchedCaseHistory);
-      setCaseHistoryId(fetchedCaseHistory.id);
-    } else if (appointmentId) {
-      setFormData((prev) => ({ ...prev, appointment: appointmentId }));
-    }
-  }, [fetchedCaseHistory, appointmentId]);
+    if (caseHistory) {
+      setChiefComplaint(caseHistory?.chief_complaint || "");
 
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFormData({
-      ...formData,
-      [name]: type === "checkbox" ? checked : value,
-    });
+      const mapped = (caseHistory?.condition_details || []).map((item) => ({
+        id: item.ocular_condition,
+        name: item.ocular_condition_name || "",
+        affected_eye: item.affected_eye || "",
+        grading: item.grading || "",
+        notes: item.notes || "",
+      }));
+
+      setSelectedConditions(mapped);
+    }
+  }, [caseHistory]);
+
+  const handleSelect = (option) => {
+    if (selectedConditions.some((c) => c.id === option.value)) {
+      setErrorMessage({ detail: "This condition is already selected." });
+      setShowErrorModal(true);
+      return;
+    }
+
+    setSelectedConditions((prev) => [
+      ...prev,
+      {
+        id: option.value,
+        name: option.label,
+        affected_eye: "",
+        grading: "",
+        notes: "",
+      },
+    ]);
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const updateCondition = (id, field, value) => {
+    setSelectedConditions((prev) =>
+      prev.map((c) => (c.id === id ? { ...c, [field]: value } : c))
+    );
+  };
+
+  const handleDeleteCondition = (id) => {
+    setSelectedConditions((prev) => prev.filter((c) => c.id !== id));
+  };
+
+  const handleSaveAndProceed = async () => {
+    setErrorMessage(null);
+    setShowErrorModal(false);
+
+    if (!chiefComplaint.trim()) {
+      setErrorMessage({ detail: "Chief complaint cannot be empty. 👍" });
+      setShowErrorModal(true);
+      return;
+    }
+
+    if (selectedConditions.length === 0) {
+      setErrorMessage({
+        detail: "Select at least one on_direct question to continue. 👍",
+      });
+      setShowErrorModal(true);
+      return;
+    }
+
+    const payload = {
+      appointment: appointmentId,
+      chief_complaint: chiefComplaint,
+      condition_details: selectedConditions.map((c) => ({
+        ocular_condition: c.id,
+        affected_eye: c.affected_eye,
+        grading: c.grading,
+        notes: c.notes,
+      })),
+    };
+
     try {
-      const payload = {
-        ...formData,
-        created_by: user.id, // Add the user ID
-      };
-
-      if (caseHistoryId) {
-        await updateCaseHistory({ appointmentId, ...payload });
-        alert("Case history updated successfully!");
-      } else {
-        await createCaseHistory(payload);
-        alert("Case history created successfully!");
-      }
-      dispatch(clearSuccessMessage());
+      await createCaseHistory(payload).unwrap();
+      console.log("✅ Case history saved");
+      setActiveTab("personal history");
     } catch (error) {
-      console.error("Error submitting case history:", error);
-      dispatch(clearError());
+      console.error("❌ Error saving:", error);
+      setErrorMessage(
+        error?.data || { detail: "An unexpected error occurred." }
+      );
+      setShowErrorModal(true);
     }
   };
 
-  if (isLoading) {
-    return <p>Loading case history...</p>;
-  }
+  if (isLoading) return <p>Loading case history...</p>;
+
+  const formattedOcularOptions = (ocularConditions || []).map((c) => ({
+    value: c.id,
+    label: c.name,
+  }));
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-12">
-      <section className="flex gap-28">
-        <aside className="flex flex-col gap-12">
-          {/* Chief Complaint */}
-          <div className="flex flex-col">
-            <h1 className="text-base font-medium text-black">
-              Chief Complaint <span className="text-[#ff0000]">*</span>
-            </h1>
-            <textarea
-              name="chiefComplaint"
-              value={formData.chiefComplaint}
-              onChange={handleChange}
-              placeholder="Type in the patient’s chief complaint"
-              className="p-4 border border-[#d0d5dd] resize-none rounded-md w-96 h-48"
-            ></textarea>
-          </div>
+    <div className="p-6 bg-white rounded-md shadow-md max-w-3xl mx-auto">
+      <h1 className="text-2xl font-bold mb-4">Case History</h1>
 
-          {/* On Direct Questioning */}
-          <div>
-            <h1 className="text-base font-medium text-black">
-              On Direct Questioning <span className="text-[#ff0000]">*</span>
-            </h1>
-            <div className="grid grid-cols-2 gap-8">
-              {[
-                { label: "Burning Sensation", name: "burningSensation" },
-                { label: "Itching", name: "itching" },
-                { label: "Tearing", name: "tearing" },
-                { label: "Double Vision", name: "doubleVision" },
-                { label: "Discharge", name: "discharge" },
-                { label: "Pain", name: "pain" },
-                { label: "FBS", name: "fbs" },
-                { label: "Photophobia", name: "photophobia" },
-              ].map((field) => (
-                <Radios
-                  key={field.name}
-                  label={field.label}
-                  name={field.name}
-                  checked={formData[field.name]}
-                  onChange={handleChange}
+      {/* Chief Complaint Input */}
+      <div className="mb-4">
+        <label className="block font-semibold mb-1">
+          Chief Complaint <span className="text-red-500">*</span>
+        </label>
+        <textarea
+          value={chiefComplaint}
+          onChange={(e) => setChiefComplaint(e.target.value)}
+          className="w-full border p-3 rounded-md"
+          placeholder="Enter chief complaint..."
+        />
+      </div>
+
+      {/* Ocular Conditions Selection */}
+      <div className="mb-6">
+        <SearchableSelect
+          label={
+            <span>
+              On-Direct Questioning <span className="text-red-500">*</span>
+            </span>
+          }
+          options={formattedOcularOptions}
+          selectedValues={selectedConditions.map((c) => ({
+            value: c.id,
+            label: c.name,
+          }))}
+          onSelect={handleSelect}
+          conditionKey="value"
+          conditionNameKey="label"
+        />
+
+        {selectedConditions.length > 0 && (
+          <div className="mt-4 space-y-4">
+            {selectedConditions.map((c) => (
+              <div key={c.id} className="p-4 bg-gray-50 border rounded">
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="font-semibold">{c.name}</h4>
+                  <DeleteButton onClick={() => handleDeleteCondition(c.id)} />
+                </div>
+
+                {/* Affected Eye */}
+                <AffectedEyeSelect
+                  value={c.affected_eye}
+                  onChange={(val) => updateCondition(c.id, "affected_eye", val)}
                 />
-              ))}
-            </div>
-          </div>
 
-          {/* Patient Medical History */}
-          <div>
-            <h1 className="text-base font-medium text-black">
-              Patient Medical History{" "}
-              <span className="text-[#ff0000]">*</span>
-            </h1>
-            <div className="grid grid-cols-2 gap-8">
-              {[
-                { label: "Asthma", name: "asthma" },
-                { label: "Ulcer", name: "ulcer" },
-                { label: "Diabetes", name: "diabetes" },
-                { label: "Hypertension", name: "hypertension" },
-                { label: "Sickle Cell", name: "sickleCell" },
-                { label: "STD/STI", name: "stdSti" },
-              ].map((field) => (
-                <Radios
-                  key={field.name}
-                  label={field.label}
-                  name={field.name}
-                  checked={formData[field.name]}
-                  onChange={handleChange}
+                {/* Grading (Dropdown) */}
+                <GradingSelect
+                  value={c.grading}
+                  onChange={(val) => updateCondition(c.id, "grading", val)}
                 />
-              ))}
-            </div>
-          </div>
-        </aside>
 
-        <aside className="flex flex-col gap-12">
-          {/* Patient Ocular History */}
-          <div>
-            <h1 className="text-base font-medium text-black">
-              Patient Ocular History <span className="text-[#ff0000]">*</span>
-            </h1>
-            <Inputs
-              type="date"
-              label="Last Eye Examination"
-              name="lastEyeExamination"
-              value={formData.lastEyeExamination}
-              onChange={handleChange}
-            />
-            <div className="grid grid-cols-2 gap-8">
-              {[
-                { label: "Spectacles", name: "spectacles" },
-                { label: "Eye Surgery", name: "eyeSurgery" },
-                { label: "Ocular Trauma", name: "ocularTrauma" },
-                { label: "Glaucoma", name: "glaucoma" },
-              ].map((field) => (
-                <Radios
-                  key={field.name}
-                  label={field.label}
-                  name={field.name}
-                  checked={formData[field.name]}
-                  onChange={handleChange}
+                {/* Notes */}
+                <NotesTextArea
+                  value={c.notes}
+                  onChange={(val) => updateCondition(c.id, "notes", val)}
                 />
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
+        )}
+      </div>
 
-          {/* Family Medical History */}
-          <div>
-            <h1 className="text-base font-medium text-black">
-              Family Medical History{" "}
-              <span className="text-[#ff0000]">*</span>
-            </h1>
-            <div className="grid grid-cols-2 gap-8">
-              {[
-                { label: "Asthma", name: "familyAsthma" },
-                { label: "Ulcer", name: "familyUlcer" },
-                { label: "Diabetes", name: "familyDiabetes" },
-                { label: "Hypertension", name: "familyHypertension" },
-                { label: "Sickle Cell", name: "familySickleCell" },
-                { label: "STD/STI", name: "familyStdSti" },
-              ].map((field) => (
-                <Radios
-                  key={field.name}
-                  label={field.label}
-                  name={field.name}
-                  checked={formData[field.name]}
-                  onChange={handleChange}
-                />
-              ))}
-            </div>
-          </div>
-
-          {/* Family Ocular History */}
-          <div>
-            <h1 className="text-base font-medium text-black">
-              Family Ocular History{" "}
-              <span className="text-[#ff0000]">*</span>
-            </h1>
-            <div className="grid grid-cols-2 gap-8">
-              {[
-                { label: "Spectacles", name: "familySpectacles" },
-                { label: "Eye Surgery", name: "familyEyeSurgery" },
-                { label: "Ocular Trauma", name: "familyOcularTrauma" },
-                { label: "Glaucoma", name: "familyGlaucoma" },
-              ].map((field) => (
-                <Radios
-                  key={field.name}
-                  label={field.label}
-                  name={field.name}
-                  checked={formData[field.name]}
-                  onChange={handleChange}
-                />
-              ))}
-            </div>
-          </div>
-
-          {/* Text Inputs */}
-          <Inputs
-            type="text"
-            label="Patient’s Drug History"
-            name="parentDrugHistory"
-            value={formData.parentDrugHistory}
-            onChange={handleChange}
-          />
-          <Inputs
-            type="text"
-            label="Patient’s Allergies"
-            name="allergies"
-            value={formData.allergies}
-            onChange={handleChange}
-          />
-          <Inputs
-            type="text"
-            label="Patient’s Hobbies"
-            name="hobbies"
-            value={formData.hobbies}
-            onChange={handleChange}
-          />
-        </aside>
-      </section>
-
-      <div className="flex gap-8 justify-evenly my-16">
+      {/* Save Button */}
+      <div className="flex justify-end pt-2">
         <button
-          type="button"
-          onClick={() => navigate(-1)}
-          className="w-56 p-4 rounded-lg text-[#2f3192] border border-[#2f3192]"
+          onClick={handleSaveAndProceed}
+          disabled={isSaving}
+          className={`px-6 py-2 font-semibold text-white rounded-full shadow-md transition-colors duration-200 ${
+            isSaving
+              ? "bg-gray-400 cursor-not-allowed"
+              : "bg-indigo-800 hover:bg-indigo-900"
+          }`}
         >
-          Back
-        </button>
-        <button
-          type="submit"
-          className="w-56 p-4 rounded-lg text-white bg-[#2f3192]"
-        >
-          Save and Proceed
+          {isSaving ? "Saving..." : "Save and proceed"}
         </button>
       </div>
-    </form>
+
+      {/* Error Modal */}
+      {showErrorModal && errorMessage && (
+        <ErrorModal
+          message={errorMessage}
+          onClose={() => setShowErrorModal(false)}
+        />
+      )}
+    </div>
   );
 };
 

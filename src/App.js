@@ -23,6 +23,7 @@ import {
   Patients,
   PatientDetails,
   Login,
+  PatientSearchResults,
 } from "./pages";
 import Layout from "./pages/Layout";
 import ProtectedRoute from "./hooks/ProtectedRoute";
@@ -55,10 +56,10 @@ const App = () => {
             <Route index element={<Dashboard />} />
             <Route path="/my-patients" element={<Patients />} />
             <Route path="/patients-details" element={<PatientDetails />} />
+            <Route path="/register-patient" element={<PersonalInfo />} />
             <Route path="/appointments" element={<Appointments />} />
             <Route path="/inventory" element={<Inventory />} />
             <Route path="/dispensary" element={<Dispensary />} />
-            <Route path="/register-patient" element={<PersonalInfo />} />
             <Route path="/case-history/:appointmentId" element={<CaseHistory />} />
             <Route path="/visual-acuity/:appointmentId" element={<VisualAcuity />} />
             <Route path="/externals/:appointmentId" element={<Externals />} />
@@ -69,6 +70,7 @@ const App = () => {
             <Route path="/management" element={<Management />} />
             <Route path="/createAppointment" element={<CreateAppointment />} />
             <Route path="/consultation/:appointmentId" element={<Consultation />} />
+            <Route path="/patients/search" element={<PatientSearchResults />} />
           </Route>
         </Routes>
       </BrowserRouter>

@@ -1,9 +1,8 @@
 import React from "react";
 import { RxDashboard } from "react-icons/rx";
-import { MdOutlineRestorePage } from "react-icons/md";
 import { IoCalendarClearOutline } from "react-icons/io5";
 import { LuUsers2 } from "react-icons/lu";
-import { BsBoxSeam } from "react-icons/bs";
+
 
 export const Sidebar_links = [
   {
@@ -21,22 +20,27 @@ export const Sidebar_links = [
     icon: <IoCalendarClearOutline className="text-xl font-bold" />,
     path: "/appointments",
   },
-  {
-    name: "inventory",
-    icon: <BsBoxSeam className="text-xl font-bold" />,
-    path: "/inventory",
-  },
-  {
-    name: "dispensary",
-    icon: <MdOutlineRestorePage className="text-xl font-bold" />,
-    path: "/dispensary",
-  },
+  
+  // {
+  //   name: "inventory",
+  //   icon: <BsBoxSeam className="text-xl font-bold" />,
+  //   path: "/inventory",
+  // },
+  // {
+  //   name: "dispensary",
+  //   icon: <MdOutlineRestorePage className="text-xl font-bold" />,
+  //   path: "/dispensary",
+  // },
 ];
 
 export const Consultation_nav = [
   {
     name: "case history",
     link: "/case-history",
+  },
+  {
+    name: "Oculo-Medical History",
+    link: "/personal-history",
   },
   {
     name: "visual acuity",

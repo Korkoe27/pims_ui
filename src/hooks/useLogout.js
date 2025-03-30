@@ -8,7 +8,6 @@ const useLogout = () => {
 
   const handleLogout = () => {
     try {
-      console.log("Initiating frontend logout...");
 
       // Reset Redux auth state
       dispatch(resetAuth());
@@ -23,8 +22,6 @@ const useLogout = () => {
         const name = cookie.split("=")[0].trim();
         document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/`;
       });
-
-      console.log("Frontend logout successful");
 
       // Redirect to the login page
       navigate("/login", { replace: true });

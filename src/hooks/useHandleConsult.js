@@ -12,8 +12,6 @@ const useHandleConsult = () => {
       return;
     }
 
-    console.log("Dispatching appointment to Redux:", appointment); // Debug log
-
     // Dispatch selected appointment to Redux store
     dispatch(setSelectedAppointment(appointment)); // Use the correct action
 
