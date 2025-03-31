@@ -1,256 +1,217 @@
-import React, { useState, useEffect } from "react";
-import { useSelector } from "react-redux";
-import PropTypes from "prop-types";
+import React, { useEffect, useState } from "react";
+import useFetchConditionsData from "../hooks/useFetchConditionsData";
 import {
-  useFetchPatientHistoryQuery,
-  useFetchCaseHistoryQuery,
-  useFetchSymptomsQuery,
-  useFetchMedicalConditionsQuery,
-  useFetchOcularConditionsQuery,
   useCreateCaseHistoryMutation,
+  useFetchCaseHistoryQuery,
 } from "../redux/api/features/caseHistoryApi";
-import SearchableSelect from "../components/SearchableSelect";
+import SearchableSelect from "./SearchableSelect";
+import ErrorModal from "./ErrorModal";
+import AffectedEyeSelect from "./AffectedEyeSelect";
+import GradingSelect from "./GradingSelect";
+import NotesTextArea from "./NotesTextArea";
+import DeleteButton from "./DeleteButton";
 
-const CaseHistory = ({ patient, appointmentId, setActiveTab }) => {
-  const selectedAppointment = useSelector(
-    (state) => state.appointments.selectedAppointment
-  );
-
-  const patientData = patient || selectedAppointment;
-  const patientId = patientData?.patient;
-
-  /** === Fetch Data === */
-  const { data: patientHistory, isLoading: loadingHistory } =
-    useFetchPatientHistoryQuery(patientId, { skip: !patientId });
-
+const CaseHistory = ({ patientId, appointmentId, nextTab, setActiveTab }) => {
   const { data: caseHistory, isLoading: loadingCaseHistory } =
-    useFetchCaseHistoryQuery(appointmentId);
+    useFetchCaseHistoryQuery(appointmentId, {
+      skip: !appointmentId,
+    });
 
-  const { data: symptoms } = useFetchSymptomsQuery();
-  const { data: medicalConditions } = useFetchMedicalConditionsQuery();
-  const { data: ocularConditions } = useFetchOcularConditionsQuery();
-  const [createCaseHistory, { isLoading: isSubmitting }] =
+  const { ocularConditions, isLoading: loadingConditions } =
+    useFetchConditionsData();
+  const [createCaseHistory, { isLoading: isSaving }] =
     useCreateCaseHistoryMutation();
 
-  /** === State Management === */
   const [chiefComplaint, setChiefComplaint] = useState("");
-  const [directQuestioning, setDirectQuestioning] = useState("");
-  const [selectedSymptoms, setSelectedSymptoms] = useState([]);
-  const [selectedMedicalConditions, setSelectedMedicalConditions] = useState([]);
-  const [selectedOcularConditions, setSelectedOcularConditions] = useState([]);
-  const [drugHistory, setDrugHistory] = useState("");
-  const [allergies, setAllergies] = useState("");
-  const [socialHistory, setSocialHistory] = useState("");
+  const [selectedConditions, setSelectedConditions] = useState([]);
   const [errorMessage, setErrorMessage] = useState(null);
+  const [showErrorModal, setShowErrorModal] = useState(false);
 
-  /** === Pre-fill Existing Data === */
+  const isLoading = loadingCaseHistory || loadingConditions;
+
   useEffect(() => {
     if (caseHistory) {
-      setChiefComplaint(caseHistory.chief_complaint || "");
-      setSelectedSymptoms(caseHistory.symptoms || []);
-    }
-    if (patientHistory) {
-      setSelectedMedicalConditions(patientHistory.medical_conditions || []);
-      setSelectedOcularConditions(patientHistory.ocular_conditions || []);
-      setDrugHistory(patientHistory.drug_history || "");
-      setAllergies(patientHistory.allergies || "");
-      setSocialHistory(patientHistory.social_history || "");
-    }
-  }, [caseHistory, patientHistory]);
+      setChiefComplaint(caseHistory?.chief_complaint || "");
 
-  /** === Handle Form Submission === */
-  const handleSubmit = async () => {
+      const mapped = (caseHistory?.condition_details || []).map((item) => ({
+        id: item.ocular_condition,
+        name: item.ocular_condition_name || "",
+        affected_eye: item.affected_eye || "",
+        grading: item.grading || "",
+        notes: item.notes || "",
+      }));
+
+      setSelectedConditions(mapped);
+    }
+  }, [caseHistory]);
+
+  const handleSelect = (option) => {
+    if (selectedConditions.some((c) => c.id === option.value)) {
+      setErrorMessage({ detail: "This condition is already selected." });
+      setShowErrorModal(true);
+      return;
+    }
+
+    setSelectedConditions((prev) => [
+      ...prev,
+      {
+        id: option.value,
+        name: option.label,
+        affected_eye: "",
+        grading: "",
+        notes: "",
+      },
+    ]);
+  };
+
+  const updateCondition = (id, field, value) => {
+    setSelectedConditions((prev) =>
+      prev.map((c) => (c.id === id ? { ...c, [field]: value } : c))
+    );
+  };
+
+  const handleDeleteCondition = (id) => {
+    setSelectedConditions((prev) => prev.filter((c) => c.id !== id));
+  };
+
+  const handleSaveAndProceed = async () => {
     setErrorMessage(null);
+    setShowErrorModal(false);
 
     if (!chiefComplaint.trim()) {
-      setErrorMessage({ chief_complaint: ["Chief complaint is required."] });
+      setErrorMessage({ detail: "Chief complaint cannot be empty. 👍" });
+      setShowErrorModal(true);
       return;
     }
 
-    if (selectedSymptoms.length === 0) {
-      setErrorMessage({ symptoms: ["At least one symptom must be selected."] });
-      return;
-    }
-
-    if (!patientId) {
+    if (selectedConditions.length === 0) {
       setErrorMessage({
-        patient: ["Patient ID is required but was not found."],
+        detail: "Select at least one on_direct question to continue. 👍",
       });
+      setShowErrorModal(true);
       return;
     }
 
-    // ✅ Format Payload
-    const newCaseHistory = {
+    const payload = {
       appointment: appointmentId,
       chief_complaint: chiefComplaint,
-      on_direct_questioning: directQuestioning,
-      symptoms: selectedSymptoms.map(({ symptom, affected_eye, grading, notes }) => ({
-        symptom,
-        affected_eye: affected_eye || "OU",
-        grading: grading || 1,
-        notes: notes || "",
+      condition_details: selectedConditions.map((c) => ({
+        ocular_condition: c.id,
+        affected_eye: c.affected_eye,
+        grading: c.grading,
+        notes: c.notes,
       })),
-      patient_history: {
-        id: patientId,
-        medical_conditions: selectedMedicalConditions,
-        ocular_conditions: selectedOcularConditions,
-        drug_history: drugHistory,
-        allergies: allergies,
-        social_history: socialHistory,
-      },
     };
 
     try {
-      await createCaseHistory(newCaseHistory).unwrap();
-      setActiveTab("visual acuity");
+      await createCaseHistory(payload).unwrap();
+      console.log("✅ Case history saved");
+      setActiveTab("personal history");
     } catch (error) {
-      console.error("🚨 Error creating case history:", error);
+      console.error("❌ Error saving:", error);
       setErrorMessage(
-        error?.data || { general: ["An unexpected error occurred."] }
+        error?.data || { detail: "An unexpected error occurred." }
       );
+      setShowErrorModal(true);
     }
   };
 
+  if (isLoading) return <p>Loading case history...</p>;
+
+  const formattedOcularOptions = (ocularConditions || []).map((c) => ({
+    value: c.id,
+    label: c.name,
+  }));
+
   return (
-    <div className="p-6 bg-white shadow-md rounded-md">
-      <h2 className="font-bold text-2xl mb-4 text-gray-700">Case History</h2>
+    <div className="p-6 bg-white rounded-md shadow-md max-w-3xl mx-auto">
+      <h1 className="text-2xl font-bold mb-4">Case History</h1>
 
-      {/* ✅ Display Patient ID */}
-      {/* <div className="p-4 bg-gray-100 border rounded-md mb-4">
-        <p className="font-bold text-gray-700">Patient ID:</p>
-        <p className="text-blue-600 font-bold text-lg">
-          {patientId || "Not Available"}
-        </p>
-      </div> */}
-
-      {/* ✅ Handle Loading */}
-      {(loadingHistory || loadingCaseHistory) && (
-        <p className="text-gray-500">Loading Case History...</p>
-      )}
-
-      {/* ✅ Handle Errors */}
-      {errorMessage && (
-        <div className="text-red-500 mb-4">
-          {Object.entries(errorMessage).map(([field, messages]) => (
-            <p key={field}>{`${field}: ${messages}`}</p>
-          ))}
-        </div>
-      )}
-
-      {/* ✅ Case History Form (2-Column Layout) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* ✅ Left Column */}
-        <div className="space-y-4">
-          {/* Chief Complaint */}
-          <div>
-            <label className="font-medium text-gray-600">
-              Chief Complaint <span className="text-red-500">*</span>
-            </label>
-            <textarea
-              value={chiefComplaint}
-              onChange={(e) => setChiefComplaint(e.target.value)}
-              className="w-full p-3 border rounded-md"
-              placeholder="Describe the patient's main issue"
-            />
-          </div>
-
-          {/* On Direct Questioning */}
-          <div>
-            <label className="font-medium text-gray-600">
-              On Direct Questioning
-            </label>
-          </div>
-
-          {/* Symptoms */}
-          <SearchableSelect
-            // label="Symptoms"
-            name="symptoms"
-            options={symptoms || []}
-            value={selectedSymptoms}
-            onChange={setSelectedSymptoms}
-          />
-
-          {/* Medical History
-          <SearchableSelect
-            label="Patient's Medical History"
-            name="medical_conditions"
-            options={medicalConditions || []}
-            value={selectedMedicalConditions}
-            onChange={setSelectedMedicalConditions}
-          /> */}
-
-          {/* Last Eye Exam */}
-          {/* <div>
-            <label className="font-medium text-gray-600">Last Eye Exam</label>
-            <p className="text-gray-600">
-              {patientHistory?.last_eye_exam || "Not Available"}
-            </p>
-          </div> */}
-
-          {/* Ocular History */}
-          {/* <SearchableSelect
-            label="Patient's Ocular History"
-            name="ocular_conditions"
-            options={ocularConditions || []}
-            value={selectedOcularConditions}
-            onChange={setSelectedOcularConditions}
-          /> */}
-        </div>
-
-        {/* ✅ Right Column */}
-        <div className="space-y-4">
-          {/* Family Medical History */}
-          {/* <SearchableSelect
-            label="Family Medical History"
-            name="family_medical_history"
-            options={medicalConditions || []}
-            value={selectedMedicalConditions}
-            onChange={setSelectedMedicalConditions}
-          /> */}
-
-          {/* Family Ocular History */}
-          {/* <SearchableSelect
-            label="Family Ocular History"
-            name="family_ocular_history"
-            options={ocularConditions || []}
-            value={selectedOcularConditions}
-            onChange={setSelectedOcularConditions}
-          /> */}
-
-          {/* Drug History */}
-          {/* <SearchableSelect
-            label="Patient's Drug History"
-            name="drug_history"
-            value={drugHistory}
-            onChange={setDrugHistory}
-          /> */}
-
-          {/* Allergies */}
-          {/* <SearchableSelect
-            label="Patient's Allergies"
-            name="allergies"
-            value={allergies}
-            onChange={setAllergies}
-          /> */}
-
-          {/* Social History */}
-         {/* <SearchableSelect
-            label="Patient's Social History"
-            name="social_history"
-            value={socialHistory}
-            onChange={setSocialHistory}
-          />  */}
-        </div>
+      {/* Chief Complaint Input */}
+      <div className="mb-4">
+        <label className="block font-semibold mb-1">
+          Chief Complaint <span className="text-red-500">*</span>
+        </label>
+        <textarea
+          value={chiefComplaint}
+          onChange={(e) => setChiefComplaint(e.target.value)}
+          className="w-full border p-3 rounded-md"
+          placeholder="Enter chief complaint..."
+        />
       </div>
 
-      {/* ✅ Submit Button */}
-      <button
-        onClick={handleSubmit}
-        disabled={isSubmitting}
-        className="bg-blue-500 text-white px-6 py-2 rounded-md hover:bg-blue-600 disabled:bg-gray-400 mt-4"
-      >
-        {isSubmitting ? "Saving..." : "Save & Proceed"}
-      </button>
+      {/* Ocular Conditions Selection */}
+      <div className="mb-6">
+        <SearchableSelect
+          label={
+            <span>
+              On-Direct Questioning <span className="text-red-500">*</span>
+            </span>
+          }
+          options={formattedOcularOptions}
+          selectedValues={selectedConditions.map((c) => ({
+            value: c.id,
+            label: c.name,
+          }))}
+          onSelect={handleSelect}
+          conditionKey="value"
+          conditionNameKey="label"
+        />
+
+        {selectedConditions.length > 0 && (
+          <div className="mt-4 space-y-4">
+            {selectedConditions.map((c) => (
+              <div key={c.id} className="p-4 bg-gray-50 border rounded">
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="font-semibold">{c.name}</h4>
+                  <DeleteButton onClick={() => handleDeleteCondition(c.id)} />
+                </div>
+
+                {/* Affected Eye */}
+                <AffectedEyeSelect
+                  value={c.affected_eye}
+                  onChange={(val) => updateCondition(c.id, "affected_eye", val)}
+                />
+
+                {/* Grading (Dropdown) */}
+                <GradingSelect
+                  value={c.grading}
+                  onChange={(val) => updateCondition(c.id, "grading", val)}
+                />
+
+                {/* Notes */}
+                <NotesTextArea
+                  value={c.notes}
+                  onChange={(val) => updateCondition(c.id, "notes", val)}
+                />
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Save Button */}
+      <div className="flex justify-end pt-2">
+        <button
+          onClick={handleSaveAndProceed}
+          disabled={isSaving}
+          className={`px-6 py-2 font-semibold text-white rounded-full shadow-md transition-colors duration-200 ${
+            isSaving
+              ? "bg-gray-400 cursor-not-allowed"
+              : "bg-indigo-800 hover:bg-indigo-900"
+          }`}
+        >
+          {isSaving ? "Saving..." : "Save and proceed"}
+        </button>
+      </div>
+
+      {/* Error Modal */}
+      {showErrorModal && errorMessage && (
+        <ErrorModal
+          message={errorMessage}
+          onClose={() => setShowErrorModal(false)}
+        />
+      )}
     </div>
   );
 };

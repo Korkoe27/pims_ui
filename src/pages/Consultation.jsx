@@ -5,6 +5,7 @@ import Header from "../components/Header";
 import ProgressBar from "../components/ProgressBar";
 import NavMenu from "../components/NavMenu";
 import CaseHistory from "../components/CaseHistory";
+import PersonalHistory from "../components/PersonalHistory";
 import VisualAcuity from "../components/VisualAcuity";
 import Externals from "../components/Externals";
 import Internals from "../components/Internals";
@@ -38,15 +39,48 @@ const Consultation = () => {
   const renderTabContent = () => {
     switch (activeTab) {
       case "case history":
-        return <CaseHistory appointmentId={appointmentId} setActiveTab={setActiveTab}/>;
+        return (
+          <CaseHistory
+            appointmentId={appointmentId}
+            setActiveTab={setActiveTab}
+          />
+        );
+      case "personal history":
+        return (
+          <PersonalHistory
+            patientId={selectedAppointment?.patient}
+            appointmentId={appointmentId}
+            setActiveTab={setActiveTab}
+          />
+        );
       case "visual acuity":
-        return <VisualAcuity appointmentId={appointmentId} />;
+        return (
+          <VisualAcuity
+            appointmentId={appointmentId}
+            setActiveTab={setActiveTab}
+          />
+        );
       case "externals":
-        return <Externals appointmentId={appointmentId} />;
+        return (
+          <Externals
+            appointmentId={appointmentId}
+            setActiveTab={setActiveTab}
+          />
+        );
       case "internals":
-        return <Internals appointmentId={appointmentId} />;
+        return (
+          <Internals
+            appointmentId={appointmentId}
+            setActiveTab={setActiveTab}
+          />
+        );
       case "refraction":
-        return <Refraction appointmentId={appointmentId} />;
+        return (
+          <Refraction
+            appointmentId={appointmentId}
+            setActiveTab={setActiveTab}
+          />
+        );
       case "extra tests":
         return <ExtraTests appointmentId={appointmentId} />;
       default:

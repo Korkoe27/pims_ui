@@ -1,52 +1,144 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { GrAdd } from "react-icons/gr";
+import { useParams } from "react-router-dom";
+import useRefractionData from "../hooks/useRefractionData";
+import ErrorModal from "./ErrorModal"; // ✅ Import ErrorModal
 
-const Refraction = () => {
+const Refraction = ({ setActiveTab, nextTab }) => {
+  const { appointmentId } = useParams();
+  const { refraction, loadingRefraction, createRefraction } =
+    useRefractionData(appointmentId);
+
+  const [formData, setFormData] = useState({
+    objective_method: "",
+    objective: {
+      OD: { sph: "", cyl: "", axis: "", va_6m: "" },
+      OS: { sph: "", cyl: "", axis: "", va_6m: "" },
+    },
+    subjective: {
+      OD: { sph: "", cyl: "", axis: "", add: "", va_6m: "", va_0_4m: "" },
+      OS: { sph: "", cyl: "", axis: "", add: "", va_6m: "", va_0_4m: "" },
+    },
+    cycloplegic: {
+      OD: { sph: "", cyl: "", axis: "", va_6m: "" },
+      OS: { sph: "", cyl: "", axis: "", va_6m: "" },
+    },
+  });
+
   const [showCycloplegic, setShowCycloplegic] = useState(false);
-  const [showPhoria, setShowPhoria] = useState(false);
+  const [errorMessage, setErrorMessage] = useState(null);
+  const [showErrorModal, setShowErrorModal] = useState(false);
 
-  const toggleCycloplegic = () => setShowCycloplegic(!showCycloplegic);
-  const togglePhoria = () => setShowPhoria(!showPhoria);
+  useEffect(() => {
+    if (refraction) {
+      setFormData({
+        objective_method: refraction.objective_method || "",
+        objective: {
+          OD: refraction.objective.find((r) => r.eye === "OD") || {},
+          OS: refraction.objective.find((r) => r.eye === "OS") || {},
+        },
+        subjective: {
+          OD: refraction.subjective.find((r) => r.eye === "OD") || {},
+          OS: refraction.subjective.find((r) => r.eye === "OS") || {},
+        },
+        cycloplegic: {
+          OD: refraction.cycloplegic.find((r) => r.eye === "OD") || {},
+          OS: refraction.cycloplegic.find((r) => r.eye === "OS") || {},
+        },
+      });
+      setShowCycloplegic(refraction.cycloplegic.length > 0);
+    }
+  }, [refraction]);
 
-  const renderFields = (fields) => (
+  const handleChange = (section, eye, field, value) => {
+    setFormData((prev) => ({
+      ...prev,
+      [section]: {
+        ...prev[section],
+        [eye]: {
+          ...prev[section][eye],
+          [field]: value,
+        },
+      },
+    }));
+  };
+
+  const handleSave = async () => {
+    const payload = {
+      appointment: appointmentId,
+      objective_method: formData.objective_method,
+      objective: ["OD", "OS"].map((eye) => ({
+        eye,
+        ...formData.objective[eye],
+      })),
+      subjective: ["OD", "OS"].map((eye) => ({
+        eye,
+        ...formData.subjective[eye],
+      })),
+      cycloplegic: showCycloplegic
+        ? ["OD", "OS"].map((eye) => ({ eye, ...formData.cycloplegic[eye] }))
+        : [],
+    };
+
+    try {
+      await createRefraction({ appointmentId, ...payload }).unwrap();
+      console.log("✅ Refraction saved");
+      return true;
+    } catch (error) {
+      console.error("❌ Failed to save refraction", error);
+      setErrorMessage({
+        detail: "Failed to save refraction results. Please try again.",
+      });
+      setShowErrorModal(true);
+      return false;
+    }
+  };
+
+  const handleSaveAndProceed = async () => {
+    const success = await handleSave();
+    if (success) {
+      console.log("➡️ Proceeding to tab:", nextTab);
+      if (nextTab && setActiveTab) {
+        setActiveTab(nextTab);
+      } else {
+        console.warn("Missing setActiveTab or nextTab");
+      }
+    }
+  };
+
+  const renderFields = (section, fields) => (
     <div className="flex gap-4">
-      {fields.map(({ label, name, placeholder }) => (
+      {fields.map(({ label, name }) => (
         <div key={name} className="flex flex-col">
           <label className="text-center font-normal text-base">{label}</label>
           <input
             type="text"
-            name={`right-${name}`}
+            value={formData[section].OD[name] || ""}
+            onChange={(e) => handleChange(section, "OD", name, e.target.value)}
             className="w-20 h-9 mb-4 rounded-md border border-[#d0d5dd]"
-            placeholder={placeholder}
           />
           <input
             type="text"
-            name={`left-${name}`}
+            value={formData[section].OS[name] || ""}
+            onChange={(e) => handleChange(section, "OS", name, e.target.value)}
             className="w-20 h-9 rounded-md border border-[#d0d5dd]"
-            placeholder={placeholder}
           />
         </div>
       ))}
     </div>
   );
 
-  const commonFields = [
-    { label: "Standard", name: "standard" },
+  const objectiveFields = [
+    { label: "SPH", name: "sph" },
     { label: "CYL", name: "cyl" },
     { label: "AXIS", name: "axis" },
-    { label: "VA@6m", name: "va6m" },
+    { label: "VA@6m", name: "va_6m" },
   ];
 
-  const cycloplegicFields = [
-    { label: "SPH", name: "cycloplegic-sph" },
-    { label: "CYL", name: "cycloplegic-cyl" },
-    { label: "AXIS", name: "cycloplegic-axis" },
-    { label: "VA@6m", name: "cycloplegic-va6m" },
-  ];
-
-  const phoriaFields = [
-    { label: "Amount", name: "phoria-amount", placeholder: "e.g., 2PD" },
-    { label: "Direction", name: "phoria-direction", placeholder: "Eso/Exo" },
+  const subjectiveFields = [
+    ...objectiveFields,
+    { label: "ADD", name: "add" },
+    { label: "VA@0.4m", name: "va_0_4m" },
   ];
 
   return (
@@ -55,77 +147,103 @@ const Refraction = () => {
 
       <form className="flex flex-col gap-20">
         <div className="flex flex-col gap-1 h-20 w-[375px]">
-          <label
-            htmlFor="objectRefraction"
-            className="text-base text-[#101928] font-medium"
-          >
+          <label className="text-base text-[#101928] font-medium">
             Method for Objective Refraction
           </label>
-          <select
-            name="objectRefraction"
+          <input
+            type="text"
+            value={formData.objective_method || ""}
+            onChange={(e) =>
+              setFormData((prev) => ({
+                ...prev,
+                objective_method: e.target.value,
+              }))
+            }
             className="w-full p-4 h-14 rounded-md border border-[#d0d5dd] bg-white"
-          ></select>
+          />
         </div>
 
         <section className="flex flex-col gap-16">
-          <h1 className="text-[#101928] text-base">Objective Refraction Results</h1>
+          <h1 className="text-[#101928] text-base">
+            Objective Refraction Results
+          </h1>
           <div className="flex gap-4">
             <div className="flex flex-col justify-end gap-4 items-baseline">
               <h1 className="text-xl font-bold text-center">OD</h1>
               <h1 className="text-xl font-bold text-center">OS</h1>
             </div>
-            {renderFields(commonFields)}
+            {renderFields("objective", objectiveFields)}
           </div>
 
-          <h1 className="text-[#101928] text-base">Subjective Refraction Results</h1>
+          <h1 className="text-[#101928] text-base">
+            Subjective Refraction Results
+          </h1>
           <div className="flex gap-4">
             <div className="flex flex-col justify-end gap-4 items-baseline">
               <h1 className="text-xl font-bold text-center">OD</h1>
               <h1 className="text-xl font-bold text-center">OS</h1>
             </div>
-            {renderFields([...commonFields, { label: "ADD", name: "add" }, { label: "VA@0.4m", name: "va04m" }])}
+            {renderFields("subjective", subjectiveFields)}
           </div>
         </section>
 
         <section className="flex flex-col gap-16 w-fit">
           <button
-            onClick={toggleCycloplegic}
+            onClick={(e) => {
+              e.preventDefault();
+              setShowCycloplegic(!showCycloplegic);
+            }}
             className="text-[#2f3192] font-semibold flex items-center gap-2"
             type="button"
           >
             <GrAdd className="w-5 h-5" />
-            {showCycloplegic ? "Remove Cycloplegic Refraction" : "Add Cycloplegic Refraction"}
+            {showCycloplegic
+              ? "Remove Cycloplegic Refraction"
+              : "Add Cycloplegic Refraction"}
           </button>
+
           {showCycloplegic && (
             <div className="flex flex-col gap-4">
-              <h1 className="text-[#101928] text-medium text-base">Cycloplegic Refraction Results</h1>
-              {renderFields(cycloplegicFields)}
-            </div>
-          )}
-
-          <button
-            onClick={togglePhoria}
-            className="text-[#2f3192] font-semibold flex items-center gap-2"
-            type="button"
-          >
-            <GrAdd className="w-5 h-5" />
-            {showPhoria ? "Remove Phoria Results" : "Add Phoria Results"}
-          </button>
-          {showPhoria && (
-            <div className="flex flex-col gap-4">
-              <h1 className="text-[#101928] text-medium text-base">Phoria</h1>
-              {renderFields(phoriaFields)}
+              <h1 className="text-[#101928] text-medium text-base">
+                Cycloplegic Refraction Results
+              </h1>
+              <div className="flex gap-4">
+                <div className="flex flex-col justify-end gap-4 items-baseline">
+                  <h1 className="text-xl font-bold text-center">OD</h1>
+                  <h1 className="text-xl font-bold text-center">OS</h1>
+                </div>
+                {renderFields("cycloplegic", objectiveFields)}
+              </div>
             </div>
           )}
         </section>
 
-        <button
-          className="text-white bg-[#2f3192] w-48 h-14 p-4 rounded-lg"
-          type="button"
-        >
-          Save and Finish
-        </button>
+        <div className="mt-8 flex justify-between items-center">
+          <button
+            type="button"
+            onClick={() => setActiveTab("internals")}
+            className="px-6 py-2 font-semibold text-indigo-600 border border-indigo-600 rounded-full shadow-sm hover:bg-indigo-50 transition-colors duration-200"
+          >
+            ← Back to Internals
+          </button>
+
+          <button
+            type="button"
+            onClick={handleSaveAndProceed}
+            className="px-6 py-2 font-semibold text-white rounded-full shadow-md transition-colors duration-200 bg-indigo-600 hover:bg-indigo-700"
+          >
+            Save and Proceed
+          </button>
+        </div>
       </form>
+
+      {/* Error Modal */}
+      {showErrorModal && errorMessage && (
+        <ErrorModal
+          message={errorMessage}
+          onClose={() => setShowErrorModal(false)}
+        />
+      )}
     </div>
   );
 };
