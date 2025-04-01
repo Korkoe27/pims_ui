@@ -336,7 +336,7 @@ const PersonalInfo = () => {
                 name="region"
                 value={formData.region}
                 onChange={handleChange}
-                options={["Greater Accra", "Ashanti", "Volta"]}
+                options={["Greater Accra", "Ashanti", "Volta","Bono","Bono East","Brong Ahafo","Central","Eastern","North East","Northern","Oti","Savannah","Upper East","Upper West","Western","Western North"]}
               />
               <InputField
                 label="Landmark"
