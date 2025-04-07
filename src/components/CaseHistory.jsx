@@ -17,8 +17,9 @@ const CaseHistory = ({ patientId, appointmentId, nextTab, setActiveTab }) => {
       skip: !appointmentId,
     });
 
-  const { ocularConditions, isLoading: loadingConditions } =
+  const { directQuestioningConditions, isLoading: loadingConditions } =
     useFetchConditionsData();
+
   const [createCaseHistory, { isLoading: isSaving }] =
     useCreateCaseHistoryMutation();
 
@@ -34,8 +35,8 @@ const CaseHistory = ({ patientId, appointmentId, nextTab, setActiveTab }) => {
       setChiefComplaint(caseHistory?.chief_complaint || "");
 
       const mapped = (caseHistory?.condition_details || []).map((item) => ({
-        id: item.ocular_condition,
-        name: item.ocular_condition_name || "",
+        id: item.condition,
+        name: item.condition_name || "",
         affected_eye: item.affected_eye || "",
         grading: item.grading || "",
         notes: item.notes || "",
@@ -96,7 +97,7 @@ const CaseHistory = ({ patientId, appointmentId, nextTab, setActiveTab }) => {
       appointment: appointmentId,
       chief_complaint: chiefComplaint,
       condition_details: selectedConditions.map((c) => ({
-        ocular_condition: c.id,
+        condition: c.id,
         affected_eye: c.affected_eye,
         grading: c.grading,
         notes: c.notes,
@@ -118,7 +119,7 @@ const CaseHistory = ({ patientId, appointmentId, nextTab, setActiveTab }) => {
 
   if (isLoading) return <p>Loading case history...</p>;
 
-  const formattedOcularOptions = (ocularConditions || []).map((c) => ({
+  const formattedODQOptions = (directQuestioningConditions || []).map((c) => ({
     value: c.id,
     label: c.name,
   }));
@@ -140,7 +141,7 @@ const CaseHistory = ({ patientId, appointmentId, nextTab, setActiveTab }) => {
         />
       </div>
 
-      {/* Ocular Conditions Selection */}
+      {/* On-Direct Questioning Condition Selection */}
       <div className="mb-6">
         <SearchableSelect
           label={
@@ -148,7 +149,7 @@ const CaseHistory = ({ patientId, appointmentId, nextTab, setActiveTab }) => {
               On-Direct Questioning <span className="text-red-500">*</span>
             </span>
           }
-          options={formattedOcularOptions}
+          options={formattedODQOptions}
           selectedValues={selectedConditions.map((c) => ({
             value: c.id,
             label: c.name,
@@ -167,19 +168,16 @@ const CaseHistory = ({ patientId, appointmentId, nextTab, setActiveTab }) => {
                   <DeleteButton onClick={() => handleDeleteCondition(c.id)} />
                 </div>
 
-                {/* Affected Eye */}
                 <AffectedEyeSelect
                   value={c.affected_eye}
                   onChange={(val) => updateCondition(c.id, "affected_eye", val)}
                 />
 
-                {/* Grading (Dropdown) */}
                 <GradingSelect
                   value={c.grading}
                   onChange={(val) => updateCondition(c.id, "grading", val)}
                 />
 
-                {/* Notes */}
                 <NotesTextArea
                   value={c.notes}
                   onChange={(val) => updateCondition(c.id, "notes", val)}
