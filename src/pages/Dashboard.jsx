@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { CiSearch } from "react-icons/ci";
 import { LuClock3 } from "react-icons/lu";
 import { FiUserCheck } from "react-icons/fi";
-import { LuUsers2 } from "react-icons/lu";
+import { HiOutlineUser } from "react-icons/hi2";
 import { Link, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import useLogout from "../hooks/useLogout";
@@ -47,7 +47,7 @@ const Dashboard = () => {
       <div className="grid grid-cols-12 gap-9 w-full">
         <div className="bg-[#ececf9] p-4 h-36 col-span-4">
           <h3 className="flex items-center text-base gap-[12px] font-normal">
-            <LuUsers2 className="w-6 h-6" />
+            <HiOutlineUser className="w-6 h-6" />
             Today's Appointments
           </h3>
           <span className="text-[50px] font-bold text-[#2f3192]">

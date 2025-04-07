@@ -5,6 +5,7 @@ import VisualAcuitySection, { validateVASection } from "./VisualAcuitySection";
 import PrescriptionSection, {
   validatePrescription,
 } from "./PrescriptionSection";
+import toast,  { Toaster } from "react-hot-toast";
 
 const EYES = ["OD", "OS"];
 const CHART_OPTIONS = [
@@ -156,7 +157,10 @@ export default function VisualAcuityForm({
       setErrorMessage({
         detail:
           vaChart === "SNELLEN"
-            ? "All VA entries must be in the format e.g. 6/6 or 6/18 for Snellen chart. 👍"
+            ? 
+
+            // toast.error('All VA entries must be in the format e.g. 6/6 or 6/18 for Snellen chart. 👍')
+            "All VA entries must be in the format e.g. 6/6 or 6/18 for Snellen chart. 👍"
             : "All VA entries must be decimal values between -0.02 and 3.50 for LogMAR chart. 👍",
       });
       setShowErrorModal(true);
@@ -287,11 +291,16 @@ export default function VisualAcuityForm({
       </div>
 
       {showErrorModal && errorMessage && (
-        <ErrorModal
-          message={errorMessage}
-          onClose={() => setShowErrorModal(false)}
-        />
+        // <ErrorModal
+        //   message={errorMessage}
+        //   onClose={() => setShowErrorModal(false)}
+        // />
+        toast.error(errorMessage.detail, {
+          duration: 10000,
+          position: 'top-center'
+        })
       )}
+      <Toaster/>
     </div>
   );
 }

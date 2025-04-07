@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useLocation } from "react-router-dom";
+import toast, {Toaster} from "react-hot-toast";
 import { useCreateAppointmentMutation } from "../redux/api/features/appointmentsApi";
 
 const CreateAppointment = () => {
@@ -92,17 +93,21 @@ const CreateAppointment = () => {
           </div>
 
           {isLoading && (
-            <p className="text-blue-500 text-center">Submitting...</p>
+            // <p className="text-blue-500 text-center">Submitting...</p>
+            toast.loading('Submitting..')
+
           )}
           {isSuccess && (
-            <p className="text-green-500 text-center">
-              Appointment Created Successfully!
-            </p>
+            // <p className="text-green-500 text-center">
+            //   Appointment Created Successfully!
+            // </p>
+            toast.success('Appointment Created Successfully!')
           )}
           {isError && (
-            <p className="text-red-500 text-center">
-              {error?.data?.message || "Failed to create appointment"}
-            </p>
+            // <p className="text-red-500 text-center">
+            //   {error?.data?.message || "Failed to create appointment"}
+            // </p>
+            toast.error(error?.data?.message || "Failed to create appointment")
           )}
 
           <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-6">
@@ -200,6 +205,9 @@ const CreateAppointment = () => {
           </form>
         </>
       )}
+      <Toaster
+        toastOptions={{ duration: 3000 }}
+        />
     </div>
   );
 };
