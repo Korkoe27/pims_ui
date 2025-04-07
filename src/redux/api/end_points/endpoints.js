@@ -78,11 +78,13 @@ export const fetchPatientHistoryUrl = (patientId) =>
 export const createPatientHistoryUrl = "/tests/api/patient-history/";
 
 /////////////////////////
-// Medical & Ocular Conditions
+// Medical, Ocular & On Direct Question Conditions
 /////////////////////////
 
 export const fetchMedicalConditionsUrl = "/tests/api/medical-conditions/";
 export const fetchOcularConditionsUrl = "/tests/api/ocular-conditions/";
+export const fetchDirectQuestioningConditionsUrl = "/tests/api/direct-questioning-conditions/";
+
 
 /////////////////////////
 // Visual Acuity
