@@ -6,7 +6,7 @@ import { setPatientId } from "../redux/slices/patientSlice";
 import { useCreatePatientMutation } from "../redux/api/features/patientApi";
 import SelectClinicModal from "../components/SelectClinicModal";
 import ConfirmSaveModal from "./ConfirmSaveModal";
-import useCreateAppointment from "../hooks/useCreateAppointment"; 
+import useCreateAppointment from "../hooks/useCreateAppointment";
 
 const PersonalInfo = () => {
   const navigate = useNavigate();
@@ -182,7 +182,9 @@ const PersonalInfo = () => {
 
       const appointmentId = appointmentResult.data.id; // ✅ Extract appointment ID
 
-      console.log(`✅ Redirecting to consultation with appointment ID: ${appointmentId}`);
+      console.log(
+        `✅ Redirecting to consultation with appointment ID: ${appointmentId}`
+      );
 
       // ✅ Redirect to the consultation page with the appointment ID
       navigate(`/consultation/${appointmentId}`);
@@ -293,29 +295,13 @@ const PersonalInfo = () => {
                 ]}
               />
 
-              <SelectField
+              <InputField
                 label="Occupation"
                 name="occupation"
                 value={formData.occupation}
                 onChange={handleChange}
-                options={[
-                  "Agriculture & Farming",
-                  "Automotive & Mechanical",
-                  "Business & Finance",
-                  "Construction & Manual Labor",
-                  "Creative & Artistic",
-                  "Education & Training",
-                  "Health & Medical Services",
-                  "Hospitality & Food Services",
-                  "IT & Technology",
-                  "Legal & Judicial",
-                  "Public Service & Administration",
-                  "Religious & Spiritual",
-                  "Retired & Not Working",
-                  "Technical & Engineering",
-                  "Miscellaneous & Others",
-                ]}
               />
+              
               <InputField
                 label="Address"
                 name="address"
@@ -336,7 +322,24 @@ const PersonalInfo = () => {
                 name="region"
                 value={formData.region}
                 onChange={handleChange}
-                options={["Greater Accra", "Ashanti", "Volta","Bono","Bono East","Brong Ahafo","Central","Eastern","North East","Northern","Oti","Savannah","Upper East","Upper West","Western","Western North"]}
+                options={[
+                  "Greater Accra",
+                  "Ashanti",
+                  "Volta",
+                  "Bono",
+                  "Bono East",
+                  "Brong Ahafo",
+                  "Central",
+                  "Eastern",
+                  "North East",
+                  "Northern",
+                  "Oti",
+                  "Savannah",
+                  "Upper East",
+                  "Upper West",
+                  "Western",
+                  "Western North",
+                ]}
               />
               <InputField
                 label="Landmark"
