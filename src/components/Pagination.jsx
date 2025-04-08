@@ -25,10 +25,10 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
   };
 
   return (
-    <div className="flex items-center justify-center mt-8 mb-8 space-x-2">
+    <div className="flex items-center  justify-center mt-8 mb-8 space-x-2">
       {/* Back Button */}
       <button
-        className={`px-3 py-1 text-sm font-medium text-white bg-blue-500 rounded-lg ${
+        className={`px-3 py-1 text-sm  font-medium text-white bg-blue-500 rounded-lg ${
           currentPage === 1 ? "opacity-50 cursor-not-allowed" : "hover:bg-blue-700"
         }`}
         onClick={() => onPageChange(currentPage - 1)}
@@ -59,7 +59,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
 
       {/* Next Button */}
       <button
-        className={`px-3 py-1 text-sm font-medium text-white bg-blue-500 rounded-lg ${
+        className={`px-3 py-1 text-sm  font-medium text-white bg-blue-500 rounded-lg ${
           currentPage === totalPages
             ? "opacity-50 cursor-not-allowed"
             : "hover:bg-blue-700"
