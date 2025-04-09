@@ -1,8 +1,8 @@
 import { apiClient } from "../api_client/apiClient";
 import {
   createDiagnosisUrl,
-  listDiagnosisUrl,
-  getAppointmentDiagnosisUrl,
+  listAllDiagnosesUrl,
+  fetchAppointmentDiagnosesUrl,
 } from "../end_points/endpoints";
 
 export const diagnosisApi = apiClient.injectEndpoints({
@@ -19,7 +19,7 @@ export const diagnosisApi = apiClient.injectEndpoints({
     // List all diagnosis
     getAllDiagnosis: builder.query({
       query: () => ({
-        url: listDiagnosisUrl,
+        url: listAllDiagnosesUrl,
         method: "GET",
       }),
     }),
@@ -27,7 +27,7 @@ export const diagnosisApi = apiClient.injectEndpoints({
     // Get all diagnoses linked to an appointment
     getAppointmentDiagnosis: builder.query({
       query: (appointmentId) => ({
-        url: getAppointmentDiagnosisUrl(appointmentId),
+        url: fetchAppointmentDiagnosesUrl(appointmentId),
         method: "GET",
       }),
     }),
