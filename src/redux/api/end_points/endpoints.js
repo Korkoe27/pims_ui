@@ -147,7 +147,7 @@ export const createDiagnosisUrl = (appointmentId) =>
   `/tests/api/diagnosis/${appointmentId}/create/`;
 
 // List all diagnoses (master list)
-export const listAllDiagnosesUrl = "/tests/api/diagnosis/list/";
+export const listAllDiagnosesUrl = "/diagnosis/codes/";
 
 // Fetch all diagnoses assigned to a specific appointment
 export const fetchAppointmentDiagnosesUrl = (appointmentId) =>
