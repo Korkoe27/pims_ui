@@ -152,3 +152,18 @@ export const listAllDiagnosesUrl = "/tests/api/diagnosis/list/";
 // Fetch all diagnoses assigned to a specific appointment
 export const fetchAppointmentDiagnosesUrl = (appointmentId) =>
   `/tests/api/diagnosis/${appointmentId}/`;
+
+
+/////////////////////////
+// Management (Medications)
+/////////////////////////
+
+// List all medication types
+export const listMedicationTypesUrl = "/pharmacy/api/medication-types/";
+
+// List all medications
+export const listMedicationsUrl = "/pharmacy/api/medications/";
+
+// Filter medications by type (e.g. /pharmacy/api/medications/?type=1)
+export const filterMedicationsUrl = (typeId) =>
+  `/pharmacy/api/medications/?type=${typeId}`;
