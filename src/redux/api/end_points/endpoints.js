@@ -107,9 +107,6 @@ export const createExternalObservationUrl = (appointmentId) =>
 export const fetchExternalObservationsUrl = (appointmentId) =>
   `/tests/api/external-observations/${appointmentId}/`;
 
-/////////////////////////
-// Internals
-/////////////////////////
 
 /////////////////////////
 // Internals
@@ -139,3 +136,19 @@ export const updateExtraTestsUrl = (appointmentId) =>
   `/tests/api/extra-tests/${appointmentId}/`;
 export const fetchExtraTestsUrl = (appointmentId) =>
   `/tests/api/extra-tests/${appointmentId}/`;
+
+
+/////////////////////////
+// Diagnosis
+/////////////////////////
+
+// Create a new diagnosis for an appointment
+export const createDiagnosisUrl = (appointmentId) =>
+  `/tests/api/diagnosis/${appointmentId}/create/`;
+
+// List all diagnoses (master list)
+export const listAllDiagnosesUrl = "/tests/api/diagnosis/list/";
+
+// Fetch all diagnoses assigned to a specific appointment
+export const fetchAppointmentDiagnosesUrl = (appointmentId) =>
+  `/tests/api/diagnosis/${appointmentId}/`;
