@@ -16,6 +16,7 @@ const Consultation = () => {
   const { appointmentId } = useParams();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("case history");
+  const [flowStep, setFlowStep] = useState("consultation"); // new!
 
   // Fetch appointment details using RTK Query
   const {
@@ -92,7 +93,7 @@ const Consultation = () => {
     <div className="px-8 ml-72 flex flex-col mt-8 gap-8 bg-[#f9fafb] w-full shadow-md sm:rounded-lg">
       <h1 className="font-extrabold text-xl">Consultation</h1>
       <Header patient={selectedAppointment} appointmentId={appointmentId} />
-      <ProgressBar step={1} />
+      <ProgressBar step={flowStep} setStep={setFlowStep} />
       <NavMenu activeTab={activeTab} setActiveTab={setActiveTab} />
       <div className="mt-4">{renderTabContent()}</div>
     </div>
