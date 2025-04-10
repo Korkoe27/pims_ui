@@ -5,7 +5,7 @@ import Inputs from "./Inputs";
 import { useNavigate } from "react-router-dom";
 import useDiagnosisData from "../hooks/useDiagnosisData";
 
-const Diagnosis = ({ appointmentId }) => {
+const Diagnosis = ({ appointmentId, setFlowStep, setActiveTab }) => {
   const navigate = useNavigate();
 
   const { appointmentDiagnosis, createDiagnosis, isCreatingDiagnosis } =
@@ -37,18 +37,20 @@ const Diagnosis = ({ appointmentId }) => {
 
     try {
       await createDiagnosis(payload).unwrap();
-      navigate("/management");
+      setFlowStep("management"); // move to management
     } catch (error) {
       console.error("❌ Failed to save diagnosis:", error);
       alert("An error occurred while saving the diagnosis.");
     }
   };
 
+  const handleBackToExtraTests = () => {
+    if (setFlowStep) setFlowStep("consultation");
+    if (setActiveTab) setActiveTab("extra tests");
+  };
+
   return (
     <main className="ml-72 my-8 px-8 w-fit flex flex-col gap-12">
-      <Header />
-      <ProgressBar step={2} />
-
       <form className="flex flex-col w-fit gap-8">
         {/* Differential Diagnosis */}
         <div className="flex flex-col gap-2">
@@ -67,7 +69,7 @@ const Diagnosis = ({ appointmentId }) => {
           />
         </div>
 
-        {/* Final Diagnosis (placeholder for now) */}
+        {/* Final Diagnosis */}
         <div className="flex flex-col gap-1">
           <Inputs
             type="text"
@@ -83,7 +85,7 @@ const Diagnosis = ({ appointmentId }) => {
           </button>
         </div>
 
-        {/* Management Plan (placeholder for now) */}
+        {/* Management Plan */}
         <div className="flex flex-col gap-2">
           <label htmlFor="mgtPlan" className="font-medium text-base">
             Your Management Plan
@@ -98,13 +100,24 @@ const Diagnosis = ({ appointmentId }) => {
           ></textarea>
         </div>
 
-        <button
-          type="button"
-          onClick={handleSubmit}
-          className="bg-[#2f3192] mx-auto mr-0 text-white p-4 w-fit rounded-lg h-14"
-        >
-          {isCreatingDiagnosis ? "Saving..." : "Proceed to Management"}
-        </button>
+        {/* Buttons */}
+        <div className="mt-12 flex gap-6 justify-center">
+          <button
+            type="button"
+            onClick={handleBackToExtraTests}
+            className="w-56 h-14 p-4 rounded-lg border border-[#2f3192] text-[#2f3192] bg-white hover:bg-indigo-50 transition"
+          >
+            ← Back to Extra Tests
+          </button>
+
+          <button
+            type="button"
+            onClick={handleSubmit}
+            className="w-56 h-14 p-4 rounded-lg bg-[#2f3192] text-white hover:bg-[#1e217a] transition"
+          >
+            {isCreatingDiagnosis ? "Saving..." : "Proceed to Management"}
+          </button>
+        </div>
       </form>
     </main>
   );
