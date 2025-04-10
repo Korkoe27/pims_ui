@@ -268,13 +268,6 @@ const Internals = ({ setActiveTab }) => {
           </div>
         </div>
       )}
-
-      {/* {showErrorModal && errorMessage && (
-        <ErrorModal
-          message={errorMessage}
-          onClose={() => setShowErrorModal(false)}
-        />
-      )} */}
     </div>
   );
 };
