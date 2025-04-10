@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import ErrorModal from "./ErrorModal";
 import useVisualAcuityData from "../hooks/useVisualAcuityData";
 import VisualAcuitySection, { validateVASection } from "./VisualAcuitySection";
+import NearVisualAcuitySection from "./NearVisualAcuitySection";
 import PrescriptionSection, {
   validatePrescription,
 } from "./PrescriptionSection";
@@ -11,6 +12,7 @@ const EYES = ["OD", "OS"];
 const CHART_OPTIONS = [
   { value: "SNELLEN", label: "Snellen" },
   { value: "LOGMAR", label: "LogMAR" },
+  { value: "Others", label: "Others" },
 ];
 
 export default function VisualAcuityForm({
@@ -90,7 +92,6 @@ export default function VisualAcuityForm({
     }
   }, [visualAcuity]);
 
-  //Render Toaster
   useEffect(() => {
     if (showErrorModal && errorMessage) {
       showToast(errorMessage.detail, "error");
@@ -165,9 +166,10 @@ export default function VisualAcuityForm({
       setErrorMessage({
         detail:
           vaChart === "SNELLEN"
-            ? // toast.error('All VA entries must be in the format e.g. 6/6 or 6/18 for Snellen chart. 👍')
-              "All VA entries must be in the format e.g. 6/6 or 6/18 for Snellen chart. 👍"
-            : "All VA entries must be decimal values between -0.02 and 3.50 for LogMAR chart. 👍",
+            ? "All VA entries must be in the format e.g. 6/6 or 6/18 for Snellen chart. 👍"
+            : vaChart === "LOGMAR"
+            ? "All VA entries must be decimal values between -0.02 and 3.50 for LogMAR chart. 👍"
+            : "Use appropriate notation e.g. CF, HM, PL, NPL for Others. 👍",
       });
       setShowErrorModal(true);
       return;
@@ -255,7 +257,7 @@ export default function VisualAcuityForm({
         vaChart={vaChart}
       />
 
-      <VisualAcuitySection
+      <NearVisualAcuitySection
         title="Near VA (unaided)"
         fields={["near"]}
         vaData={nearVA}
