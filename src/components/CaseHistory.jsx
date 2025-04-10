@@ -6,6 +6,7 @@ import {
 } from "../redux/api/features/caseHistoryApi";
 import SearchableSelect from "./SearchableSelect";
 import ErrorModal from "./ErrorModal";
+import { showToast } from "../components/ToasterHelper";
 import AffectedEyeSelect from "./AffectedEyeSelect";
 import GradingSelect from "./GradingSelect";
 import NotesTextArea from "./NotesTextArea";
@@ -45,6 +46,14 @@ const CaseHistory = ({ patientId, appointmentId, nextTab, setActiveTab }) => {
       setSelectedConditions(mapped);
     }
   }, [caseHistory]);
+
+  //Render Toaster
+  useEffect(() => {
+    if (showErrorModal && errorMessage) {
+      showToast(errorMessage.detail, "error");
+      setShowErrorModal(false);
+    }
+  }, [showErrorModal, errorMessage]);
 
   const handleSelect = (option) => {
     if (selectedConditions.some((c) => c.id === option.value)) {
@@ -203,13 +212,13 @@ const CaseHistory = ({ patientId, appointmentId, nextTab, setActiveTab }) => {
         </button>
       </div>
 
-      {/* Error Modal */}
+      {/* Error Modal
       {showErrorModal && errorMessage && (
         <ErrorModal
           message={errorMessage}
           onClose={() => setShowErrorModal(false)}
         />
-      )}
+      )} */}
     </div>
   );
 };

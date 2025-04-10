@@ -5,7 +5,6 @@ import VisualAcuitySection, { validateVASection } from "./VisualAcuitySection";
 import PrescriptionSection, {
   validatePrescription,
 } from "./PrescriptionSection";
-import toast, { Toaster } from "react-hot-toast";
 import { showToast } from "../components/ToasterHelper"; // Import the toast helper function
 
 const EYES = ["OD", "OS"];
@@ -91,6 +90,7 @@ export default function VisualAcuityForm({
     }
   }, [visualAcuity]);
 
+  //Render Toaster
   useEffect(() => {
     if (showErrorModal && errorMessage) {
       showToast(errorMessage.detail, "error");
