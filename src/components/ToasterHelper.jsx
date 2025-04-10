@@ -41,4 +41,25 @@ export const showToast = (message, type = "error", options = {}) => {
     document.addEventListener("keydown", () => toast.dismiss());
     isListenerAdded = true;
   }
+
+  
 };
+
+export const formatErrorMessage = (data) => {
+  if (!data) return "An unexpected error occurred.";
+
+  if (typeof data.detail === "string") return data.detail;
+
+  if (typeof data === "object") {
+    return Object.entries(data)
+      .map(([key, value]) => {
+        const label = key.replace(/_/g, " ").toUpperCase();
+        const msg = Array.isArray(value) ? value.join(", ") : value;
+        return `${label}: ${msg}`;
+      })
+      .join("\n");
+  }
+
+  return "An unexpected error occurred.";
+};
+
