@@ -176,16 +176,6 @@ export default function VisualAcuityForm({
       setShowErrorModal(true);
       return;
     }
-
-    // if (hasPrescription) {
-    //   const result = validatePrescription(currentRx);
-    //   if (!result.valid) {
-    //     setErrorMessage({ detail: result.message });
-    //     setShowErrorModal(true);
-    //     return;
-    //   }
-    // }
-
     const payload = {
       appointment: appointmentId,
       va_chart_used: vaChart,
@@ -218,13 +208,9 @@ export default function VisualAcuityForm({
       rx_va2_os: currentRx.OS.nearVa,
     };
 
-    console.log("🧾 hasPrescription:", hasPrescription);
-    console.log("📄 prescriptionType:", prescriptionType);
-    console.log("📦 currentRx:", currentRx);
-
     try {
       await createVisualAcuity(payload).unwrap();
-      showToast("✅ Visual acuity saved successfully!");
+      showToast("Visual acuity saved successfully!", "success");
       setActiveTab("externals");
     } catch (error) {
       console.error("❌ Error saving visual acuity:", error);

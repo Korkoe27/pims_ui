@@ -5,7 +5,6 @@ import {
   useFetchCaseHistoryQuery,
 } from "../redux/api/features/caseHistoryApi";
 import SearchableSelect from "./SearchableSelect";
-import ErrorModal from "./ErrorModal";
 import { showToast } from "../components/ToasterHelper";
 import AffectedEyeSelect from "./AffectedEyeSelect";
 import GradingSelect from "./GradingSelect";
@@ -115,7 +114,6 @@ const CaseHistory = ({ patientId, appointmentId, nextTab, setActiveTab }) => {
 
     try {
       await createCaseHistory(payload).unwrap();
-      console.log("✅ Case history saved");
       setActiveTab("personal history");
     } catch (error) {
       console.error("❌ Error saving:", error);
@@ -212,13 +210,6 @@ const CaseHistory = ({ patientId, appointmentId, nextTab, setActiveTab }) => {
         </button>
       </div>
 
-      {/* Error Modal
-      {showErrorModal && errorMessage && (
-        <ErrorModal
-          message={errorMessage}
-          onClose={() => setShowErrorModal(false)}
-        />
-      )} */}
     </div>
   );
 };
