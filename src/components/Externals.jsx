@@ -8,6 +8,7 @@ import GradingSelect from "./GradingSelect";
 import NotesTextArea from "./NotesTextArea";
 import DeleteButton from "./DeleteButton";
 import ErrorModal from "./ErrorModal";
+import { showToast, formatErrorMessage } from "../components/ToasterHelper";
 
 const Externals = ({ setActiveTab }) => {
   const { appointmentId } = useParams();
@@ -61,6 +62,13 @@ const Externals = ({ setActiveTab }) => {
       setFormData(initialFormData);
     }
   }, [externals, conditions]);
+
+  useEffect(() => {
+    if (showErrorModal && errorMessage) {
+      showToast(errorMessage.detail, "error");
+      setShowErrorModal(false);
+    }
+  }, [showErrorModal, errorMessage]);
 
   const toggleSection = (groupName) => {
     setDropdowns((prev) => ({ ...prev, [groupName]: !prev[groupName] }));
@@ -136,11 +144,8 @@ const Externals = ({ setActiveTab }) => {
       console.log("✅ Externals saved");
       if (setActiveTab) setActiveTab("internals");
     } catch (error) {
-      console.error("❌ Failed to save externals:", error);
-      setErrorMessage({
-        detail: "Failed to save observations. Please try again.",
-      });
-      setShowErrorModal(true);
+      const formatted = formatErrorMessage(error?.data);
+      showToast(formatted, "error");
     }
   };
 
@@ -265,13 +270,6 @@ const Externals = ({ setActiveTab }) => {
             </button>
           </div>
         </div>
-      )}
-
-      {showErrorModal && errorMessage && (
-        <ErrorModal
-          message={errorMessage}
-          onClose={() => setShowErrorModal(false)}
-        />
       )}
     </div>
   );

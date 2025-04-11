@@ -34,32 +34,11 @@ export const Sidebar_links = [
 ];
 
 export const Consultation_nav = [
-  {
-    name: "case history",
-    link: "/case-history",
-  },
-  {
-    name: "Oculo-Medical History",
-    link: "/personal-history",
-  },
-  {
-    name: "visual acuity",
-    link: "/visual-acuity",
-  },
-  {
-    name: "externals",
-    link: "/externals",
-  },
-  {
-    name: "internals",
-    link: "/internals",
-  },
-  {
-    name: "refraction",
-    link: "/refraction",
-  },
-  {
-    name: "extra tests",
-    link: "/extra-tests",
-  },
+  {name: "case history"},
+  {name: "Oculo-Medical History"},
+  {name: "visual acuity"},
+  {name: "externals"},
+  {name: "internals"},
+  {name: "refraction"},
+  {name: "extra tests"},
 ];

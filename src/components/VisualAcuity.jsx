@@ -2,14 +2,14 @@ import React, { useState, useEffect } from "react";
 import ErrorModal from "./ErrorModal";
 import useVisualAcuityData from "../hooks/useVisualAcuityData";
 import VisualAcuitySection, { validateVASection } from "./VisualAcuitySection";
-import PrescriptionSection, {
-  validatePrescription,
-} from "./PrescriptionSection";
+import NearVisualAcuitySection from "./NearVisualAcuitySection";
+import PrescriptionSection from "./PrescriptionSection";
+import { showToast } from "../components/ToasterHelper";
 
-const EYES = ["OD", "OS"];
 const CHART_OPTIONS = [
   { value: "SNELLEN", label: "Snellen" },
   { value: "LOGMAR", label: "LogMAR" },
+  { value: "Others", label: "Others" },
 ];
 
 export default function VisualAcuityForm({
@@ -17,7 +17,7 @@ export default function VisualAcuityForm({
   appointmentId,
   setActiveTab,
 }) {
-  const { createVisualAcuity, visualAcuity, createVASubmissionStatus } =
+  const { visualAcuity, createVisualAcuity, createVASubmissionStatus } =
     useVisualAcuityData(appointmentId);
 
   const [vaChart, setVaChart] = useState("");
@@ -25,12 +25,10 @@ export default function VisualAcuityForm({
     OD: { unaided: "", ph: "", plusOne: "" },
     OS: { unaided: "", ph: "", plusOne: "" },
   });
-
   const [nearVA, setNearVA] = useState({
     OD: { near: "" },
     OS: { near: "" },
   });
-
   const [hasPrescription, setHasPrescription] = useState(null);
   const [prescriptionType, setPrescriptionType] = useState("");
   const [currentRx, setCurrentRx] = useState({
@@ -40,6 +38,7 @@ export default function VisualAcuityForm({
 
   const [errorMessage, setErrorMessage] = useState(null);
   const [showErrorModal, setShowErrorModal] = useState(false);
+  const [spectaclesType, setSpectaclesType] = useState("");
 
   useEffect(() => {
     if (visualAcuity) {
@@ -89,6 +88,13 @@ export default function VisualAcuityForm({
     }
   }, [visualAcuity]);
 
+  useEffect(() => {
+    if (showErrorModal && errorMessage) {
+      showToast(errorMessage.detail, "error");
+      setShowErrorModal(false);
+    }
+  }, [showErrorModal, errorMessage]);
+
   const handleDistanceVAChange = (eye, field, value) => {
     setDistanceVA((prev) => ({
       ...prev,
@@ -112,9 +118,7 @@ export default function VisualAcuityForm({
 
   const formatErrorMessage = (data) => {
     if (!data) return { detail: "An unexpected error occurred." };
-
     if (typeof data.detail === "string") return { detail: data.detail };
-
     if (typeof data === "object") {
       const messages = Object.entries(data)
         .map(([key, value]) => {
@@ -125,7 +129,6 @@ export default function VisualAcuityForm({
         .join("\n");
       return { detail: messages };
     }
-
     return { detail: "An unexpected error occurred." };
   };
 
@@ -150,28 +153,29 @@ export default function VisualAcuityForm({
     }
 
     const isDistanceValid = validateVASection(distanceVA, vaChart);
-    const isNearValid = validateVASection(nearVA, vaChart);
+    const isNearValid = validateVASection(nearVA, vaChart, true);
 
     if (!isDistanceValid || !isNearValid) {
-      setErrorMessage({
-        detail:
+      let message = "";
+
+      if (!isDistanceValid) {
+        message +=
           vaChart === "SNELLEN"
-            ? "All VA entries must be in the format e.g. 6/6 or 6/18 for Snellen chart. 👍"
-            : "All VA entries must be decimal values between -0.02 and 3.50 for LogMAR chart. 👍",
-      });
+            ? "All *Distance VA* entries must be in the format e.g. 6/6 or 6/18 for Snellen chart. 👍\n"
+            : vaChart === "LOGMAR"
+            ? "All *Distance VA* entries must be decimal values between -0.02 and 3.50 for LogMAR chart. 👍\n"
+            : "Use appropriate notation for Distance VA e.g. CF, HM, PL, NPL. 👍\n";
+      }
+
+      if (!isNearValid) {
+        message +=
+          "All *Near VA* entries must be in M/N notation e.g. M1, N5, M2.5. 👍";
+      }
+
+      setErrorMessage({ detail: message.trim() });
       setShowErrorModal(true);
       return;
     }
-
-    if (hasPrescription) {
-      const result = validatePrescription(currentRx);
-      if (!result.valid) {
-        setErrorMessage({ detail: result.message });
-        setShowErrorModal(true);
-        return;
-      }
-    }
-
     const payload = {
       appointment: appointmentId,
       va_chart_used: vaChart,
@@ -206,12 +210,11 @@ export default function VisualAcuityForm({
 
     try {
       await createVisualAcuity(payload).unwrap();
-      console.log("✅ Visual acuity saved");
+      showToast("Visual acuity saved successfully!", "success");
       setActiveTab("externals");
     } catch (error) {
       console.error("❌ Error saving visual acuity:", error);
       const formatted = formatErrorMessage(error?.data);
-      console.log("📦 Formatted error:", formatted);
       setErrorMessage(formatted);
       setShowErrorModal(true);
     }
@@ -239,13 +242,13 @@ export default function VisualAcuityForm({
 
       <VisualAcuitySection
         title="Distance VA"
-        fields={["unaided", "pH", "plusOne"]}
+        fields={["unaided", "ph", "plusOne"]}
         vaData={distanceVA}
         onChange={handleDistanceVAChange}
         vaChart={vaChart}
       />
 
-      <VisualAcuitySection
+      <NearVisualAcuitySection
         title="Near VA (unaided)"
         fields={["near"]}
         vaData={nearVA}
@@ -260,7 +263,8 @@ export default function VisualAcuityForm({
         setPrescriptionType={setPrescriptionType}
         currentRx={currentRx}
         onRxChange={handleRxChange}
-        errorMessage={errorMessage}
+        spectaclesType={spectaclesType}
+        setSpectaclesType={setSpectaclesType}
       />
 
       <div className="mt-8 flex justify-between items-center">
@@ -285,13 +289,6 @@ export default function VisualAcuityForm({
           {createVASubmissionStatus.isLoading ? "Saving..." : "Save & Proceed"}
         </button>
       </div>
-
-      {showErrorModal && errorMessage && (
-        <ErrorModal
-          message={errorMessage}
-          onClose={() => setShowErrorModal(false)}
-        />
-      )}
     </div>
   );
 }

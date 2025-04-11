@@ -1,6 +1,6 @@
 import React, {useRef, useEffect, useState} from 'react'
 import { CiSearch } from "react-icons/ci";
-import { LuUsers2 } from "react-icons/lu";
+import { HiOutlineUser } from "react-icons/hi2";
 import { LuPencil } from "react-icons/lu";
 import { IoClose } from "react-icons/io5";
 import { IoCalendarClearOutline } from "react-icons/io5";
@@ -78,7 +78,7 @@ const SearchModalUnfilled = ({setSearchModalVisibility}) => {
                         className={`flex items-center gap-1 border rounded-lg w-30  px-2 py-2 justify-center filters ${selectedFilters.name ? 'border-red-500 text-red-500' : 'text-[#667185] border-[#d0d5dd]'} cursor-pointer`}
                         onClick={() => toggleSelection('name')}
                         >
-                    <LuUsers2/>
+                    <HiOutlineUser />
                     Name
                     <IoClose className={`ml-1 ${selectedFilters.name ? 'flex' : 'hidden'} closeFilter`} />
                     </span>

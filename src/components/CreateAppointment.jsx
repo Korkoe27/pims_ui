@@ -1,10 +1,11 @@
 import React, { useState } from "react";
 import { useLocation } from "react-router-dom";
+import toast, { Toaster } from "react-hot-toast";
 import { useCreateAppointmentMutation } from "../redux/api/features/appointmentsApi";
+import { showToast, formatErrorMessage } from "../components/ToasterHelper";
 
 const CreateAppointment = () => {
   const { state } = useLocation();
-  console.log("Received state:", state); // Debugging: Check what data is received
 
   const patient = state?.patient || null; // Ensure `patient` is always defined
 
@@ -51,10 +52,9 @@ const CreateAppointment = () => {
       notes: formData.notes,
     };
 
-    console.log("🚀 Submitting appointment:", payload); // ✅ Debugging
-
     try {
       await createAppointment(payload).unwrap();
+      showToast("Appointment Created Successfully!", "success");
       setFormData({
         appointment_date: "",
         appointment_type: "",
@@ -63,9 +63,11 @@ const CreateAppointment = () => {
       });
     } catch (err) {
       console.error("❌ Failed to create appointment:", err);
-      console.log("🛑 API Response Error:", err.data || err); // ✅ Check API response
+      const message = formatErrorMessage(err?.data);
+      showToast(message, "error");
     }
   };
+  
 
   return (
     <div className="ml-72 my-8 px-8 w-[800px] flex flex-col bg-[#f9fafb] gap-12">
@@ -90,20 +92,11 @@ const CreateAppointment = () => {
               <strong>Patient ID:</strong> {patient.patient_id}
             </p>
           </div>
-
-          {isLoading && (
-            <p className="text-blue-500 text-center">Submitting...</p>
-          )}
-          {isSuccess && (
-            <p className="text-green-500 text-center">
-              Appointment Created Successfully!
-            </p>
-          )}
-          {isError && (
-            <p className="text-red-500 text-center">
-              {error?.data?.message || "Failed to create appointment"}
-            </p>
-          )}
+{/* 
+          {isLoading && showToast("Submitting..", "loading")}
+          {isSuccess &&
+            showToast("Appointment Created Successfully!", "success")}
+          {isError && showToast(formatErrorMessage(error?.data), "error")} */}
 
           <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-6">
             <div className="flex flex-col gap-4">

@@ -9,6 +9,7 @@ import { useSelector } from "react-redux";
 import SearchModalUnfilled from "./SearchModalUnfilled";
 import useLogout from "../hooks/useLogout"; // Import the useLogout hook
 import { useLazySearchPatientsQuery } from "../redux/api/features/patientApi";
+import LoadingSpinner from "./LoadingSpinner";
 
 const Navbar = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -28,11 +29,24 @@ const Navbar = () => {
   // Fetch user data from Redux store
   const user = useSelector((state) => state.auth.user);
 
+  // const [searchQuery, setSearchQuery] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  // const navigate = useNavigate();
+
   const handleSearch = async (event) => {
     event.preventDefault();
     if (searchQuery.trim()) {
+      setIsLoading(true);
+
+      try{
       await triggerSearch(searchQuery); // Call API to prefetch search data
       navigate(`/patients/search?query=${searchQuery}`); // Redirect user to results page
+
+      } catch(error){
+        console.error('Error fetching  search results: ' , error);
+      } finally{
+        setIsLoading(false); // Reset loading state
+      }
     }
   };
 
@@ -70,8 +84,15 @@ const Navbar = () => {
             placeholder="Search Patients"
             className="p-4 focus:outline-none w-full"
             value={searchQuery}
+            // disabled={isLoading}
+            // onKeyDown={handleSearch}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
+                {isLoading && (
+        <div className="absolute right-0 top-0 h-full w-full flex items-center justify-center bg-white rounded-md">
+          <LoadingSpinner />
+        </div>
+      )}
         </form>
         <div className="flex items-center">
           <button

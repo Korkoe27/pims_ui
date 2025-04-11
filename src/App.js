@@ -1,5 +1,6 @@
 import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Toaster } from "react-hot-toast";
 import { useSelector } from "react-redux";
 import "./App.css";
 import {
@@ -40,6 +41,8 @@ const App = () => {
   return (
     <div className="bg-[#f9fafb]">
       <BrowserRouter>
+        {/* ✅ Global toast handler */}
+        <Toaster position="top-center" reverseOrder={false} />
         <Routes>
           {/* Public route for login */}
           <Route path="/login" element={<Login />} />
@@ -60,16 +63,28 @@ const App = () => {
             <Route path="/appointments" element={<Appointments />} />
             <Route path="/inventory" element={<Inventory />} />
             <Route path="/dispensary" element={<Dispensary />} />
-            <Route path="/case-history/:appointmentId" element={<CaseHistory />} />
-            <Route path="/visual-acuity/:appointmentId" element={<VisualAcuity />} />
+            <Route
+              path="/case-history/:appointmentId"
+              element={<CaseHistory />}
+            />
+            <Route
+              path="/visual-acuity/:appointmentId"
+              element={<VisualAcuity />}
+            />
             <Route path="/externals/:appointmentId" element={<Externals />} />
             <Route path="/internals/:appointmentId" element={<Internals />} />
             <Route path="/refraction/:appointmentId" element={<Refraction />} />
-            <Route path="/extra-tests/:appointmentId" element={<ExtraTests />} />
+            <Route
+              path="/extra-tests/:appointmentId"
+              element={<ExtraTests />}
+            />
             <Route path="/diagnosis" element={<Diagnosis />} />
             <Route path="/management" element={<Management />} />
             <Route path="/createAppointment" element={<CreateAppointment />} />
-            <Route path="/consultation/:appointmentId" element={<Consultation />} />
+            <Route
+              path="/consultation/:appointmentId"
+              element={<Consultation />}
+            />
             <Route path="/patients/search" element={<PatientSearchResults />} />
           </Route>
         </Routes>
