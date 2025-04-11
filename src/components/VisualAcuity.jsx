@@ -157,14 +157,23 @@ export default function VisualAcuityForm({
     const isNearValid = validateVASection(nearVA, vaChart, true);
 
     if (!isDistanceValid || !isNearValid) {
-      setErrorMessage({
-        detail:
+      let message = "";
+
+      if (!isDistanceValid) {
+        message +=
           vaChart === "SNELLEN"
-            ? "All VA entries must be in the format e.g. 6/6 or 6/18 for Snellen chart. 👍"
+            ? "All *Distance VA* entries must be in the format e.g. 6/6 or 6/18 for Snellen chart. 👍\n"
             : vaChart === "LOGMAR"
-            ? "All VA entries must be decimal values between -0.02 and 3.50 for LogMAR chart. 👍"
-            : "Use appropriate notation e.g. CF, HM, PL, NPL for Others. 👍",
-      });
+            ? "All *Distance VA* entries must be decimal values between -0.02 and 3.50 for LogMAR chart. 👍\n"
+            : "Use appropriate notation for Distance VA e.g. CF, HM, PL, NPL. 👍\n";
+      }
+
+      if (!isNearValid) {
+        message +=
+          "All *Near VA* entries must be in M/N notation e.g. M1, N5, M2.5. 👍";
+      }
+
+      setErrorMessage({ detail: message.trim() });
       setShowErrorModal(true);
       return;
     }
