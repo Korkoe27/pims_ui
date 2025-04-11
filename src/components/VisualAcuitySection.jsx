@@ -11,16 +11,17 @@ export const isValidLogMAR = (value) => {
 };
 
 export const validateVASection = (sectionData, chartType) => {
-  // Skip validation for "Others"
   if (chartType === "Others") return true;
 
   const validator = chartType === "SNELLEN" ? isValidSnellen : isValidLogMAR;
 
   return Object.values(sectionData).every((eye) =>
-    Object.values(eye).every((val) => !val || validator(val))
+    Object.values(eye).every((val) => {
+      const trimmed = typeof val === "string" ? val.trim() : val;
+      return !trimmed || validator(trimmed);
+    })
   );
 };
-
 
 const getPlaceholder = (chartType) => {
   if (chartType === "SNELLEN") return "6/6";

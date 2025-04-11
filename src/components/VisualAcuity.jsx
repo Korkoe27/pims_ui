@@ -3,24 +3,17 @@ import ErrorModal from "./ErrorModal";
 import useVisualAcuityData from "../hooks/useVisualAcuityData";
 import VisualAcuitySection, { validateVASection } from "./VisualAcuitySection";
 import NearVisualAcuitySection from "./NearVisualAcuitySection";
-import PrescriptionSection, {
-  validatePrescription,
-} from "./PrescriptionSection";
-import { showToast } from "../components/ToasterHelper"; // Import the toast helper function
+import PrescriptionSection, { validatePrescription } from "./PrescriptionSection";
+import { showToast } from "../components/ToasterHelper";
 
-const EYES = ["OD", "OS"];
 const CHART_OPTIONS = [
   { value: "SNELLEN", label: "Snellen" },
   { value: "LOGMAR", label: "LogMAR" },
   { value: "Others", label: "Others" },
 ];
 
-export default function VisualAcuityForm({
-  onBack,
-  appointmentId,
-  setActiveTab,
-}) {
-  const { createVisualAcuity, visualAcuity, createVASubmissionStatus } =
+export default function VisualAcuityForm({ onBack, appointmentId, setActiveTab }) {
+  const { visualAcuity, createVisualAcuity, createVASubmissionStatus } =
     useVisualAcuityData(appointmentId);
 
   const [vaChart, setVaChart] = useState("");
@@ -28,12 +21,10 @@ export default function VisualAcuityForm({
     OD: { unaided: "", ph: "", plusOne: "" },
     OS: { unaided: "", ph: "", plusOne: "" },
   });
-
   const [nearVA, setNearVA] = useState({
     OD: { near: "" },
     OS: { near: "" },
   });
-
   const [hasPrescription, setHasPrescription] = useState(null);
   const [prescriptionType, setPrescriptionType] = useState("");
   const [currentRx, setCurrentRx] = useState({
@@ -122,9 +113,7 @@ export default function VisualAcuityForm({
 
   const formatErrorMessage = (data) => {
     if (!data) return { detail: "An unexpected error occurred." };
-
     if (typeof data.detail === "string") return { detail: data.detail };
-
     if (typeof data === "object") {
       const messages = Object.entries(data)
         .map(([key, value]) => {
@@ -135,7 +124,6 @@ export default function VisualAcuityForm({
         .join("\n");
       return { detail: messages };
     }
-
     return { detail: "An unexpected error occurred." };
   };
 
@@ -218,12 +206,11 @@ export default function VisualAcuityForm({
 
     try {
       await createVisualAcuity(payload).unwrap();
-      console.log("✅ Visual acuity saved");
+      showToast("✅ Visual acuity saved successfully!");
       setActiveTab("externals");
     } catch (error) {
       console.error("❌ Error saving visual acuity:", error);
       const formatted = formatErrorMessage(error?.data);
-      console.log("📦 Formatted error:", formatted);
       setErrorMessage(formatted);
       setShowErrorModal(true);
     }
@@ -251,7 +238,7 @@ export default function VisualAcuityForm({
 
       <VisualAcuitySection
         title="Distance VA"
-        fields={["unaided", "pH", "plusOne"]}
+        fields={["unaided", "ph", "plusOne"]}
         vaData={distanceVA}
         onChange={handleDistanceVAChange}
         vaChart={vaChart}
