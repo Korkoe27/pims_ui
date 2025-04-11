@@ -3,7 +3,9 @@ import ErrorModal from "./ErrorModal";
 import useVisualAcuityData from "../hooks/useVisualAcuityData";
 import VisualAcuitySection, { validateVASection } from "./VisualAcuitySection";
 import NearVisualAcuitySection from "./NearVisualAcuitySection";
-import PrescriptionSection, { validatePrescription } from "./PrescriptionSection";
+import PrescriptionSection, {
+  validatePrescription,
+} from "./PrescriptionSection";
 import { showToast } from "../components/ToasterHelper";
 
 const CHART_OPTIONS = [
@@ -12,7 +14,11 @@ const CHART_OPTIONS = [
   { value: "Others", label: "Others" },
 ];
 
-export default function VisualAcuityForm({ onBack, appointmentId, setActiveTab }) {
+export default function VisualAcuityForm({
+  onBack,
+  appointmentId,
+  setActiveTab,
+}) {
   const { visualAcuity, createVisualAcuity, createVASubmissionStatus } =
     useVisualAcuityData(appointmentId);
 
@@ -148,7 +154,7 @@ export default function VisualAcuityForm({ onBack, appointmentId, setActiveTab }
     }
 
     const isDistanceValid = validateVASection(distanceVA, vaChart);
-    const isNearValid = validateVASection(nearVA, vaChart);
+    const isNearValid = validateVASection(nearVA, vaChart, true);
 
     if (!isDistanceValid || !isNearValid) {
       setErrorMessage({

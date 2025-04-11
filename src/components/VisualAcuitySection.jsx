@@ -10,10 +10,17 @@ export const isValidLogMAR = (value) => {
   return !isNaN(num) && num >= -0.02 && num <= 3.5;
 };
 
-export const validateVASection = (sectionData, chartType) => {
+export const isValidNearVA = (value) =>
+  /^[MN]\d+(\.\d+)?$/i.test(value.trim());
+
+export const validateVASection = (sectionData, chartType, isNear = false) => {
   if (chartType === "Others") return true;
 
-  const validator = chartType === "SNELLEN" ? isValidSnellen : isValidLogMAR;
+  const validator = isNear
+    ? isValidNearVA
+    : chartType === "SNELLEN"
+    ? isValidSnellen
+    : isValidLogMAR;
 
   return Object.values(sectionData).every((eye) =>
     Object.values(eye).every((val) => {
@@ -22,7 +29,6 @@ export const validateVASection = (sectionData, chartType) => {
     })
   );
 };
-
 const getPlaceholder = (chartType) => {
   if (chartType === "SNELLEN") return "6/6";
   if (chartType === "LOGMAR") return "0.00";
