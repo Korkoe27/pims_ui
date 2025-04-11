@@ -46,13 +46,37 @@ const CaseHistory = ({ patientId, appointmentId, nextTab, setActiveTab }) => {
     }
   }, [caseHistory]);
 
-  //Render Toaster
+  // ✅ Show toast from error modal
   useEffect(() => {
     if (showErrorModal && errorMessage) {
       showToast(errorMessage.detail, "error");
       setShowErrorModal(false);
     }
   }, [showErrorModal, errorMessage]);
+
+  const formatErrorMessage = (data) => {
+    if (!data) return { detail: "An unexpected error occurred." };
+    if (typeof data.detail === "string") return { detail: data.detail };
+
+    if (typeof data === "object") {
+      const messages = Object.entries(data)
+        .map(([key, value]) => {
+          const label = key.replace(/_/g, " ").toUpperCase();
+          let msg;
+          if (typeof value === "object") {
+            msg = JSON.stringify(value); // 🔥 Prevent [object Object]
+          } else {
+            msg = Array.isArray(value) ? value.join(", ") : value;
+          }
+          return `${label}: ${msg}`;
+        })
+        .join("\n");
+
+      return { detail: messages };
+    }
+
+    return { detail: "An unexpected error occurred." };
+  };
 
   const handleSelect = (option) => {
     if (selectedConditions.some((c) => c.id === option.value)) {
@@ -101,6 +125,18 @@ const CaseHistory = ({ patientId, appointmentId, nextTab, setActiveTab }) => {
       return;
     }
 
+    const hasInvalidEye = selectedConditions.some(
+      (c) => !["OD", "OS", "OU"].includes(c.affected_eye)
+    );
+    
+    if (hasInvalidEye) {
+      setErrorMessage({
+        detail: "Each condition must have a valid affected eye (OD, OS, or OU). 👍",
+      });
+      setShowErrorModal(true);
+      return;
+    }
+
     const payload = {
       appointment: appointmentId,
       chief_complaint: chiefComplaint,
@@ -114,12 +150,12 @@ const CaseHistory = ({ patientId, appointmentId, nextTab, setActiveTab }) => {
 
     try {
       await createCaseHistory(payload).unwrap();
+      showToast("Case history saved successfully!", "success");
       setActiveTab("personal history");
     } catch (error) {
       console.error("❌ Error saving:", error);
-      setErrorMessage(
-        error?.data || { detail: "An unexpected error occurred." }
-      );
+      const formatted = formatErrorMessage(error?.data);
+      setErrorMessage(formatted);
       setShowErrorModal(true);
     }
   };
@@ -209,7 +245,6 @@ const CaseHistory = ({ patientId, appointmentId, nextTab, setActiveTab }) => {
           {isSaving ? "Saving..." : "Save and proceed"}
         </button>
       </div>
-
     </div>
   );
 };
