@@ -5,7 +5,7 @@ import {
   useFetchCaseHistoryQuery,
 } from "../redux/api/features/caseHistoryApi";
 import SearchableSelect from "./SearchableSelect";
-import ErrorModal from "./ErrorModal";
+import { showToast } from "../components/ToasterHelper";
 import AffectedEyeSelect from "./AffectedEyeSelect";
 import GradingSelect from "./GradingSelect";
 import NotesTextArea from "./NotesTextArea";
@@ -17,8 +17,9 @@ const CaseHistory = ({ patientId, appointmentId, nextTab, setActiveTab }) => {
       skip: !appointmentId,
     });
 
-  const { ocularConditions, isLoading: loadingConditions } =
+  const { directQuestioningConditions, isLoading: loadingConditions } =
     useFetchConditionsData();
+
   const [createCaseHistory, { isLoading: isSaving }] =
     useCreateCaseHistoryMutation();
 
@@ -34,8 +35,8 @@ const CaseHistory = ({ patientId, appointmentId, nextTab, setActiveTab }) => {
       setChiefComplaint(caseHistory?.chief_complaint || "");
 
       const mapped = (caseHistory?.condition_details || []).map((item) => ({
-        id: item.ocular_condition,
-        name: item.ocular_condition_name || "",
+        id: item.condition,
+        name: item.condition_name || "",
         affected_eye: item.affected_eye || "",
         grading: item.grading || "",
         notes: item.notes || "",
@@ -44,6 +45,38 @@ const CaseHistory = ({ patientId, appointmentId, nextTab, setActiveTab }) => {
       setSelectedConditions(mapped);
     }
   }, [caseHistory]);
+
+  // ✅ Show toast from error modal
+  useEffect(() => {
+    if (showErrorModal && errorMessage) {
+      showToast(errorMessage.detail, "error");
+      setShowErrorModal(false);
+    }
+  }, [showErrorModal, errorMessage]);
+
+  const formatErrorMessage = (data) => {
+    if (!data) return { detail: "An unexpected error occurred." };
+    if (typeof data.detail === "string") return { detail: data.detail };
+
+    if (typeof data === "object") {
+      const messages = Object.entries(data)
+        .map(([key, value]) => {
+          const label = key.replace(/_/g, " ").toUpperCase();
+          let msg;
+          if (typeof value === "object") {
+            msg = JSON.stringify(value); // 🔥 Prevent [object Object]
+          } else {
+            msg = Array.isArray(value) ? value.join(", ") : value;
+          }
+          return `${label}: ${msg}`;
+        })
+        .join("\n");
+
+      return { detail: messages };
+    }
+
+    return { detail: "An unexpected error occurred." };
+  };
 
   const handleSelect = (option) => {
     if (selectedConditions.some((c) => c.id === option.value)) {
@@ -92,11 +125,23 @@ const CaseHistory = ({ patientId, appointmentId, nextTab, setActiveTab }) => {
       return;
     }
 
+    const hasInvalidEye = selectedConditions.some(
+      (c) => !["OD", "OS", "OU"].includes(c.affected_eye)
+    );
+    
+    if (hasInvalidEye) {
+      setErrorMessage({
+        detail: "Each condition must have a valid affected eye (OD, OS, or OU). 👍",
+      });
+      setShowErrorModal(true);
+      return;
+    }
+
     const payload = {
       appointment: appointmentId,
       chief_complaint: chiefComplaint,
       condition_details: selectedConditions.map((c) => ({
-        ocular_condition: c.id,
+        condition: c.id,
         affected_eye: c.affected_eye,
         grading: c.grading,
         notes: c.notes,
@@ -105,20 +150,19 @@ const CaseHistory = ({ patientId, appointmentId, nextTab, setActiveTab }) => {
 
     try {
       await createCaseHistory(payload).unwrap();
-      console.log("✅ Case history saved");
+      showToast("Case history saved successfully!", "success");
       setActiveTab("personal history");
     } catch (error) {
       console.error("❌ Error saving:", error);
-      setErrorMessage(
-        error?.data || { detail: "An unexpected error occurred." }
-      );
+      const formatted = formatErrorMessage(error?.data);
+      setErrorMessage(formatted);
       setShowErrorModal(true);
     }
   };
 
   if (isLoading) return <p>Loading case history...</p>;
 
-  const formattedOcularOptions = (ocularConditions || []).map((c) => ({
+  const formattedODQOptions = (directQuestioningConditions || []).map((c) => ({
     value: c.id,
     label: c.name,
   }));
@@ -140,7 +184,7 @@ const CaseHistory = ({ patientId, appointmentId, nextTab, setActiveTab }) => {
         />
       </div>
 
-      {/* Ocular Conditions Selection */}
+      {/* On-Direct Questioning Condition Selection */}
       <div className="mb-6">
         <SearchableSelect
           label={
@@ -148,7 +192,7 @@ const CaseHistory = ({ patientId, appointmentId, nextTab, setActiveTab }) => {
               On-Direct Questioning <span className="text-red-500">*</span>
             </span>
           }
-          options={formattedOcularOptions}
+          options={formattedODQOptions}
           selectedValues={selectedConditions.map((c) => ({
             value: c.id,
             label: c.name,
@@ -167,19 +211,16 @@ const CaseHistory = ({ patientId, appointmentId, nextTab, setActiveTab }) => {
                   <DeleteButton onClick={() => handleDeleteCondition(c.id)} />
                 </div>
 
-                {/* Affected Eye */}
                 <AffectedEyeSelect
                   value={c.affected_eye}
                   onChange={(val) => updateCondition(c.id, "affected_eye", val)}
                 />
 
-                {/* Grading (Dropdown) */}
                 <GradingSelect
                   value={c.grading}
                   onChange={(val) => updateCondition(c.id, "grading", val)}
                 />
 
-                {/* Notes */}
                 <NotesTextArea
                   value={c.notes}
                   onChange={(val) => updateCondition(c.id, "notes", val)}
@@ -204,14 +245,6 @@ const CaseHistory = ({ patientId, appointmentId, nextTab, setActiveTab }) => {
           {isSaving ? "Saving..." : "Save and proceed"}
         </button>
       </div>
-
-      {/* Error Modal */}
-      {showErrorModal && errorMessage && (
-        <ErrorModal
-          message={errorMessage}
-          onClose={() => setShowErrorModal(false)}
-        />
-      )}
     </div>
   );
 };

@@ -14,7 +14,7 @@ const NavMenu = ({ activeTab, setActiveTab }) => {
       {Consultation_nav.map((item) => (
         <button
           key={item.name}
-          // onClick={() => setActiveTab(item.name)} // Change active tab on click
+          onClick={() => setActiveTab(item.name)} // Change active tab on click
           className={`text-base ${
             item.name === activeTab ? "font-bold text-[#2f3192]" : "font-normal text-black"
           }`}

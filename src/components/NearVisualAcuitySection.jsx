@@ -2,46 +2,11 @@ import React from "react";
 
 const EYES = ["OD", "OS"];
 
-export const isValidSnellen = (value) =>
-  /^\d{1,2}\/\d{1,2}$/.test(value.trim());
-
-export const isValidLogMAR = (value) => {
-  const num = parseFloat(value);
-  return !isNaN(num) && num >= -0.02 && num <= 3.5;
-};
-
-export const isValidNearVA = (value) =>
-  /^[MN]\d+(\.\d+)?$/i.test(value.trim());
-
-export const validateVASection = (sectionData, chartType, isNear = false) => {
-  if (chartType === "Others") return true;
-
-  const validator = isNear
-    ? isValidNearVA
-    : chartType === "SNELLEN"
-    ? isValidSnellen
-    : isValidLogMAR;
-
-  return Object.values(sectionData).every((eye) =>
-    Object.values(eye).every((val) => {
-      const trimmed = typeof val === "string" ? val.trim() : val;
-      return !trimmed || validator(trimmed);
-    })
-  );
-};
-const getPlaceholder = (chartType) => {
-  if (chartType === "SNELLEN") return "6/6";
-  if (chartType === "LOGMAR") return "0.00";
-  if (chartType === "Others") return "Enter CF/HM/PL/NPL";
-  return "";
-};
-
-export default function VisualAcuitySection({
+export default function NearVisualAcuitySection({
   title,
   fields,
   vaData,
   onChange,
-  vaChart,
 }) {
   return (
     <div>
@@ -74,7 +39,7 @@ export default function VisualAcuitySection({
               <input
                 key={field}
                 type="text"
-                placeholder={getPlaceholder(vaChart)}
+                placeholder="M/N Notation"
                 value={vaData[eye][field]}
                 onChange={(e) => onChange(eye, field, e.target.value)}
                 className="border rounded px-2 py-1"

@@ -3,6 +3,7 @@ import useApiData from "./useApiData";
 import {
   useFetchOcularConditionsQuery,
   useFetchMedicalConditionsQuery,
+  useFetchDirectQuestioningConditionsQuery,
 } from "../redux/api/features/conditionsApi";
 
 const useFetchConditionsData = () => {
@@ -14,10 +15,16 @@ const useFetchConditionsData = () => {
     useFetchMedicalConditionsQuery
   );
 
+  const {
+    data: directQuestioningConditions,
+    isLoading: loadingDirectQuestioning,
+  } = useApiData(useFetchDirectQuestioningConditionsQuery);
+
   return {
     ocularConditions,
     medicalConditions,
-    isLoading: loadingOcular || loadingMedical,
+    directQuestioningConditions,
+    isLoading: loadingOcular || loadingMedical || loadingDirectQuestioning,
   };
 };
 

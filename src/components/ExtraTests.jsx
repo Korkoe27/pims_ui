@@ -1,5 +1,4 @@
 import React from "react";
-import { useNavigate, useLocation } from "react-router-dom";
 
 const ExtraTestsButtons = ({ name, title }) => (
   <button
@@ -11,24 +10,32 @@ const ExtraTestsButtons = ({ name, title }) => (
   </button>
 );
 
-const ExtraTests = () => {
-  const location = useLocation(); // Access state passed with navigate
-  const { patient } = location.state || {}; // Extract patient if needed
-  const navigate = useNavigate();
-
+const ExtraTests = ({ appointmentId, setFlowStep, setActiveTab}) => {
   const proceedToDiagnosis = () => {
-    navigate("/diagnosis");
+    setFlowStep("diagnosis");
   };
 
   const tests = [
     { name: "aoa", title: "Amplitude of Accommodation <br> (AOA)" },
     { name: "npc", title: "Near Point of Convergence <br> (NPC)" },
     { name: "coverTest", title: "Cover Test" },
-    { name: "confrontationalVisualFieldTest", title: "Confrontational <br> Visual Field Test" },
+    {
+      name: "confrontationalVisualFieldTest",
+      title: "Confrontational <br> Visual Field Test",
+    },
     { name: "vonGraefeTest", title: "Von Graefe Test" },
-    { name: "positiveRelativeAccommodation", title: "Positive Relative <br> Accommodation" },
-    { name: "negativeRelativeAccommodation", title: "Negative Relative <br> Accommodation" },
-    { name: "perimetry_visualFieldTest", title: "Perimetry <br> (Visual Field Test)" },
+    {
+      name: "positiveRelativeAccommodation",
+      title: "Positive Relative <br> Accommodation",
+    },
+    {
+      name: "negativeRelativeAccommodation",
+      title: "Negative Relative <br> Accommodation",
+    },
+    {
+      name: "perimetry_visualFieldTest",
+      title: "Perimetry <br> (Visual Field Test)",
+    },
     { name: "oct", title: "Optical Coherence Tomography <br> (OCT)" },
     { name: "cornealTopography", title: "Corneal <br> Topography" },
     { name: "pachymetry", title: "Pachymetry" },
@@ -52,16 +59,31 @@ const ExtraTests = () => {
             <span className="text-xl">+</span> Add a Test
           </button>
           {tests.map((test) => (
-            <ExtraTestsButtons key={test.name} name={test.name} title={test.title} />
+            <ExtraTestsButtons
+              key={test.name}
+              name={test.name}
+              title={test.title}
+            />
           ))}
         </section>
-        <button
-          className="w-56 h-14 p-4 rounded-lg bg-[#2f3192] text-white mx-auto"
-          onClick={proceedToDiagnosis}
-          type="button"
-        >
-          Proceed to Diagnosis
-        </button>
+
+        <div className="mt-8 flex gap-6 justify-center">
+          <button
+            type="button"
+            onClick={() => setActiveTab("refraction")}
+            className="w-56 h-14 p-4 rounded-lg border border-[#2f3192] text-[#2f3192] bg-white hover:bg-indigo-50 transition"
+          >
+            ← Back to Refraction
+          </button>
+
+          <button
+            type="button"
+            onClick={proceedToDiagnosis}
+            className="w-56 h-14 p-4 rounded-lg bg-[#2f3192] text-white hover:bg-[#1e217a] transition"
+          >
+            Proceed to Diagnosis
+          </button>
+        </div>
       </form>
     </div>
   );

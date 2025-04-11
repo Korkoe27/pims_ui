@@ -92,7 +92,7 @@ const Login = () => {
               <PiUserCircle className="w-8 h-8 object-contain text-[#667185]" />
               <input
                 type="text"
-                className="w-full outline-none h-full p-0 bg-white"
+                className="w-full outline-none  h-full p-0 bg-white"
                 placeholder="Username"
                 name="username"
                 value={username}
