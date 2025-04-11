@@ -3,9 +3,7 @@ import ErrorModal from "./ErrorModal";
 import useVisualAcuityData from "../hooks/useVisualAcuityData";
 import VisualAcuitySection, { validateVASection } from "./VisualAcuitySection";
 import NearVisualAcuitySection from "./NearVisualAcuitySection";
-import PrescriptionSection, {
-  validatePrescription,
-} from "./PrescriptionSection";
+import PrescriptionSection from "./PrescriptionSection";
 import { showToast } from "../components/ToasterHelper";
 
 const CHART_OPTIONS = [
@@ -40,6 +38,7 @@ export default function VisualAcuityForm({
 
   const [errorMessage, setErrorMessage] = useState(null);
   const [showErrorModal, setShowErrorModal] = useState(false);
+  const [spectaclesType, setSpectaclesType] = useState("");
 
   useEffect(() => {
     if (visualAcuity) {
@@ -178,14 +177,14 @@ export default function VisualAcuityForm({
       return;
     }
 
-    if (hasPrescription) {
-      const result = validatePrescription(currentRx);
-      if (!result.valid) {
-        setErrorMessage({ detail: result.message });
-        setShowErrorModal(true);
-        return;
-      }
-    }
+    // if (hasPrescription) {
+    //   const result = validatePrescription(currentRx);
+    //   if (!result.valid) {
+    //     setErrorMessage({ detail: result.message });
+    //     setShowErrorModal(true);
+    //     return;
+    //   }
+    // }
 
     const payload = {
       appointment: appointmentId,
@@ -218,6 +217,10 @@ export default function VisualAcuityForm({
       rx_add_os: currentRx.OS.add,
       rx_va2_os: currentRx.OS.nearVa,
     };
+
+    console.log("🧾 hasPrescription:", hasPrescription);
+    console.log("📄 prescriptionType:", prescriptionType);
+    console.log("📦 currentRx:", currentRx);
 
     try {
       await createVisualAcuity(payload).unwrap();
@@ -274,7 +277,8 @@ export default function VisualAcuityForm({
         setPrescriptionType={setPrescriptionType}
         currentRx={currentRx}
         onRxChange={handleRxChange}
-        errorMessage={errorMessage}
+        spectaclesType={spectaclesType}
+        setSpectaclesType={setSpectaclesType}
       />
 
       <div className="mt-8 flex justify-between items-center">
