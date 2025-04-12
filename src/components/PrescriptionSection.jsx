@@ -108,8 +108,6 @@ export default function PrescriptionSection({
           </div>
         </>
       )}
-
-      {/* ✅ Debug Section */}
       
     </div>
   );
