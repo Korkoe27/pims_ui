@@ -3,13 +3,37 @@ import React from "react";
 const EYES = ["OD", "OS"];
 const PRESCRIPTION_TYPES = ["Spectacles", "Contact Lenses"];
 
-export function validatePrescription(rx) {
-  const isValidDecimal = (val) => val === "" || !isNaN(val);
+// 🔍 Validator Function (unchanged)
+export function validatePrescription(rx, hasPrescription) {
+  if (!hasPrescription) return true;
+
+  const isQuarterStep = (value) =>
+    /^[-+]?\d+(\.0{0,2}25|\.50|\.75|\.00)?$/.test(value);
+
+  const isPositiveQuarter = (value) =>
+    /^\+?\d+(\.0{0,2}25|\.50|\.75|\.00)?$/.test(value);
+
+  const isNegativeQuarter = (value) =>
+    /^-\d+(\.0{0,2}25|\.50|\.75|\.00)?$/.test(value);
+
+  const isAxisValid = (value) => {
+    const num = Number(value);
+    return !isNaN(num) && num >= 0 && num <= 180 && Number.isInteger(num);
+  };
 
   return EYES.every((eye) => {
     const fields = rx[eye];
-    return ["sph", "cyl", "axis", "va", "add", "nearVa"].every((key) =>
-      isValidDecimal(fields[key])
+    if (Object.values(fields).some((val) => val.trim() === "")) return false;
+
+    const { sph, cyl, axis, va, add, nearVa } = fields;
+
+    return (
+      isQuarterStep(sph) &&
+      isNegativeQuarter(cyl) &&
+      isAxisValid(axis) &&
+      isPositiveQuarter(va) &&
+      isPositiveQuarter(add) &&
+      isPositiveQuarter(nearVa)
     );
   });
 }
@@ -21,8 +45,19 @@ export default function PrescriptionSection({
   setPrescriptionType,
   currentRx,
   onRxChange,
-  errorMessage, // 🆕 Accept error message from parent
+  spectaclesType,
+  setSpectaclesType,
+  rxFieldErrors = {}, // 🆕 added
 }) {
+  const placeholders = {
+    sph: "+1.00 / -2.25",
+    cyl: "-0.50",
+    axis: "0 - 180",
+    va: "6/6 or 0.00",
+    add: "+1.00",
+    nearVa: "6/9 or 0.00",
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -78,6 +113,7 @@ export default function PrescriptionSection({
               Patient’s Current Prescription{" "}
               <span className="text-red-500">*</span>
             </h3>
+
             <div className="grid grid-cols-7 gap-4 text-sm font-semibold mb-1">
               <div></div>
               <div>SPH</div>
@@ -87,20 +123,29 @@ export default function PrescriptionSection({
               <div>ADD</div>
               <div>VA (near)</div>
             </div>
+
             <div className="grid grid-cols-7 gap-4">
               {EYES.map((eye) => (
                 <React.Fragment key={eye}>
                   <div className="font-bold self-center">{eye}</div>
                   {["sph", "cyl", "axis", "va", "add", "nearVa"].map(
-                    (field) => (
-                      <input
-                        key={field}
-                        type="text"
-                        value={currentRx[eye][field]}
-                        onChange={(e) => onRxChange(eye, field, e.target.value)}
-                        className="border rounded px-2 py-1"
-                      />
-                    )
+                    (field) => {
+                      const hasError = rxFieldErrors?.[eye]?.[field] ?? false;
+                      return (
+                        <input
+                          key={field}
+                          type="text"
+                          value={currentRx[eye][field]}
+                          placeholder={placeholders[field]}
+                          onChange={(e) =>
+                            onRxChange(eye, field, e.target.value)
+                          }
+                          className={`border rounded px-2 py-1 ${
+                            hasError ? "border-red-500" : ""
+                          }`}
+                        />
+                      );
+                    }
                   )}
                 </React.Fragment>
               ))}
@@ -108,7 +153,6 @@ export default function PrescriptionSection({
           </div>
         </>
       )}
-      
     </div>
   );
 }

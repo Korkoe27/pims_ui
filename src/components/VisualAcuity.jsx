@@ -3,7 +3,9 @@ import ErrorModal from "./ErrorModal";
 import useVisualAcuityData from "../hooks/useVisualAcuityData";
 import VisualAcuitySection, { validateVASection } from "./VisualAcuitySection";
 import NearVisualAcuitySection from "./NearVisualAcuitySection";
-import PrescriptionSection from "./PrescriptionSection";
+import PrescriptionSection, {
+  validatePrescription,
+} from "./PrescriptionSection";
 import { showToast } from "../components/ToasterHelper";
 
 const CHART_OPTIONS = [
@@ -39,6 +41,7 @@ export default function VisualAcuityForm({
   const [errorMessage, setErrorMessage] = useState(null);
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [spectaclesType, setSpectaclesType] = useState("");
+  const [rxFieldErrors, setRxFieldErrors] = useState({ OD: {}, OS: {} });
 
   useEffect(() => {
     if (visualAcuity) {
@@ -103,16 +106,17 @@ export default function VisualAcuityForm({
   };
 
   const handleNearVAChange = (eye, field, value) => {
-    setNearVA((prev) => ({
-      ...prev,
-      [eye]: { ...prev[eye], [field]: value },
-    }));
+    setNearVA((prev) => ({ ...prev, [eye]: { ...prev[eye], [field]: value } }));
   };
 
   const handleRxChange = (eye, field, value) => {
     setCurrentRx((prev) => ({
       ...prev,
       [eye]: { ...prev[eye], [field]: value },
+    }));
+    setRxFieldErrors((prev) => ({
+      ...prev,
+      [eye]: { ...prev[eye], [field]: false },
     }));
   };
 
@@ -135,10 +139,10 @@ export default function VisualAcuityForm({
   const handleSaveAndProceed = async () => {
     setErrorMessage(null);
     setShowErrorModal(false);
+    setRxFieldErrors({ OD: {}, OS: {} });
 
     if (!vaChart) {
-      setErrorMessage({ detail: "Please select the VA chart used. 👍" });
-      setShowErrorModal(true);
+      showToast("Please select the VA chart used. 👍", "error");
       return;
     }
 
@@ -147,8 +151,7 @@ export default function VisualAcuityForm({
     );
 
     if (!isDistancePresent) {
-      setErrorMessage({ detail: "Enter at least one Distance VA per eye. 👍" });
-      setShowErrorModal(true);
+      showToast("Enter at least one Distance VA per eye. 👍", "error");
       return;
     }
 
@@ -157,7 +160,6 @@ export default function VisualAcuityForm({
 
     if (!isDistanceValid || !isNearValid) {
       let message = "";
-
       if (!isDistanceValid) {
         message +=
           vaChart === "SNELLEN"
@@ -166,16 +168,56 @@ export default function VisualAcuityForm({
             ? "All *Distance VA* entries must be decimal values between -0.02 and 3.50 for LogMAR chart. 👍\n"
             : "Use appropriate notation for Distance VA e.g. CF, HM, PL, NPL. 👍\n";
       }
-
       if (!isNearValid) {
         message +=
           "All *Near VA* entries must be in M/N notation e.g. M1, N5, M2.5. 👍";
       }
-
-      setErrorMessage({ detail: message.trim() });
-      setShowErrorModal(true);
+      showToast(message.trim(), "error");
       return;
     }
+
+    const isRxValid = validatePrescription(currentRx, hasPrescription);
+    if (hasPrescription && !isRxValid) {
+      showToast(
+        "Please complete all prescription fields with valid values before proceeding. 👍",
+        "error"
+      );
+
+      // Highlight fields
+      const newErrors = { OD: {}, OS: {} };
+      ["OD", "OS"].forEach((eye) => {
+        Object.entries(currentRx[eye]).forEach(([field, value]) => {
+          if (value.trim() === "") {
+            newErrors[eye][field] = true;
+          } else {
+            const num = Number(value);
+            if (
+              field === "sph" &&
+              !/^[-+]?[0-9]+(\.25|\.50|\.75|\.00)?$/.test(value)
+            )
+              newErrors[eye][field] = true;
+            if (
+              field === "cyl" &&
+              !/^-[0-9]+(\.25|\.50|\.75|\.00)?$/.test(value)
+            )
+              newErrors[eye][field] = true;
+            if (
+              field === "axis" &&
+              (!Number.isInteger(num) || num < 0 || num > 180)
+            )
+              newErrors[eye][field] = true;
+            if (
+              ["va", "add", "nearVa"].includes(field) &&
+              !/^\+?[0-9]+(\.25|\.50|\.75|\.00)?$/.test(value)
+            )
+              newErrors[eye][field] = true;
+          }
+        });
+      });
+      setRxFieldErrors(newErrors);
+      return;
+    }
+
     const payload = {
       appointment: appointmentId,
       va_chart_used: vaChart,
@@ -215,8 +257,7 @@ export default function VisualAcuityForm({
     } catch (error) {
       console.error("❌ Error saving visual acuity:", error);
       const formatted = formatErrorMessage(error?.data);
-      setErrorMessage(formatted);
-      setShowErrorModal(true);
+      showToast(formatted.detail, "error");
     }
   };
 
@@ -265,6 +306,7 @@ export default function VisualAcuityForm({
         onRxChange={handleRxChange}
         spectaclesType={spectaclesType}
         setSpectaclesType={setSpectaclesType}
+        rxFieldErrors={rxFieldErrors}
       />
 
       <div className="mt-8 flex justify-between items-center">
