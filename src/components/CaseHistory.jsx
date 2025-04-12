@@ -10,6 +10,7 @@ import AffectedEyeSelect from "./AffectedEyeSelect";
 import GradingSelect from "./GradingSelect";
 import NotesTextArea from "./NotesTextArea";
 import DeleteButton from "./DeleteButton";
+import { hasFormChanged } from "../utils/deepCompare";
 
 const CaseHistory = ({ patientId, appointmentId, nextTab, setActiveTab }) => {
   const { data: caseHistory, isLoading: loadingCaseHistory } =
@@ -25,6 +26,7 @@ const CaseHistory = ({ patientId, appointmentId, nextTab, setActiveTab }) => {
 
   const [chiefComplaint, setChiefComplaint] = useState("");
   const [selectedConditions, setSelectedConditions] = useState([]);
+  const [initialPayload, setInitialPayload] = useState(null);
   const [errorMessage, setErrorMessage] = useState(null);
   const [showErrorModal, setShowErrorModal] = useState(false);
 
@@ -43,10 +45,23 @@ const CaseHistory = ({ patientId, appointmentId, nextTab, setActiveTab }) => {
       }));
 
       setSelectedConditions(mapped);
+
+      // Save the initial payload for comparison
+      setInitialPayload({
+        appointment: appointmentId,
+        chief_complaint: caseHistory?.chief_complaint || "",
+        condition_details: (caseHistory?.condition_details || []).map(
+          (item) => ({
+            condition: item.condition,
+            affected_eye: item.affected_eye || "",
+            grading: item.grading || "",
+            notes: item.notes || "",
+          })
+        ),
+      });
     }
   }, [caseHistory]);
 
-  // ✅ Show toast from error modal
   useEffect(() => {
     if (showErrorModal && errorMessage) {
       showToast(errorMessage.detail, "error");
@@ -64,7 +79,7 @@ const CaseHistory = ({ patientId, appointmentId, nextTab, setActiveTab }) => {
           const label = key.replace(/_/g, " ").toUpperCase();
           let msg;
           if (typeof value === "object") {
-            msg = JSON.stringify(value); // 🔥 Prevent [object Object]
+            msg = JSON.stringify(value);
           } else {
             msg = Array.isArray(value) ? value.join(", ") : value;
           }
@@ -128,10 +143,11 @@ const CaseHistory = ({ patientId, appointmentId, nextTab, setActiveTab }) => {
     const hasInvalidEye = selectedConditions.some(
       (c) => !["OD", "OS", "OU"].includes(c.affected_eye)
     );
-    
+
     if (hasInvalidEye) {
       setErrorMessage({
-        detail: "Each condition must have a valid affected eye (OD, OS, or OU). 👍",
+        detail:
+          "Each condition must have a valid affected eye (OD, OS, or OU). 👍",
       });
       setShowErrorModal(true);
       return;
@@ -147,6 +163,13 @@ const CaseHistory = ({ patientId, appointmentId, nextTab, setActiveTab }) => {
         notes: c.notes,
       })),
     };
+
+    // ✅ Skip save if no changes detected
+    if (initialPayload && !hasFormChanged(initialPayload, payload)) {
+      showToast("No changes detected", "info");
+      setActiveTab("personal history");
+      return;
+    }
 
     try {
       await createCaseHistory(payload).unwrap();
