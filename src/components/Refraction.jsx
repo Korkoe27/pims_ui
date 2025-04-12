@@ -102,10 +102,9 @@ const Refraction = ({ setActiveTab }) => {
     try {
       await createRefraction({ appointmentId, ...payload }).unwrap();
       showToast("Refraction saved successfully!", "success");
-      setActiveTab("extra test");
+      setActiveTab("extra tests");
       return true;
     } catch (error) {
-      console.error("❌ Failed to save refraction", error);
       const message =
         error?.data?.detail ||
         "Failed to save refraction results. Please try again.";
