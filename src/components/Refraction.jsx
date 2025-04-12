@@ -19,7 +19,7 @@ const PLACEHOLDERS = {
   va_0_4m: "6/9 or 0.00",
 };
 
-const Refraction = ({ setActiveTab, nextTab }) => {
+const Refraction = ({ setActiveTab }) => {
   const { appointmentId } = useParams();
   const { refraction, loadingRefraction, createRefraction } =
     useRefractionData(appointmentId);
@@ -98,21 +98,15 @@ const Refraction = ({ setActiveTab, nextTab }) => {
     try {
       await createRefraction({ appointmentId, ...payload }).unwrap();
       showToast("Refraction saved successfully!", "success");
+      setActiveTab("extra test");
       return true;
     } catch (error) {
       console.error("❌ Failed to save refraction", error);
-      setErrorMessage({
-        detail: "Failed to save refraction results. Please try again.",
-      });
-      setShowErrorModal(true);
+      const message =
+        error?.data?.detail ||
+        "Failed to save refraction results. Please try again.";
+      showToast(message, "error");
       return false;
-    }
-  };
-
-  const handleSaveAndProceed = async () => {
-    const success = await handleSave();
-    if (success && nextTab && setActiveTab) {
-      setActiveTab(nextTab);
     }
   };
 
@@ -123,14 +117,14 @@ const Refraction = ({ setActiveTab, nextTab }) => {
           <label className="text-center font-normal text-base">{label}</label>
           <input
             type="text"
-            value={formData[section].OD[name] || ""}
+            value={formData[section].OD[name] ?? ""}
             onChange={(e) => handleChange(section, "OD", name, e.target.value)}
             placeholder={PLACEHOLDERS[name] || ""}
             className="w-20 h-9 mb-4 rounded-md border border-[#d0d5dd]"
           />
           <input
             type="text"
-            value={formData[section].OS[name] || ""}
+            value={formData[section].OS[name] ?? ""}
             onChange={(e) => handleChange(section, "OS", name, e.target.value)}
             placeholder={PLACEHOLDERS[name] || ""}
             className="w-20 h-9 rounded-md border border-[#d0d5dd]"
@@ -247,7 +241,7 @@ const Refraction = ({ setActiveTab, nextTab }) => {
 
           <button
             type="button"
-            onClick={handleSaveAndProceed}
+            onClick={handleSave}
             className="px-6 py-2 font-semibold text-white rounded-full shadow-md transition-colors duration-200 bg-indigo-600 hover:bg-indigo-700"
           >
             Save and Proceed
