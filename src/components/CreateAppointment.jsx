@@ -67,7 +67,6 @@ const CreateAppointment = () => {
       showToast(message, "error");
     }
   };
-  
 
   return (
     <div className="ml-72 my-8 px-8 w-[800px] flex flex-col bg-[#f9fafb] gap-12">
@@ -92,11 +91,6 @@ const CreateAppointment = () => {
               <strong>Patient ID:</strong> {patient.patient_id}
             </p>
           </div>
-{/* 
-          {isLoading && showToast("Submitting..", "loading")}
-          {isSuccess &&
-            showToast("Appointment Created Successfully!", "success")}
-          {isError && showToast(formatErrorMessage(error?.data), "error")} */}
 
           <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-6">
             <div className="flex flex-col gap-4">

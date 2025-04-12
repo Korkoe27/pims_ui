@@ -89,7 +89,11 @@ const Consultation = () => {
         );
       case "extra tests":
         return (
-          <ExtraTests appointmentId={appointmentId} setFlowStep={setFlowStep} setActiveTab={setActiveTab}/>
+          <ExtraTests
+            appointmentId={appointmentId}
+            setFlowStep={setFlowStep}
+            setActiveTab={setActiveTab}
+          />
         );
       default:
         return <p>Select a tab to continue.</p>;
@@ -107,7 +111,7 @@ const Consultation = () => {
         );
       case "diagnosis":
         return (
-          <Diagnosis appointmentId={appointmentId} setFlowStep={setFlowStep}   />
+          <Diagnosis appointmentId={appointmentId} setFlowStep={setFlowStep} />
         );
       case "management":
         return (

@@ -2,9 +2,24 @@ import React, { useState, useEffect } from "react";
 import { GrAdd } from "react-icons/gr";
 import { useParams } from "react-router-dom";
 import useRefractionData from "../hooks/useRefractionData";
-import ErrorModal from "./ErrorModal"; // ✅ Import ErrorModal
+import ErrorModal from "./ErrorModal";
+import { showToast } from "../components/ToasterHelper";
 
-const Refraction = ({ setActiveTab, nextTab }) => {
+const OBJECTIVE_METHOD_OPTIONS = [
+  { value: "Retinoscopy", label: "Retinoscopy" },
+  { value: "AutoRefraction", label: "AutoRefraction" },
+];
+
+const PLACEHOLDERS = {
+  sph: "+1.00",
+  cyl: "-0.50",
+  axis: "0 - 180",
+  va_6m: "6/6",
+  add: "+1.00",
+  va_0_4m: "6/9",
+};
+
+const Refraction = ({ setActiveTab }) => {
   const { appointmentId } = useParams();
   const { refraction, loadingRefraction, createRefraction } =
     useRefractionData(appointmentId);
@@ -34,19 +49,23 @@ const Refraction = ({ setActiveTab, nextTab }) => {
       setFormData({
         objective_method: refraction.objective_method || "",
         objective: {
-          OD: refraction.objective.find((r) => r.eye === "OD") || {},
-          OS: refraction.objective.find((r) => r.eye === "OS") || {},
+          OD: refraction.objective?.find((r) => r.eye === "OD") || {},
+          OS: refraction.objective?.find((r) => r.eye === "OS") || {},
         },
         subjective: {
-          OD: refraction.subjective.find((r) => r.eye === "OD") || {},
-          OS: refraction.subjective.find((r) => r.eye === "OS") || {},
+          OD: refraction.subjective?.find((r) => r.eye === "OD") || {},
+          OS: refraction.subjective?.find((r) => r.eye === "OS") || {},
         },
         cycloplegic: {
-          OD: refraction.cycloplegic.find((r) => r.eye === "OD") || {},
-          OS: refraction.cycloplegic.find((r) => r.eye === "OS") || {},
+          OD: refraction.cycloplegic?.find((r) => r.eye === "OD") || {},
+          OS: refraction.cycloplegic?.find((r) => r.eye === "OS") || {},
         },
       });
-      setShowCycloplegic(refraction.cycloplegic.length > 0);
+
+      setShowCycloplegic(
+        Array.isArray(refraction.cycloplegic) &&
+          refraction.cycloplegic.length > 0
+      );
     }
   }, [refraction]);
 
@@ -82,27 +101,15 @@ const Refraction = ({ setActiveTab, nextTab }) => {
 
     try {
       await createRefraction({ appointmentId, ...payload }).unwrap();
-      console.log("✅ Refraction saved");
+      showToast("Refraction saved successfully!", "success");
+      setActiveTab("extra tests");
       return true;
     } catch (error) {
-      console.error("❌ Failed to save refraction", error);
-      setErrorMessage({
-        detail: "Failed to save refraction results. Please try again.",
-      });
-      setShowErrorModal(true);
+      const message =
+        error?.data?.detail ||
+        "Failed to save refraction results. Please try again.";
+      showToast(message, "error");
       return false;
-    }
-  };
-
-  const handleSaveAndProceed = async () => {
-    const success = await handleSave();
-    if (success) {
-      console.log("➡️ Proceeding to tab:", nextTab);
-      if (nextTab && setActiveTab) {
-        setActiveTab(nextTab);
-      } else {
-        console.warn("Missing setActiveTab or nextTab");
-      }
     }
   };
 
@@ -113,14 +120,16 @@ const Refraction = ({ setActiveTab, nextTab }) => {
           <label className="text-center font-normal text-base">{label}</label>
           <input
             type="text"
-            value={formData[section].OD[name] || ""}
+            value={formData[section].OD[name] ?? ""}
             onChange={(e) => handleChange(section, "OD", name, e.target.value)}
+            placeholder={PLACEHOLDERS[name] || ""}
             className="w-20 h-9 mb-4 rounded-md border border-[#d0d5dd]"
           />
           <input
             type="text"
-            value={formData[section].OS[name] || ""}
+            value={formData[section].OS[name] ?? ""}
             onChange={(e) => handleChange(section, "OS", name, e.target.value)}
+            placeholder={PLACEHOLDERS[name] || ""}
             className="w-20 h-9 rounded-md border border-[#d0d5dd]"
           />
         </div>
@@ -150,8 +159,7 @@ const Refraction = ({ setActiveTab, nextTab }) => {
           <label className="text-base text-[#101928] font-medium">
             Method for Objective Refraction
           </label>
-          <input
-            type="text"
+          <select
             value={formData.objective_method || ""}
             onChange={(e) =>
               setFormData((prev) => ({
@@ -160,7 +168,14 @@ const Refraction = ({ setActiveTab, nextTab }) => {
               }))
             }
             className="w-full p-4 h-14 rounded-md border border-[#d0d5dd] bg-white"
-          />
+          >
+            <option value="">Select Method</option>
+            {OBJECTIVE_METHOD_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
         </div>
 
         <section className="flex flex-col gap-16">
@@ -229,7 +244,7 @@ const Refraction = ({ setActiveTab, nextTab }) => {
 
           <button
             type="button"
-            onClick={handleSaveAndProceed}
+            onClick={handleSave}
             className="px-6 py-2 font-semibold text-white rounded-full shadow-md transition-colors duration-200 bg-indigo-600 hover:bg-indigo-700"
           >
             Save and Proceed
@@ -237,7 +252,6 @@ const Refraction = ({ setActiveTab, nextTab }) => {
         </div>
       </form>
 
-      {/* Error Modal */}
       {showErrorModal && errorMessage && (
         <ErrorModal
           message={errorMessage}

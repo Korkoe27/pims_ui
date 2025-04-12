@@ -31,6 +31,12 @@ export const showToast = (message, type = "error", options = {}) => {
     case "custom":
       toast.custom(message, config);
       break;
+    case "info":
+      toast(message, { icon: "ℹ️", ...config });
+      break;
+    case "neutral":
+      toast(message, { icon: "👀", ...config });
+      break;
     default:
       toast.error(message, config);
   }
@@ -41,9 +47,8 @@ export const showToast = (message, type = "error", options = {}) => {
     document.addEventListener("keydown", () => toast.dismiss());
     isListenerAdded = true;
   }
-
-  
 };
+
 
 export const formatErrorMessage = (data) => {
   if (!data) return "An unexpected error occurred.";

@@ -1,9 +1,9 @@
+// Full updated Internals component with OD/OS layout and success toast
 import React, { useState, useEffect } from "react";
 import { FaChevronDown, FaChevronUp } from "react-icons/fa";
 import { useParams } from "react-router-dom";
 import useInternalObservationData from "../hooks/useInternalObservationData";
 import SearchableSelect from "./SearchableSelect";
-import AffectedEyeSelect from "./AffectedEyeSelect";
 import GradingSelect from "./GradingSelect";
 import NotesTextArea from "./NotesTextArea";
 import DeleteButton from "./DeleteButton";
@@ -11,7 +11,6 @@ import { showToast, formatErrorMessage } from "../components/ToasterHelper";
 
 const Internals = ({ setActiveTab }) => {
   const { appointmentId } = useParams();
-
   const [dropdowns, setDropdowns] = useState({});
   const [formData, setFormData] = useState({});
   const [errorMessage, setErrorMessage] = useState(null);
@@ -42,18 +41,27 @@ const Internals = ({ setActiveTab }) => {
         if (!condition) return;
 
         const groupName = condition.group_name;
+        if (!initialFormData[groupName]) initialFormData[groupName] = [];
 
-        if (!initialFormData[groupName]) {
-          initialFormData[groupName] = [];
+        const entryIndex = initialFormData[groupName].findIndex(
+          (e) => e.id === condition.id
+        );
+
+        if (entryIndex === -1) {
+          initialFormData[groupName].push({
+            id: condition.id,
+            name: condition.name,
+            [obs.affected_eye]: {
+              grading: obs.grading,
+              notes: obs.notes,
+            },
+          });
+        } else {
+          initialFormData[groupName][entryIndex][obs.affected_eye] = {
+            grading: obs.grading,
+            notes: obs.notes,
+          };
         }
-
-        initialFormData[groupName].push({
-          id: condition.id,
-          name: condition.name,
-          affected_eye: obs.affected_eye,
-          grading: obs.grading,
-          notes: obs.notes,
-        });
       });
 
       setFormData(initialFormData);
@@ -86,20 +94,24 @@ const Internals = ({ setActiveTab }) => {
           {
             id: selectedId,
             name: selectedName,
-            affected_eye: "",
-            grading: "",
-            notes: "",
+            OD: { grading: "", notes: "" },
+            OS: { grading: "", notes: "" },
           },
         ],
       };
     });
   };
 
-  const handleFieldChange = (groupName, conditionId, field, value) => {
+  const handleFieldChange = (groupName, conditionId, eye, field, value) => {
     setFormData((prev) => ({
       ...prev,
       [groupName]: prev[groupName].map((item) =>
-        item.id === conditionId ? { ...item, [field]: value } : item
+        item.id === conditionId
+          ? {
+              ...item,
+              [eye]: { ...item[eye], [field]: value },
+            }
+          : item
       ),
     }));
   };
@@ -119,11 +131,16 @@ const Internals = ({ setActiveTab }) => {
 
     Object.entries(formData).forEach(([groupName, entries]) => {
       entries.forEach((entry) => {
-        observations.push({
-          condition: entry.id,
-          affected_eye: entry.affected_eye,
-          grading: entry.grading,
-          notes: entry.notes,
+        ["OD", "OS"].forEach((eye) => {
+          const details = entry[eye];
+          if (details && (details.grading || details.notes)) {
+            observations.push({
+              condition: entry.id,
+              affected_eye: eye,
+              grading: details.grading,
+              notes: details.notes,
+            });
+          }
         });
       });
     });
@@ -138,8 +155,8 @@ const Internals = ({ setActiveTab }) => {
 
     try {
       await createInternalObservation({ appointmentId, observations }).unwrap();
-      console.log("✅ Internals saved");
-      if (setActiveTab) setActiveTab("refraction"); // or next tab
+      showToast("Internal observations saved successfully!", "success");
+      if (setActiveTab) setActiveTab("refraction");
     } catch (error) {
       const formatted = formatErrorMessage(error?.data);
       showToast(formatted, "error");
@@ -205,41 +222,42 @@ const Internals = ({ setActiveTab }) => {
                             />
                           </div>
 
-                          <AffectedEyeSelect
-                            value={item.affected_eye}
-                            onChange={(val) =>
-                              handleFieldChange(
-                                groupName,
-                                item.id,
-                                "affected_eye",
-                                val
-                              )
-                            }
-                          />
-
-                          <GradingSelect
-                            value={item.grading}
-                            onChange={(val) =>
-                              handleFieldChange(
-                                groupName,
-                                item.id,
-                                "grading",
-                                val
-                              )
-                            }
-                          />
-
-                          <NotesTextArea
-                            value={item.notes}
-                            onChange={(val) =>
-                              handleFieldChange(
-                                groupName,
-                                item.id,
-                                "notes",
-                                val
-                              )
-                            }
-                          />
+                          <div className="grid grid-cols-2 gap-4">
+                            {["OD", "OS"].map((eye) => (
+                              <div key={eye}>
+                                <h5 className="font-medium text-sm mb-2">
+                                  {eye === "OD"
+                                    ? "OD (Right Eye)"
+                                    : "OS (Left Eye)"}
+                                </h5>
+                                <GradingSelect
+                                  value={item[eye]?.grading || ""}
+                                  onChange={(val) =>
+                                    handleFieldChange(
+                                      groupName,
+                                      item.id,
+                                      eye,
+                                      "grading",
+                                      val
+                                    )
+                                  }
+                                />
+                                <NotesTextArea
+                                  value={item[eye]?.notes || ""}
+                                  onChange={(val) =>
+                                    handleFieldChange(
+                                      groupName,
+                                      item.id,
+                                      eye,
+                                      "notes",
+                                      val
+                                    )
+                                  }
+                                  placeholder={`Notes for ${eye}`}
+                                />
+                              </div>
+                            ))}
+                          </div>
                         </div>
                       ))}
                     </div>
