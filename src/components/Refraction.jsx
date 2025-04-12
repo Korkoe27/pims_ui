@@ -11,12 +11,12 @@ const OBJECTIVE_METHOD_OPTIONS = [
 ];
 
 const PLACEHOLDERS = {
-  sph: "+1.00 / -2.25",
+  sph: "+1.00",
   cyl: "-0.50",
   axis: "0 - 180",
-  va_6m: "6/6 or 0.00",
+  va_6m: "6/6",
   add: "+1.00",
-  va_0_4m: "6/9 or 0.00",
+  va_0_4m: "6/9",
 };
 
 const Refraction = ({ setActiveTab }) => {
@@ -49,19 +49,23 @@ const Refraction = ({ setActiveTab }) => {
       setFormData({
         objective_method: refraction.objective_method || "",
         objective: {
-          OD: refraction.objective.find((r) => r.eye === "OD") || {},
-          OS: refraction.objective.find((r) => r.eye === "OS") || {},
+          OD: refraction.objective?.find((r) => r.eye === "OD") || {},
+          OS: refraction.objective?.find((r) => r.eye === "OS") || {},
         },
         subjective: {
-          OD: refraction.subjective.find((r) => r.eye === "OD") || {},
-          OS: refraction.subjective.find((r) => r.eye === "OS") || {},
+          OD: refraction.subjective?.find((r) => r.eye === "OD") || {},
+          OS: refraction.subjective?.find((r) => r.eye === "OS") || {},
         },
         cycloplegic: {
-          OD: refraction.cycloplegic.find((r) => r.eye === "OD") || {},
-          OS: refraction.cycloplegic.find((r) => r.eye === "OS") || {},
+          OD: refraction.cycloplegic?.find((r) => r.eye === "OD") || {},
+          OS: refraction.cycloplegic?.find((r) => r.eye === "OS") || {},
         },
       });
-      setShowCycloplegic(refraction.cycloplegic.length > 0);
+
+      setShowCycloplegic(
+        Array.isArray(refraction.cycloplegic) &&
+          refraction.cycloplegic.length > 0
+      );
     }
   }, [refraction]);
 
