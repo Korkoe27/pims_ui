@@ -1,18 +1,44 @@
-import React from "react";
+import React, { useState } from "react";
+import ExtraTestModal from "./ExtraTestModal"; // 👈 import modal
+import { showToast } from "../components/ToasterHelper";
 
-const ExtraTestsButtons = ({ name, title }) => (
+const ExtraTestsButtons = ({ name, title, onClick }) => (
   <button
     type="button"
     name={name}
+    onClick={() => onClick(name)}
     className="w-48 py-12 border text-[#2f3192] border-dashed border-[#2f3192] rounded-xl text-center"
   >
     <span dangerouslySetInnerHTML={{ __html: title }}></span>
   </button>
 );
 
-const ExtraTests = ({ appointmentId, setFlowStep, setActiveTab}) => {
+const ExtraTests = ({ appointmentId, setFlowStep, setActiveTab }) => {
   const proceedToDiagnosis = () => {
+    showToast("Extra tests submitted!", "success");
     setFlowStep("diagnosis");
+  };
+
+  const [testData, setTestData] = useState({});
+  const [activeTest, setActiveTest] = useState(null); // Which test we're editing
+  const [showModal, setShowModal] = useState(false);
+
+  const handleSaveTest = (data) => {
+    setTestData((prev) => ({
+      ...prev,
+      [activeTest]: data,
+    }));
+    showToast(`Saved ${activeTest} test ✅`, "success");
+  };
+
+  const handleOpenModal = (testName) => {
+    setActiveTest(testName);
+    setShowModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setActiveTest(null);
   };
 
   const tests = [
@@ -63,6 +89,7 @@ const ExtraTests = ({ appointmentId, setFlowStep, setActiveTab}) => {
               key={test.name}
               name={test.name}
               title={test.title}
+              onClick={handleOpenModal}
             />
           ))}
         </section>
@@ -85,6 +112,15 @@ const ExtraTests = ({ appointmentId, setFlowStep, setActiveTab}) => {
           </button>
         </div>
       </form>
+
+      {/* Modal */}
+      <ExtraTestModal
+        isOpen={showModal}
+        onClose={handleCloseModal}
+        testName={activeTest}
+        initialData={testData[activeTest]}
+        onSave={handleSaveTest}
+      />
     </div>
   );
 };
