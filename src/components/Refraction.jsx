@@ -2,7 +2,22 @@ import React, { useState, useEffect } from "react";
 import { GrAdd } from "react-icons/gr";
 import { useParams } from "react-router-dom";
 import useRefractionData from "../hooks/useRefractionData";
-import ErrorModal from "./ErrorModal"; // ✅ Import ErrorModal
+import ErrorModal from "./ErrorModal";
+import { showToast } from "../components/ToasterHelper";
+
+const OBJECTIVE_METHOD_OPTIONS = [
+  { value: "Retinoscopy", label: "Retinoscopy" },
+  { value: "AutoRefraction", label: "AutoRefraction" },
+];
+
+const PLACEHOLDERS = {
+  sph: "+1.00 / -2.25",
+  cyl: "-0.50",
+  axis: "0 - 180",
+  va_6m: "6/6 or 0.00",
+  add: "+1.00",
+  va_0_4m: "6/9 or 0.00",
+};
 
 const Refraction = ({ setActiveTab, nextTab }) => {
   const { appointmentId } = useParams();
@@ -82,7 +97,7 @@ const Refraction = ({ setActiveTab, nextTab }) => {
 
     try {
       await createRefraction({ appointmentId, ...payload }).unwrap();
-      console.log("✅ Refraction saved");
+      showToast("Refraction saved successfully!", "success");
       return true;
     } catch (error) {
       console.error("❌ Failed to save refraction", error);
@@ -96,13 +111,8 @@ const Refraction = ({ setActiveTab, nextTab }) => {
 
   const handleSaveAndProceed = async () => {
     const success = await handleSave();
-    if (success) {
-      console.log("➡️ Proceeding to tab:", nextTab);
-      if (nextTab && setActiveTab) {
-        setActiveTab(nextTab);
-      } else {
-        console.warn("Missing setActiveTab or nextTab");
-      }
+    if (success && nextTab && setActiveTab) {
+      setActiveTab(nextTab);
     }
   };
 
@@ -115,12 +125,14 @@ const Refraction = ({ setActiveTab, nextTab }) => {
             type="text"
             value={formData[section].OD[name] || ""}
             onChange={(e) => handleChange(section, "OD", name, e.target.value)}
+            placeholder={PLACEHOLDERS[name] || ""}
             className="w-20 h-9 mb-4 rounded-md border border-[#d0d5dd]"
           />
           <input
             type="text"
             value={formData[section].OS[name] || ""}
             onChange={(e) => handleChange(section, "OS", name, e.target.value)}
+            placeholder={PLACEHOLDERS[name] || ""}
             className="w-20 h-9 rounded-md border border-[#d0d5dd]"
           />
         </div>
@@ -150,8 +162,7 @@ const Refraction = ({ setActiveTab, nextTab }) => {
           <label className="text-base text-[#101928] font-medium">
             Method for Objective Refraction
           </label>
-          <input
-            type="text"
+          <select
             value={formData.objective_method || ""}
             onChange={(e) =>
               setFormData((prev) => ({
@@ -160,7 +171,14 @@ const Refraction = ({ setActiveTab, nextTab }) => {
               }))
             }
             className="w-full p-4 h-14 rounded-md border border-[#d0d5dd] bg-white"
-          />
+          >
+            <option value="">Select Method</option>
+            {OBJECTIVE_METHOD_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
         </div>
 
         <section className="flex flex-col gap-16">
@@ -237,7 +255,6 @@ const Refraction = ({ setActiveTab, nextTab }) => {
         </div>
       </form>
 
-      {/* Error Modal */}
       {showErrorModal && errorMessage && (
         <ErrorModal
           message={errorMessage}
