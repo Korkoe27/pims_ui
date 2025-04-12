@@ -155,6 +155,7 @@ const Externals = ({ setActiveTab }) => {
 
     try {
       await createExternalObservation({ appointmentId, observations }).unwrap();
+      showToast("External observations saved successfully!", "success"); 
       if (setActiveTab) setActiveTab("internals");
     } catch (error) {
       const formatted = formatErrorMessage(error?.data);
