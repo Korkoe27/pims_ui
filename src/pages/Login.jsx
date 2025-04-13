@@ -96,8 +96,6 @@ const Login = () => {
           </h2>
         </div>
 
-        <h1 className="text-2xl font-bold text-center">Log in</h1>
-
         <form onSubmit={handleSubmit} className="flex flex-col gap-6">
           {/* Username */}
           <div className="flex flex-col gap-1">

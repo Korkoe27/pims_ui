@@ -196,7 +196,7 @@ const PersonalHistory = ({
     try {
       showToast("Saving personal history...", "loading");
       await createPatientHistory(payload).unwrap();
-      showToast("Personal history saved successfully!", "success");
+      showToast("Oculo-Medical history saved successfully!", "success");
       setActiveTab("visual acuity");
     } catch (err) {
       console.error("❌ Error saving personal history:", err);
