@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useLocation } from "react-router-dom";
 import { useGetPatientAppointmentsQuery } from "../redux/api/features/patientApi";
+import CaseHistoryView from "../components/CaseHistoryView";
 
 const TabButton = ({ label, value, active, onClick }) => (
   <button
@@ -51,9 +52,8 @@ const PatientDetails = () => {
     { label: "Internals", value: "internals" },
     { label: "Refraction", value: "refraction" },
     { label: "Extra Test", value: "extratest" },
-    { label: "Diagnosis", value: "diagnosis" },  
+    { label: "Diagnosis", value: "diagnosis" },
     { label: "Management", value: "management" },
-    
   ];
 
   return (
@@ -64,7 +64,10 @@ const PatientDetails = () => {
           Patient Details
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-          <Detail label="Name" value={`${patient.first_name} ${patient.last_name}`} />
+          <Detail
+            label="Name"
+            value={`${patient.first_name} ${patient.last_name}`}
+          />
           <Detail label="Patient ID" value={patient.patient_id} />
           <Detail label="Phone" value={patient.primary_phone} />
           <Detail label="Age" value={patient.age} />
@@ -76,7 +79,12 @@ const PatientDetails = () => {
       {/* Tabs */}
       <div className="border-b flex">
         {tabs.map((tab) => (
-          <TabButton key={tab.value} {...tab} active={activeTab} onClick={setActiveTab} />
+          <TabButton
+            key={tab.value}
+            {...tab}
+            active={activeTab}
+            onClick={setActiveTab}
+          />
         ))}
       </div>
 
@@ -102,12 +110,19 @@ const PatientDetails = () => {
             {/* Modal Tabs */}
             <div className="border-b flex">
               {modalTabs.map((tab) => (
-                <TabButton key={tab.value} {...tab} active={modalTab} onClick={setModalTab} />
+                <TabButton
+                  key={tab.value}
+                  {...tab}
+                  active={modalTab}
+                  onClick={setModalTab}
+                />
               ))}
             </div>
 
             <div className="mt-4">
-              {modalTab === "casehistory" && <p>Details about case history...</p>}
+              {modalTab === "casehistory" && (
+                <CaseHistoryView appointmentId={selectedAppointment.id} />
+              )}
               {modalTab === "refraction" && <p>Details about refraction...</p>}
               {modalTab === "extratest" && <p>Details about extra tests...</p>}
             </div>
@@ -134,7 +149,9 @@ const Detail = ({ label, value }) => (
 
 const PatientInfoSection = ({ patient }) => (
   <div className="bg-gray-50 p-6 rounded shadow">
-    <h3 className="text-xl font-bold text-[#2f3192] mb-4">Patient Information</h3>
+    <h3 className="text-xl font-bold text-[#2f3192] mb-4">
+      Patient Information
+    </h3>
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
       <Detail label="Generated ID" value={patient.generated_id_number} />
       <Detail label="ID Type" value={patient.id_type} />
@@ -144,8 +161,14 @@ const PatientInfoSection = ({ patient }) => (
       <Detail label="Address" value={patient.address} />
       <Detail label="Landmark" value={patient.landmark} />
       <Detail label="Region" value={patient.region} />
-      <Detail label="Emergency Contact" value={patient.emergency_contact_name} />
-      <Detail label="Emergency Number" value={patient.emergency_contact_number} />
+      <Detail
+        label="Emergency Contact"
+        value={patient.emergency_contact_name}
+      />
+      <Detail
+        label="Emergency Number"
+        value={patient.emergency_contact_number}
+      />
       <Detail label="Insurance Type" value={patient.insurance_type} />
       <Detail label="Insurance Provider" value={patient.insurance_provider} />
       <Detail label="Insurance Number" value={patient.insurance_number} />
