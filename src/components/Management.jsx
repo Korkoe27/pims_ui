@@ -147,9 +147,12 @@ const Management = ({ setFlowStep, appointmentId }) => {
       showToast("Saving management plan...", "info");
       await createManagementPlan({ appointmentId, payload }).unwrap();
       showToast("Management plan saved successfully!", "success");
+      
+      // ✅ Mark the appointment as completed
+      await markAppointmentCompletedHandler(appointmentId);
+      showToast("Appointment marked as completed!", "success");
       setModal(true);
     } catch (error) {
-      console.error("❌ Error submitting management plan:", error);
       const message = Object.entries(error?.data || {})
         .map(
           ([field, messages]) =>
