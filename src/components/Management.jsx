@@ -1,18 +1,39 @@
 import React, { useState, useEffect } from "react";
-import Header from "./Header";
-import ProgressBar from "./ProgressBar";
 import { useNavigate } from "react-router-dom";
 import { IoClose } from "react-icons/io5";
 import { IoIosCheckmarkCircle } from "react-icons/io";
 import PatientModal from "./SelectClinicModal";
 import useManagementData from "../hooks/useManagementData";
 import useMarkAppointmentCompleted from "../hooks/useMarkAppointmentCompleted";
+import { showToast } from "../components/ToasterHelper";
+import RefractiveCorrectionSection from "./RefractiveCorrectionSection";
+import MedicationForm from "./MedicationForm";
 
 const Management = ({ setFlowStep, appointmentId }) => {
   const [modal, setModal] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const navigate = useNavigate();
   const { markAppointmentCompletedHandler } = useMarkAppointmentCompleted();
+
+  const [selectedTypeId, setSelectedTypeId] = useState(null);
+
+  const {
+    medications,
+    medicationTypes,
+    filteredMedications,
+    managementPlan,
+    createManagementPlan,
+    // ADD THESE ⬇️
+    isManagementPlanLoading,
+    isCreatingManagementPlan,
+  } = useManagementData(appointmentId, selectedTypeId);
+
+  const [medicationEntry, setMedicationEntry] = useState({
+    medication_eye: "",
+    medication_name: "",
+    medication_type: "",
+    medication_dosage: "",
+  });
 
   const [checkboxes, setCheckboxes] = useState({
     refractiveCorrection: false,
@@ -24,17 +45,34 @@ const Management = ({ setFlowStep, appointmentId }) => {
     referral: false,
   });
 
+  const [prescription, setPrescription] = useState({
+    type_of_refractive_correction: "",
+    od_sph: "",
+    od_cyl: "",
+    od_axis: "",
+    od_add: "",
+    os_sph: "",
+    os_cyl: "",
+    os_axis: "",
+    os_add: "",
+    type_of_lens: "",
+    pd: "",
+    segment_height: "",
+    fitting_cross_height: "",
+  });
+
   const handleCheckboxChange = (e) => {
     const { name, checked } = e.target;
     setCheckboxes((prev) => ({ ...prev, [name]: checked }));
   };
 
-  const {
-    createManagementPlan,
-    isCreatingManagementPlan,
-    managementPlan,
-    isManagementPlanLoading,
-  } = useManagementData(appointmentId);
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setPrescription((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
 
   useEffect(() => {
     if (managementPlan) {
@@ -47,14 +85,54 @@ const Management = ({ setFlowStep, appointmentId }) => {
         surgery: managementPlan.surgery,
         referral: managementPlan.referral,
       });
+
+      setPrescription((prev) => ({
+        ...prev,
+        type_of_refractive_correction:
+          managementPlan.type_of_refractive_correction || "",
+        od_sph: managementPlan.od_sph || "",
+        od_cyl: managementPlan.od_cyl || "",
+        od_axis: managementPlan.od_axis || "",
+        od_add: managementPlan.od_add || "",
+        os_sph: managementPlan.os_sph || "",
+        os_cyl: managementPlan.os_cyl || "",
+        os_axis: managementPlan.os_axis || "",
+        os_add: managementPlan.os_add || "",
+        type_of_lens: managementPlan.type_of_lens || "",
+        pd: managementPlan.pd || "",
+        segment_height: managementPlan.segment_height || "",
+        fitting_cross_height: managementPlan.fitting_cross_height || "",
+      }));
     }
   }, [managementPlan]);
 
   const closeModal = () => setModal(false);
   const openModal = () => setIsModalOpen(true);
 
+  const handleMedicationChange = (e) => {
+    const { name, value } = e.target;
+    setMedicationEntry((prev) => ({ ...prev, [name]: value }));
+  };
+
   const handleSubmit = async () => {
+    const processedPrescription = {
+      ...prescription,
+      od_sph: parseFloat(prescription.od_sph) || null,
+      od_cyl: parseFloat(prescription.od_cyl) || null,
+      od_axis: parseInt(prescription.od_axis) || null,
+      od_add: parseFloat(prescription.od_add) || null,
+      os_sph: parseFloat(prescription.os_sph) || null,
+      os_cyl: parseFloat(prescription.os_cyl) || null,
+      os_axis: parseInt(prescription.os_axis) || null,
+      os_add: parseFloat(prescription.os_add) || null,
+      pd: parseFloat(prescription.pd) || null,
+      segment_height: parseFloat(prescription.segment_height) || null,
+      fitting_cross_height:
+        parseFloat(prescription.fitting_cross_height) || null,
+    };
+
     const payload = {
+      ...prescription, // includes type_of_refractive_correction
       refractive_correction: checkboxes.refractiveCorrection,
       medications: checkboxes.medications,
       counselling: checkboxes.counselling,
@@ -62,14 +140,26 @@ const Management = ({ setFlowStep, appointmentId }) => {
       therapy: checkboxes.therapy,
       surgery: checkboxes.surgery,
       referral: checkboxes.referral,
+      ...processedPrescription,
     };
 
     try {
+      showToast("Saving management plan...", "info");
       await createManagementPlan({ appointmentId, payload }).unwrap();
-      setModal(true);
+      showToast("Management plan saved successfully!", "success");
+      
+      // ✅ Mark the appointment as completed
       await markAppointmentCompletedHandler(appointmentId);
+      showToast("Appointment marked as completed!", "success");
+      setModal(true);
     } catch (error) {
-      console.error("Error submitting management plan:", error);
+      const message = Object.entries(error?.data || {})
+        .map(
+          ([field, messages]) =>
+            `${field.toUpperCase()}: ${messages.join(", ")}`
+        )
+        .join("\n");
+      showToast(message || "Something went wrong while saving.", "error");
     }
   };
 
@@ -160,6 +250,24 @@ const Management = ({ setFlowStep, appointmentId }) => {
                 ))}
               </div>
             </div>
+
+            {/* Prescription Section */}
+            {checkboxes.refractiveCorrection && (
+              <RefractiveCorrectionSection
+                prescription={prescription}
+                handleInputChange={handleInputChange}
+              />
+            )}
+
+            {checkboxes.medications && (
+              <MedicationForm
+                medicationEntry={medicationEntry}
+                setMedicationEntry={setMedicationEntry}
+                medicationTypes={medicationTypes}
+                filteredMedications={filteredMedications}
+                setSelectedTypeId={setSelectedTypeId}
+              />
+            )}
           </section>
         </main>
 
