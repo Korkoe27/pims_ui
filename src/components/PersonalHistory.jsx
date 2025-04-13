@@ -46,6 +46,43 @@ const PersonalHistory = ({
 
   const isSaving = createPatientHistoryStatus.isLoading;
 
+  const formatErrorMessage = (data) => {
+    if (!data) return "An unexpected error occurred.";
+  
+    if (typeof data.detail === "string") return data.detail;
+  
+    if (Array.isArray(data)) {
+      return data.join("\n");
+    }
+  
+    if (typeof data === "object") {
+      const messages = [];
+  
+      for (const [key, value] of Object.entries(data)) {
+        const label = key.replace(/_/g, " ").toUpperCase();
+  
+        if (Array.isArray(value)) {
+          const formattedArray = value.map((item) => {
+            if (typeof item === "string") return item;
+            if (typeof item === "object") {
+              return Object.entries(item)
+                .map(([subKey, subValue]) => `${subKey}: ${subValue.join(", ")}`)
+                .join("; ");
+            }
+            return item;
+          });
+          messages.push(`${label}: ${formattedArray.join("; ")}`);
+        } else {
+          messages.push(`${label}: ${value}`);
+        }
+      }
+  
+      return messages.join("\n");
+    }
+  
+    return "An unexpected error occurred.";
+  };
+
   useEffect(() => {
     if (personalHistory) {
       setLastEyeExam(personalHistory.last_eye_examination || "");
@@ -163,12 +200,7 @@ const PersonalHistory = ({
       setActiveTab("visual acuity");
     } catch (err) {
       console.error("❌ Error saving personal history:", err);
-
-      const detail =
-        err?.data?.detail ||
-        (typeof err?.data === "string"
-          ? err.data
-          : "An unexpected error occurred.");
+      const detail = formatErrorMessage(err?.data);
       showToast(detail, "error");
     }
   };
