@@ -6,7 +6,7 @@ import AffectedEyeSelect from "./AffectedEyeSelect";
 import GradingSelect from "./GradingSelect";
 import NotesTextArea from "./NotesTextArea";
 import DeleteButton from "./DeleteButton";
-import ErrorModal from "./ErrorModal";
+import { showToast } from "../components/ToasterHelper";
 
 const lastEyeExamOptions = [
   { value: "Never", label: "Never" },
@@ -122,14 +122,8 @@ const PersonalHistory = ({
   };
 
   const handleSave = async () => {
-    setErrorMessage(null);
-    setShowErrorModal(false);
-
     if (!lastEyeExam) {
-      setErrorMessage({
-        detail: "Please select the last eye examination date.",
-      });
-      setShowErrorModal(true);
+      showToast("Please select the last eye examination date.", "error");
       return;
     }
 
@@ -163,14 +157,19 @@ const PersonalHistory = ({
     };
 
     try {
+      showToast("Saving personal history...", "loading");
       await createPatientHistory(payload).unwrap();
-      console.log("✅ Personal history saved");
-      console.log(payload);
+      showToast("Personal history saved successfully!", "success");
       setActiveTab("visual acuity");
     } catch (err) {
       console.error("❌ Error saving personal history:", err);
-      setErrorMessage(err?.data || { detail: "An unexpected error occurred." });
-      setShowErrorModal(true);
+
+      const detail =
+        err?.data?.detail ||
+        (typeof err?.data === "string"
+          ? err.data
+          : "An unexpected error occurred.");
+      showToast(detail, "error");
     }
   };
 
@@ -518,26 +517,6 @@ const PersonalHistory = ({
           {isSaving ? "Saving..." : "Save and Proceed"}
         </button>
       </div>
-
-      {/* Save Button
-      <div className="mt-8 flex justify-end">
-        <button
-          onClick={handleSave}
-          disabled={isSaving}
-          className={`px-6 py-2 font-semibold text-white rounded-full shadow-md transition-colors duration-200 ${
-            isSaving ? "bg-gray-400" : "bg-indigo-600 hover:bg-indigo-700"
-          }`}
-        >
-          {isSaving ? "Saving..." : "Save and Proceed"}
-        </button>
-      </div> */}
-
-      {showErrorModal && errorMessage && (
-        <ErrorModal
-          message={errorMessage}
-          onClose={() => setShowErrorModal(false)}
-        />
-      )}
     </div>
   );
 };
