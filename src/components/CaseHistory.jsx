@@ -122,21 +122,22 @@ const CaseHistory = ({ patientId, appointmentId, nextTab, setActiveTab }) => {
     setSelectedConditions((prev) => prev.filter((c) => c.id !== id));
   };
 
-  const handleSaveAndProceed = async () => {
-    setErrorMessage(null);
-    setShowErrorModal(false);
+  const formattedODQOptions = (directQuestioningConditions || []).map((c) => ({
+    value: c.id,
+    label: c.name,
+  }));
 
+  const handleSaveAndProceed = async () => {
     if (!chiefComplaint.trim()) {
-      setErrorMessage({ detail: "Chief complaint cannot be empty. 👍" });
-      setShowErrorModal(true);
+      showToast("Chief complaint cannot be empty. 👍", "error");
       return;
     }
 
     if (selectedConditions.length === 0) {
-      setErrorMessage({
-        detail: "Select at least one on_direct question to continue. 👍",
-      });
-      setShowErrorModal(true);
+      showToast(
+        "Select at least one on_direct question to continue. 👍",
+        "error"
+      );
       return;
     }
 
@@ -145,11 +146,10 @@ const CaseHistory = ({ patientId, appointmentId, nextTab, setActiveTab }) => {
     );
 
     if (hasInvalidEye) {
-      setErrorMessage({
-        detail:
-          "Each condition must have a valid affected eye (OD, OS, or OU). 👍",
-      });
-      setShowErrorModal(true);
+      showToast(
+        "Each condition must have a valid affected eye (OD, OS, or OU). 👍",
+        "error"
+      );
       return;
     }
 
@@ -164,7 +164,6 @@ const CaseHistory = ({ patientId, appointmentId, nextTab, setActiveTab }) => {
       })),
     };
 
-    // ✅ Skip save if no changes detected
     if (initialPayload && !hasFormChanged(initialPayload, payload)) {
       showToast("No changes detected", "info");
       setActiveTab("personal history");
@@ -172,23 +171,16 @@ const CaseHistory = ({ patientId, appointmentId, nextTab, setActiveTab }) => {
     }
 
     try {
+      showToast("Saving case history...", "loading");
       await createCaseHistory(payload).unwrap();
       showToast("Case history saved successfully!", "success");
       setActiveTab("personal history");
     } catch (error) {
       console.error("❌ Error saving:", error);
       const formatted = formatErrorMessage(error?.data);
-      setErrorMessage(formatted);
-      setShowErrorModal(true);
+      showToast(formatted?.detail || "Failed to save case history.", "error");
     }
   };
-
-  if (isLoading) return <p>Loading case history...</p>;
-
-  const formattedODQOptions = (directQuestioningConditions || []).map((c) => ({
-    value: c.id,
-    label: c.name,
-  }));
 
   return (
     <div className="p-6 bg-white rounded-md shadow-md max-w-3xl mx-auto">
