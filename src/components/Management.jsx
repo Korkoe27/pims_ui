@@ -6,11 +6,13 @@ import { IoClose } from "react-icons/io5";
 import { IoIosCheckmarkCircle } from "react-icons/io";
 import PatientModal from "./SelectClinicModal";
 import useManagementData from "../hooks/useManagementData";
+import useMarkAppointmentCompleted from "../hooks/useMarkAppointmentCompleted";
 
 const Management = ({ setFlowStep, appointmentId }) => {
   const [modal, setModal] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const navigate = useNavigate();
+  const { markAppointmentCompletedHandler } = useMarkAppointmentCompleted();
 
   const [checkboxes, setCheckboxes] = useState({
     refractiveCorrection: false,
@@ -65,6 +67,7 @@ const Management = ({ setFlowStep, appointmentId }) => {
     try {
       await createManagementPlan({ appointmentId, payload }).unwrap();
       setModal(true);
+      await markAppointmentCompletedHandler(appointmentId);
     } catch (error) {
       console.error("Error submitting management plan:", error);
     }

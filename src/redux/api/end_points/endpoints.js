@@ -56,6 +56,10 @@ export const createNewAppointmentUrl = "/clients/api/appointments/";
 export const fetchAppointmentsUrl = "clients/api/appointments/";
 export const getAppointmentsDetailsUrl = (appointmentId) =>
   `/clients/api/appointments/${appointmentId}/`;
+// ✅ Mark appointment as completed
+export const markAppointmentCompletedUrl = (appointmentId) =>
+  `/clients/api/${appointmentId}/complete/`;
+
 
 /////////////////////////
 // Case History
