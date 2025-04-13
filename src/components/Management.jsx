@@ -6,7 +6,7 @@ import { IoClose } from "react-icons/io5";
 import { IoIosCheckmarkCircle } from "react-icons/io";
 import PatientModal from "./SelectClinicModal";
 
-const Management = () => {
+const Management = ({ setFlowStep, appointmentId }) => {
   const [modal, setModal] = useState(false);
   const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -73,8 +73,6 @@ const Management = () => {
         </div>
       )}
 
-      <Header />
-      <ProgressBar step={3} />
       <form action="" className="flex flex-col gap-5 w-fit">
         <main className="flex gap-40">
           <section className="flex flex-col gap-12 w-fit">
@@ -392,13 +390,24 @@ const Management = () => {
             </div>
           </section>
         </main>
-        <button
-          type="button"
-          onClick={() => setModal(true)}
-          className="w-24 h-14 mx-auto mr-0 p-4 rounded-lg bg-[#2f3192] text-white"
-        >
-          Finish
-        </button>
+
+        <div className="flex justify-start">
+          <button
+            type="button"
+            onClick={() => setFlowStep("diagnosis")}
+            className="text-[#2f3192] border border-[#2f3192] hover:bg-[#2f3192] hover:text-white px-4 py-2 rounded-md transition font-medium"
+          >
+            ← Back to Diagnosis
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setModal(true)}
+            className="w-24 h-14 mx-auto mr-0 p-4 rounded-lg bg-[#2f3192] text-white"
+          >
+            Finish
+          </button>
+        </div>
       </form>
     </div>
   );

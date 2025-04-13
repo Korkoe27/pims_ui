@@ -115,7 +115,7 @@ const Consultation = () => {
         );
       case "management":
         return (
-          <Management appointmentId={appointmentId} setFlowStep={setFlowStep} />
+          <Management setActiveTab={setActiveTab} appointmentId={appointmentId} setFlowStep={setFlowStep} />
         );
       default:
         return null;
