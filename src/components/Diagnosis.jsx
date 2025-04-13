@@ -88,8 +88,10 @@ const Diagnosis = ({ appointmentId, setFlowStep, setActiveTab }) => {
       showToast("Diagnosis saved successfully ✅", "success");
       setFlowStep("management");
     } catch (error) {
-      console.error(error);
-      showToast(formatErrorMessage(error?.data), "error");
+      console.error("❌ Raw error:", error);
+      const fallbackMessage =
+        error?.data || error?.error || "Server error occurred.";
+      showToast(fallbackMessage, "error");
     }
   };
 
