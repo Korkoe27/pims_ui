@@ -1,6 +1,4 @@
 import React, { useState, useEffect } from "react";
-import Header from "./Header";
-import ProgressBar from "./ProgressBar";
 import { useNavigate } from "react-router-dom";
 import { IoClose } from "react-icons/io5";
 import { IoIosCheckmarkCircle } from "react-icons/io";
@@ -8,12 +6,27 @@ import PatientModal from "./SelectClinicModal";
 import useManagementData from "../hooks/useManagementData";
 import useMarkAppointmentCompleted from "../hooks/useMarkAppointmentCompleted";
 import { showToast } from "../components/ToasterHelper";
+import RefractiveCorrectionSection from "./RefractiveCorrectionSection";
+import MedicationForm from "./MedicationForm";
 
 const Management = ({ setFlowStep, appointmentId }) => {
   const [modal, setModal] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const navigate = useNavigate();
   const { markAppointmentCompletedHandler } = useMarkAppointmentCompleted();
+
+  const [selectedTypeId, setSelectedTypeId] = useState(null);
+
+  const {
+    medications,
+    medicationTypes,
+    filteredMedications,
+    managementPlan,
+    createManagementPlan,
+    // ADD THESE ⬇️
+    isManagementPlanLoading,
+    isCreatingManagementPlan,
+  } = useManagementData(appointmentId, selectedTypeId);
 
   const [medicationEntry, setMedicationEntry] = useState({
     medication_eye: "",
@@ -60,13 +73,6 @@ const Management = ({ setFlowStep, appointmentId }) => {
       [name]: value,
     }));
   };
-
-  const {
-    createManagementPlan,
-    isCreatingManagementPlan,
-    managementPlan,
-    isManagementPlanLoading,
-  } = useManagementData(appointmentId);
 
   useEffect(() => {
     if (managementPlan) {
@@ -243,28 +249,22 @@ const Management = ({ setFlowStep, appointmentId }) => {
             </div>
 
             {/* Prescription Section */}
-            <div className="flex flex-col gap-1">
-              <label
-                htmlFor="type_of_refractive_correction"
-                className="text-base font-medium"
-              >
-                Type of Refractive Correction
-              </label>
-              <select
-                name="type_of_refractive_correction"
-                value={prescription.type_of_refractive_correction}
-                onChange={handleInputChange}
-                className="h-14 border border-[#d0d5dd] w-[375px] rounded-md text-gray-600"
-              >
-                <option value="">Select an option</option>
-                <option value="Spectacles">Spectacles</option>
-                <option value="Contact Lenses">Contact Lenses</option>
-                <option value="Prisms">Prisms</option>
-                <option value="Magnifiers">Magnifiers</option>
-                <option value="Telescopic Aids">Telescopic Aids</option>
-                <option value="Other">Other</option>
-              </select>
-            </div>
+            {checkboxes.refractiveCorrection && (
+              <RefractiveCorrectionSection
+                prescription={prescription}
+                handleInputChange={handleInputChange}
+              />
+            )}
+
+            {checkboxes.medications && (
+              <MedicationForm
+                medicationEntry={medicationEntry}
+                setMedicationEntry={setMedicationEntry}
+                medicationTypes={medicationTypes}
+                filteredMedications={filteredMedications}
+                setSelectedTypeId={setSelectedTypeId}
+              />
+            )}
           </section>
         </main>
 
