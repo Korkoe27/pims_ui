@@ -51,6 +51,9 @@ const PatientDetails = () => {
     { label: "Internals", value: "internals" },
     { label: "Refraction", value: "refraction" },
     { label: "Extra Test", value: "extratest" },
+    { label: "Diagnosis", value: "diagnosis" },  
+    { label: "Management", value: "management" },
+    
   ];
 
   return (
