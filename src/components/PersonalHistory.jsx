@@ -7,6 +7,7 @@ import GradingSelect from "./GradingSelect";
 import NotesTextArea from "./NotesTextArea";
 import DeleteButton from "./DeleteButton";
 import { showToast } from "../components/ToasterHelper";
+import { hasFormChanged } from "../utils/deepCompare";
 
 const lastEyeExamOptions = [
   { value: "Never", label: "Never" },
@@ -44,29 +45,33 @@ const PersonalHistory = ({
   const [errorMessage, setErrorMessage] = useState(null);
   const [showErrorModal, setShowErrorModal] = useState(false);
 
+  const [initialPayload, setInitialPayload] = useState(null);
+
   const isSaving = createPatientHistoryStatus.isLoading;
 
   const formatErrorMessage = (data) => {
     if (!data) return "An unexpected error occurred.";
-  
+
     if (typeof data.detail === "string") return data.detail;
-  
+
     if (Array.isArray(data)) {
       return data.join("\n");
     }
-  
+
     if (typeof data === "object") {
       const messages = [];
-  
+
       for (const [key, value] of Object.entries(data)) {
         const label = key.replace(/_/g, " ").toUpperCase();
-  
+
         if (Array.isArray(value)) {
           const formattedArray = value.map((item) => {
             if (typeof item === "string") return item;
             if (typeof item === "object") {
               return Object.entries(item)
-                .map(([subKey, subValue]) => `${subKey}: ${subValue.join(", ")}`)
+                .map(
+                  ([subKey, subValue]) => `${subKey}: ${subValue.join(", ")}`
+                )
                 .join("; ");
             }
             return item;
@@ -76,10 +81,10 @@ const PersonalHistory = ({
           messages.push(`${label}: ${value}`);
         }
       }
-  
+
       return messages.join("\n");
     }
-  
+
     return "An unexpected error occurred.";
   };
 
@@ -93,41 +98,90 @@ const PersonalHistory = ({
       setSocialHistory(personalHistory.social_history || "");
       setSocialNotes(personalHistory.social_notes || "");
 
-      setSelectedMedical(
-        (personalHistory.medical_history || []).map((item) => ({
+      const medicalHistory = (personalHistory.medical_history || []).map(
+        (item) => ({
           id: item.medical_condition,
           name: item.medical_condition_name,
           notes: item.notes || "",
-        }))
+        })
       );
+      setSelectedMedical(medicalHistory);
 
-      setSelectedOcular(
-        (personalHistory.ocular_history || []).map((item) => ({
+      const ocularHistory = (personalHistory.ocular_history || []).map(
+        (item) => ({
           id: item.ocular_condition,
           name: item.ocular_condition_name,
           affected_eye: item.affected_eye || "",
           grading: item.grading || "",
           notes: item.notes || "",
-        }))
+        })
       );
+      setSelectedOcular(ocularHistory);
 
-      setFamilyMedicalHistory(
-        (personalHistory.family_medical_history || []).map((item) => ({
+      const famMedHistory = (personalHistory.family_medical_history || []).map(
+        (item) => ({
           id: item.medical_condition,
           name: item.medical_condition_name,
           notes: item.notes || "",
-        }))
+        })
       );
+      setFamilyMedicalHistory(famMedHistory);
 
-      setFamilyOcularHistory(
-        (personalHistory.family_ocular_history || []).map((item) => ({
-          id: item.ocular_condition,
-          name: item.ocular_condition_name,
-          affected_eye: item.affected_eye || "",
-          grading: item.grading || "",
-          notes: item.notes || "",
-        }))
-      );
+      const famOcularHistory = (
+        personalHistory.family_ocular_history || []
+      ).map((item) => ({
+        id: item.ocular_condition,
+        name: item.ocular_condition_name,
+        affected_eye: item.affected_eye || "",
+        grading: item.grading || "",
+        notes: item.notes || "",
+      }));
+      setFamilyOcularHistory(famOcularHistory);
+
+      // 👇 Add this to store the full initial payload for comparison
+      setInitialPayload({
+        patient: patientId,
+        appointment: appointmentId,
+        last_eye_examination: personalHistory.last_eye_examination || "",
+        drug_entries: [
+          {
+            name: personalHistory.drug_history || "",
+            notes: personalHistory.drug_notes || "",
+          },
+        ],
+        allergy_entries: [
+          {
+            name: personalHistory.allergies || "",
+            notes: personalHistory.allergy_notes || "",
+          },
+        ],
+        social_entries: [
+          {
+            name: personalHistory.social_history || "",
+            notes: personalHistory.social_notes || "",
+          },
+        ],
+        medical_history: medicalHistory.map((item) => ({
+          medical_condition: item.id,
+          notes: item.notes,
+        })),
+        ocular_history: ocularHistory.map((item) => ({
+          ocular_condition: item.id,
+          affected_eye: item.affected_eye,
+          grading: item.grading,
+          notes: item.notes,
+        })),
+        family_medical_history: famMedHistory.map((item) => ({
+          medical_condition: item.id,
+          notes: item.notes,
+        })),
+        family_ocular_history: famOcularHistory.map((item) => ({
+          ocular_condition: item.id,
+          affected_eye: item.affected_eye,
+          grading: item.grading,
+          notes: item.notes,
+        })),
+      });
     }
   }, [personalHistory]);
 
@@ -192,6 +246,12 @@ const PersonalHistory = ({
         notes: item.notes,
       })),
     };
+
+    if (initialPayload && !hasFormChanged(initialPayload, payload)) {
+      showToast("No changes detected", "info");
+      setActiveTab("visual acuity");
+      return;
+    }
 
     try {
       showToast("Saving personal history...", "loading");
