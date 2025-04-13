@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useLocation } from "react-router-dom";
 import { useGetPatientAppointmentsQuery } from "../redux/api/features/patientApi";
 import CaseHistoryView from "../components/CaseHistoryView";
+import PersonalHistoryView from "../components/PersonalHistoryView";
 
 const TabButton = ({ label, value, active, onClick }) => (
   <button
@@ -47,6 +48,7 @@ const PatientDetails = () => {
 
   const modalTabs = [
     { label: "Case History", value: "casehistory" },
+    { label: "Personal History", value: "personalhistory" },
     { label: "Visual Acuity", value: "visualacuity" },
     { label: "Externals", value: "externals" },
     { label: "Internals", value: "internals" },
@@ -123,8 +125,23 @@ const PatientDetails = () => {
               {modalTab === "casehistory" && (
                 <CaseHistoryView appointmentId={selectedAppointment.id} />
               )}
+              {modalTab === "personalhistory" && (
+                <PersonalHistoryView
+                  patientId={selectedAppointment.patient}
+                  appointmentId={selectedAppointment.id}
+                />
+              )}
+              {/* {modalTab === "visualacuity" && (
+                <VisualAcuityView appointmentId={selectedAppointment.id} />
+              )}
+              {modalTab === "diagnosis" && (
+                <DiagnosisView appointmentId={selectedAppointment.id} />
+              )}
+              {modalTab === "management" && (
+                <ManagementView appointmentId={selectedAppointment.id} />
+              )}
               {modalTab === "refraction" && <p>Details about refraction...</p>}
-              {modalTab === "extratest" && <p>Details about extra tests...</p>}
+              {modalTab === "extratest" && <p>Details about extra tests...</p>} */}
             </div>
 
             <button
