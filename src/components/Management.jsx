@@ -1,20 +1,173 @@
-import React, { useState } from "react";
-import Header from "./Header";
-import ProgressBar from "./ProgressBar";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { IoClose } from "react-icons/io5";
 import { IoIosCheckmarkCircle } from "react-icons/io";
 import PatientModal from "./SelectClinicModal";
+import useManagementData from "../hooks/useManagementData";
+import useMarkAppointmentCompleted from "../hooks/useMarkAppointmentCompleted";
+import { showToast } from "../components/ToasterHelper";
+import RefractiveCorrectionSection from "./RefractiveCorrectionSection";
+import MedicationForm from "./MedicationForm";
 
-const Management = () => {
+const Management = ({ setFlowStep, appointmentId }) => {
   const [modal, setModal] = useState(false);
-  const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const navigate = useNavigate();
+  const { markAppointmentCompletedHandler } = useMarkAppointmentCompleted();
 
-  // Close modal function
+  const [selectedTypeId, setSelectedTypeId] = useState(null);
+
+  const {
+    medications,
+    medicationTypes,
+    filteredMedications,
+    managementPlan,
+    createManagementPlan,
+    // ADD THESE ⬇️
+    isManagementPlanLoading,
+    isCreatingManagementPlan,
+  } = useManagementData(appointmentId, selectedTypeId);
+
+  const [medicationEntry, setMedicationEntry] = useState({
+    medication_eye: "",
+    medication_name: "",
+    medication_type: "",
+    medication_dosage: "",
+  });
+
+  const [checkboxes, setCheckboxes] = useState({
+    refractiveCorrection: false,
+    medications: false,
+    counselling: false,
+    lowVisionAid: false,
+    therapy: false,
+    surgery: false,
+    referral: false,
+  });
+
+  const [prescription, setPrescription] = useState({
+    type_of_refractive_correction: "",
+    od_sph: "",
+    od_cyl: "",
+    od_axis: "",
+    od_add: "",
+    os_sph: "",
+    os_cyl: "",
+    os_axis: "",
+    os_add: "",
+    type_of_lens: "",
+    pd: "",
+    segment_height: "",
+    fitting_cross_height: "",
+  });
+
+  const handleCheckboxChange = (e) => {
+    const { name, checked } = e.target;
+    setCheckboxes((prev) => ({ ...prev, [name]: checked }));
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setPrescription((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  useEffect(() => {
+    if (managementPlan) {
+      setCheckboxes({
+        refractiveCorrection: managementPlan.refractive_correction,
+        medications: managementPlan.medications,
+        counselling: managementPlan.counselling,
+        lowVisionAid: managementPlan.low_vision_aid,
+        therapy: managementPlan.therapy,
+        surgery: managementPlan.surgery,
+        referral: managementPlan.referral,
+      });
+
+      setPrescription((prev) => ({
+        ...prev,
+        type_of_refractive_correction:
+          managementPlan.type_of_refractive_correction || "",
+        od_sph: managementPlan.od_sph || "",
+        od_cyl: managementPlan.od_cyl || "",
+        od_axis: managementPlan.od_axis || "",
+        od_add: managementPlan.od_add || "",
+        os_sph: managementPlan.os_sph || "",
+        os_cyl: managementPlan.os_cyl || "",
+        os_axis: managementPlan.os_axis || "",
+        os_add: managementPlan.os_add || "",
+        type_of_lens: managementPlan.type_of_lens || "",
+        pd: managementPlan.pd || "",
+        segment_height: managementPlan.segment_height || "",
+        fitting_cross_height: managementPlan.fitting_cross_height || "",
+      }));
+    }
+  }, [managementPlan]);
+
   const closeModal = () => setModal(false);
-
   const openModal = () => setIsModalOpen(true);
+
+  const handleMedicationChange = (e) => {
+    const { name, value } = e.target;
+    setMedicationEntry((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async () => {
+    const processedPrescription = {
+      ...prescription,
+      od_sph: parseFloat(prescription.od_sph) || null,
+      od_cyl: parseFloat(prescription.od_cyl) || null,
+      od_axis: parseInt(prescription.od_axis) || null,
+      od_add: parseFloat(prescription.od_add) || null,
+      os_sph: parseFloat(prescription.os_sph) || null,
+      os_cyl: parseFloat(prescription.os_cyl) || null,
+      os_axis: parseInt(prescription.os_axis) || null,
+      os_add: parseFloat(prescription.os_add) || null,
+      pd: parseFloat(prescription.pd) || null,
+      segment_height: parseFloat(prescription.segment_height) || null,
+      fitting_cross_height:
+        parseFloat(prescription.fitting_cross_height) || null,
+    };
+
+    const payload = {
+      ...prescription, // includes type_of_refractive_correction
+      refractive_correction: checkboxes.refractiveCorrection,
+      medications: checkboxes.medications,
+      counselling: checkboxes.counselling,
+      low_vision_aid: checkboxes.lowVisionAid,
+      therapy: checkboxes.therapy,
+      surgery: checkboxes.surgery,
+      referral: checkboxes.referral,
+      ...processedPrescription,
+    };
+
+    try {
+      showToast("Saving management plan...", "info");
+      await createManagementPlan({ appointmentId, payload }).unwrap();
+      showToast("Management plan saved successfully!", "success");
+      
+      // ✅ Mark the appointment as completed
+      await markAppointmentCompletedHandler(appointmentId);
+      showToast("Appointment marked as completed!", "success");
+      setModal(true);
+    } catch (error) {
+      const message = Object.entries(error?.data || {})
+        .map(
+          ([field, messages]) =>
+            `${field.toUpperCase()}: ${messages.join(", ")}`
+        )
+        .join("\n");
+      showToast(message || "Something went wrong while saving.", "error");
+    }
+  };
+
+  if (isManagementPlanLoading) {
+    return (
+      <div className="ml-72 py-8 px-8">Loading latest management plan...</div>
+    );
+  }
 
   return (
     <div className="ml-72 py-8 px-8 w-fit flex flex-col gap-12">
@@ -26,11 +179,10 @@ const Management = () => {
           aria-modal="true"
           className="fixed inset-0 flex items-start justify-center bg-black bg-opacity-15 backdrop-blur-sm"
           onClick={(e) => {
-            // Close modal when clicking outside it
             if (e.target === e.currentTarget) closeModal();
           }}
         >
-          <div className="relative mt-20 bg-white p-6 rounded-lg border border-t-0 border-r-0 border-l-4 border-b-0 border-[#0F973D] w-fit">
+          <div className="relative mt-20 bg-white p-6 rounded-lg border border-l-4 border-[#0F973D] w-fit">
             <button
               className="absolute top-4 right-3 text-xl font-semibold cursor-pointer"
               onClick={closeModal}
@@ -73,332 +225,69 @@ const Management = () => {
         </div>
       )}
 
-      <Header />
-      <ProgressBar step={3} />
-      <form action="" className="flex flex-col gap-5 w-fit">
+      <form className="flex flex-col gap-5 w-fit">
         <main className="flex gap-40">
           <section className="flex flex-col gap-12 w-fit">
             <div className="flex flex-col gap-2">
-              <label
-                htmlFor="treatmentMgtOptions"
-                className="font-medium text-base"
-              >
+              <label className="font-medium text-base">
                 Treatment / Management Option(s)
               </label>
               <div className="grid grid-cols-2 gap-5">
-                <label
-                  htmlFor="refractiveCorrection"
-                  className="flex items-center gap-1"
-                >
-                  <input
-                    type="checkbox"
-                    name="refractiveCorrection"
-                    id=""
-                    className="h-5 w-5"
-                  />
-                  Refractive Correction
-                </label>
-                <label
-                  htmlFor="medications"
-                  className="flex items-center gap-1"
-                >
-                  <input
-                    type="checkbox"
-                    name="medications"
-                    id=""
-                    className="h-5 w-5"
-                  />
-                  Medications
-                </label>
-                <label
-                  htmlFor="counselling"
-                  className="flex items-center gap-1"
-                >
-                  <input
-                    type="checkbox"
-                    name="counselling"
-                    id=""
-                    className="h-5 w-5"
-                  />
-                  Counselling
-                </label>
-                <label
-                  htmlFor="lowVisionAid"
-                  className="flex items-center gap-1"
-                >
-                  <input
-                    type="checkbox"
-                    name="lowVisionAid"
-                    id=""
-                    className="h-5 w-5"
-                  />
-                  Low Vision aid
-                </label>
-                <label htmlFor="therapy" className="flex items-center gap-1">
-                  <input
-                    type="checkbox"
-                    name="therapy"
-                    id=""
-                    className="h-5 w-5"
-                  />
-                  Therapy
-                </label>
-                <label htmlFor="surgery" className="flex items-center gap-1">
-                  <input
-                    type="checkbox"
-                    name="surgery"
-                    id=""
-                    className="h-5 w-5"
-                  />
-                  Surgery
-                </label>
-                <label htmlFor="referral" className="flex items-center gap-1">
-                  <input
-                    type="checkbox"
-                    name="referral"
-                    id=""
-                    className="h-5 w-5"
-                  />
-                  Referral
-                </label>
+                {Object.keys(checkboxes).map((key) => (
+                  <label
+                    key={key}
+                    className="flex items-center gap-1 capitalize"
+                  >
+                    <input
+                      type="checkbox"
+                      name={key}
+                      checked={checkboxes[key]}
+                      onChange={handleCheckboxChange}
+                      className="h-5 w-5"
+                    />
+                    {key.replace(/([A-Z])/g, " $1")}
+                  </label>
+                ))}
               </div>
             </div>
 
-            <div className="flex flex-col gap-1">
-              <label
-                htmlFor="refractiveCorrectionType"
-                className="text-base font-medium"
-              >
-                Type of Refractive Correction
-              </label>
-              <select
-                name="refractiveCorrectionType"
-                className="h-14 border border-[#d0d5dd] w-[375px] rounded-md"
-                id=""
-              ></select>
-            </div>
+            {/* Prescription Section */}
+            {checkboxes.refractiveCorrection && (
+              <RefractiveCorrectionSection
+                prescription={prescription}
+                handleInputChange={handleInputChange}
+              />
+            )}
 
-            <div className="flex flex-col gap-2">
-              <label
-                htmlFor="finalPrescription"
-                className="text-base font-medium flex items-center"
-              >
-                Final Prescription{" "}
-                <span className="text-red-600 font-bold">*</span>
-              </label>
-
-              <aside className="flex gap-4">
-                <div className="flex flex-col justify-end gap-4 items-baseline">
-                  <h1 className="text-xl font-bold text-center">OD</h1>
-                  <h1 className="text-xl font-bold text-center">OS</h1>
-                </div>
-
-                <div className="flex gap-4">
-                  <div className="flex flex-col">
-                    <label
-                      htmlFor=""
-                      className="px-4 text-center font-normal text-base"
-                    >
-                      SPH
-                    </label>
-                    <input
-                      type="text"
-                      className="w-20 h-9 mb-4 rounded-md border border-[#d0d5dd] px-4"
-                      name="finalPrescriptionSphOd"
-                      placeholder="-2.00"
-                    />
-                    <input
-                      type="text"
-                      name="finalPrescriptionSphOs"
-                      placeholder="-2.00"
-                      className="w-20 h-9 px-4 rounded-md border border-[#d0d5dd]"
-                    />
-                  </div>
-                  <div className="flex flex-col">
-                    <label
-                      htmlFor=""
-                      className="text-center font-normal text-base"
-                    >
-                      CYL
-                    </label>
-                    <input
-                      type="text"
-                      className="w-20 px-4 h-9 mb-4 rounded-md border border-[#d0d5dd]"
-                      name="finalPrescriptionCylOd"
-                      placeholder="-1.25"
-                    />
-                    <input
-                      type="text"
-                      name="finalPrescriptionCylOs"
-                      placeholder="-1.25"
-                      className="w-20 px-4 h-9 rounded-md border border-[#d0d5dd]"
-                    />
-                  </div>
-                  <div className="flex flex-col">
-                    <label
-                      htmlFor=""
-                      className="text-center font-normal text-base"
-                    >
-                      AXIS
-                    </label>
-                    <input
-                      type="text"
-                      className="w-20 px-4 h-9 mb-4 rounded-md border border-[#d0d5dd]"
-                      name="finalPrescriptionAxisOd"
-                      placeholder="90"
-                    />
-                    <input
-                      type="text"
-                      className="w-20 h-9 rounded-md border border-[#d0d5dd] px-4"
-                      name="finalPrescriptionAxisOs"
-                      placeholder="90"
-                    />
-                  </div>
-                  <div className="flex flex-col">
-                    <label
-                      htmlFor=""
-                      className="text-center font-normal text-base"
-                    >
-                      ADD
-                    </label>
-                    <input
-                      type="text"
-                      name="finalPrescriptionAddOd"
-                      placeholder="+2.25"
-                      className="w-20 px-4 h-9 mb-4 rounded-md border border-[#d0d5dd]"
-                    />
-                    <input
-                      type="text"
-                      className="w-20 px-4 h-9 rounded-md border border-[#d0d5dd]"
-                      placeholder="+2.25"
-                      name="finalPrescriptionAddOs"
-                    />
-                  </div>
-                </div>
-              </aside>
-            </div>
-
-            <div className="flex flex-col">
-              <label htmlFor="lensType" className="font-medium text-base">
-                Type of Lens
-              </label>
-              <select
-                name="lensType"
-                className="border border-[#d0d5dd] rounded-md h-14 w-[375px]"
-                id=""
-              ></select>
-            </div>
-
-            <div className="flex gap-10 w-fit">
-              <label htmlFor="pd" className="flex flex-col gap-1">
-                PD
-                <input
-                  type="text"
-                  name="pd"
-                  className="w-20 h-9 p-2 border border-[#d0d5dd] rounded-lg"
-                  placeholder="in mm"
-                />
-              </label>
-              <label htmlFor="pd" className="flex flex-col gap-1">
-                Segment Height
-                <input
-                  type="text"
-                  name="segmentHeight"
-                  className="w-20 h-9 p-2 border border-[#d0d5dd] rounded-lg"
-                  placeholder="in mm"
-                />
-              </label>
-              <label htmlFor="pd" className="flex flex-col gap-1">
-                Fitting Cross Height
-                <input
-                  type="text"
-                  name="fittingCrossHeight"
-                  className="w-20 h-9 p-2 border border-[#d0d5dd] rounded-lg"
-                  placeholder="in mm"
-                />
-              </label>
-            </div>
-          </section>
-          <section className="flex flex-col gap-12">
-            <div className="flex flex-col gap-1">
-              <label
-                htmlFor="eyeForMedication"
-                className="text-base font-medium"
-              >
-                Medication prescribed for which eye?
-              </label>
-              <div className="flex gap-4">
-                <label
-                  htmlFor="rightEyeMedication"
-                  className="flex items-center  gap-1 font-medium text-base"
-                >
-                  <input type="radio" name="rightEyeMedication" id="" />
-                  OD
-                </label>
-                <label
-                  htmlFor="leftEyesMedication"
-                  className="flex items-center  gap-1 font-medium text-base"
-                >
-                  <input type="radio" name="leftEyeMedication" id="" />
-                  OS
-                </label>
-                <label
-                  htmlFor="bothEyesMedication"
-                  className="flex items-center  gap-1 font-normal text-base"
-                >
-                  <input type="radio" name="bothEyesMedication" id="" />
-                  OU
-                </label>
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-1">
-              <label htmlFor="medicationName" className="text-base font-medium">
-                Medication Name
-              </label>
-              <select
-                name="medicationName"
-                id=""
-                className="border border-[#d0d5dd] rounded-md h-14 w-[375px]"
-              ></select>
-            </div>
-
-            <div className="flex flex-col gap-1">
-              <label htmlFor="medicationType" className="text-base font-medium">
-                Medication Type
-              </label>
-              <select
-                name="medicationType"
-                id=""
-                className="border border-[#d0d5dd] rounded-md h-14 w-[375px]"
-              ></select>
-            </div>
-
-            <div className="flex flex-col gap-1">
-              <label
-                htmlFor="medicationDosage"
-                className="font-medium text-base"
-              >
-                Medication Dosage
-              </label>
-              <textarea
-                name="medicationDosage"
-                placeholder="
-                    Example: 
-                    TID x 2/52"
-                id=""
-                className="border border-[#d0d5dd] h-48 w-[375px] rounded-md p-4"
-              ></textarea>
-            </div>
+            {checkboxes.medications && (
+              <MedicationForm
+                medicationEntry={medicationEntry}
+                setMedicationEntry={setMedicationEntry}
+                medicationTypes={medicationTypes}
+                filteredMedications={filteredMedications}
+                setSelectedTypeId={setSelectedTypeId}
+              />
+            )}
           </section>
         </main>
-        <button
-          type="button"
-          onClick={() => setModal(true)}
-          className="w-24 h-14 mx-auto mr-0 p-4 rounded-lg bg-[#2f3192] text-white"
-        >
-          Finish
-        </button>
+
+        <div className="flex justify-start">
+          <button
+            type="button"
+            onClick={() => setFlowStep("diagnosis")}
+            className="text-[#2f3192] border border-[#2f3192] hover:bg-[#2f3192] hover:text-white px-4 py-2 rounded-md transition font-medium"
+          >
+            ← Back to Diagnosis
+          </button>
+
+          <button
+            type="button"
+            onClick={handleSubmit}
+            className="w-24 h-14 mx-auto mr-0 p-4 rounded-lg bg-[#2f3192] text-white"
+          >
+            {isCreatingManagementPlan ? "Saving..." : "Finish"}
+          </button>
+        </div>
       </form>
     </div>
   );

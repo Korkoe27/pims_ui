@@ -3,6 +3,7 @@ import {
   listMedicationTypesUrl,
   listMedicationsUrl,
   filterMedicationsUrl,
+  managementPlanUrl,
 } from "../end_points/endpoints";
 
 export const managementApi = apiClient.injectEndpoints({
@@ -30,6 +31,23 @@ export const managementApi = apiClient.injectEndpoints({
         method: "GET",
       }),
     }),
+
+    // Fetch the most recent management plan
+    getManagementPlan: builder.query({
+      query: (appointmentId) => ({
+        url: managementPlanUrl(appointmentId),
+        method: "GET",
+      }),
+    }),
+
+    // Create a new management plan
+    createManagementPlan: builder.mutation({
+      query: ({ appointmentId, payload }) => ({
+        url: managementPlanUrl(appointmentId),
+        method: "POST",
+        body: payload,
+      }),
+    }),
   }),
 });
 
@@ -37,4 +55,6 @@ export const {
   useGetMedicationTypesQuery,
   useGetAllMedicationsQuery,
   useFilterMedicationsQuery,
+  useGetManagementPlanQuery,    
+  useCreateManagementPlanMutation,
 } = managementApi;

@@ -10,12 +10,12 @@ export const diagnosisApi = apiClient.injectEndpoints({
     // Create new diagnosis for appointment
     createDiagnosis: builder.mutation({
       query: ({ appointmentId, data }) => ({
-        url: createDiagnosisUrl(appointmentId),
+        url: createDiagnosisUrl(appointmentId), // uses the appointmentId in the URL
         method: "POST",
-        body: data,
+        body: data, // ✅ this should be the object with differential_diagnosis, etc.
       }),
     }),
-
+    
     // List all diagnosis
     getAllDiagnosis: builder.query({
       query: () => ({
