@@ -13,6 +13,30 @@ import { VscEye } from "react-icons/vsc";
 import { FiEyeOff } from "react-icons/fi";
 import { showToast } from "../components/ToasterHelper";
 
+const formatErrorMessage = (data) => {
+  if (!data) return { detail: "An unexpected error occurred." };
+  if (typeof data.detail === "string") return { detail: data.detail };
+
+  if (typeof data === "object") {
+    const messages = Object.entries(data)
+      .map(([key, value]) => {
+        const label = key.replace(/_/g, " ").toUpperCase();
+        let msg;
+        if (typeof value === "object") {
+          msg = JSON.stringify(value);
+        } else {
+          msg = Array.isArray(value) ? value.join(", ") : value;
+        }
+        return `${label}: ${msg}`;
+      })
+      .join("\n");
+
+    return { detail: messages };
+  }
+
+  return { detail: "An unexpected error occurred." };
+};
+
 const Login = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -50,10 +74,8 @@ const Login = () => {
       navigate("/");
     } catch (err) {
       console.error("Login error:", err);
-      showToast(
-        err?.data?.message || "An error occurred during login.",
-        "error"
-      );
+      const formatted = formatErrorMessage(err?.data);
+      showToast(formatted.detail || "An error occurred during login.", "error");
     }
   };
 
