@@ -143,14 +143,14 @@ export const fetchExtraTestsUrl = (appointmentId) =>
 
 // Create a new diagnosis for an appointment
 export const createDiagnosisUrl = (appointmentId) =>
-  `/tests/api/diagnosis/${appointmentId}/create/`;
+  `/diagnosis/${appointmentId}/create/`;
 
 // List all diagnoses (master list)
 export const listAllDiagnosesUrl = "/diagnosis/codes/";
 
 // Fetch all diagnoses assigned to a specific appointment
 export const fetchAppointmentDiagnosesUrl = (appointmentId) =>
-  `/tests/api/diagnosis/${appointmentId}/`;
+  `/diagnosis/${appointmentId}/view/`;
 
 
 /////////////////////////

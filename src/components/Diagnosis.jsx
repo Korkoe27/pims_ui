@@ -1,58 +1,67 @@
 import React, { useEffect, useState } from "react";
-import Header from "./Header";
-import ProgressBar from "./ProgressBar";
-import Inputs from "./Inputs";
-import { useNavigate } from "react-router-dom";
+import { showToast } from "../components/ToasterHelper";
 import useDiagnosisData from "../hooks/useDiagnosisData";
+import SearchableSelect from "./SearchableSelect";
+import AffectedEyeSelect from "./AffectedEyeSelect";
+import NotesTextArea from "./NotesTextArea";
+import { useGetAllDiagnosisQuery } from "../redux/api/features/diagnosisApi";
 
 const Diagnosis = ({ appointmentId, setFlowStep, setActiveTab }) => {
-  const navigate = useNavigate();
-
   const { appointmentDiagnosis, createDiagnosis, isCreatingDiagnosis } =
     useDiagnosisData(appointmentId);
+  const { data: allDiagnosisCodes = [], isLoading: loadingDiagnosis } =
+    useGetAllDiagnosisQuery();
 
   const [differentialDiagnosis, setDifferentialDiagnosis] = useState("");
+  const [finalDiagnosisEntries, setFinalDiagnosisEntries] = useState([]);
 
-  // Pre-fill if data is available
   useEffect(() => {
     if (appointmentDiagnosis) {
       setDifferentialDiagnosis(
-        appointmentDiagnosis?.differential_diagnosis || ""
+        appointmentDiagnosis.differential_diagnosis || ""
       );
+      // TODO: Load final diagnoses if you want to prefill them from API
     }
   }, [appointmentDiagnosis]);
 
-  const handleSubmit = async () => {
-    if (!differentialDiagnosis.trim()) {
-      alert("Differential diagnosis cannot be empty.");
+  const handleAddFinalDiagnosis = (diagnosis) => {
+    if (finalDiagnosisEntries.some((entry) => entry.id === diagnosis.value)) {
+      showToast("Diagnosis already selected.", "error");
       return;
     }
 
-    const payload = {
-      appointment: appointmentId,
-      differential_diagnosis: differentialDiagnosis,
-      final_diagnosis: [], // You’ll update this next
-      management_plan: "", // To be wired in later
-    };
-
-    try {
-      await createDiagnosis(payload).unwrap();
-      setFlowStep("management"); // move to management
-    } catch (error) {
-      console.error("❌ Failed to save diagnosis:", error);
-      alert("An error occurred while saving the diagnosis.");
-    }
+    setFinalDiagnosisEntries((prev) => [
+      ...prev,
+      {
+        id: diagnosis.value,
+        name: diagnosis.label,
+        eye: "",
+        notes: "",
+      },
+    ]);
   };
 
-  const handleBackToExtraTests = () => {
-    if (setFlowStep) setFlowStep("consultation");
-    if (setActiveTab) setActiveTab("extra tests");
+  const handleUpdateFinalDiagnosis = (id, field, value) => {
+    setFinalDiagnosisEntries((prev) =>
+      prev.map((entry) =>
+        entry.id === id ? { ...entry, [field]: value } : entry
+      )
+    );
   };
+
+  const handleRemoveDiagnosis = (id) => {
+    setFinalDiagnosisEntries((prev) => prev.filter((entry) => entry.id !== id));
+  };
+
+  const formattedDiagnosisOptions = allDiagnosisCodes.map((d) => ({
+    value: d.id,
+    label: `${d.diagnosis} ${d.icd_code ? `(${d.icd_code})` : ""}`,
+  }));
 
   return (
     <main className="ml-72 my-8 px-8 w-fit flex flex-col gap-12">
       <form className="flex flex-col w-fit gap-8">
-        {/* Differential Diagnosis */}
+        {/* === Differential Diagnosis === */}
         <div className="flex flex-col gap-2">
           <label
             htmlFor="differentialDiagnosis"
@@ -62,61 +71,89 @@ const Diagnosis = ({ appointmentId, setFlowStep, setActiveTab }) => {
           </label>
           <textarea
             name="differentialDiagnosis"
-            placeholder="Type in your differential diagnosis"
+            placeholder="Enter differential diagnosis"
             className="border w-[375px] border-[#d0d5dd] h-48 rounded-md p-4"
             value={differentialDiagnosis}
             onChange={(e) => setDifferentialDiagnosis(e.target.value)}
           />
         </div>
 
-        {/* Final Diagnosis */}
-        <div className="flex flex-col gap-1">
-          <Inputs
-            type="text"
-            placeholder="Enter diagnosis"
-            label="Final Diagnosis"
-            name="finalDiagnosis"
-          />
-          <button
-            type="button"
-            className="bg-white w-fit gap-1 flex font-semibold text-base text-[#2f3192]"
-          >
-            <span className="w-5 h-5 font-bold">+</span>Add a query
-          </button>
-        </div>
-
-        {/* Management Plan */}
+        {/* Final Diagnosis Section */}
         <div className="flex flex-col gap-2">
-          <label htmlFor="mgtPlan" className="font-medium text-base">
-            Your Management Plan
+          <label className="font-medium text-base">
+            Final Diagnosis <span className="text-red-500">*</span>
           </label>
-          <textarea
-            name="mgtPlan"
-            placeholder="Example: 
-                            Dispense spectacles
-                            OD: +2.00/-1.00x180
-                            OS: +1.00/-1.25x180"
-            className="w-[375px] h-48 border rounded-lg border-[#d0d5dd] p-4"
-          ></textarea>
-        </div>
+          <SearchableSelect
+            options={formattedDiagnosisOptions}
+            onSelect={(option) => {
+              if (finalDiagnosisEntries.some((d) => d.id === option.value)) {
+                showToast("Diagnosis already selected.", "error");
+                return;
+              }
+              setFinalDiagnosisEntries((prev) => [
+                ...prev,
+                {
+                  id: option.value,
+                  name: option.label,
+                  affected_eye: "",
+                  notes: "",
+                },
+              ]);
+            }}
+            selectedValues={finalDiagnosisEntries.map((d) => ({
+              value: d.id,
+              label: d.name,
+            }))}
+            conditionKey="value"
+            conditionNameKey="label"
+          />
 
-        {/* Buttons */}
-        <div className="mt-12 flex gap-6 justify-center">
-          <button
-            type="button"
-            onClick={handleBackToExtraTests}
-            className="w-56 h-14 p-4 rounded-lg border border-[#2f3192] text-[#2f3192] bg-white hover:bg-indigo-50 transition"
-          >
-            ← Back to Extra Tests
-          </button>
+          {finalDiagnosisEntries.length > 0 && (
+            <div className="mt-4 space-y-4">
+              {finalDiagnosisEntries.map((d) => (
+                <div key={d.id} className="p-4 bg-gray-50 border rounded">
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="font-semibold">{d.name}</h4>
+                    <button
+                      onClick={() =>
+                        setFinalDiagnosisEntries((prev) =>
+                          prev.filter((entry) => entry.id !== d.id)
+                        )
+                      }
+                      className="text-sm text-red-600 hover:underline"
+                    >
+                      Remove
+                    </button>
+                  </div>
 
-          <button
-            type="button"
-            onClick={handleSubmit}
-            className="w-56 h-14 p-4 rounded-lg bg-[#2f3192] text-white hover:bg-[#1e217a] transition"
-          >
-            {isCreatingDiagnosis ? "Saving..." : "Proceed to Management"}
-          </button>
+                  <AffectedEyeSelect
+                    value={d.affected_eye}
+                    onChange={(val) =>
+                      setFinalDiagnosisEntries((prev) =>
+                        prev.map((entry) =>
+                          entry.id === d.id
+                            ? { ...entry, affected_eye: val }
+                            : entry
+                        )
+                      )
+                    }
+                  />
+
+                  <NotesTextArea
+                    label="Query Note"
+                    value={d.notes}
+                    onChange={(val) =>
+                      setFinalDiagnosisEntries((prev) =>
+                        prev.map((entry) =>
+                          entry.id === d.id ? { ...entry, notes: val } : entry
+                        )
+                      )
+                    }
+                  />
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </form>
     </main>
