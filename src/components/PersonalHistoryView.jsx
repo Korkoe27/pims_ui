@@ -42,7 +42,7 @@ const PersonalHistoryView = ({ patientId, appointmentId }) => {
   );
 
   return (
-    <div className="bg-white p-6 rounded shadow-md space-y-8">
+    <div className="bg-white p-6 rounded shadow-md max-h-[80vh] overflow-y-auto space-y-8">
       <h2 className="text-xl font-bold text-[#2f3192]">
         Oculo-Medical History
       </h2>
