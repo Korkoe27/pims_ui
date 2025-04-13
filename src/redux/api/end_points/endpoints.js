@@ -56,6 +56,10 @@ export const createNewAppointmentUrl = "/clients/api/appointments/";
 export const fetchAppointmentsUrl = "clients/api/appointments/";
 export const getAppointmentsDetailsUrl = (appointmentId) =>
   `/clients/api/appointments/${appointmentId}/`;
+// ✅ Mark appointment as completed
+export const markAppointmentCompletedUrl = (appointmentId) =>
+  `/clients/api/${appointmentId}/complete/`;
+
 
 /////////////////////////
 // Case History
@@ -131,11 +135,10 @@ export const fetchRefractionUrl = (appointmentId) =>
 // Extra Tests
 /////////////////////////
 
-export const createExtraTestsUrl = "/tests/api/extra-tests/";
-export const updateExtraTestsUrl = (appointmentId) =>
-  `/tests/api/extra-tests/${appointmentId}/`;
+export const createExtraTestUrl = (appointmentId) =>
+  `/tests/extra-tests/${appointmentId}/`;
 export const fetchExtraTestsUrl = (appointmentId) =>
-  `/tests/api/extra-tests/${appointmentId}/`;
+  `/tests/extra-tests/${appointmentId}/`;
 
 
 /////////////////////////
@@ -144,14 +147,14 @@ export const fetchExtraTestsUrl = (appointmentId) =>
 
 // Create a new diagnosis for an appointment
 export const createDiagnosisUrl = (appointmentId) =>
-  `/tests/api/diagnosis/${appointmentId}/create/`;
+  `/diagnosis/${appointmentId}/create/`;
 
 // List all diagnoses (master list)
 export const listAllDiagnosesUrl = "/diagnosis/codes/";
 
 // Fetch all diagnoses assigned to a specific appointment
 export const fetchAppointmentDiagnosesUrl = (appointmentId) =>
-  `/tests/api/diagnosis/${appointmentId}/`;
+  `/diagnosis/${appointmentId}/view/`;
 
 
 /////////////////////////
@@ -159,11 +162,20 @@ export const fetchAppointmentDiagnosesUrl = (appointmentId) =>
 /////////////////////////
 
 // List all medication types
-export const listMedicationTypesUrl = "/pharmacy/api/medication-types/";
+export const listMedicationTypesUrl = "/pharmacy/medication-types/";
 
 // List all medications
-export const listMedicationsUrl = "/pharmacy/api/medications/";
+export const listMedicationsUrl = "/pharmacy/medications/";
 
 // Filter medications by type (e.g. /pharmacy/api/medications/?type=1)
 export const filterMedicationsUrl = (typeId) =>
   `/pharmacy/api/medications/?type=${typeId}`;
+
+
+/////////////////////////
+// Management Plan
+/////////////////////////
+
+// Create a new Management Plan OR fetch the most recent one
+export const managementPlanUrl = (appointmentId) =>
+  `/management/${appointmentId}/`;
