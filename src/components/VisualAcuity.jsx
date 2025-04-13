@@ -7,6 +7,7 @@ import PrescriptionSection, {
   validatePrescription,
 } from "./PrescriptionSection";
 import { showToast } from "../components/ToasterHelper";
+import { hasFormChanged } from "../utils/deepCompare";
 
 const CHART_OPTIONS = [
   { value: "SNELLEN", label: "Snellen" },
@@ -42,6 +43,7 @@ export default function VisualAcuityForm({
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [spectaclesType, setSpectaclesType] = useState("");
   const [rxFieldErrors, setRxFieldErrors] = useState({ OD: {}, OS: {} });
+  const [initialPayload, setInitialPayload] = useState(null);
 
   useEffect(() => {
     if (visualAcuity) {
@@ -87,6 +89,33 @@ export default function VisualAcuityForm({
           add: visualAcuity.rx_add_os || "",
           nearVa: visualAcuity.rx_va2_os || "",
         },
+      });
+
+      setInitialPayload({
+        appointment: appointmentId,
+        va_chart_used: visualAcuity.va_chart_used || "",
+        distance_unaided_od: visualAcuity.distance_unaided_od || "",
+        distance_ph_od: visualAcuity.distance_ph_od || "",
+        distance_plus1_od: visualAcuity.distance_plus1_od || "",
+        distance_unaided_os: visualAcuity.distance_unaided_os || "",
+        distance_ph_os: visualAcuity.distance_ph_os || "",
+        distance_plus1_os: visualAcuity.distance_plus1_os || "",
+        near_va_od: visualAcuity.near_va_od || "",
+        near_va_os: visualAcuity.near_va_os || "",
+        came_with_prescription: visualAcuity.came_with_prescription ?? null,
+        prescription_type: visualAcuity.prescription_type || null,
+        rx_sph_od: visualAcuity.rx_sph_od || "",
+        rx_cyl_od: visualAcuity.rx_cyl_od || "",
+        rx_axis_od: visualAcuity.rx_axis_od || "",
+        rx_va1_od: visualAcuity.rx_va1_od || "",
+        rx_add_od: visualAcuity.rx_add_od || "",
+        rx_va2_od: visualAcuity.rx_va2_od || "",
+        rx_sph_os: visualAcuity.rx_sph_os || "",
+        rx_cyl_os: visualAcuity.rx_cyl_os || "",
+        rx_axis_os: visualAcuity.rx_axis_os || "",
+        rx_va1_os: visualAcuity.rx_va1_os || "",
+        rx_add_os: visualAcuity.rx_add_os || "",
+        rx_va2_os: visualAcuity.rx_va2_os || "",
       });
     }
   }, [visualAcuity]);
@@ -249,6 +278,12 @@ export default function VisualAcuityForm({
       rx_add_os: currentRx.OS.add,
       rx_va2_os: currentRx.OS.nearVa,
     };
+
+    if (initialPayload && !hasFormChanged(initialPayload, payload)) {
+      showToast("No changes detected", "info");
+      setActiveTab("externals");
+      return;
+    }
 
     try {
       await createVisualAcuity(payload).unwrap();
