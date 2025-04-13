@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Header from "./Header";
 import ProgressBar from "./ProgressBar";
 import { useNavigate } from "react-router-dom";
@@ -27,8 +27,26 @@ const Management = ({ setFlowStep, appointmentId }) => {
     setCheckboxes((prev) => ({ ...prev, [name]: checked }));
   };
 
-  const { createManagementPlan, isCreatingManagementPlan } =
-    useManagementData(appointmentId);
+  const {
+    createManagementPlan,
+    isCreatingManagementPlan,
+    managementPlan,
+    isManagementPlanLoading,
+  } = useManagementData(appointmentId);
+
+  useEffect(() => {
+    if (managementPlan) {
+      setCheckboxes({
+        refractiveCorrection: managementPlan.refractive_correction,
+        medications: managementPlan.medications,
+        counselling: managementPlan.counselling,
+        lowVisionAid: managementPlan.low_vision_aid,
+        therapy: managementPlan.therapy,
+        surgery: managementPlan.surgery,
+        referral: managementPlan.referral,
+      });
+    }
+  }, [managementPlan]);
 
   const closeModal = () => setModal(false);
   const openModal = () => setIsModalOpen(true);
@@ -51,6 +69,12 @@ const Management = ({ setFlowStep, appointmentId }) => {
       console.error("Error submitting management plan:", error);
     }
   };
+
+  if (isManagementPlanLoading) {
+    return (
+      <div className="ml-72 py-8 px-8">Loading latest management plan...</div>
+    );
+  }
 
   return (
     <div className="ml-72 py-8 px-8 w-fit flex flex-col gap-12">
