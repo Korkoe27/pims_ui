@@ -18,7 +18,9 @@ const Diagnosis = ({ appointmentId, setFlowStep, setActiveTab }) => {
 
   useEffect(() => {
     if (appointmentDiagnosis) {
-      setDifferentialDiagnosis(appointmentDiagnosis.differential_diagnosis || "");
+      setDifferentialDiagnosis(
+        appointmentDiagnosis.differential_diagnosis || ""
+      );
       setManagementPlan(appointmentDiagnosis.management_plan || "");
 
       if (appointmentDiagnosis.final_diagnoses_info) {
@@ -45,9 +47,7 @@ const Diagnosis = ({ appointmentId, setFlowStep, setActiveTab }) => {
     const parseField = (value) => {
       if (Array.isArray(value)) {
         return value
-          .map((item) =>
-            typeof item === "object" ? parseField(item) : item
-          )
+          .map((item) => (typeof item === "object" ? parseField(item) : item))
           .join(", ");
       } else if (typeof value === "object") {
         return Object.entries(value)
@@ -157,18 +157,37 @@ const Diagnosis = ({ appointmentId, setFlowStep, setActiveTab }) => {
       </div>
 
       {/* Final Diagnosis */}
-      <div className="mb-4">
+      <div className="mb-6">
         <label className="block font-semibold mb-1">
           Final Diagnosis <span className="text-red-500">*</span>
         </label>
+
         <SearchableSelect
           options={diagnosisOptions}
-          onSelect={handleAddFinalDiagnosis}
           selectedValues={finalDiagnosisEntries.map((d) => ({
             value: d.id,
             label: d.name,
           }))}
+          onSelect={(option) => {
+            if (finalDiagnosisEntries.some((c) => c.id === option.value)) {
+              showToast("This diagnosis is already selected.", "error");
+              return;
+            }
+
+            setFinalDiagnosisEntries((prev) => [
+              ...prev,
+              {
+                id: option.value,
+                name: option.label,
+                affected_eye: "",
+                notes: "",
+              },
+            ]);
+          }}
+          conditionKey="value"
+          conditionNameKey="label"
         />
+
         {finalDiagnosisEntries.length > 0 && (
           <div className="mt-4 space-y-4">
             {finalDiagnosisEntries.map((d) => (
@@ -176,18 +195,24 @@ const Diagnosis = ({ appointmentId, setFlowStep, setActiveTab }) => {
                 <div className="flex justify-between items-center mb-2">
                   <h4 className="font-semibold">{d.name}</h4>
                   <button
-                    onClick={() => handleRemoveDiagnosis(d.id)}
+                    onClick={() =>
+                      setFinalDiagnosisEntries((prev) =>
+                        prev.filter((c) => c.id !== d.id)
+                      )
+                    }
                     className="text-sm text-red-600 hover:underline"
                   >
                     Remove
                   </button>
                 </div>
+
                 <AffectedEyeSelect
                   value={d.affected_eye}
                   onChange={(val) =>
                     updateDiagnosisField(d.id, "affected_eye", val)
                   }
                 />
+
                 <NotesTextArea
                   value={d.notes}
                   onChange={(val) => updateDiagnosisField(d.id, "notes", val)}
