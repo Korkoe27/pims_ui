@@ -158,11 +158,20 @@ export const fetchAppointmentDiagnosesUrl = (appointmentId) =>
 /////////////////////////
 
 // List all medication types
-export const listMedicationTypesUrl = "/pharmacy/api/medication-types/";
+export const listMedicationTypesUrl = "/pharmacy/medication-types/";
 
 // List all medications
-export const listMedicationsUrl = "/pharmacy/api/medications/";
+export const listMedicationsUrl = "/pharmacy/medications/";
 
 // Filter medications by type (e.g. /pharmacy/api/medications/?type=1)
 export const filterMedicationsUrl = (typeId) =>
   `/pharmacy/api/medications/?type=${typeId}`;
+
+
+/////////////////////////
+// Management Plan
+/////////////////////////
+
+// Create a new Management Plan OR fetch the most recent one
+export const managementPlanUrl = (appointmentId) =>
+  `/management/${appointmentId}/`;
