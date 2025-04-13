@@ -3,6 +3,14 @@ import { useLocation } from "react-router-dom";
 import { useGetPatientAppointmentsQuery } from "../redux/api/features/patientApi";
 import CaseHistoryView from "../components/CaseHistoryView";
 import PersonalHistoryView from "../components/PersonalHistoryView";
+import VisualAcuityView from "../components/VisualAcuityView";
+import ExternalsView from "../components/ExternalsView";
+import InternalsView from "../components/InternalsView";
+import RefractionView from "../components/RefractionView";
+import ExtraTestsView from "../components/ExtraTestsView";
+import DiagnosisView from "../components/DiagnosisView";
+import ManagementView from "../components/ManagementView";
+
 
 const TabButton = ({ label, value, active, onClick }) => (
   <button
@@ -125,23 +133,41 @@ const PatientDetails = () => {
               {modalTab === "casehistory" && (
                 <CaseHistoryView appointmentId={selectedAppointment.id} />
               )}
+
               {modalTab === "personalhistory" && (
                 <PersonalHistoryView
                   patientId={selectedAppointment.patient}
                   appointmentId={selectedAppointment.id}
                 />
               )}
-              {/* {modalTab === "visualacuity" && (
+
+              {modalTab === "visualacuity" && (
                 <VisualAcuityView appointmentId={selectedAppointment.id} />
               )}
+
+              {modalTab === "externals" && (
+                <ExternalsView appointmentId={selectedAppointment.id} />
+              )}
+
+              {modalTab === "internals" && (
+                <InternalsView appointmentId={selectedAppointment.id} />
+              )}
+
+              {modalTab === "refraction" && (
+                <RefractionView appointmentId={selectedAppointment.id} />
+              )}
+
+              {modalTab === "extratest" && (
+                <ExtraTestsView appointmentId={selectedAppointment.id} />
+              )}
+
               {modalTab === "diagnosis" && (
                 <DiagnosisView appointmentId={selectedAppointment.id} />
               )}
+
               {modalTab === "management" && (
                 <ManagementView appointmentId={selectedAppointment.id} />
               )}
-              {modalTab === "refraction" && <p>Details about refraction...</p>}
-              {modalTab === "extratest" && <p>Details about extra tests...</p>} */}
             </div>
 
             <button
