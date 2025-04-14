@@ -287,6 +287,7 @@ export default function VisualAcuityForm({
 
     try {
       await createVisualAcuity(payload).unwrap();
+      showToast("Saving visual acuity...", "loading");
       showToast("Visual acuity saved successfully!", "success");
       setActiveTab("externals");
     } catch (error) {
