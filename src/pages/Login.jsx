@@ -80,18 +80,13 @@ const Login = () => {
   };
 
   return (
-    <div
-      className="h-screen w-screen bg-cover bg-center flex items-center justify-center px-4 relative"
-      style={{
-        backgroundImage: "url('/your-background.jpg')", // Update your path here
-      }}
-    >
-      <div className="absolute inset-0 bg-black/70 z-0" />
+    <div className="h-screen w-screen bg-gradient-to-br from-white via-blue-50 to-blue-100 flex items-center justify-center px-4 relative">
+      <div className="absolute inset-0 bg-white/30 backdrop-blur-sm z-0" />
 
-      <div className="z-10 w-full max-w-md backdrop-blur-xl bg-white/20 border border-white/30 rounded-2xl shadow-xl p-8 md:p-10 flex flex-col gap-6 text-white">
+      <div className="z-10 w-full max-w-md backdrop-blur-xl bg-white/60 border border-white/30 rounded-2xl shadow-xl p-8 md:p-10 flex flex-col gap-6 text-gray-800">
         <div className="text-center">
           <Logo displayType="block" />
-          <h2 className="text-lg md:text-xl font-bold mt-3">
+          <h2 className="text-lg md:text-xl font-bold mt-3 text-gray-800">
             Patient Information Management System
           </h2>
         </div>
@@ -99,11 +94,11 @@ const Login = () => {
         <form onSubmit={handleSubmit} className="flex flex-col gap-6">
           {/* Username */}
           <div className="flex flex-col gap-1">
-            <label htmlFor="username" className="text-white">
+            <label htmlFor="username" className="text-gray-700">
               Username
             </label>
-            <div className="flex items-center gap-2 bg-white/20 p-3 rounded-lg border border-white/30">
-              <PiUserCircle className="text-white text-xl" />
+            <div className="flex items-center gap-2 bg-white/70 p-3 rounded-lg border border-gray-200">
+              <PiUserCircle className="text-gray-500 text-xl" />
               <input
                 type="text"
                 name="username"
@@ -111,18 +106,18 @@ const Login = () => {
                 onChange={(e) => setUsername(e.target.value)}
                 required
                 placeholder="Enter your username"
-                className="bg-transparent w-full outline-none text-white placeholder-white"
+                className="bg-transparent w-full outline-none text-gray-800 placeholder-gray-400"
               />
             </div>
           </div>
 
           {/* Password */}
           <div className="flex flex-col gap-1">
-            <label htmlFor="password" className="text-white">
+            <label htmlFor="password" className="text-gray-700">
               Password
             </label>
-            <div className="flex items-center gap-2 bg-white/20 p-3 rounded-lg border border-white/30">
-              <CiLock className="text-white text-xl" />
+            <div className="flex items-center gap-2 bg-white/70 p-3 rounded-lg border border-gray-200">
+              <CiLock className="text-gray-500 text-xl" />
               <input
                 type={passwordVisible ? "text" : "password"}
                 name="password"
@@ -130,16 +125,16 @@ const Login = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 placeholder="Enter your password"
-                className="bg-transparent w-full outline-none text-white placeholder-white"
+                className="bg-transparent w-full outline-none text-gray-800 placeholder-gray-400"
               />
               {passwordVisible ? (
                 <FiEyeOff
-                  className="text-white cursor-pointer"
+                  className="text-gray-500 cursor-pointer"
                   onClick={togglePasswordVisibility}
                 />
               ) : (
                 <VscEye
-                  className="text-white cursor-pointer"
+                  className="text-gray-500 cursor-pointer"
                   onClick={togglePasswordVisibility}
                 />
               )}
@@ -148,7 +143,7 @@ const Login = () => {
 
           <button
             type="submit"
-            className="bg-white text-indigo-700 font-bold py-3 rounded-lg hover:bg-gray-100 transition-all duration-300"
+            className="bg-indigo-600 text-white font-bold py-3 rounded-lg hover:bg-indigo-700 transition-all duration-300"
           >
             Login
           </button>
