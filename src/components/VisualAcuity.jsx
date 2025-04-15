@@ -18,6 +18,7 @@ export default function VisualAcuityForm({
   onBack,
   appointmentId,
   setActiveTab,
+  setTabCompletionStatus,
 }) {
   const { visualAcuity, createVisualAcuity, createVASubmissionStatus } =
     useVisualAcuityData(appointmentId);
@@ -280,6 +281,10 @@ export default function VisualAcuityForm({
 
     if (initialPayload && !hasFormChanged(initialPayload, payload)) {
       showToast("No changes detected", "info");
+      setTabCompletionStatus?.((prev) => ({
+        ...prev,
+        "visual acuity": true,
+      }));
       setActiveTab("externals");
       return;
     }
@@ -287,6 +292,10 @@ export default function VisualAcuityForm({
     try {
       await createVisualAcuity(payload).unwrap();
       showToast("Saving visual acuity...", "loading");
+      setTabCompletionStatus?.((prev) => ({
+        ...prev,
+        "visual acuity": true,
+      }));
       showToast("Visual acuity saved successfully!", "success");
       setActiveTab("externals");
     } catch (error) {
