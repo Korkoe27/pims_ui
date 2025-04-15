@@ -254,12 +254,12 @@ const PersonalHistory = ({
     }
 
     try {
-      showToast("Saving personal history...", "loading");
+      showToast("Saving Oculo-Medical history...", "loading");
       await createPatientHistory(payload).unwrap();
       showToast("Oculo-Medical history saved successfully!", "success");
       setActiveTab("visual acuity");
     } catch (err) {
-      console.error("❌ Error saving personal history:", err);
+      console.error("❌ Error saving Oculo-Medical history:", err);
       const detail = formatErrorMessage(err?.data);
       showToast(detail, "error");
     }

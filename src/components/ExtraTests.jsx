@@ -1,126 +1,124 @@
 import React, { useState } from "react";
-import ExtraTestModal from "./ExtraTestModal"; // 👈 import modal
+import { IoClose } from "react-icons/io5";
 import { showToast } from "../components/ToasterHelper";
 
-const ExtraTestsButtons = ({ name, title, onClick }) => (
-  <button
-    type="button"
-    name={name}
-    onClick={() => onClick(name)}
-    className="w-48 py-12 border text-[#2f3192] border-dashed border-[#2f3192] rounded-xl text-center"
-  >
-    <span dangerouslySetInnerHTML={{ __html: title }}></span>
-  </button>
-);
+const TEST_OPTIONS = [
+  "OCT",
+  "Perimetry",
+  "Color Vision",
+  "Visual Field Test",
+  "B-Scan",
+  "Pachymetry",
+];
 
 const ExtraTests = ({ appointmentId, setFlowStep, setActiveTab }) => {
+  const [selectedTest, setSelectedTest] = useState("");
+  const [uploadedTests, setUploadedTests] = useState([]);
+
+  const handleFileUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file || !selectedTest) {
+      showToast("Please select a test and upload a file", "error");
+      return;
+    }
+
+    const newTest = {
+      id: Date.now(),
+      name: selectedTest,
+      file,
+      url: URL.createObjectURL(file),
+    };
+
+    setUploadedTests((prev) => [...prev, newTest]);
+    setSelectedTest("");
+    e.target.value = null;
+  };
+
+  const handleDelete = (id) => {
+    setUploadedTests((prev) => prev.filter((test) => test.id !== id));
+  };
+
   const proceedToDiagnosis = () => {
     showToast("Extra tests submitted!", "success");
     setFlowStep("diagnosis");
   };
 
-  const [testData, setTestData] = useState({});
-  const [activeTest, setActiveTest] = useState(null); // Which test we're editing
-  const [showModal, setShowModal] = useState(false);
-
-  const handleSaveTest = (data) => {
-    setTestData((prev) => ({
-      ...prev,
-      [activeTest]: data,
-    }));
-    showToast(`Saved ${activeTest} test ✅`, "success");
-  };
-
-  const handleOpenModal = (testName) => {
-    setActiveTest(testName);
-    setShowModal(true);
-  };
-
-  const handleCloseModal = () => {
-    setShowModal(false);
-    setActiveTest(null);
-  };
-
-  const tests = [
-    { name: "aoa", title: "Amplitude of Accommodation <br> (AOA)" },
-    { name: "npc", title: "Near Point of Convergence <br> (NPC)" },
-    { name: "coverTest", title: "Cover Test" },
-    {
-      name: "confrontationalVisualFieldTest",
-      title: "Confrontational <br> Visual Field Test",
-    },
-    { name: "vonGraefeTest", title: "Von Graefe Test" },
-    {
-      name: "positiveRelativeAccommodation",
-      title: "Positive Relative <br> Accommodation",
-    },
-    {
-      name: "negativeRelativeAccommodation",
-      title: "Negative Relative <br> Accommodation",
-    },
-    {
-      name: "perimetry_visualFieldTest",
-      title: "Perimetry <br> (Visual Field Test)",
-    },
-    { name: "oct", title: "Optical Coherence Tomography <br> (OCT)" },
-    { name: "cornealTopography", title: "Corneal <br> Topography" },
-    { name: "pachymetry", title: "Pachymetry" },
-    { name: "colorVisionTesting", title: "Color Vision <br> Testing" },
-    { name: "gonioscopy", title: "Gonioscopy" },
-    { name: "keratometry", title: "Keratometry" },
-    { name: "abScan", title: "A-Scan <br> or <br> B-Scan" },
-    { name: "fluoresceinAngiography", title: "Fluorescein <br> Angiography" },
-    { name: "oct_a", title: "OCT-A" },
-  ];
-
   return (
-    <div className="my-8 px-8 flex flex-col gap-12">
-      <h1 className="text-2xl font-bold text-center">Extra Tests</h1>
-      <form className="flex flex-col gap-20">
-        <section className="grid grid-cols-5 gap-11">
-          <button
-            className="w-48 py-12 text-wrap border text-[#2f3192] border-dashed border-[#2f3192] rounded-xl text-center"
-            type="button"
-          >
-            <span className="text-xl">+</span> Add a Test
-          </button>
-          {tests.map((test) => (
-            <ExtraTestsButtons
-              key={test.name}
-              name={test.name}
-              title={test.title}
-              onClick={handleOpenModal}
-            />
+    <div className="py-10 px-6 flex flex-col items-center max-w-5xl mx-auto">
+      <h2 className="text-2xl font-bold mb-8 text-center">Extra Tests</h2>
+
+      {/* Select + Upload */}
+      <div className="flex flex-col md:flex-row gap-4 items-center justify-center w-full mb-10">
+        <select
+          value={selectedTest}
+          onChange={(e) => setSelectedTest(e.target.value)}
+          className="border border-gray-300 p-3 rounded w-full md:w-72"
+        >
+          <option value="">Select a test</option>
+          {TEST_OPTIONS.map((test) => (
+            <option key={test} value={test}>
+              {test}
+            </option>
           ))}
-        </section>
+        </select>
 
-        <div className="mt-8 flex gap-6 justify-center">
-          <button
-            type="button"
-            onClick={() => setActiveTab("refraction")}
-            className="w-56 h-14 p-4 rounded-lg border border-[#2f3192] text-[#2f3192] bg-white hover:bg-indigo-50 transition"
-          >
-            ← Back to Refraction
-          </button>
+        <label className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-3 rounded cursor-pointer whitespace-nowrap border border-gray-400">
+          Upload File
+          <input
+            type="file"
+            accept="image/*,application/pdf"
+            onChange={handleFileUpload}
+            className="hidden"
+          />
+        </label>
+      </div>
 
-          <button
-            type="button"
-            onClick={proceedToDiagnosis}
-            className="w-56 h-14 p-4 rounded-lg bg-[#2f3192] text-white hover:bg-[#1e217a] transition"
-          >
-            Proceed to Diagnosis
-          </button>
+      {/* Uploaded Tests Grid */}
+      {uploadedTests.length > 0 && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-12 w-full max-w-4xl">
+          {uploadedTests.map((test) => (
+            <div
+              key={test.id}
+              className="border rounded-lg p-4 shadow relative bg-white"
+            >
+              <button
+                onClick={() => handleDelete(test.id)}
+                className="absolute top-2 right-2 text-gray-500 hover:text-red-500"
+              >
+                <IoClose size={20} />
+              </button>
+              <p className="font-semibold mb-2">{test.name}</p>
+              {test.file.type.startsWith("image/") ? (
+                <img
+                  src={test.url}
+                  alt={test.name}
+                  className="w-full h-40 object-cover rounded"
+                />
+              ) : (
+                <p className="text-sm text-gray-600 truncate">
+                  {test.file.name}
+                </p>
+              )}
+            </div>
+          ))}
         </div>
-      </form>
+      )}
 
-      {/* Modal */}
-      <ExtraTestModal
-        isOpen={showModal}
-        onClose={handleCloseModal}
-        testName={activeTest}
-        initialData={testData[activeTest]}
-        onSave={handleSaveTest}
-      />
+      {/* Action Buttons */}
+      <div className="flex flex-col md:flex-row gap-4 justify-center">
+        <button
+          onClick={() => setActiveTab("refraction")}
+          className="px-6 py-3 border border-[#2f3192] text-[#2f3192] rounded-lg hover:bg-indigo-50 w-64"
+        >
+          ← Back to Refraction
+        </button>
+        <button
+          onClick={proceedToDiagnosis}
+          className="px-6 py-3 bg-[#2f3192] text-white rounded-lg hover:bg-[#1e217a] w-64"
+        >
+          Proceed to Diagnosis →
+        </button>
+      </div>
     </div>
   );
 };
