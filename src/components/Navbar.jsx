@@ -10,6 +10,7 @@ import SearchModalUnfilled from "./SearchModalUnfilled";
 import useLogout from "../hooks/useLogout"; // Import the useLogout hook
 import { useLazySearchPatientsQuery } from "../redux/api/features/patientApi";
 import LoadingSpinner from "./LoadingSpinner";
+import { showToast } from "../components/ToasterHelper";
 
 const Navbar = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -33,19 +34,27 @@ const Navbar = () => {
   const [isLoading, setIsLoading] = useState(false);
   // const navigate = useNavigate();
 
+  //
+
   const handleSearch = async (event) => {
     event.preventDefault();
+
     if (searchQuery.trim()) {
       setIsLoading(true);
+      showToast("Searching for patient...", "loading", {
+        duration: 10000,
+        isLoading: true,
+      });
 
-      try{
-      await triggerSearch(searchQuery); // Call API to prefetch search data
-      navigate(`/patients/search?query=${searchQuery}`); // Redirect user to results page
-
-      } catch(error){
-        console.error('Error fetching  search results: ' , error);
-      } finally{
-        setIsLoading(false); // Reset loading state
+      try {
+        await triggerSearch(searchQuery);
+        showToast("Search completed successfully!", "success");
+        navigate(`/patients/search?query=${searchQuery}`);
+      } catch (error) {
+        console.error("Search error:", error);
+        showToast("Failed to fetch search results.", "error");
+      } finally {
+        setIsLoading(false);
       }
     }
   };
@@ -88,11 +97,11 @@ const Navbar = () => {
             // onKeyDown={handleSearch}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
-                {isLoading && (
-        <div className="absolute right-0 top-0 h-full w-full flex items-center justify-center bg-white rounded-md">
-          <LoadingSpinner />
-        </div>
-      )}
+          {isLoading && (
+            <div className="absolute right-0 top-0 h-full w-full flex items-center justify-center bg-white rounded-md">
+              <LoadingSpinner />
+            </div>
+          )}
         </form>
         <div className="flex items-center">
           <button

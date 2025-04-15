@@ -67,7 +67,6 @@ const CreateAppointment = () => {
         notes: "",
       });
     } catch (err) {
-      console.error("❌ Failed to create appointment:", err);
       const message = formatErrorMessage(err?.data);
       showToast(message, "error");
     }
