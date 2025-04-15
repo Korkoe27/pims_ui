@@ -17,8 +17,6 @@ const Patients = () => {
     pageSize,
   });
 
-  console.log("Patients Data:", patients); // Debugging: Check API response
-
   return (
     <div className="px-8 ml-72 flex flex-col mt-8 gap-8 bg-[#f9fafb] w-full shadow-md sm:rounded-lg">
       <Navbar />
@@ -39,7 +37,6 @@ const Patients = () => {
           </thead>
           <tbody>
             {patients.results.map((patient) => {
-              console.log("Patient Entry:", patient); // Debugging: Log each patient entry
               return (
                 <tr key={patient.id} className="bg-white border-b">
                   <td className="px-6 py-4">{patient.patient_id || "N/A"}</td> {/* Display `patient_id` */}

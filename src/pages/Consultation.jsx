@@ -20,6 +20,7 @@ const Consultation = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("case history");
   const [flowStep, setFlowStep] = useState("consultation");
+  const [tabCompletionStatus, setTabCompletionStatus] = useState({});
 
   const {
     data: selectedAppointment,
@@ -48,6 +49,7 @@ const Consultation = () => {
           <CaseHistory
             appointmentId={appointmentId}
             setActiveTab={setActiveTab}
+            setTabCompletionStatus={setTabCompletionStatus} //
           />
         );
       case "personal history":
@@ -105,17 +107,29 @@ const Consultation = () => {
       case "consultation":
         return (
           <>
-            <NavMenu activeTab={activeTab} setActiveTab={setActiveTab} />
+            <NavMenu
+              activeTab={activeTab}
+              setActiveTab={setActiveTab}
+              tabCompletionStatus={tabCompletionStatus}
+            />
             <div className="mt-4">{renderTabContent()}</div>
           </>
         );
       case "diagnosis":
         return (
-          <Diagnosis setActiveTab={setActiveTab} appointmentId={appointmentId} setFlowStep={setFlowStep} />
+          <Diagnosis
+            setActiveTab={setActiveTab}
+            appointmentId={appointmentId}
+            setFlowStep={setFlowStep}
+          />
         );
       case "management":
         return (
-          <Management setActiveTab={setActiveTab} appointmentId={appointmentId} setFlowStep={setFlowStep} />
+          <Management
+            setActiveTab={setActiveTab}
+            appointmentId={appointmentId}
+            setFlowStep={setFlowStep}
+          />
         );
       default:
         return null;

@@ -12,7 +12,13 @@ import NotesTextArea from "./NotesTextArea";
 import DeleteButton from "./DeleteButton";
 import { hasFormChanged } from "../utils/deepCompare";
 
-const CaseHistory = ({ patientId, appointmentId, nextTab, setActiveTab }) => {
+const CaseHistory = ({
+  patientId,
+  appointmentId,
+  nextTab,
+  setActiveTab,
+  setTabCompletionStatus,
+}) => {
   const { data: caseHistory, isLoading: loadingCaseHistory } =
     useFetchCaseHistoryQuery(appointmentId, {
       skip: !appointmentId,
@@ -166,6 +172,10 @@ const CaseHistory = ({ patientId, appointmentId, nextTab, setActiveTab }) => {
 
     if (initialPayload && !hasFormChanged(initialPayload, payload)) {
       showToast("No changes detected", "info");
+      setTabCompletionStatus?.((prev) => ({
+        ...prev,
+        "case history": true,
+      }));
       setActiveTab("personal history");
       return;
     }
@@ -174,6 +184,10 @@ const CaseHistory = ({ patientId, appointmentId, nextTab, setActiveTab }) => {
       showToast("Saving case history...", "loading");
       await createCaseHistory(payload).unwrap();
       showToast("Case history saved successfully!", "success");
+      setTabCompletionStatus?.((prev) => ({
+        ...prev,
+        "case history": true,
+      }));
       setActiveTab("personal history");
     } catch (error) {
       console.error("❌ Error saving:", error);

@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import ErrorModal from "./ErrorModal";
 import useVisualAcuityData from "../hooks/useVisualAcuityData";
 import VisualAcuitySection, { validateVASection } from "./VisualAcuitySection";
 import NearVisualAcuitySection from "./NearVisualAcuitySection";
@@ -287,6 +286,7 @@ export default function VisualAcuityForm({
 
     try {
       await createVisualAcuity(payload).unwrap();
+      showToast("Saving visual acuity...", "loading");
       showToast("Visual acuity saved successfully!", "success");
       setActiveTab("externals");
     } catch (error) {
