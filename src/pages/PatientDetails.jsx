@@ -56,7 +56,7 @@ const PatientDetails = () => {
 
   const modalTabs = [
     { label: "Case History", value: "casehistory" },
-    { label: "Personal History", value: "personalhistory" },
+    { label: "Oculo-Medical History", value: "personalhistory" },
     { label: "Visual Acuity", value: "visualacuity" },
     { label: "Externals", value: "externals" },
     { label: "Internals", value: "internals" },

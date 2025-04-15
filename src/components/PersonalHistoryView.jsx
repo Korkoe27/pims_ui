@@ -8,9 +8,9 @@ const PersonalHistoryView = ({ patientId, appointmentId }) => {
   );
 
   if (isLoading)
-    return <p className="text-gray-500">Loading personal history...</p>;
+    return <p className="text-gray-500">Loading Oculo-Medical History...</p>;
   if (error || !personalHistory)
-    return <p className="text-red-500">No personal history found.</p>;
+    return <p className="text-red-500">No Oculo-Medical History found.</p>;
 
   const renderConditionBlock = (title, conditions) => (
     <div className="mt-4">

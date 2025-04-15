@@ -23,6 +23,7 @@ const PersonalHistory = ({
   appointmentId,
   nextTab,
   setActiveTab,
+  setTabCompletionStatus,
 }) => {
   const { personalHistory, createPatientHistory, createPatientHistoryStatus } =
     usePersonalHistoryData(patientId, appointmentId);
@@ -249,6 +250,10 @@ const PersonalHistory = ({
 
     if (initialPayload && !hasFormChanged(initialPayload, payload)) {
       showToast("No changes detected", "info");
+      setTabCompletionStatus?.((prev) => ({
+        ...prev,
+        "Oculo-Medical History": true,
+      }));
       setActiveTab("visual acuity");
       return;
     }
@@ -256,6 +261,10 @@ const PersonalHistory = ({
     try {
       showToast("Saving Oculo-Medical history...", "loading");
       await createPatientHistory(payload).unwrap();
+      setTabCompletionStatus?.((prev) => ({
+        ...prev,
+        "Oculo-Medical History": true,
+      }));
       showToast("Oculo-Medical history saved successfully!", "success");
       setActiveTab("visual acuity");
     } catch (err) {
