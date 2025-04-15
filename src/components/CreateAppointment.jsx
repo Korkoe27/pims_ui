@@ -53,6 +53,11 @@ const CreateAppointment = () => {
     };
 
     try {
+      const toastId = showToast("Creating appointment...", "loading", {
+        autoClose: false, // Keep it visible until we manually update or remove it
+        isLoading: true, // Spinner or loading indicator if supported
+      });
+
       await createAppointment(payload).unwrap();
       showToast("Appointment Created Successfully!", "success");
       setFormData({
