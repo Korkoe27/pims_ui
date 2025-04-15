@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import ErrorModal from "./ErrorModal";
 import useVisualAcuityData from "../hooks/useVisualAcuityData";
 import VisualAcuitySection, { validateVASection } from "./VisualAcuitySection";
 import NearVisualAcuitySection from "./NearVisualAcuitySection";
