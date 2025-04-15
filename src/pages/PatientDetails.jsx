@@ -196,7 +196,6 @@ const PatientInfoSection = ({ patient }) => (
       Patient Information
     </h3>
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-      <Detail label="Generated ID" value={patient.generated_id_number} />
       <Detail label="ID Type" value={patient.id_type} />
       <Detail label="ID Number" value={patient.id_number} />
       <Detail label="Primary Phone" value={patient.primary_phone} />
