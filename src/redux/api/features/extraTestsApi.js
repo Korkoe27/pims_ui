@@ -17,17 +17,18 @@ export const extraTestApi = apiClient.injectEndpoints({
 
     /** ✅ Create Extra Test for an Appointment **/
     createExtraTest: builder.mutation({
-      query: ({ appointmentId, formData }) => ({
-        url: createExtraTestUrl(appointmentId),
-        method: "POST",
-        body: formData, // ✅ send FormData directly
-      }),
+      query: (formData) => {
+        const appointmentId = formData.get("appointment"); // ✅ Grab from FormData
+        return {
+          url: createExtraTestUrl(appointmentId),
+          method: "POST",
+          body: formData,
+        };
+      },
       invalidatesTags: ["ExtraTests"],
     }),
   }),
 });
 
-export const {
-  useFetchExtraTestsQuery,
-  useCreateExtraTestMutation,
-} = extraTestApi;
+export const { useFetchExtraTestsQuery, useCreateExtraTestMutation } =
+  extraTestApi;

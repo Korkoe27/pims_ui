@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { IoClose } from "react-icons/io5";
 import { showToast } from "../components/ToasterHelper";
-import { useCreateExtraTestMutation } from "../redux/api/features/extraTestsApi"; // ✅ Correct file name
+import { useCreateExtraTestMutation } from "../redux/api/features/extraTestsApi";
 
 const TEST_OPTIONS = [
   "OCT",
@@ -36,9 +36,10 @@ const ExtraTestUploadModal = ({
     formData.append("name", testName);
     formData.append("notes", notes);
     formData.append("file", file);
+    formData.append("appointment", appointmentId); // ✅ Needed if backend requires it in body
 
     try {
-      await createExtraTest({ appointmentId, formData }).unwrap();
+      await createExtraTest(formData).unwrap(); // ✅ Pass FormData directly
       showToast("Extra test uploaded successfully!", "success");
       onUploadSuccess?.();
       onClose();
