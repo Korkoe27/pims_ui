@@ -1,4 +1,3 @@
-// Full updated Internals component with OD/OS layout and success toast
 import React, { useState, useEffect } from "react";
 import { FaChevronDown, FaChevronUp } from "react-icons/fa";
 import { useParams } from "react-router-dom";
@@ -8,11 +7,13 @@ import GradingSelect from "./GradingSelect";
 import NotesTextArea from "./NotesTextArea";
 import DeleteButton from "./DeleteButton";
 import { showToast, formatErrorMessage } from "../components/ToasterHelper";
+import { hasFormChanged } from "../utils/deepCompare";
 
-const Internals = ({ setActiveTab }) => {
+const Internals = ({ setActiveTab, setTabCompletionStatus }) => {
   const { appointmentId } = useParams();
   const [dropdowns, setDropdowns] = useState({});
   const [formData, setFormData] = useState({});
+  const [initialPayload, setInitialPayload] = useState(null);
   const [errorMessage, setErrorMessage] = useState(null);
   const [showErrorModal, setShowErrorModal] = useState(false);
 
@@ -35,6 +36,7 @@ const Internals = ({ setActiveTab }) => {
   useEffect(() => {
     if (internals && conditions.length > 0) {
       const initialFormData = {};
+      const snapshot = [];
 
       internals.forEach((obs) => {
         const condition = conditions.find((c) => c.id === obs.condition);
@@ -47,24 +49,31 @@ const Internals = ({ setActiveTab }) => {
           (e) => e.id === condition.id
         );
 
+        const detail = {
+          grading: obs.grading,
+          notes: obs.notes,
+        };
+
         if (entryIndex === -1) {
           initialFormData[groupName].push({
             id: condition.id,
             name: condition.name,
-            [obs.affected_eye]: {
-              grading: obs.grading,
-              notes: obs.notes,
-            },
+            [obs.affected_eye]: detail,
           });
         } else {
-          initialFormData[groupName][entryIndex][obs.affected_eye] = {
-            grading: obs.grading,
-            notes: obs.notes,
-          };
+          initialFormData[groupName][entryIndex][obs.affected_eye] = detail;
         }
+
+        snapshot.push({
+          condition: obs.condition,
+          affected_eye: obs.affected_eye,
+          grading: obs.grading,
+          notes: obs.notes,
+        });
       });
 
       setFormData(initialFormData);
+      setInitialPayload(snapshot);
     }
   }, [internals, conditions]);
 
@@ -153,8 +162,23 @@ const Internals = ({ setActiveTab }) => {
       return;
     }
 
+    // ✅ Handle unchanged data
+    if (initialPayload && !hasFormChanged(initialPayload, observations)) {
+      showToast("No changes detected", "info");
+      setTabCompletionStatus?.((prev) => ({
+        ...prev,
+        internals: true,
+      }));
+      setActiveTab("refraction");
+      return;
+    }
+
     try {
       await createInternalObservation({ appointmentId, observations }).unwrap();
+      setTabCompletionStatus?.((prev) => ({
+        ...prev,
+        internals: true,
+      }));
       showToast("Internal observations saved successfully!", "success");
       if (setActiveTab) setActiveTab("refraction");
     } catch (error) {

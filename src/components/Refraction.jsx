@@ -4,6 +4,7 @@ import { useParams } from "react-router-dom";
 import useRefractionData from "../hooks/useRefractionData";
 import ErrorModal from "./ErrorModal";
 import { showToast } from "../components/ToasterHelper";
+import { hasFormChanged } from "../utils/deepCompare"; // ✅ Add this
 
 const OBJECTIVE_METHOD_OPTIONS = [
   { value: "Retinoscopy", label: "Retinoscopy" },
@@ -19,7 +20,7 @@ const PLACEHOLDERS = {
   va_0_4m: "6/9",
 };
 
-const Refraction = ({ setActiveTab }) => {
+const Refraction = ({ setActiveTab, setTabCompletionStatus }) => {
   const { appointmentId } = useParams();
   const { refraction, loadingRefraction, createRefraction } =
     useRefractionData(appointmentId);
@@ -40,13 +41,14 @@ const Refraction = ({ setActiveTab }) => {
     },
   });
 
+  const [initialPayload, setInitialPayload] = useState(null);
   const [showCycloplegic, setShowCycloplegic] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
   const [showErrorModal, setShowErrorModal] = useState(false);
 
   useEffect(() => {
     if (refraction) {
-      setFormData({
+      const newData = {
         objective_method: refraction.objective_method || "",
         objective: {
           OD: refraction.objective?.find((r) => r.eye === "OD") || {},
@@ -60,7 +62,32 @@ const Refraction = ({ setActiveTab }) => {
           OD: refraction.cycloplegic?.find((r) => r.eye === "OD") || {},
           OS: refraction.cycloplegic?.find((r) => r.eye === "OS") || {},
         },
-      });
+      };
+
+      setFormData(newData);
+
+      const payload = {
+        appointment: appointmentId,
+        objective_method: newData.objective_method,
+        objective: ["OD", "OS"].map((eye) => ({
+          eye,
+          ...newData.objective[eye],
+        })),
+        subjective: ["OD", "OS"].map((eye) => ({
+          eye,
+          ...newData.subjective[eye],
+        })),
+        cycloplegic:
+          Array.isArray(refraction.cycloplegic) &&
+          refraction.cycloplegic.length > 0
+            ? ["OD", "OS"].map((eye) => ({
+                eye,
+                ...newData.cycloplegic[eye],
+              }))
+            : [],
+      };
+
+      setInitialPayload(payload);
 
       setShowCycloplegic(
         Array.isArray(refraction.cycloplegic) &&
@@ -99,9 +126,24 @@ const Refraction = ({ setActiveTab }) => {
         : [],
     };
 
+    // ✅ Check for no changes
+    if (initialPayload && !hasFormChanged(initialPayload, payload)) {
+      showToast("No changes detected", "info");
+      setTabCompletionStatus?.((prev) => ({
+        ...prev,
+        refraction: true,
+      }));
+      setActiveTab("extra tests");
+      return;
+    }
+
     try {
       await createRefraction({ appointmentId, ...payload }).unwrap();
       showToast("Refraction saved successfully!", "success");
+      setTabCompletionStatus?.((prev) => ({
+        ...prev,
+        refraction: true,
+      }));
       setActiveTab("extra tests");
       return true;
     } catch (error) {

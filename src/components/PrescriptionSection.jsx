@@ -8,20 +8,23 @@ export function validatePrescription(rx, hasPrescription) {
   if (!hasPrescription) return true;
 
   const isQuarterStep = (value) =>
-    /^[-+]?\d+(\.0{0,2}25|\.50|\.75|\.00)?$/.test(value);
+    /^[-+]?\d+(\.25|\.50|\.75|\.00)?$/.test(value);
 
   const isPositiveQuarter = (value) =>
-    /^\+?\d+(\.0{0,2}25|\.50|\.75|\.00)?$/.test(value);
+    /^\+?\d+(\.25|\.50|\.75|\.00)?$/.test(value);
 
   const isNegativeQuarter = (value) =>
-    /^-\d+(\.0{0,2}25|\.50|\.75|\.00)?$/.test(value);
+    /^-\d+(\.25|\.50|\.75|\.00)?$/.test(value);
 
   const isAxisValid = (value) => {
     const num = Number(value);
     return !isNaN(num) && num >= 0 && num <= 180 && Number.isInteger(num);
   };
 
-  return EYES.every((eye) => {
+  const isValidVA = (value) =>
+    /^(\d{1,3}\/\d{1,3}|\+?\d+(\.25|\.50|\.75|\.00)?)$/.test(value);
+
+  return ["OD", "OS"].every((eye) => {
     const fields = rx[eye];
     if (Object.values(fields).some((val) => val.trim() === "")) return false;
 
@@ -31,9 +34,9 @@ export function validatePrescription(rx, hasPrescription) {
       isQuarterStep(sph) &&
       isNegativeQuarter(cyl) &&
       isAxisValid(axis) &&
-      isPositiveQuarter(va) &&
+      isValidVA(va) &&
       isPositiveQuarter(add) &&
-      isPositiveQuarter(nearVa)
+      isValidVA(nearVa)
     );
   });
 }
