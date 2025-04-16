@@ -27,10 +27,7 @@ const ExtraTests = ({
     useFetchExtraTestsQuery(appointmentId);
 
   const proceedToDiagnosis = () => {
-    if (uploadedTests.length === 0) {
-      showToast("Please upload at least one test before proceeding.", "error");
-      return;
-    }
+    
 
     setTabCompletionStatus?.((prev) => ({
       ...prev,

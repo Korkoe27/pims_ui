@@ -23,7 +23,6 @@ const Management = ({ setFlowStep, appointmentId }) => {
     filteredMedications,
     managementPlan,
     createManagementPlan,
-    // ADD THESE ⬇️
     isManagementPlanLoading,
     isCreatingManagementPlan,
   } = useManagementData(appointmentId, selectedTypeId);
@@ -109,11 +108,6 @@ const Management = ({ setFlowStep, appointmentId }) => {
   const closeModal = () => setModal(false);
   const openModal = () => setIsModalOpen(true);
 
-  const handleMedicationChange = (e) => {
-    const { name, value } = e.target;
-    setMedicationEntry((prev) => ({ ...prev, [name]: value }));
-  };
-
   const handleSubmit = async () => {
     const processedPrescription = {
       ...prescription,
@@ -132,7 +126,7 @@ const Management = ({ setFlowStep, appointmentId }) => {
     };
 
     const payload = {
-      ...prescription, // includes type_of_refractive_correction
+      ...prescription,
       refractive_correction: checkboxes.refractiveCorrection,
       medications: checkboxes.medications,
       counselling: checkboxes.counselling,
@@ -147,8 +141,7 @@ const Management = ({ setFlowStep, appointmentId }) => {
       showToast("Saving management plan...", "info");
       await createManagementPlan({ appointmentId, payload }).unwrap();
       showToast("Management plan saved successfully!", "success");
-      
-      // ✅ Mark the appointment as completed
+
       await markAppointmentCompletedHandler(appointmentId);
       showToast("Appointment marked as completed!", "success");
       setModal(true);
@@ -203,7 +196,7 @@ const Management = ({ setFlowStep, appointmentId }) => {
                   <button
                     onClick={() => {
                       closeModal();
-                      openModal();
+                      navigate("/appointments");
                     }}
                     className="bg-[#0F973D] text-white px-4 py-2 rounded-lg"
                   >
@@ -212,7 +205,7 @@ const Management = ({ setFlowStep, appointmentId }) => {
                   <button
                     onClick={() => {
                       closeModal();
-                      navigate("/");
+                      navigate("/dashboard");
                     }}
                     className="border border-gray-600 px-4 py-2 rounded-lg"
                   >
@@ -225,70 +218,71 @@ const Management = ({ setFlowStep, appointmentId }) => {
         </div>
       )}
 
-      <form className="flex flex-col gap-5 w-fit">
-        <main className="flex gap-40">
-          <section className="flex flex-col gap-12 w-fit">
-            <div className="flex flex-col gap-2">
-              <label className="font-medium text-base">
-                Treatment / Management Option(s)
-              </label>
-              <div className="grid grid-cols-2 gap-5">
-                {Object.keys(checkboxes).map((key) => (
-                  <label
-                    key={key}
-                    className="flex items-center gap-1 capitalize"
-                  >
-                    <input
-                      type="checkbox"
-                      name={key}
-                      checked={checkboxes[key]}
-                      onChange={handleCheckboxChange}
-                      className="h-5 w-5"
-                    />
-                    {key.replace(/([A-Z])/g, " $1")}
-                  </label>
-                ))}
+      {!modal && (
+        <form className="flex flex-col gap-5 w-fit">
+          <main className="flex gap-40">
+            <section className="flex flex-col gap-12 w-fit">
+              <div className="flex flex-col gap-2">
+                <label className="font-medium text-base">
+                  Treatment / Management Option(s)
+                </label>
+                <div className="grid grid-cols-2 gap-5">
+                  {Object.keys(checkboxes).map((key) => (
+                    <label
+                      key={key}
+                      className="flex items-center gap-1 capitalize"
+                    >
+                      <input
+                        type="checkbox"
+                        name={key}
+                        checked={checkboxes[key]}
+                        onChange={handleCheckboxChange}
+                        className="h-5 w-5"
+                      />
+                      {key.replace(/([A-Z])/g, " $1")}
+                    </label>
+                  ))}
+                </div>
               </div>
-            </div>
 
-            {/* Prescription Section */}
-            {checkboxes.refractiveCorrection && (
-              <RefractiveCorrectionSection
-                prescription={prescription}
-                handleInputChange={handleInputChange}
-              />
-            )}
+              {checkboxes.refractiveCorrection && (
+                <RefractiveCorrectionSection
+                  prescription={prescription}
+                  handleInputChange={handleInputChange}
+                />
+              )}
 
-            {checkboxes.medications && (
-              <MedicationForm
-                medicationEntry={medicationEntry}
-                setMedicationEntry={setMedicationEntry}
-                medicationTypes={medicationTypes}
-                filteredMedications={filteredMedications}
-                setSelectedTypeId={setSelectedTypeId}
-              />
-            )}
-          </section>
-        </main>
+              {checkboxes.medications && (
+                <MedicationForm
+                  medicationEntry={medicationEntry}
+                  setMedicationEntry={setMedicationEntry}
+                  medicationTypes={medicationTypes}
+                  filteredMedications={filteredMedications}
+                  setSelectedTypeId={setSelectedTypeId}
+                />
+              )}
+            </section>
+          </main>
 
-        <div className="flex justify-start">
-          <button
-            type="button"
-            onClick={() => setFlowStep("diagnosis")}
-            className="text-[#2f3192] border border-[#2f3192] hover:bg-[#2f3192] hover:text-white px-4 py-2 rounded-md transition font-medium"
-          >
-            ← Back to Diagnosis
-          </button>
+          <div className="flex justify-start">
+            <button
+              type="button"
+              onClick={() => setFlowStep("diagnosis")}
+              className="text-[#2f3192] border border-[#2f3192] hover:bg-[#2f3192] hover:text-white px-4 py-2 rounded-md transition font-medium"
+            >
+              ← Back to Diagnosis
+            </button>
 
-          <button
-            type="button"
-            onClick={handleSubmit}
-            className="w-24 h-14 mx-auto mr-0 p-4 rounded-lg bg-[#2f3192] text-white"
-          >
-            {isCreatingManagementPlan ? "Saving..." : "Finish"}
-          </button>
-        </div>
-      </form>
+            <button
+              type="button"
+              onClick={handleSubmit}
+              className="w-24 h-14 mx-auto mr-0 p-4 rounded-lg bg-[#2f3192] text-white"
+            >
+              {isCreatingManagementPlan ? "Saving..." : "Finish"}
+            </button>
+          </div>
+        </form>
+      )}
     </div>
   );
 };
