@@ -12,8 +12,8 @@ import Externals from "../components/Externals";
 import Internals from "../components/Internals";
 import Refraction from "../components/Refraction";
 import ExtraTests from "../components/ExtraTests";
-import Diagnosis from "../components/Diagnosis"; // Add your actual Diagnosis component
-import Management from "../components/Management"; // Add your actual Management component
+import Diagnosis from "../components/Diagnosis";
+import Management from "../components/Management";
 
 const Consultation = () => {
   const { appointmentId } = useParams();
@@ -28,6 +28,12 @@ const Consultation = () => {
     isLoading,
   } = useGetAppointmentDetailsQuery(appointmentId);
 
+  const stepMap = {
+    consultation: 1,
+    diagnosis: 2,
+    management: 3,
+  };
+
   if (isLoading) {
     return <p>Loading patient details...</p>;
   }
@@ -41,7 +47,7 @@ const Consultation = () => {
   }
 
   const renderTabContent = () => {
-    const tab = activeTab.toLowerCase(); // normalize for consistency
+    const tab = activeTab.toLowerCase();
 
     switch (tab) {
       case "case history":
@@ -146,7 +152,7 @@ const Consultation = () => {
     <div className="px-8 ml-72 flex flex-col mt-8 gap-8 bg-[#f9fafb] w-full shadow-md sm:rounded-lg">
       <h1 className="font-extrabold text-xl">Consultation</h1>
       <Header patient={selectedAppointment} appointmentId={appointmentId} />
-      <ProgressBar step={1} setStep={setFlowStep} />
+      <ProgressBar step={stepMap[flowStep] || 1} setStep={setFlowStep} />
       {renderFlowStep()}
     </div>
   );
