@@ -14,8 +14,8 @@ const CaseHistoryView = ({ appointmentId }) => {
     }
   }, [caseHistory]);
 
-  if (isLoading) return <p className="text-gray-500">Loading case history...</p>;
-  if (error) return <p className="text-red-500">Failed to load case history.</p>;
+  if (isLoading) return <p className="text-gray-500">Loading Case History...</p>;
+  if (error) return <p className="text-red-500">No Case History Found.</p>;
 
   return (
     <div className="space-y-6 bg-white p-6 rounded shadow-md">

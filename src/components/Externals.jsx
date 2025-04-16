@@ -7,12 +7,14 @@ import GradingSelect from "./GradingSelect";
 import NotesTextArea from "./NotesTextArea";
 import DeleteButton from "./DeleteButton";
 import { showToast, formatErrorMessage } from "../components/ToasterHelper";
+import { hasFormChanged } from "../utils/deepCompare";
 
-const Externals = ({ setActiveTab }) => {
+const Externals = ({ setActiveTab, setTabCompletionStatus }) => {
   const { appointmentId } = useParams();
 
   const [dropdowns, setDropdowns] = useState({});
   const [formData, setFormData] = useState({});
+  const [initialPayload, setInitialPayload] = useState(null);
   const [errorMessage, setErrorMessage] = useState(null);
   const [showErrorModal, setShowErrorModal] = useState(false);
 
@@ -35,6 +37,7 @@ const Externals = ({ setActiveTab }) => {
   useEffect(() => {
     if (externals && conditions.length > 0) {
       const initialFormData = {};
+      const snapshot = [];
 
       externals.forEach((obs) => {
         const condition = conditions.find((c) => c.id === obs.condition);
@@ -47,24 +50,31 @@ const Externals = ({ setActiveTab }) => {
           (e) => e.id === condition.id
         );
 
+        const detail = {
+          grading: obs.grading,
+          notes: obs.notes,
+        };
+
         if (entryIndex === -1) {
           initialFormData[groupName].push({
             id: condition.id,
             name: condition.name,
-            [obs.affected_eye]: {
-              grading: obs.grading,
-              notes: obs.notes,
-            },
+            [obs.affected_eye]: detail,
           });
         } else {
-          initialFormData[groupName][entryIndex][obs.affected_eye] = {
-            grading: obs.grading,
-            notes: obs.notes,
-          };
+          initialFormData[groupName][entryIndex][obs.affected_eye] = detail;
         }
+
+        snapshot.push({
+          condition: obs.condition,
+          affected_eye: obs.affected_eye,
+          grading: obs.grading,
+          notes: obs.notes,
+        });
       });
 
       setFormData(initialFormData);
+      setInitialPayload(snapshot);
     }
   }, [externals, conditions]);
 
@@ -153,9 +163,24 @@ const Externals = ({ setActiveTab }) => {
       return;
     }
 
+    // ✅ Handle unchanged data
+    if (initialPayload && !hasFormChanged(initialPayload, observations)) {
+      showToast("No changes detected", "info");
+      setTabCompletionStatus?.((prev) => ({
+        ...prev,
+        externals: true,
+      }));
+      setActiveTab("internals");
+      return;
+    }
+
     try {
       await createExternalObservation({ appointmentId, observations }).unwrap();
-      showToast("External observations saved successfully!", "success"); 
+      setTabCompletionStatus?.((prev) => ({
+        ...prev,
+        externals: true,
+      }));
+      showToast("External observations saved successfully!", "success");
       if (setActiveTab) setActiveTab("internals");
     } catch (error) {
       const formatted = formatErrorMessage(error?.data);

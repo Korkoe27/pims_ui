@@ -49,7 +49,7 @@ const Consultation = () => {
           <CaseHistory
             appointmentId={appointmentId}
             setActiveTab={setActiveTab}
-            setTabCompletionStatus={setTabCompletionStatus} //
+            setTabCompletionStatus={setTabCompletionStatus}
           />
         );
       case "personal history":
@@ -59,6 +59,7 @@ const Consultation = () => {
             patientId={selectedAppointment?.patient}
             appointmentId={appointmentId}
             setActiveTab={setActiveTab}
+            setTabCompletionStatus={setTabCompletionStatus}
           />
         );
       case "visual acuity":
@@ -66,6 +67,7 @@ const Consultation = () => {
           <VisualAcuity
             appointmentId={appointmentId}
             setActiveTab={setActiveTab}
+            setTabCompletionStatus={setTabCompletionStatus}
           />
         );
       case "externals":
@@ -73,6 +75,7 @@ const Consultation = () => {
           <Externals
             appointmentId={appointmentId}
             setActiveTab={setActiveTab}
+            setTabCompletionStatus={setTabCompletionStatus}
           />
         );
       case "internals":
@@ -80,6 +83,7 @@ const Consultation = () => {
           <Internals
             appointmentId={appointmentId}
             setActiveTab={setActiveTab}
+            setTabCompletionStatus={setTabCompletionStatus}
           />
         );
       case "refraction":
@@ -87,6 +91,7 @@ const Consultation = () => {
           <Refraction
             appointmentId={appointmentId}
             setActiveTab={setActiveTab}
+            setTabCompletionStatus={setTabCompletionStatus}
           />
         );
       case "extra tests":
@@ -95,6 +100,7 @@ const Consultation = () => {
             appointmentId={appointmentId}
             setFlowStep={setFlowStep}
             setActiveTab={setActiveTab}
+            setTabCompletionStatus={setTabCompletionStatus}
           />
         );
       default:
