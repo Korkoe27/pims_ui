@@ -8,7 +8,7 @@ import NotesTextArea from "./NotesTextArea";
 import DeleteButton from "./DeleteButton";
 import { showToast, formatErrorMessage } from "../components/ToasterHelper";
 
-const Externals = ({ setActiveTab }) => {
+const Externals = ({ setActiveTab, setTabCompletionStatus, }) => {
   const { appointmentId } = useParams();
 
   const [dropdowns, setDropdowns] = useState({});
@@ -155,6 +155,10 @@ const Externals = ({ setActiveTab }) => {
 
     try {
       await createExternalObservation({ appointmentId, observations }).unwrap();
+      setTabCompletionStatus?.((prev) => ({
+        ...prev,
+        "visual acuity": true,
+      }));
       showToast("External observations saved successfully!", "success"); 
       if (setActiveTab) setActiveTab("internals");
     } catch (error) {
