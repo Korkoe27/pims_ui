@@ -310,7 +310,9 @@ export default function VisualAcuityForm({
       <h1 className="text-2xl font-bold mb-6">Visual Acuity</h1>
 
       <div>
-        <label className="block font-semibold mb-1">VA Chart used</label>
+        <label className="block font-semibold mb-1">
+          VA Chart used <span className="text-red-500">*</span>
+        </label>
         <select
           value={vaChart}
           onChange={(e) => setVaChart(e.target.value)}
@@ -327,7 +329,11 @@ export default function VisualAcuityForm({
 
       <VisualAcuitySection
         title="Distance VA"
-        fields={["unaided", "ph", "plusOne"]}
+        fields={[
+          { key: "unaided", label: "Unaided", required: true },
+          { key: "ph", label: "PH" },
+          { key: "plusOne", label: "+1.00" },
+        ]}
         vaData={distanceVA}
         onChange={handleDistanceVAChange}
         vaChart={vaChart}
