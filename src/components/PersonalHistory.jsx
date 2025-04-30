@@ -43,12 +43,11 @@ const PersonalHistory = ({
   const [familyMedicalHistory, setFamilyMedicalHistory] = useState([]);
   const [familyOcularHistory, setFamilyOcularHistory] = useState([]);
 
-  const [errorMessage, setErrorMessage] = useState(null);
-  const [showErrorModal, setShowErrorModal] = useState(false);
-
   const [initialPayload, setInitialPayload] = useState(null);
 
   const isSaving = createPatientHistoryStatus.isLoading;
+
+  const isFirstVisit = !personalHistory;
 
   const formatErrorMessage = (data) => {
     if (!data) return "An unexpected error occurred.";
@@ -87,6 +86,30 @@ const PersonalHistory = ({
     }
 
     return "An unexpected error occurred.";
+  };
+
+  const validateRequiredFields = () => {
+    const errors = [];
+
+    if (!lastEyeExam) errors.push("Last eye examination is required.");
+    if (!drugHistory) errors.push("Drug history is required.");
+    if (!allergyHistory) errors.push("Allergy history is required.");
+    if (!socialHistory) errors.push("Social history is required.");
+    if (selectedMedical.length === 0)
+      errors.push("At least one medical condition is required.");
+    if (selectedOcular.length === 0)
+      errors.push("At least one ocular condition is required.");
+    if (familyMedicalHistory.length === 0)
+      errors.push("Family medical history is required.");
+    if (familyOcularHistory.length === 0)
+      errors.push("Family ocular history is required.");
+
+    if (errors.length > 0) {
+      showToast(errors.join(" "), "error");
+      return false;
+    }
+
+    return true;
   };
 
   useEffect(() => {
@@ -214,6 +237,10 @@ const PersonalHistory = ({
   };
 
   const handleSave = async () => {
+    if (isFirstVisit && !validateRequiredFields()) {
+      return;
+    }
+
     if (!lastEyeExam) {
       showToast("Please select the last eye examination date.", "error");
       return;
@@ -284,7 +311,8 @@ const PersonalHistory = ({
           {/* Last Eye Exam */}
           <div>
             <label className="block font-medium mb-1">
-              Last Eye Examination
+              Last Eye Examination{" "}
+              {isFirstVisit && <span className="text-red-500">*</span>}
             </label>
             <select
               value={lastEyeExam}
@@ -302,7 +330,10 @@ const PersonalHistory = ({
 
           {/* Drug History */}
           <div className="space-y-2">
-            <label className="block font-medium mb-1">Drug History</label>
+            <label className="block font-medium mb-1">
+              Drug History{" "}
+              {isFirstVisit && <span className="text-red-500">*</span>}
+            </label>
             <input
               value={drugHistory}
               onChange={(e) => setDrugHistory(e.target.value)}
@@ -318,7 +349,10 @@ const PersonalHistory = ({
 
           {/* Allergy History */}
           <div>
-            <label className="block font-medium mb-1">Allergies</label>
+            <label className="block font-medium mb-1">
+              Allergies{" "}
+              {isFirstVisit && <span className="text-red-500">*</span>}{" "}
+            </label>
             <input
               value={allergyHistory}
               onChange={(e) => setAllergyHistory(e.target.value)}
@@ -334,7 +368,10 @@ const PersonalHistory = ({
 
           {/* Social History */}
           <div>
-            <label className="block font-medium mb-1">Social History</label>
+            <label className="block font-medium mb-1">
+              Social History{" "}
+              {isFirstVisit && <span className="text-red-500">*</span>}
+            </label>
             <input
               value={socialHistory}
               onChange={(e) => setSocialHistory(e.target.value)}
@@ -350,7 +387,12 @@ const PersonalHistory = ({
 
           <div>
             <SearchableSelect
-              label="Medical History"
+              label={
+                <span>
+                  Medical History{" "}
+                  {isFirstVisit && <span className="text-red-500">*</span>}
+                </span>
+              }
               options={formatOptions(medicalConditions)}
               selectedValues={selectedMedical.map((c) => ({
                 value: c.id,
@@ -403,7 +445,8 @@ const PersonalHistory = ({
             <SearchableSelect
               label={
                 <span>
-                  Ocular History <span className="text-red-500">*</span>
+                  Ocular History{" "}
+                  {isFirstVisit && <span className="text-red-500">*</span>}
                 </span>
               }
               options={formatOptions(ocularConditions)}
@@ -475,7 +518,12 @@ const PersonalHistory = ({
           {/* Family Medical History */}
           <div>
             <SearchableSelect
-              label="Family Medical History"
+              label={
+                <span>
+                  Family Medical History{" "}
+                  {isFirstVisit && <span className="text-red-500">*</span>}
+                </span>
+              }
               options={formatOptions(medicalConditions)}
               selectedValues={familyMedicalHistory.map((c) => ({
                 value: c.id,
@@ -526,7 +574,12 @@ const PersonalHistory = ({
           {/* Family Ocular History */}
           <div>
             <SearchableSelect
-              label="Family Ocular History"
+              label={
+                <span>
+                  Family Ocular History{" "}
+                  {isFirstVisit && <span className="text-red-500">*</span>}
+                </span>
+              }
               options={formatOptions(ocularConditions)}
               selectedValues={familyOcularHistory.map((c) => ({
                 value: c.id,
