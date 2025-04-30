@@ -11,7 +11,7 @@ export default function NearVisualAcuitySection({
   return (
     <div>
       <h3 className="font-semibold text-lg mb-2">
-        {title} <span className="text-red-500">*</span>
+        {title}
       </h3>
 
       {fields.length > 1 && (
