@@ -58,14 +58,14 @@ export default function PrescriptionSection({
     axis: "0 - 180",
     va: "6/6 or 0.00",
     add: "+1.00",
-    nearVa: "6/9 or 0.00",
+    nearVa: "M/N Notation",
   };
 
   return (
     <div className="space-y-6">
       <div>
         <label className="block mb-1 font-medium">
-          Did patient come with a prescription?
+          Did patient come with a prescription? <span className="text-red-500">*</span>
         </label>
         <div className="flex gap-4 mt-1">
           <label className="flex items-center gap-1">
@@ -95,7 +95,7 @@ export default function PrescriptionSection({
         <>
           <div>
             <label className="block mb-1 font-medium">
-              Type of Prescription
+              Type of Prescription <span className="text-red-500">*</span>
             </label>
             <select
               value={prescriptionType}
@@ -113,13 +113,12 @@ export default function PrescriptionSection({
 
           <div>
             <h3 className="font-semibold text-lg mb-2">
-              Patient’s Current Prescription{" "}
-              <span className="text-red-500">*</span>
+              Patient’s Current Prescription
             </h3>
 
             <div className="grid grid-cols-7 gap-4 text-sm font-semibold mb-1">
               <div></div>
-              <div>SPH</div>
+              <div>SPH <span className="text-red-500">*</span> </div>
               <div>CYL</div>
               <div>AXIS</div>
               <div>VA</div>
