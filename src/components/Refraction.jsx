@@ -147,6 +147,7 @@ const Refraction = ({ setActiveTab, setTabCompletionStatus }) => {
       setActiveTab("extra tests");
       return true;
     } catch (error) {
+      console.log(error);
       const message =
         error?.data?.detail ||
         "Failed to save refraction results. Please try again.";
