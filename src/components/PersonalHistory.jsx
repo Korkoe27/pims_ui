@@ -212,18 +212,61 @@ const PersonalHistory = ({
   const formatOptions = (list) =>
     list?.map((item) => ({ value: item.id, label: item.name })) || [];
 
+  // const handleSelect = (setter, existingList) => (option) => {
+  //   if (existingList.some((item) => item.id === option.value)) return;
+  //   setter([
+  //     ...existingList,
+  //     {
+  //       id: option.value,
+  //       name: option.label,
+  //       affected_eye: "",
+  //       grading: "",
+  //       notes: "",
+  //     },
+  //   ]);
+  // };
+
   const handleSelect = (setter, existingList) => (option) => {
-    if (existingList.some((item) => item.id === option.value)) return;
-    setter([
-      ...existingList,
-      {
-        id: option.value,
-        name: option.label,
-        affected_eye: "",
-        grading: "",
-        notes: "",
-      },
-    ]);
+    const isNoneSelected = option.label === "None";
+    const alreadyHasNone = existingList.some((item) => item.name === "None");
+
+    if (isNoneSelected) {
+      // If selecting 'None', wipe all others and set only None
+      setter([
+        {
+          id: option.value,
+          name: option.label,
+          affected_eye: "",
+          grading: "",
+          notes: "",
+        },
+      ]);
+    } else {
+      if (alreadyHasNone) {
+        // Remove 'None' if it was already selected
+        setter([
+          {
+            id: option.value,
+            name: option.label,
+            affected_eye: "",
+            grading: "",
+            notes: "",
+          },
+        ]);
+      } else if (!existingList.some((item) => item.id === option.value)) {
+        // Add new item if not already present
+        setter([
+          ...existingList,
+          {
+            id: option.value,
+            name: option.label,
+            affected_eye: "",
+            grading: "",
+            notes: "",
+          },
+        ]);
+      }
+    }
   };
 
   const updateEntry = (id, field, value, list, setter) => {
@@ -421,19 +464,19 @@ const PersonalHistory = ({
                     </div>
                     {c.name !== "None" && (
                       <>
-                    <NotesTextArea
-                      value={c.notes}
-                      onChange={(val) =>
-                        updateEntry(
-                          c.id,
-                          "notes",
-                          val,
-                          selectedMedical,
-                          setSelectedMedical
-                        )
-                      }
-                    />
-                    </>
+                        <NotesTextArea
+                          value={c.notes}
+                          onChange={(val) =>
+                            updateEntry(
+                              c.id,
+                              "notes",
+                              val,
+                              selectedMedical,
+                              setSelectedMedical
+                            )
+                          }
+                        />
+                      </>
                     )}
                   </div>
                 ))}
@@ -622,43 +665,43 @@ const PersonalHistory = ({
                     </div>
                     {c.name !== "None" && (
                       <>
-                    <AffectedEyeSelect
-                      value={c.affected_eye}
-                      onChange={(val) =>
-                        updateEntry(
-                          c.id,
-                          "affected_eye",
-                          val,
-                          familyOcularHistory,
-                          setFamilyOcularHistory
-                        )
-                      }
-                    />
-                    <GradingSelect
-                      value={c.grading}
-                      onChange={(val) =>
-                        updateEntry(
-                          c.id,
-                          "grading",
-                          val,
-                          familyOcularHistory,
-                          setFamilyOcularHistory
-                        )
-                      }
-                    />
-                    <NotesTextArea
-                      value={c.notes}
-                      onChange={(val) =>
-                        updateEntry(
-                          c.id,
-                          "notes",
-                          val,
-                          familyOcularHistory,
-                          setFamilyOcularHistory
-                        )
-                      }
-                    />
-                    </>
+                        <AffectedEyeSelect
+                          value={c.affected_eye}
+                          onChange={(val) =>
+                            updateEntry(
+                              c.id,
+                              "affected_eye",
+                              val,
+                              familyOcularHistory,
+                              setFamilyOcularHistory
+                            )
+                          }
+                        />
+                        <GradingSelect
+                          value={c.grading}
+                          onChange={(val) =>
+                            updateEntry(
+                              c.id,
+                              "grading",
+                              val,
+                              familyOcularHistory,
+                              setFamilyOcularHistory
+                            )
+                          }
+                        />
+                        <NotesTextArea
+                          value={c.notes}
+                          onChange={(val) =>
+                            updateEntry(
+                              c.id,
+                              "notes",
+                              val,
+                              familyOcularHistory,
+                              setFamilyOcularHistory
+                            )
+                          }
+                        />
+                      </>
                     )}
                   </div>
                 ))}
