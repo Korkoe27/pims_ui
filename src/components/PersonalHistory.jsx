@@ -419,6 +419,8 @@ const PersonalHistory = ({
                         }
                       />
                     </div>
+                    {c.name !== "None" && (
+                      <>
                     <NotesTextArea
                       value={c.notes}
                       onChange={(val) =>
@@ -431,6 +433,8 @@ const PersonalHistory = ({
                         )
                       }
                     />
+                    </>
+                    )}
                   </div>
                 ))}
               </div>
@@ -471,45 +475,48 @@ const PersonalHistory = ({
                         }
                       />
                     </div>
+                    {c.name !== "None" && (
+                      <>
+                        <AffectedEyeSelect
+                          value={c.affected_eye}
+                          onChange={(val) =>
+                            updateEntry(
+                              c.id,
+                              "affected_eye",
+                              val,
+                              selectedOcular,
+                              setSelectedOcular
+                            )
+                          }
+                        />
 
-                    <AffectedEyeSelect
-                      value={c.affected_eye}
-                      onChange={(val) =>
-                        updateEntry(
-                          c.id,
-                          "affected_eye",
-                          val,
-                          selectedOcular,
-                          setSelectedOcular
-                        )
-                      }
-                    />
+                        <GradingSelect
+                          value={c.grading}
+                          onChange={(val) =>
+                            updateEntry(
+                              c.id,
+                              "grading",
+                              val,
+                              selectedOcular,
+                              setSelectedOcular
+                            )
+                          }
+                        />
 
-                    <GradingSelect
-                      value={c.grading}
-                      onChange={(val) =>
-                        updateEntry(
-                          c.id,
-                          "grading",
-                          val,
-                          selectedOcular,
-                          setSelectedOcular
-                        )
-                      }
-                    />
-
-                    <NotesTextArea
-                      value={c.notes}
-                      onChange={(val) =>
-                        updateEntry(
-                          c.id,
-                          "notes",
-                          val,
-                          selectedOcular,
-                          setSelectedOcular
-                        )
-                      }
-                    />
+                        <NotesTextArea
+                          value={c.notes}
+                          onChange={(val) =>
+                            updateEntry(
+                              c.id,
+                              "notes",
+                              val,
+                              selectedOcular,
+                              setSelectedOcular
+                            )
+                          }
+                        />
+                      </>
+                    )}
                   </div>
                 ))}
               </div>
@@ -553,18 +560,22 @@ const PersonalHistory = ({
                         }
                       />
                     </div>
-                    <NotesTextArea
-                      value={c.notes}
-                      onChange={(val) =>
-                        updateEntry(
-                          c.id,
-                          "notes",
-                          val,
-                          familyMedicalHistory,
-                          setFamilyMedicalHistory
-                        )
-                      }
-                    />
+                    {c.name !== "None" && (
+                      <>
+                        <NotesTextArea
+                          value={c.notes}
+                          onChange={(val) =>
+                            updateEntry(
+                              c.id,
+                              "notes",
+                              val,
+                              familyMedicalHistory,
+                              setFamilyMedicalHistory
+                            )
+                          }
+                        />
+                      </>
+                    )}
                   </div>
                 ))}
               </div>
@@ -609,6 +620,8 @@ const PersonalHistory = ({
                         }
                       />
                     </div>
+                    {c.name !== "None" && (
+                      <>
                     <AffectedEyeSelect
                       value={c.affected_eye}
                       onChange={(val) =>
@@ -645,6 +658,8 @@ const PersonalHistory = ({
                         )
                       }
                     />
+                    </>
+                    )}
                   </div>
                 ))}
               </div>
