@@ -67,8 +67,8 @@ const Navbar = () => {
           setSearchModalVisibility={setSearchModalVisibility}
         />
       )} */}
-      <div className="col-span-4">
-        <h2 className="text-2xl font-bold">
+      <div className="col-span-3">
+        <h2 className="xl:text-lg 2xl:text-xl font-bold">
           Good{" "}
           {`${
             new Date().getHours() < 12
@@ -81,12 +81,12 @@ const Navbar = () => {
         </h2>
       </div>
 
-      <div className="flex items-center justify-end gap-5 h-14 col-span-7 w-90 border-[#d0d5dd]">
+      <div className="flex items-center justify-end gap-5 h-14 col-span-8 w-full border-[#d0d5dd]">
         <form
           onSubmit={handleSearch}
           className="flex items-center text-left gap-0 w-2/3 border bg-white rounded-md px-4"
         >
-          <CiSearch title="Search" className="h-5 bg-white cursor-pointer" />
+          <CiSearch title="Search" className="bg-white cursor-pointer" />
           <input
             type="search"
             name="search"
@@ -105,7 +105,7 @@ const Navbar = () => {
         </form>
         <div className="flex items-center">
           <button
-            className="flex items-center p-4 h-14 text-white bg-[#2f3192] gap-2 rounded-md text-sm"
+            className="flex items-center p-4 text-white bg-[#2f3192] gap-2 rounded-md text-sm"
             type="button"
             onClick={openModal}
           >
