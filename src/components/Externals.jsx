@@ -2,10 +2,13 @@ import React, { useState } from "react";
 import { FaChevronDown, FaChevronUp } from "react-icons/fa";
 import { useParams } from "react-router-dom";
 import useExternalObservationData from "../hooks/useExternalObservationData";
-import ConditionPicker from "./ConditionPicker"; // ✅ NEW picker component
+import ConditionPicker from "./ConditionPicker"; // ✅ our new condition picker
 import DeleteButton from "./DeleteButton";
 import { showToast, formatErrorMessage } from "../components/ToasterHelper";
-import DynamicFieldRenderer from "./DynamicFieldRenderer";
+import TextInput from "./TextInput";
+import DropdownSelect from "./DropdownSelect";
+import GradingSelect from "./GradingSelect";
+import NotesTextArea from "./NotesTextArea";
 
 const Externals = ({ setActiveTab, setTabCompletionStatus }) => {
   const { appointmentId } = useParams();
@@ -21,7 +24,7 @@ const Externals = ({ setActiveTab, setTabCompletionStatus }) => {
     createExternalObservation,
   } = useExternalObservationData(appointmentId);
 
-  // Group conditions into { mainGroup: { subGroup: [conditions] } }
+  // Group conditions by main + sub
   const groupedConditions = conditions.reduce((acc, condition) => {
     const mainGroup = condition.main_group_name;
     const group = condition.group_name;
@@ -71,10 +74,15 @@ const Externals = ({ setActiveTab, setTabCompletionStatus }) => {
             {
               id: selectedId,
               name: selectedName,
-              field_type: condition.field_type,
+              field_config: condition.field_config || {
+                text: false,
+                dropdown: false,
+                grading: false,
+                notes: false,
+              },
               dropdown_options: condition.dropdown_options || [],
-              OD: { value: "" },
-              OS: { value: "" },
+              OD: {},
+              OS: {},
             },
           ],
         },
@@ -82,7 +90,14 @@ const Externals = ({ setActiveTab, setTabCompletionStatus }) => {
     });
   };
 
-  const handleFieldChange = (mainGroup, group, conditionId, eye, value) => {
+  const handleFieldChange = (
+    mainGroup,
+    group,
+    conditionId,
+    eye,
+    fieldType,
+    value
+  ) => {
     setFormData((prev) => ({
       ...prev,
       [mainGroup]: {
@@ -91,7 +106,10 @@ const Externals = ({ setActiveTab, setTabCompletionStatus }) => {
           item.id === conditionId
             ? {
                 ...item,
-                [eye]: { value },
+                [eye]: {
+                  ...item[eye],
+                  [fieldType]: value,
+                },
               }
             : item
         ),
@@ -118,14 +136,17 @@ const Externals = ({ setActiveTab, setTabCompletionStatus }) => {
       Object.entries(groupEntries).forEach(([group, entries]) => {
         entries.forEach((entry) => {
           ["OD", "OS"].forEach((eye) => {
-            const details = entry[eye];
-            if (details && details.value) {
-              observations.push({
-                condition: entry.id,
-                affected_eye: eye,
-                value: details.value,
-              });
-            }
+            const data = entry[eye] || {};
+            Object.keys(entry.field_config || {}).forEach((field) => {
+              if (entry.field_config?.[field] && data[field]) {
+                observations.push({
+                  condition: entry.id,
+                  affected_eye: eye,
+                  field_type: field,
+                  value: data[field],
+                });
+              }
+            });
           });
         });
       });
@@ -162,7 +183,6 @@ const Externals = ({ setActiveTab, setTabCompletionStatus }) => {
         <div className="space-y-8">
           {Object.entries(groupedConditions).map(([mainGroup, subGroups]) => (
             <div key={mainGroup} className="bg-white shadow rounded p-4">
-              {/* Main group toggle */}
               <button
                 type="button"
                 onClick={() => toggleSection(mainGroup)}
@@ -176,7 +196,6 @@ const Externals = ({ setActiveTab, setTabCompletionStatus }) => {
                 )}
               </button>
 
-              {/* Sub-groups */}
               {dropdowns[mainGroup]?.isOpen &&
                 Object.entries(subGroups).map(([group, groupConditions]) => {
                   const isSubOpen =
@@ -190,7 +209,6 @@ const Externals = ({ setActiveTab, setTabCompletionStatus }) => {
                       key={group}
                       className="mt-4 bg-gray-50 p-4 rounded space-y-4"
                     >
-                      {/* Sub-group toggle */}
                       <button
                         type="button"
                         onClick={() => toggleSubSection(mainGroup, group)}
@@ -200,14 +218,13 @@ const Externals = ({ setActiveTab, setTabCompletionStatus }) => {
                         {isSubOpen ? <FaChevronUp /> : <FaChevronDown />}
                       </button>
 
-                      {/* Sub-group content */}
                       {isSubOpen && (
                         <div className="mt-4 space-y-4">
                           <ConditionPicker
                             options={groupConditions.map((c) => ({
                               value: c.id,
                               label: c.name,
-                              ...c, // pass through field_type, dropdown_options, etc.
+                              ...c,
                             }))}
                             selectedValues={selectedConditions.map((c) => ({
                               value: c.id,
@@ -246,24 +263,73 @@ const Externals = ({ setActiveTab, setTabCompletionStatus }) => {
                                         ? "OD (Right Eye)"
                                         : "OS (Left Eye)"}
                                     </h5>
-                                    <DynamicFieldRenderer
-                                      fieldMeta={{
-                                        field_type: item.field_type,
-                                        options: item.dropdown_options,
-                                        placeholder: `Enter value for ${eye}`,
-                                      }}
-                                      value={item[eye]?.value || ""}
-                                      onChange={(val) =>
-                                        handleFieldChange(
-                                          mainGroup,
-                                          group,
-                                          item.id,
-                                          eye,
-                                          val
-                                        )
-                                      }
-                                      eye={eye}
-                                    />
+
+                                    {item.field_config?.text && (
+                                      <TextInput
+                                        value={item[eye]?.text || ""}
+                                        onChange={(val) =>
+                                          handleFieldChange(
+                                            mainGroup,
+                                            group,
+                                            item.id,
+                                            eye,
+                                            "text",
+                                            val
+                                          )
+                                        }
+                                        placeholder={`Enter text for ${eye}`}
+                                      />
+                                    )}
+
+                                    {item.field_config?.dropdown && (
+                                      <DropdownSelect
+                                        value={item[eye]?.dropdown || ""}
+                                        options={item.dropdown_options}
+                                        onChange={(val) =>
+                                          handleFieldChange(
+                                            mainGroup,
+                                            group,
+                                            item.id,
+                                            eye,
+                                            "dropdown",
+                                            val
+                                          )
+                                        }
+                                      />
+                                    )}
+
+                                    {item.field_config?.grading && (
+                                      <GradingSelect
+                                        value={item[eye]?.grading || ""}
+                                        onChange={(val) =>
+                                          handleFieldChange(
+                                            mainGroup,
+                                            group,
+                                            item.id,
+                                            eye,
+                                            "grading",
+                                            val
+                                          )
+                                        }
+                                      />
+                                    )}
+
+                                    {item.field_config?.notes && (
+                                      <NotesTextArea
+                                        value={item[eye]?.notes || ""}
+                                        onChange={(val) =>
+                                          handleFieldChange(
+                                            mainGroup,
+                                            group,
+                                            item.id,
+                                            eye,
+                                            "notes",
+                                            val
+                                          )
+                                        }
+                                        placeholder={`Notes for ${eye}`}
+                                      />
+                                    )}
                                   </div>
                                 ))}
                               </div>
