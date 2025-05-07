@@ -180,7 +180,7 @@ export default function VisualAcuityForm({
     );
 
     if (!isDistancePresent) {
-      showToast("Enter at least one Distance VA per eye. 👍", "error");
+      showToast("Enter Unaided Distance VA per eye. 👍", "error");
       return;
     }
 

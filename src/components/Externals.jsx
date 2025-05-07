@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { FaChevronDown, FaChevronUp } from "react-icons/fa";
 import { useParams } from "react-router-dom";
 import useExternalObservationData from "../hooks/useExternalObservationData";
@@ -7,170 +7,120 @@ import GradingSelect from "./GradingSelect";
 import NotesTextArea from "./NotesTextArea";
 import DeleteButton from "./DeleteButton";
 import { showToast, formatErrorMessage } from "../components/ToasterHelper";
-import { hasFormChanged } from "../utils/deepCompare";
 
 const Externals = ({ setActiveTab, setTabCompletionStatus }) => {
   const { appointmentId } = useParams();
 
   const [dropdowns, setDropdowns] = useState({});
   const [formData, setFormData] = useState({});
-  const [initialPayload, setInitialPayload] = useState(null);
-  const [errorMessage, setErrorMessage] = useState(null);
-  const [showErrorModal, setShowErrorModal] = useState(false);
 
   const {
-    externals,
     loadingExternals,
-    conditions,
     loadingConditions,
+    conditions,
     conditionsError,
     createExternalObservation,
   } = useExternalObservationData(appointmentId);
 
+  // Group conditions into { mainGroup: { subGroup: [conditions] } }
   const groupedConditions = conditions.reduce((acc, condition) => {
-    const groupName = condition.group_name;
-    if (!acc[groupName]) acc[groupName] = [];
-    acc[groupName].push(condition);
+    const mainGroup = condition.main_group_name;
+    const group = condition.group_name;
+    if (!acc[mainGroup]) acc[mainGroup] = {};
+    if (!acc[mainGroup][group]) acc[mainGroup][group] = [];
+    acc[mainGroup][group].push(condition);
     return acc;
   }, {});
 
-  useEffect(() => {
-    if (externals && conditions.length > 0) {
-      const initialFormData = {};
-      const snapshot = [];
-
-      externals.forEach((obs) => {
-        const condition = conditions.find((c) => c.id === obs.condition);
-        if (!condition) return;
-
-        const groupName = condition.group_name;
-        if (!initialFormData[groupName]) initialFormData[groupName] = [];
-
-        const entryIndex = initialFormData[groupName].findIndex(
-          (e) => e.id === condition.id
-        );
-
-        const detail = {
-          grading: obs.grading,
-          notes: obs.notes,
-        };
-
-        if (entryIndex === -1) {
-          initialFormData[groupName].push({
-            id: condition.id,
-            name: condition.name,
-            [obs.affected_eye]: detail,
-          });
-        } else {
-          initialFormData[groupName][entryIndex][obs.affected_eye] = detail;
-        }
-
-        snapshot.push({
-          condition: obs.condition,
-          affected_eye: obs.affected_eye,
-          grading: obs.grading,
-          notes: obs.notes,
-        });
-      });
-
-      setFormData(initialFormData);
-      setInitialPayload(snapshot);
-    }
-  }, [externals, conditions]);
-
-  useEffect(() => {
-    if (showErrorModal && errorMessage) {
-      showToast(errorMessage.detail, "error");
-      setShowErrorModal(false);
-    }
-  }, [showErrorModal, errorMessage]);
-
-  const toggleSection = (groupName) => {
-    setDropdowns((prev) => ({ ...prev, [groupName]: !prev[groupName] }));
+  const toggleSection = (key) => {
+    setDropdowns((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
-  const handleSelectCondition = (groupName, selectedOption) => {
+  const handleSelectCondition = (mainGroup, group, selectedOption) => {
     const selectedId = selectedOption.value;
     const selectedName = selectedOption.label;
 
     setFormData((prev) => {
-      const groupData = prev[groupName] || [];
-      if (groupData.some((item) => item.id === selectedId)) return prev;
+      const existing = prev[mainGroup]?.[group] || [];
+      if (existing.some((item) => item.id === selectedId)) return prev;
 
       return {
         ...prev,
-        [groupName]: [
-          ...groupData,
-          {
-            id: selectedId,
-            name: selectedName,
-            OD: { grading: "", notes: "" },
-            OS: { grading: "", notes: "" },
-          },
-        ],
+        [mainGroup]: {
+          ...prev[mainGroup],
+          [group]: [
+            ...existing,
+            {
+              id: selectedId,
+              name: selectedName,
+              OD: { grading: "", notes: "" },
+              OS: { grading: "", notes: "" },
+            },
+          ],
+        },
       };
     });
   };
 
-  const handleFieldChange = (groupName, conditionId, eye, field, value) => {
+  const handleFieldChange = (
+    mainGroup,
+    group,
+    conditionId,
+    eye,
+    field,
+    value
+  ) => {
     setFormData((prev) => ({
       ...prev,
-      [groupName]: prev[groupName].map((item) =>
-        item.id === conditionId
-          ? {
-              ...item,
-              [eye]: { ...item[eye], [field]: value },
-            }
-          : item
-      ),
+      [mainGroup]: {
+        ...prev[mainGroup],
+        [group]: prev[mainGroup][group].map((item) =>
+          item.id === conditionId
+            ? {
+                ...item,
+                [eye]: { ...item[eye], [field]: value },
+              }
+            : item
+        ),
+      },
     }));
   };
 
-  const handleDeleteCondition = (groupName, conditionId) => {
+  const handleDeleteCondition = (mainGroup, group, conditionId) => {
     setFormData((prev) => ({
       ...prev,
-      [groupName]: prev[groupName].filter((item) => item.id !== conditionId),
+      [mainGroup]: {
+        ...prev[mainGroup],
+        [group]: prev[mainGroup][group].filter(
+          (item) => item.id !== conditionId
+        ),
+      },
     }));
   };
 
   const handleSaveAndProceed = async () => {
-    setErrorMessage(null);
-    setShowErrorModal(false);
-
     const observations = [];
 
-    Object.entries(formData).forEach(([groupName, entries]) => {
-      entries.forEach((entry) => {
-        ["OD", "OS"].forEach((eye) => {
-          const details = entry[eye];
-          if (details && (details.grading || details.notes)) {
-            observations.push({
-              condition: entry.id,
-              affected_eye: eye,
-              grading: details.grading,
-              notes: details.notes,
-            });
-          }
+    Object.entries(formData).forEach(([mainGroup, groupEntries]) => {
+      Object.entries(groupEntries).forEach(([group, entries]) => {
+        entries.forEach((entry) => {
+          ["OD", "OS"].forEach((eye) => {
+            const details = entry[eye];
+            if (details && (details.grading || details.notes)) {
+              observations.push({
+                condition: entry.id,
+                affected_eye: eye,
+                grading: details.grading,
+                notes: details.notes,
+              });
+            }
+          });
         });
       });
     });
 
     if (observations.length === 0) {
-      setErrorMessage({
-        detail: "Please select and fill at least one condition. 👍",
-      });
-      setShowErrorModal(true);
-      return;
-    }
-
-    // ✅ Handle unchanged data
-    if (initialPayload && !hasFormChanged(initialPayload, observations)) {
-      showToast("No changes detected", "info");
-      setTabCompletionStatus?.((prev) => ({
-        ...prev,
-        externals: true,
-      }));
-      setActiveTab("internals");
+      showToast("Please select and fill at least one condition. 👍", "error");
       return;
     }
 
@@ -198,51 +148,55 @@ const Externals = ({ setActiveTab, setTabCompletionStatus }) => {
         <p className="text-red-500">Failed to load external conditions.</p>
       ) : (
         <div className="space-y-8">
-          {Object.entries(groupedConditions).map(
-            ([groupName, groupConditions]) => {
-              const options = groupConditions.map((c) => ({
-                value: c.id,
-                label: c.name,
-              }));
+          {Object.entries(groupedConditions).map(([mainGroup, subGroups]) => (
+            <div key={mainGroup} className="bg-white shadow rounded p-4">
+              <button
+                type="button"
+                onClick={() => toggleSection(mainGroup)}
+                className="w-full flex justify-between items-center text-left font-semibold"
+              >
+                <span>{mainGroup}</span>
+                {dropdowns[mainGroup] ? <FaChevronUp /> : <FaChevronDown />}
+              </button>
 
-              const selectedGroupConditions = formData[groupName] || [];
+              {dropdowns[mainGroup] &&
+                Object.entries(subGroups).map(([group, groupConditions]) => {
+                  const options = groupConditions.map((c) => ({
+                    value: c.id,
+                    label: c.name,
+                  }));
 
-              return (
-                <div key={groupName} className="bg-white shadow p-4 rounded">
-                  <button
-                    type="button"
-                    onClick={() => toggleSection(groupName)}
-                    className="w-full flex justify-between items-center text-left font-semibold"
-                  >
-                    <span>{groupName}</span>
-                    {dropdowns[groupName] ? <FaChevronUp /> : <FaChevronDown />}
-                  </button>
+                  const selectedConditions = formData[mainGroup]?.[group] || [];
 
-                  {dropdowns[groupName] && (
-                    <div className="mt-4 space-y-4">
+                  return (
+                    <div
+                      key={group}
+                      className="mt-4 space-y-4 bg-gray-50 p-4 rounded"
+                    >
+                      <h3 className="font-semibold">{group}</h3>
                       <SearchableSelect
                         options={options}
-                        selectedValues={selectedGroupConditions.map((c) => ({
+                        selectedValues={selectedConditions.map((c) => ({
                           value: c.id,
                           label: c.name,
                         }))}
                         onSelect={(option) =>
-                          handleSelectCondition(groupName, option)
+                          handleSelectCondition(mainGroup, group, option)
                         }
                         conditionKey="value"
                         conditionNameKey="label"
                       />
 
-                      {selectedGroupConditions.map((item) => (
+                      {selectedConditions.map((item) => (
                         <div
                           key={item.id}
-                          className="p-4 bg-gray-50 border rounded space-y-4"
+                          className="p-4 bg-white border rounded space-y-4"
                         >
                           <div className="flex justify-between items-center">
                             <h4 className="font-semibold">{item.name}</h4>
                             <DeleteButton
                               onClick={() =>
-                                handleDeleteCondition(groupName, item.id)
+                                handleDeleteCondition(mainGroup, group, item.id)
                               }
                             />
                           </div>
@@ -259,7 +213,8 @@ const Externals = ({ setActiveTab, setTabCompletionStatus }) => {
                                   value={item[eye]?.grading || ""}
                                   onChange={(val) =>
                                     handleFieldChange(
-                                      groupName,
+                                      mainGroup,
+                                      group,
                                       item.id,
                                       eye,
                                       "grading",
@@ -271,7 +226,8 @@ const Externals = ({ setActiveTab, setTabCompletionStatus }) => {
                                   value={item[eye]?.notes || ""}
                                   onChange={(val) =>
                                     handleFieldChange(
-                                      groupName,
+                                      mainGroup,
+                                      group,
                                       item.id,
                                       eye,
                                       "notes",
@@ -286,11 +242,10 @@ const Externals = ({ setActiveTab, setTabCompletionStatus }) => {
                         </div>
                       ))}
                     </div>
-                  )}
-                </div>
-              );
-            }
-          )}
+                  );
+                })}
+            </div>
+          ))}
 
           <div className="mt-8 flex justify-between items-center">
             <button
