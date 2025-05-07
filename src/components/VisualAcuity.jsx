@@ -205,46 +205,73 @@ export default function VisualAcuityForm({
       return;
     }
 
-    const isRxValid = validatePrescription(currentRx, hasPrescription);
-    if (hasPrescription && !isRxValid) {
+    // ✅ First: check prescription type
+    if (
+      hasPrescription &&
+      (!prescriptionType || prescriptionType.trim() === "")
+    ) {
       showToast(
-        "Please complete all prescription fields with valid values before proceeding. 👍",
+        "Please select a prescription type before proceeding. 👍",
         "error"
       );
+      return;
+    }
 
-      // Highlight fields
+    // ✅ (Optional UX) Second: check prescription field validity if you still want to highlight invalid/empty fields
+    if (hasPrescription) {
       const newErrors = { OD: {}, OS: {} };
+      let hasErrors = false;
+
       ["OD", "OS"].forEach((eye) => {
         Object.entries(currentRx[eye]).forEach(([field, value]) => {
-          if (value.trim() === "") {
+          const trimmed = value.trim();
+          const num = Number(trimmed);
+
+          if (trimmed === "") {
+            // OPTIONAL: If you still want to highlight empty fields for UX, enable this:
+            // newErrors[eye][field] = true;
+            return; // skip further validation if empty
+          }
+
+          if (
+            field === "sph" &&
+            !/^[-+]?[0-9]+(\.25|\.50|\.75|\.00)?$/.test(trimmed)
+          ) {
             newErrors[eye][field] = true;
-          } else {
-            const num = Number(value);
-            if (
-              field === "sph" &&
-              !/^[-+]?[0-9]+(\.25|\.50|\.75|\.00)?$/.test(value)
-            )
-              newErrors[eye][field] = true;
-            if (
-              field === "cyl" &&
-              !/^-[0-9]+(\.25|\.50|\.75|\.00)?$/.test(value)
-            )
-              newErrors[eye][field] = true;
-            if (
-              field === "axis" &&
-              (!Number.isInteger(num) || num < 0 || num > 180)
-            )
-              newErrors[eye][field] = true;
-            if (
-              ["va", "add", "nearVa"].includes(field) &&
-              !/^\+?[0-9]+(\.25|\.50|\.75|\.00)?$/.test(value)
-            )
-              newErrors[eye][field] = true;
+            hasErrors = true;
+          }
+          if (
+            field === "cyl" &&
+            !/^-[0-9]+(\.25|\.50|\.75|\.00)?$/.test(trimmed)
+          ) {
+            newErrors[eye][field] = true;
+            hasErrors = true;
+          }
+          if (
+            field === "axis" &&
+            (!Number.isInteger(num) || num < 0 || num > 180)
+          ) {
+            newErrors[eye][field] = true;
+            hasErrors = true;
+          }
+          if (
+            ["va", "add", "nearVa"].includes(field) &&
+            !/^\+?[0-9]+(\.25|\.50|\.75|\.00)?$/.test(trimmed)
+          ) {
+            newErrors[eye][field] = true;
+            hasErrors = true;
           }
         });
       });
-      setRxFieldErrors(newErrors);
-      return;
+
+      if (hasErrors) {
+        showToast(
+          "Some prescription values look invalid. Please check and correct them 👍.",
+          "error"
+        );
+        setRxFieldErrors(newErrors);
+        return;
+      }
     }
 
     const payload = {
