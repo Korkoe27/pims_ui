@@ -106,7 +106,6 @@ export default function PrescriptionSection({
               <div>
                 SPH <span className="text-red-500">*</span>
               </div>{" "}
-              {/* 🔥 No asterisk here */}
               <div>CYL</div>
               <div>AXIS</div>
               <div>VA</div>
