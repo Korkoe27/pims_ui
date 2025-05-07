@@ -347,6 +347,7 @@ const PersonalHistory = ({
   return (
     <div className="p-6 max-w-6xl mx-auto">
       <h1 className="text-2xl font-bold mb-6">Oculo-Medical History</h1>
+      
 
       <div className="flex flex-col md:flex-row md:items-start gap-10">
         {/* Left Column */}
@@ -354,8 +355,7 @@ const PersonalHistory = ({
           {/* Last Eye Exam */}
           <div>
             <label className="block font-medium mb-1">
-              Last Eye Examination{" "}
-              {isFirstVisit && <span className="text-red-500">*</span>}
+              Last Eye Examination 
             </label>
             <select
               value={lastEyeExam}
@@ -373,10 +373,7 @@ const PersonalHistory = ({
 
           {/* Drug History */}
           <div className="space-y-2">
-            <label className="block font-medium mb-1">
-              Drug History{" "}
-              {isFirstVisit && <span className="text-red-500">*</span>}
-            </label>
+            <label className="block font-medium mb-1">Drug History</label>
             <input
               value={drugHistory}
               onChange={(e) => setDrugHistory(e.target.value)}
@@ -392,10 +389,7 @@ const PersonalHistory = ({
 
           {/* Allergy History */}
           <div>
-            <label className="block font-medium mb-1">
-              Allergies{" "}
-              {isFirstVisit && <span className="text-red-500">*</span>}{" "}
-            </label>
+            <label className="block font-medium mb-1">Allergies</label>
             <input
               value={allergyHistory}
               onChange={(e) => setAllergyHistory(e.target.value)}
@@ -492,8 +486,7 @@ const PersonalHistory = ({
             <SearchableSelect
               label={
                 <span>
-                  Ocular History{" "}
-                  {isFirstVisit && <span className="text-red-500">*</span>}
+                  Ocular History <span className="text-red-500">*</span>
                 </span>
               }
               options={formatOptions(ocularConditions)}
