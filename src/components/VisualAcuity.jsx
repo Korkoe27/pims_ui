@@ -272,6 +272,34 @@ export default function VisualAcuityForm({
         setRxFieldErrors(newErrors);
         return;
       }
+
+      // ✅ Check SPH for both eyes
+      if (hasPrescription) {
+        const newErrors = { OD: {}, OS: {} };
+        let hasSPHErrors = false;
+
+        ["OD", "OS"].forEach((eye) => {
+          const value = currentRx[eye]?.sph ?? "";
+          const trimmed = value.trim();
+          const isValidSPH = /^[-+]?[0-9]+(\.25|\.50|\.75|\.00)?$/.test(
+            trimmed
+          );
+
+          if (trimmed === "" || !isValidSPH) {
+            newErrors[eye].sph = true;
+            hasSPHErrors = true;
+          }
+        });
+
+        if (hasSPHErrors) {
+          showToast(
+            "SPH is required and must be a valid value for both eyes (e.g., +1.00, -2.25). 👍",
+            "error"
+          );
+          setRxFieldErrors(newErrors);
+          return;
+        }
+      }
     }
 
     const payload = {

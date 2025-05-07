@@ -4,9 +4,28 @@ const EYES = ["OD", "OS"];
 const PRESCRIPTION_TYPES = ["Spectacles", "Contact Lenses"];
 
 // ✅ Validator: only checks if prescriptionType is selected
-export function validatePrescription(hasPrescription, prescriptionType) {
+export function validatePrescription(
+  hasPrescription,
+  prescriptionType,
+  currentRx
+) {
   if (!hasPrescription) return true;
-  return typeof prescriptionType === "string" && prescriptionType.trim() !== "";
+
+  // ✅ Check prescription type
+  const isPrescriptionTypeValid =
+    typeof prescriptionType === "string" && prescriptionType.trim() !== "";
+
+  // ✅ Check SPH for both eyes
+  const isSPHValid = ["OD", "OS"].every((eye) => {
+    const sph = currentRx?.[eye]?.sph;
+    return (
+      typeof sph === "string" &&
+      sph.trim() !== "" &&
+      /^[-+]?[0-9]+(\.25|\.50|\.75|\.00)?$/.test(sph.trim())
+    );
+  });
+
+  return isPrescriptionTypeValid && isSPHValid;
 }
 
 export default function PrescriptionSection({
@@ -30,7 +49,8 @@ export default function PrescriptionSection({
     <div className="space-y-6">
       <div>
         <label className="block mb-1 font-medium">
-          Did patient come with a prescription? <span className="text-red-500">*</span>
+          Did patient come with a prescription?{" "}
+          <span className="text-red-500">*</span>
         </label>
         <div className="flex gap-4 mt-1">
           <label className="flex items-center gap-1">
@@ -83,7 +103,10 @@ export default function PrescriptionSection({
 
             <div className="grid grid-cols-7 gap-4 text-sm font-semibold mb-1">
               <div></div>
-              <div>SPH</div> {/* 🔥 No asterisk here */}
+              <div>
+                SPH <span className="text-red-500">*</span>
+              </div>{" "}
+              {/* 🔥 No asterisk here */}
               <div>CYL</div>
               <div>AXIS</div>
               <div>VA</div>
@@ -95,16 +118,18 @@ export default function PrescriptionSection({
               {EYES.map((eye) => (
                 <React.Fragment key={eye}>
                   <div className="font-bold self-center">{eye}</div>
-                  {["sph", "cyl", "axis", "va", "add", "nearVa"].map((field) => (
-                    <input
-                      key={field}
-                      type="text"
-                      value={currentRx[eye][field]}
-                      placeholder={placeholders[field]}
-                      onChange={(e) => onRxChange(eye, field, e.target.value)}
-                      className="border rounded px-2 py-1"
-                    />
-                  ))}
+                  {["sph", "cyl", "axis", "va", "add", "nearVa"].map(
+                    (field) => (
+                      <input
+                        key={field}
+                        type="text"
+                        value={currentRx[eye][field]}
+                        placeholder={placeholders[field]}
+                        onChange={(e) => onRxChange(eye, field, e.target.value)}
+                        className="border rounded px-2 py-1"
+                      />
+                    )
+                  )}
                 </React.Fragment>
               ))}
             </div>
