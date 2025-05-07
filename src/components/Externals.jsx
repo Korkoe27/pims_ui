@@ -2,11 +2,10 @@ import React, { useState } from "react";
 import { FaChevronDown, FaChevronUp } from "react-icons/fa";
 import { useParams } from "react-router-dom";
 import useExternalObservationData from "../hooks/useExternalObservationData";
-import SearchableSelect from "./SearchableSelect";
-import GradingSelect from "./GradingSelect";
-import NotesTextArea from "./NotesTextArea";
+import ConditionPicker from "./ConditionPicker"; // ✅ NEW picker component
 import DeleteButton from "./DeleteButton";
 import { showToast, formatErrorMessage } from "../components/ToasterHelper";
+import DynamicFieldRenderer from "./DynamicFieldRenderer";
 
 const Externals = ({ setActiveTab, setTabCompletionStatus }) => {
   const { appointmentId } = useParams();
@@ -55,9 +54,9 @@ const Externals = ({ setActiveTab, setTabCompletionStatus }) => {
     }));
   };
 
-  const handleSelectCondition = (mainGroup, group, selectedOption) => {
-    const selectedId = selectedOption.value;
-    const selectedName = selectedOption.label;
+  const handleSelectCondition = (mainGroup, group, condition) => {
+    const selectedId = condition.id;
+    const selectedName = condition.name;
 
     setFormData((prev) => {
       const existing = prev[mainGroup]?.[group] || [];
@@ -72,8 +71,10 @@ const Externals = ({ setActiveTab, setTabCompletionStatus }) => {
             {
               id: selectedId,
               name: selectedName,
-              OD: { grading: "", notes: "" },
-              OS: { grading: "", notes: "" },
+              field_type: condition.field_type,
+              dropdown_options: condition.dropdown_options || [],
+              OD: { value: "" },
+              OS: { value: "" },
             },
           ],
         },
@@ -81,14 +82,7 @@ const Externals = ({ setActiveTab, setTabCompletionStatus }) => {
     });
   };
 
-  const handleFieldChange = (
-    mainGroup,
-    group,
-    conditionId,
-    eye,
-    field,
-    value
-  ) => {
+  const handleFieldChange = (mainGroup, group, conditionId, eye, value) => {
     setFormData((prev) => ({
       ...prev,
       [mainGroup]: {
@@ -97,7 +91,7 @@ const Externals = ({ setActiveTab, setTabCompletionStatus }) => {
           item.id === conditionId
             ? {
                 ...item,
-                [eye]: { ...item[eye], [field]: value },
+                [eye]: { value },
               }
             : item
         ),
@@ -125,12 +119,11 @@ const Externals = ({ setActiveTab, setTabCompletionStatus }) => {
         entries.forEach((entry) => {
           ["OD", "OS"].forEach((eye) => {
             const details = entry[eye];
-            if (details && (details.grading || details.notes)) {
+            if (details && details.value) {
               observations.push({
                 condition: entry.id,
                 affected_eye: eye,
-                grading: details.grading,
-                notes: details.notes,
+                value: details.value,
               });
             }
           });
@@ -186,14 +179,11 @@ const Externals = ({ setActiveTab, setTabCompletionStatus }) => {
               {/* Sub-groups */}
               {dropdowns[mainGroup]?.isOpen &&
                 Object.entries(subGroups).map(([group, groupConditions]) => {
-                  const options = groupConditions.map((c) => ({
-                    value: c.id,
-                    label: c.name,
-                  }));
-
-                  const selectedConditions = formData[mainGroup]?.[group] || [];
                   const isSubOpen =
-                    dropdowns[mainGroup]?.subGroups?.[group] ?? true; // default to open
+                    dropdowns[mainGroup]?.subGroups?.[group] ?? true;
+
+                  const selectedConditions =
+                    formData[mainGroup]?.[group] || [];
 
                   return (
                     <div
@@ -213,8 +203,12 @@ const Externals = ({ setActiveTab, setTabCompletionStatus }) => {
                       {/* Sub-group content */}
                       {isSubOpen && (
                         <div className="mt-4 space-y-4">
-                          <SearchableSelect
-                            options={options}
+                          <ConditionPicker
+                            options={groupConditions.map((c) => ({
+                              value: c.id,
+                              label: c.name,
+                              ...c, // pass through field_type, dropdown_options, etc.
+                            }))}
                             selectedValues={selectedConditions.map((c) => ({
                               value: c.id,
                               label: c.name,
@@ -252,32 +246,23 @@ const Externals = ({ setActiveTab, setTabCompletionStatus }) => {
                                         ? "OD (Right Eye)"
                                         : "OS (Left Eye)"}
                                     </h5>
-                                    <GradingSelect
-                                      value={item[eye]?.grading || ""}
+                                    <DynamicFieldRenderer
+                                      fieldMeta={{
+                                        field_type: item.field_type,
+                                        options: item.dropdown_options,
+                                        placeholder: `Enter value for ${eye}`,
+                                      }}
+                                      value={item[eye]?.value || ""}
                                       onChange={(val) =>
                                         handleFieldChange(
                                           mainGroup,
                                           group,
                                           item.id,
                                           eye,
-                                          "grading",
                                           val
                                         )
                                       }
-                                    />
-                                    <NotesTextArea
-                                      value={item[eye]?.notes || ""}
-                                      onChange={(val) =>
-                                        handleFieldChange(
-                                          mainGroup,
-                                          group,
-                                          item.id,
-                                          eye,
-                                          "notes",
-                                          val
-                                        )
-                                      }
-                                      placeholder={`Notes for ${eye}`}
+                                      eye={eye}
                                     />
                                   </div>
                                 ))}
