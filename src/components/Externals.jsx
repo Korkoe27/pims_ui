@@ -32,8 +32,27 @@ const Externals = ({ setActiveTab, setTabCompletionStatus }) => {
     return acc;
   }, {});
 
-  const toggleSection = (key) => {
-    setDropdowns((prev) => ({ ...prev, [key]: !prev[key] }));
+  const toggleSection = (mainGroup) => {
+    setDropdowns((prev) => ({
+      ...prev,
+      [mainGroup]: {
+        ...(prev[mainGroup] || {}),
+        isOpen: !prev[mainGroup]?.isOpen,
+      },
+    }));
+  };
+
+  const toggleSubSection = (mainGroup, subGroup) => {
+    setDropdowns((prev) => ({
+      ...prev,
+      [mainGroup]: {
+        ...(prev[mainGroup] || { isOpen: true, subGroups: {} }),
+        subGroups: {
+          ...(prev[mainGroup]?.subGroups || {}),
+          [subGroup]: !prev[mainGroup]?.subGroups?.[subGroup],
+        },
+      },
+    }));
   };
 
   const handleSelectCondition = (mainGroup, group, selectedOption) => {
@@ -150,16 +169,22 @@ const Externals = ({ setActiveTab, setTabCompletionStatus }) => {
         <div className="space-y-8">
           {Object.entries(groupedConditions).map(([mainGroup, subGroups]) => (
             <div key={mainGroup} className="bg-white shadow rounded p-4">
+              {/* Main group toggle */}
               <button
                 type="button"
                 onClick={() => toggleSection(mainGroup)}
                 className="w-full flex justify-between items-center text-left font-semibold"
               >
                 <span>{mainGroup}</span>
-                {dropdowns[mainGroup] ? <FaChevronUp /> : <FaChevronDown />}
+                {dropdowns[mainGroup]?.isOpen ? (
+                  <FaChevronUp />
+                ) : (
+                  <FaChevronDown />
+                )}
               </button>
 
-              {dropdowns[mainGroup] &&
+              {/* Sub-groups */}
+              {dropdowns[mainGroup]?.isOpen &&
                 Object.entries(subGroups).map(([group, groupConditions]) => {
                   const options = groupConditions.map((c) => ({
                     value: c.id,
@@ -167,80 +192,100 @@ const Externals = ({ setActiveTab, setTabCompletionStatus }) => {
                   }));
 
                   const selectedConditions = formData[mainGroup]?.[group] || [];
+                  const isSubOpen =
+                    dropdowns[mainGroup]?.subGroups?.[group] ?? true; // default to open
 
                   return (
                     <div
                       key={group}
-                      className="mt-4 space-y-4 bg-gray-50 p-4 rounded"
+                      className="mt-4 bg-gray-50 p-4 rounded space-y-4"
                     >
-                      <h3 className="font-semibold">{group}</h3>
-                      <SearchableSelect
-                        options={options}
-                        selectedValues={selectedConditions.map((c) => ({
-                          value: c.id,
-                          label: c.name,
-                        }))}
-                        onSelect={(option) =>
-                          handleSelectCondition(mainGroup, group, option)
-                        }
-                        conditionKey="value"
-                        conditionNameKey="label"
-                      />
+                      {/* Sub-group toggle */}
+                      <button
+                        type="button"
+                        onClick={() => toggleSubSection(mainGroup, group)}
+                        className="w-full flex justify-between items-center text-left font-semibold"
+                      >
+                        <span>{group}</span>
+                        {isSubOpen ? <FaChevronUp /> : <FaChevronDown />}
+                      </button>
 
-                      {selectedConditions.map((item) => (
-                        <div
-                          key={item.id}
-                          className="p-4 bg-white border rounded space-y-4"
-                        >
-                          <div className="flex justify-between items-center">
-                            <h4 className="font-semibold">{item.name}</h4>
-                            <DeleteButton
-                              onClick={() =>
-                                handleDeleteCondition(mainGroup, group, item.id)
-                              }
-                            />
-                          </div>
+                      {/* Sub-group content */}
+                      {isSubOpen && (
+                        <div className="mt-4 space-y-4">
+                          <SearchableSelect
+                            options={options}
+                            selectedValues={selectedConditions.map((c) => ({
+                              value: c.id,
+                              label: c.name,
+                            }))}
+                            onSelect={(option) =>
+                              handleSelectCondition(mainGroup, group, option)
+                            }
+                            conditionKey="value"
+                            conditionNameKey="label"
+                          />
 
-                          <div className="grid grid-cols-2 gap-4">
-                            {["OD", "OS"].map((eye) => (
-                              <div key={eye}>
-                                <h5 className="font-medium text-sm mb-2">
-                                  {eye === "OD"
-                                    ? "OD (Right Eye)"
-                                    : "OS (Left Eye)"}
-                                </h5>
-                                <GradingSelect
-                                  value={item[eye]?.grading || ""}
-                                  onChange={(val) =>
-                                    handleFieldChange(
+                          {selectedConditions.map((item) => (
+                            <div
+                              key={item.id}
+                              className="p-4 bg-white border rounded space-y-4"
+                            >
+                              <div className="flex justify-between items-center">
+                                <h4 className="font-semibold">{item.name}</h4>
+                                <DeleteButton
+                                  onClick={() =>
+                                    handleDeleteCondition(
                                       mainGroup,
                                       group,
-                                      item.id,
-                                      eye,
-                                      "grading",
-                                      val
+                                      item.id
                                     )
                                   }
-                                />
-                                <NotesTextArea
-                                  value={item[eye]?.notes || ""}
-                                  onChange={(val) =>
-                                    handleFieldChange(
-                                      mainGroup,
-                                      group,
-                                      item.id,
-                                      eye,
-                                      "notes",
-                                      val
-                                    )
-                                  }
-                                  placeholder={`Notes for ${eye}`}
                                 />
                               </div>
-                            ))}
-                          </div>
+
+                              <div className="grid grid-cols-2 gap-4">
+                                {["OD", "OS"].map((eye) => (
+                                  <div key={eye}>
+                                    <h5 className="font-medium text-sm mb-2">
+                                      {eye === "OD"
+                                        ? "OD (Right Eye)"
+                                        : "OS (Left Eye)"}
+                                    </h5>
+                                    <GradingSelect
+                                      value={item[eye]?.grading || ""}
+                                      onChange={(val) =>
+                                        handleFieldChange(
+                                          mainGroup,
+                                          group,
+                                          item.id,
+                                          eye,
+                                          "grading",
+                                          val
+                                        )
+                                      }
+                                    />
+                                    <NotesTextArea
+                                      value={item[eye]?.notes || ""}
+                                      onChange={(val) =>
+                                        handleFieldChange(
+                                          mainGroup,
+                                          group,
+                                          item.id,
+                                          eye,
+                                          "notes",
+                                          val
+                                        )
+                                      }
+                                      placeholder={`Notes for ${eye}`}
+                                    />
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
                         </div>
-                      ))}
+                      )}
                     </div>
                   );
                 })}
