@@ -42,21 +42,33 @@ const CaseHistory = ({
     if (caseHistory) {
       setChiefComplaint(caseHistory?.chief_complaint || "");
 
-      const mapped = (caseHistory?.condition_details || []).map((item) => ({
-        id: item.condition,
-        name: item.condition_name || "",
-        has_text: item.has_text || false,
-        has_dropdown: item.has_dropdown || false,
-        has_grading: item.has_grading || false,
-        has_notes: item.has_notes || false,
-        dropdown_options: item.dropdown_options || [],
-        OD: {
-          [item.field_type]: item.affected_eye === "OD" ? item.value : "",
-        },
-        OS: {
-          [item.field_type]: item.affected_eye === "OS" ? item.value : "",
-        },
-      }));
+      const grouped = {};
+
+      (caseHistory?.condition_details || []).forEach((item) => {
+        const matchedCondition = directQuestioningConditions?.find(
+          (c) => c.id === item.condition
+        );
+
+        if (!grouped[item.condition]) {
+          grouped[item.condition] = {
+            id: item.condition,
+            name: item.condition_name || "",
+            has_text: matchedCondition?.has_text || false,
+            has_dropdown: matchedCondition?.has_dropdown || false,
+            has_grading: matchedCondition?.has_grading || false,
+            has_notes: matchedCondition?.has_notes || false,
+            dropdown_options: matchedCondition?.dropdown_options || [],
+            OD: {},
+            OS: {},
+          };
+        }
+
+        grouped[item.condition][item.affected_eye] = {
+          [item.field_type]: item.value,
+        };
+      });
+
+      const mapped = Object.values(grouped);
 
       setSelectedConditions(mapped);
 
@@ -66,7 +78,7 @@ const CaseHistory = ({
         condition_details: mapped,
       });
     }
-  }, [caseHistory, appointmentId]);
+  }, [caseHistory, appointmentId, directQuestioningConditions]);
 
   const formattedODQOptions = (directQuestioningConditions || []).map((c) => ({
     value: c.id,
