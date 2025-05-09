@@ -9,22 +9,52 @@ const gradingOptions = [
   { value: "NA", label: "Not Applicable" },
 ];
 
-const GradingSelect = ({ value, onChange }) => {
+const GradingSelect = ({
+  valueOD,
+  valueOS,
+  onChangeOD,
+  onChangeOS,
+  placeholder,
+}) => {
   return (
-    <div className="mt-2">
-      <label className="block text-sm font-medium">Grading</label>
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="w-full border rounded p-2"
-      >
-        <option value="">Select grading</option>
-        {gradingOptions.map((g) => (
-          <option key={g.value} value={g.value}>
-            {g.label}
-          </option>
-        ))}
-      </select>
+    <div className="grid grid-cols-2 gap-4">
+      {/* OD */}
+      <div>
+        <label className="block text-sm font-medium mb-1">
+          OD (Right Eye) - Grading
+        </label>
+        <select
+          value={valueOD}
+          onChange={(e) => onChangeOD(e.target.value)}
+          className="w-full border rounded p-2"
+        >
+          <option value="">{placeholder || "Select grading"}</option>
+          {gradingOptions.map((g) => (
+            <option key={g.value} value={g.value}>
+              {g.label}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* OS */}
+      <div>
+        <label className="block text-sm font-medium mb-1">
+          OS (Left Eye) - Grading
+        </label>
+        <select
+          value={valueOS}
+          onChange={(e) => onChangeOS(e.target.value)}
+          className="w-full border rounded p-2"
+        >
+          <option value="">{placeholder || "Select grading"}</option>
+          {gradingOptions.map((g) => (
+            <option key={g.value} value={g.value}>
+              {g.label}
+            </option>
+          ))}
+        </select>
+      </div>
     </div>
   );
 };

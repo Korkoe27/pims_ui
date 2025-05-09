@@ -87,7 +87,7 @@ export const createPatientHistoryUrl = "/tests/api/patient-history/";
 
 export const fetchMedicalConditionsUrl = "/tests/api/medical-conditions/";
 export const fetchOcularConditionsUrl = "/tests/api/ocular-conditions/";
-export const fetchDirectQuestioningConditionsUrl = "/tests/api/direct-questioning-conditions/";
+export const fetchDirectQuestioningConditionsUrl = "/tests/conditions";
 
 
 /////////////////////////
