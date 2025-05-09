@@ -63,7 +63,9 @@ const CaseHistory = ({
           };
         }
 
+        // ✅ MERGE instead of overwrite to keep all fields (text, grading, notes, etc.)
         grouped[item.condition][item.affected_eye] = {
+          ...(grouped[item.condition][item.affected_eye] || {}),
           [item.field_type]: item.value,
         };
       });
