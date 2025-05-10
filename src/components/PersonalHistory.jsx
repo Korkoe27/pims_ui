@@ -8,6 +8,7 @@ import NotesTextArea from "./NotesTextArea";
 import DeleteButton from "./DeleteButton";
 import { showToast } from "../components/ToasterHelper";
 import { hasFormChanged } from "../utils/deepCompare";
+import GeneralNotesTextArea from "./GeneralNotesTextArea";
 
 const lastEyeExamOptions = [
   { value: "Never", label: "Never" },
@@ -212,20 +213,6 @@ const PersonalHistory = ({
   const formatOptions = (list) =>
     list?.map((item) => ({ value: item.id, label: item.name })) || [];
 
-  // const handleSelect = (setter, existingList) => (option) => {
-  //   if (existingList.some((item) => item.id === option.value)) return;
-  //   setter([
-  //     ...existingList,
-  //     {
-  //       id: option.value,
-  //       name: option.label,
-  //       affected_eye: "",
-  //       grading: "",
-  //       notes: "",
-  //     },
-  //   ]);
-  // };
-
   const handleSelect = (setter, existingList) => (option) => {
     const isNoneSelected = option.label === "None";
     const alreadyHasNone = existingList.some((item) => item.name === "None");
@@ -347,7 +334,6 @@ const PersonalHistory = ({
   return (
     <div className="p-6 max-w-6xl mx-auto">
       <h1 className="text-2xl font-bold mb-6">Oculo-Medical History</h1>
-      
 
       <div className="flex flex-col md:flex-row md:items-start gap-10">
         {/* Left Column */}
@@ -355,7 +341,7 @@ const PersonalHistory = ({
           {/* Last Eye Exam */}
           <div>
             <label className="block font-medium mb-1">
-              Last Eye Examination 
+              Last Eye Examination
             </label>
             <select
               value={lastEyeExam}
@@ -380,10 +366,10 @@ const PersonalHistory = ({
               className="w-full border p-2 rounded"
               placeholder="E.g., Paracetamol"
             />
-            <NotesTextArea
+            <GeneralNotesTextArea
               value={drugNotes}
               onChange={setDrugNotes}
-              label="Notes"
+              placeholder="Additional notes about the drug history..."
             />
           </div>
 
@@ -396,10 +382,10 @@ const PersonalHistory = ({
               className="w-full border p-2 rounded"
               placeholder="E.g., Penicillin"
             />
-            <NotesTextArea
+            <GeneralNotesTextArea
               value={allergyNotes}
               onChange={setAllergyNotes}
-              label="Notes"
+              placeholder="Enter notes about patient's allergies"
             />
           </div>
 
@@ -415,10 +401,10 @@ const PersonalHistory = ({
               className="w-full border p-2 rounded"
               placeholder="E.g., Smoker, Driver"
             />
-            <NotesTextArea
+            <GeneralNotesTextArea
               value={socialNotes}
               onChange={setSocialNotes}
-              label="Notes"
+              placeholder="Enter notes about patient's social history"
             />
           </div>
 
