@@ -17,6 +17,7 @@ const lastEyeExamOptions = [
   { value: "6 months - 1 year", label: "6 months - 1 year" },
   { value: "1 - 3 years", label: "1 - 3 years" },
   { value: ">3 years", label: "More than 3 years" },
+  { value: "I don't Remember", label: "I don't Remember" },
 ];
 
 const PersonalHistory = ({
