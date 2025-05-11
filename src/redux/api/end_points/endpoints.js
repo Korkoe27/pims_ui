@@ -85,8 +85,8 @@ export const createPatientHistoryUrl = "/tests/api/patient-history/";
 // Medical, Ocular & On Direct Question Conditions
 /////////////////////////
 
-export const fetchMedicalConditionsUrl = "/tests/api/medical-conditions/";
-export const fetchOcularConditionsUrl = "/tests/api/ocular-conditions/";
+export const fetchMedicalConditionsUrl = "/tests/conditions";
+export const fetchOcularConditionsUrl = "/tests/conditions";
 export const fetchDirectQuestioningConditionsUrl = "/tests/conditions";
 
 

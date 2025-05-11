@@ -9,6 +9,9 @@ import DeleteButton from "./DeleteButton";
 import { showToast } from "../components/ToasterHelper";
 import { hasFormChanged } from "../utils/deepCompare";
 import GeneralNotesTextArea from "./GeneralNotesTextArea";
+import TextInput from "./TextInput";
+import ConditionsDropdown from "./ConditionsDropdown";
+import ConditionPicker from "./ConditionPicker";
 
 const lastEyeExamOptions = [
   { value: "Never", label: "Never" },
@@ -115,6 +118,10 @@ const PersonalHistory = ({
   };
 
   useEffect(() => {
+    console.log("Fetched Medical Conditions:", medicalConditions);
+  }, [medicalConditions]);
+
+  useEffect(() => {
     if (personalHistory) {
       setLastEyeExam(personalHistory.last_eye_examination || "");
       setDrugHistory(personalHistory.drug_history || "");
@@ -212,49 +219,36 @@ const PersonalHistory = ({
   }, [personalHistory]);
 
   const formatOptions = (list) =>
-    list?.map((item) => ({ value: item.id, label: item.name })) || [];
+    (list || []).map((item) => ({
+      value: item.id,
+      label: item.name,
+      ...item,
+    }));
 
   const handleSelect = (setter, existingList) => (option) => {
-    const isNoneSelected = option.label === "None";
-    const alreadyHasNone = existingList.some((item) => item.name === "None");
-
-    if (isNoneSelected) {
-      // If selecting 'None', wipe all others and set only None
-      setter([
-        {
-          id: option.value,
-          name: option.label,
-          affected_eye: "",
-          grading: "",
-          notes: "",
-        },
-      ]);
-    } else {
-      if (alreadyHasNone) {
-        // Remove 'None' if it was already selected
-        setter([
-          {
-            id: option.value,
-            name: option.label,
-            affected_eye: "",
-            grading: "",
-            notes: "",
-          },
-        ]);
-      } else if (!existingList.some((item) => item.id === option.value)) {
-        // Add new item if not already present
-        setter([
-          ...existingList,
-          {
-            id: option.value,
-            name: option.label,
-            affected_eye: "",
-            grading: "",
-            notes: "",
-          },
-        ]);
-      }
+    if (
+      existingList.some(
+        (item) => item.id === option.value || item.id === option.id
+      )
+    ) {
+      showToast("This condition is already selected.", "error");
+      return;
     }
+
+    setter([
+      ...existingList,
+      {
+        id: option.id || option.value,
+        name: option.name || option.label,
+        has_text: option.has_text || false,
+        has_dropdown: option.has_dropdown || false,
+        has_grading: option.has_grading || false,
+        has_notes: option.has_notes || false,
+        dropdown_options: option.dropdown_options || [],
+        OD: {},
+        OS: {},
+      },
+    ]);
   };
 
   const updateEntry = (id, field, value, list, setter) => {
@@ -265,6 +259,28 @@ const PersonalHistory = ({
 
   const handleDelete = (id, list, setter) => {
     setter(list.filter((item) => item.id !== id));
+  };
+
+  const handleFieldChange = (
+    conditionId,
+    eye,
+    fieldType,
+    value,
+    list,
+    setter
+  ) => {
+    const updated = list.map((item) =>
+      item.id === conditionId
+        ? {
+            ...item,
+            [eye]: {
+              ...(item[eye] || {}),
+              [fieldType]: value,
+            },
+          }
+        : item
+    );
+    setter(updated);
   };
 
   const handleSave = async () => {
@@ -331,6 +347,10 @@ const PersonalHistory = ({
       showToast(detail, "error");
     }
   };
+
+  const formattedOptions = formatOptions(medicalConditions);
+  console.log("🧪 Condition Options:", formattedOptions);
+  console.log("📦 SelectedMedical:", selectedMedical);
 
   return (
     <div className="p-6 max-w-6xl mx-auto">
@@ -410,59 +430,155 @@ const PersonalHistory = ({
           </div>
 
           <div>
-            <SearchableSelect
-              label={
-                <span>
-                  Medical History{" "}
-                  {isFirstVisit && <span className="text-red-500">*</span>}
-                </span>
-              }
-              options={formatOptions(medicalConditions)}
-              selectedValues={selectedMedical.map((c) => ({
-                value: c.id,
-                label: c.name,
-              }))}
-              onSelect={handleSelect(setSelectedMedical, selectedMedical)}
-              conditionKey="value"
-              conditionNameKey="label"
-            />
+            {/* Medical History (ODQ-style) */}
+            <div className="mb-6">
+              <ConditionPicker
+                label={
+                  <span>
+                    Medical History{" "}
+                    {isFirstVisit && <span className="text-red-500">*</span>}
+                  </span>
+                }
+                options={formatOptions(medicalConditions)}
+                selectedValues={selectedMedical.map((c) => ({
+                  id: c.id,
+                  name: c.name,
+                }))}
+                onSelect={handleSelect(setSelectedMedical, selectedMedical)}
+                conditionKey="id"
+                conditionNameKey="name"
+              />
+              {selectedMedical.length > 0 && (
+                <div className="mt-4 space-y-4">
+                  {selectedMedical.map((item) => (
+                    <div
+                      key={item.id}
+                      className="p-4 bg-gray-50 border rounded space-y-4"
+                    >
+                      <div className="flex items-center justify-between">
+                        <h4 className="font-semibold">{item.name}</h4>
+                        <DeleteButton
+                          onClick={() =>
+                            handleDelete(item.id, setSelectedMedical)
+                          }
+                        />
+                      </div>
 
-            {selectedMedical.length > 0 && (
-              <div className="mt-4 space-y-4">
-                {selectedMedical.map((c) => (
-                  <div key={c.id} className="p-4 bg-gray-50 border rounded">
-                    <div className="flex items-center justify-between mb-2">
-                      <h4 className="font-semibold">{c.name}</h4>
-                      <DeleteButton
-                        onClick={() =>
-                          handleDelete(
-                            c.id,
-                            selectedMedical,
-                            setSelectedMedical
-                          )
-                        }
-                      />
-                    </div>
-                    {c.name !== "None" && (
-                      <>
-                        <NotesTextArea
-                          value={c.notes}
-                          onChange={(val) =>
-                            updateEntry(
-                              c.id,
-                              "notes",
+                      {item.has_text && (
+                        <TextInput
+                          valueOD={item.OD?.text || ""}
+                          valueOS={item.OS?.text || ""}
+                          onChangeOD={(val) =>
+                            handleFieldChange(
+                              item.id,
+                              "OD",
+                              "text",
+                              val,
+                              selectedMedical,
+                              setSelectedMedical
+                            )
+                          }
+                          onChangeOS={(val) =>
+                            handleFieldChange(
+                              item.id,
+                              "OS",
+                              "text",
                               val,
                               selectedMedical,
                               setSelectedMedical
                             )
                           }
                         />
-                      </>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
+                      )}
+
+                      {item.has_dropdown && (
+                        <ConditionsDropdown
+                          valueOD={item.OD?.dropdown || ""}
+                          valueOS={item.OS?.dropdown || ""}
+                          options={item.dropdown_options}
+                          onChangeOD={(val) =>
+                            handleFieldChange(
+                              item.id,
+                              "OD",
+                              "dropdown",
+                              val,
+                              selectedMedical,
+                              setSelectedMedical
+                            )
+                          }
+                          onChangeOS={(val) =>
+                            handleFieldChange(
+                              item.id,
+                              "OS",
+                              "dropdown",
+                              val,
+                              selectedMedical,
+                              setSelectedMedical
+                            )
+                          }
+                        />
+                      )}
+
+                      {item.has_grading && (
+                        <GradingSelect
+                          valueOD={item.OD?.grading || ""}
+                          valueOS={item.OS?.grading || ""}
+                          onChangeOD={(val) =>
+                            handleFieldChange(
+                              item.id,
+                              "OD",
+                              "grading",
+                              val,
+                              selectedMedical,
+                              setSelectedMedical
+                            )
+                          }
+                          onChangeOS={(val) =>
+                            handleFieldChange(
+                              item.id,
+                              "OS",
+                              "grading",
+                              val,
+                              selectedMedical,
+                              setSelectedMedical
+                            )
+                          }
+                        />
+                      )}
+
+                      {item.has_notes && (
+                        <NotesTextArea
+                          valueOD={item.OD?.notes || ""}
+                          valueOS={item.OS?.notes || ""}
+                          onChangeOD={(val) =>
+                            handleFieldChange(
+                              item.id,
+                              "OD",
+                              "notes",
+                              val,
+                              selectedMedical,
+                              setSelectedMedical
+                            )
+                          }
+                          onChangeOS={(val) =>
+                            handleFieldChange(
+                              item.id,
+                              "OS",
+                              "notes",
+                              val,
+                              selectedMedical,
+                              setSelectedMedical
+                            )
+                          }
+                          placeholderOD="Notes for OD"
+                          placeholderOS="Notes for OS"
+                        />
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
