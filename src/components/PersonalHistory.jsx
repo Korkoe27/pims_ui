@@ -131,47 +131,25 @@ const PersonalHistory = ({
       setSocialHistory(personalHistory.social_history || "");
       setSocialNotes(personalHistory.social_notes || "");
 
-      const medicalHistory = (personalHistory.medical_history || []).map(
-        (item) => ({
-          id: item.medical_condition,
-          name: item.medical_condition_name,
-          notes: item.notes || "",
-        })
-      );
+      const hydrate = (list = []) =>
+        list.map((item) => ({
+          id: item.condition,
+          name: item.condition_name,
+          field_type: item.field_type,
+          value: item.value,
+          affected_eye: item.affected_eye || "", // only relevant for ocular conditions
+        }));
+
+      const medicalHistory = hydrate(personalHistory.medical_history);
+      const ocularHistory = hydrate(personalHistory.ocular_history);
+      const famMedHistory = hydrate(personalHistory.family_medical_history);
+      const famOcularHistory = hydrate(personalHistory.family_ocular_history);
+
       setSelectedMedical(medicalHistory);
-
-      const ocularHistory = (personalHistory.ocular_history || []).map(
-        (item) => ({
-          id: item.ocular_condition,
-          name: item.ocular_condition_name,
-          affected_eye: item.affected_eye || "",
-          grading: item.grading || "",
-          notes: item.notes || "",
-        })
-      );
       setSelectedOcular(ocularHistory);
-
-      const famMedHistory = (personalHistory.family_medical_history || []).map(
-        (item) => ({
-          id: item.medical_condition,
-          name: item.medical_condition_name,
-          notes: item.notes || "",
-        })
-      );
       setFamilyMedicalHistory(famMedHistory);
-
-      const famOcularHistory = (
-        personalHistory.family_ocular_history || []
-      ).map((item) => ({
-        id: item.ocular_condition,
-        name: item.ocular_condition_name,
-        affected_eye: item.affected_eye || "",
-        grading: item.grading || "",
-        notes: item.notes || "",
-      }));
       setFamilyOcularHistory(famOcularHistory);
 
-      // 👇 Add this to store the full initial payload for comparison
       setInitialPayload({
         patient: patientId,
         appointment: appointmentId,
@@ -195,24 +173,26 @@ const PersonalHistory = ({
           },
         ],
         medical_history: medicalHistory.map((item) => ({
-          medical_condition: item.id,
-          notes: item.notes,
+          condition: item.id,
+          field_type: item.field_type,
+          value: item.value,
         })),
         ocular_history: ocularHistory.map((item) => ({
-          ocular_condition: item.id,
+          condition: item.id,
           affected_eye: item.affected_eye,
-          grading: item.grading,
-          notes: item.notes,
+          field_type: item.field_type,
+          value: item.value,
         })),
         family_medical_history: famMedHistory.map((item) => ({
-          medical_condition: item.id,
-          notes: item.notes,
+          condition: item.id,
+          field_type: item.field_type,
+          value: item.value,
         })),
         family_ocular_history: famOcularHistory.map((item) => ({
-          ocular_condition: item.id,
+          condition: item.id,
           affected_eye: item.affected_eye,
-          grading: item.grading,
-          notes: item.notes,
+          field_type: item.field_type,
+          value: item.value,
         })),
       });
     }
@@ -301,24 +281,26 @@ const PersonalHistory = ({
       allergy_entries: [{ name: allergyHistory, notes: allergyNotes }],
       social_entries: [{ name: socialHistory, notes: socialNotes }],
       medical_history: selectedMedical.map((item) => ({
-        medical_condition: item.id,
-        notes: item.notes || "",
+        condition: item.id,
+        field_type: item.field_type,
+        value: item.value,
       })),
       ocular_history: selectedOcular.map((item) => ({
-        ocular_condition: item.id,
+        condition: item.id,
         affected_eye: item.affected_eye,
-        grading: item.grading,
-        notes: item.notes,
+        field_type: item.field_type,
+        value: item.value,
       })),
       family_medical_history: familyMedicalHistory.map((item) => ({
-        medical_condition: item.id,
-        notes: item.notes,
+        condition: item.id,
+        field_type: item.field_type,
+        value: item.value,
       })),
       family_ocular_history: familyOcularHistory.map((item) => ({
-        ocular_condition: item.id,
+        condition: item.id,
         affected_eye: item.affected_eye,
-        grading: item.grading,
-        notes: item.notes,
+        field_type: item.field_type,
+        value: item.value,
       })),
     };
 
