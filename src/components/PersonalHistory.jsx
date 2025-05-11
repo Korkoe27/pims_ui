@@ -237,9 +237,9 @@ const PersonalHistory = ({
     );
   };
 
-  const handleDelete = (id, list, setter) => {
-    setter(list.filter((item) => item.id !== id));
-  };
+  const handleDeleteCondition = (id, setter) => {
+    setter((prev) => prev.filter((item) => item.id !== id));
+  };  
 
   const handleFieldChange = (
     conditionId,
@@ -441,7 +441,7 @@ const PersonalHistory = ({
                         <h4 className="font-semibold">{item.name}</h4>
                         <DeleteButton
                           onClick={() =>
-                            handleDelete(item.id, setSelectedMedical)
+                            handleDeleteCondition(item.id, setSelectedMedical)
                           }
                         />
                       </div>
@@ -592,7 +592,7 @@ const PersonalHistory = ({
                       <h4 className="font-semibold">{c.name}</h4>
                       <DeleteButton
                         onClick={() =>
-                          handleDelete(c.id, selectedOcular, setSelectedOcular)
+                          handleDeleteCondition(c.id, selectedOcular, setSelectedOcular)
                         }
                       />
                     </div>
@@ -673,7 +673,7 @@ const PersonalHistory = ({
                       <h4 className="font-semibold">{c.name}</h4>
                       <DeleteButton
                         onClick={() =>
-                          handleDelete(
+                          handleDeleteCondition(
                             c.id,
                             familyMedicalHistory,
                             setFamilyMedicalHistory
@@ -733,7 +733,7 @@ const PersonalHistory = ({
                       <h4 className="font-semibold">{c.name}</h4>
                       <DeleteButton
                         onClick={() =>
-                          handleDelete(
+                          handleDeleteCondition(
                             c.id,
                             familyOcularHistory,
                             setFamilyOcularHistory
