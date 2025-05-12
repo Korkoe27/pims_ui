@@ -1,4 +1,10 @@
 import React from "react";
+import SPHValidator from "../components/validators/SPHValidator";
+import CYLValidator from "../components/validators/CYLValidator"; 
+import AXISValidator from "../components/validators/AXISValidator";
+import VAValidator from "../components/validators/VAValidator";
+import ADDValidator from "../components/validators/ADDValidator"; 
+import MNNotationValidator from "./validators/MNNotationValidator";
 
 const EYES = ["OD", "OS"];
 const PRESCRIPTION_TYPES = ["Spectacles", "Contact Lenses"];
@@ -11,11 +17,9 @@ export function validatePrescription(
 ) {
   if (!hasPrescription) return true;
 
-  // ✅ Check prescription type
   const isPrescriptionTypeValid =
     typeof prescriptionType === "string" && prescriptionType.trim() !== "";
 
-  // ✅ Check SPH for both eyes
   const isSPHValid = ["OD", "OS"].every((eye) => {
     const sph = currentRx?.[eye]?.sph;
     return (
@@ -36,15 +40,6 @@ export default function PrescriptionSection({
   currentRx,
   onRxChange,
 }) {
-  const placeholders = {
-    sph: "+1.00 / -2.25",
-    cyl: "-0.50",
-    axis: "0 - 180",
-    va: "6/6 or 0.00",
-    add: "+1.00",
-    nearVa: "M/N Notation",
-  };
-
   return (
     <div className="space-y-6">
       <div>
@@ -105,7 +100,7 @@ export default function PrescriptionSection({
               <div></div>
               <div>
                 SPH <span className="text-red-500">*</span>
-              </div>{" "}
+              </div>
               <div>CYL</div>
               <div>AXIS</div>
               <div>VA</div>
@@ -117,18 +112,31 @@ export default function PrescriptionSection({
               {EYES.map((eye) => (
                 <React.Fragment key={eye}>
                   <div className="font-bold self-center">{eye}</div>
-                  {["sph", "cyl", "axis", "va", "add", "nearVa"].map(
-                    (field) => (
-                      <input
-                        key={field}
-                        type="text"
-                        value={currentRx[eye][field]}
-                        placeholder={placeholders[field]}
-                        onChange={(e) => onRxChange(eye, field, e.target.value)}
-                        className="border rounded px-2 py-1"
-                      />
-                    )
-                  )}
+                  <SPHValidator
+                    value={currentRx[eye].sph}
+                    onChange={(val) => onRxChange(eye, "sph", val)}
+                    required={true}
+                  />
+                  <CYLValidator
+                    value={currentRx[eye].cyl}
+                    onChange={(val) => onRxChange(eye, "cyl", val)}
+                  />
+                  <AXISValidator
+                    value={currentRx[eye].axis}
+                    onChange={(val) => onRxChange(eye, "axis", val)}
+                  />
+                  <VAValidator
+                    value={currentRx[eye].va}
+                    onChange={(val) => onRxChange(eye, "va", val)}
+                  />
+                  <ADDValidator
+                    value={currentRx[eye].add}
+                    onChange={(val) => onRxChange(eye, "add", val)}
+                  />
+                  <MNNotationValidator
+                    value={currentRx[eye].nearVa}
+                    onChange={(val) => onRxChange(eye, "nearVa", val)}
+                  />
                 </React.Fragment>
               ))}
             </div>
