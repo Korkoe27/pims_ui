@@ -1,8 +1,6 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import usePersonalHistoryData from "../hooks/usePersonalHistoryData";
 import useFetchConditionsData from "../hooks/useFetchConditionsData";
-import SearchableSelect from "./SearchableSelect";
-import AffectedEyeSelect from "./AffectedEyeSelect";
 import GradingSelect from "./GradingSelect";
 import NotesTextArea from "./NotesTextArea";
 import DeleteButton from "./DeleteButton";
@@ -26,7 +24,6 @@ const lastEyeExamOptions = [
 const PersonalHistory = ({
   patientId,
   appointmentId,
-  nextTab,
   setActiveTab,
   setTabCompletionStatus,
 }) => {
