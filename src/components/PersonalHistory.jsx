@@ -239,7 +239,7 @@ const PersonalHistory = ({
 
   const handleDeleteCondition = (id, setter) => {
     setter((prev) => prev.filter((item) => item.id !== id));
-  };  
+  };
 
   const handleFieldChange = (
     conditionId,
@@ -411,8 +411,8 @@ const PersonalHistory = ({
             />
           </div>
 
+          {/* Medical History (ODQ-style) */}
           <div>
-            {/* Medical History (ODQ-style) */}
             <div className="mb-6">
               <ConditionPicker
                 label={
@@ -568,7 +568,7 @@ const PersonalHistory = ({
         <div className="flex-1 space-y-6">
           {/* Ocular History */}
           <div>
-            <SearchableSelect
+            <ConditionPicker
               label={
                 <span>
                   Ocular History <span className="text-red-500">*</span>
@@ -576,67 +576,139 @@ const PersonalHistory = ({
               }
               options={formatOptions(ocularConditions)}
               selectedValues={selectedOcular.map((c) => ({
-                value: c.id,
-                label: c.name,
+                id: c.id,
+                name: c.name,
               }))}
               onSelect={handleSelect(setSelectedOcular, selectedOcular)}
-              conditionKey="value"
-              conditionNameKey="label"
+              conditionKey="id"
+              conditionNameKey="name"
             />
 
             {selectedOcular.length > 0 && (
               <div className="mt-4 space-y-4">
-                {selectedOcular.map((c) => (
-                  <div key={c.id} className="p-4 bg-gray-50 border rounded">
-                    <div className="flex items-center justify-between mb-2">
-                      <h4 className="font-semibold">{c.name}</h4>
+                {selectedOcular.map((item) => (
+                  <div
+                    key={item.id}
+                    className="p-4 bg-gray-50 border rounded space-y-4"
+                  >
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-semibold">{item.name}</h4>
                       <DeleteButton
                         onClick={() =>
-                          handleDeleteCondition(c.id, selectedOcular, setSelectedOcular)
+                          handleDeleteCondition(item.id, setSelectedOcular)
                         }
                       />
                     </div>
-                    {c.name !== "None" && (
-                      <>
-                        <AffectedEyeSelect
-                          value={c.affected_eye}
-                          onChange={(val) =>
-                            updateEntry(
-                              c.id,
-                              "affected_eye",
-                              val,
-                              selectedOcular,
-                              setSelectedOcular
-                            )
-                          }
-                        />
 
-                        <GradingSelect
-                          value={c.grading}
-                          onChange={(val) =>
-                            updateEntry(
-                              c.id,
-                              "grading",
-                              val,
-                              selectedOcular,
-                              setSelectedOcular
-                            )
-                          }
-                        />
+                    {item.has_text && (
+                      <TextInput
+                        valueOD={item.OD?.text || ""}
+                        valueOS={item.OS?.text || ""}
+                        onChangeOD={(val) =>
+                          handleFieldChange(
+                            item.id,
+                            "OD",
+                            "text",
+                            val,
+                            selectedOcular,
+                            setSelectedOcular
+                          )
+                        }
+                        onChangeOS={(val) =>
+                          handleFieldChange(
+                            item.id,
+                            "OS",
+                            "text",
+                            val,
+                            selectedOcular,
+                            setSelectedOcular
+                          )
+                        }
+                      />
+                    )}
 
-                        <NotesTextArea
-                          value={c.notes}
-                          onChange={(val) =>
-                            updateEntry(
-                              c.id,
-                              "notes",
-                              val,
-                              selectedOcular,
-                              setSelectedOcular
-                            )
-                          }
-                        />
-                      </>
+                    {item.has_dropdown && (
+                      <ConditionsDropdown
+                        valueOD={item.OD?.dropdown || ""}
+                        valueOS={item.OS?.dropdown || ""}
+                        options={item.dropdown_options}
+                        onChangeOD={(val) =>
+                          handleFieldChange(
+                            item.id,
+                            "OD",
+                            "dropdown",
+                            val,
+                            selectedOcular,
+                            setSelectedOcular
+                          )
+                        }
+                        onChangeOS={(val) =>
+                          handleFieldChange(
+                            item.id,
+                            "OS",
+                            "dropdown",
+                            val,
+                            selectedOcular,
+                            setSelectedOcular
+                          )
+                        }
+                      />
+                    )}
+
+                    {item.has_grading && (
+                      <GradingSelect
+                        valueOD={item.OD?.grading || ""}
+                        valueOS={item.OS?.grading || ""}
+                        onChangeOD={(val) =>
+                          handleFieldChange(
+                            item.id,
+                            "OD",
+                            "grading",
+                            val,
+                            selectedOcular,
+                            setSelectedOcular
+                          )
+                        }
+                        onChangeOS={(val) =>
+                          handleFieldChange(
+                            item.id,
+                            "OS",
+                            "grading",
+                            val,
+                            selectedOcular,
+                            setSelectedOcular
+                          )
+                        }
+                      />
+                    )}
+
+                    {item.has_notes && (
+                      <NotesTextArea
+                        valueOD={item.OD?.notes || ""}
+                        valueOS={item.OS?.notes || ""}
+                        onChangeOD={(val) =>
+                          handleFieldChange(
+                            item.id,
+                            "OD",
+                            "notes",
+                            val,
+                            selectedOcular,
+                            setSelectedOcular
+                          )
+                        }
+                        onChangeOS={(val) =>
+                          handleFieldChange(
+                            item.id,
+                            "OS",
+                            "notes",
+                            val,
+                            selectedOcular,
+                            setSelectedOcular
+                          )
+                        }
+                        placeholderOD="Notes for OD"
+                        placeholderOS="Notes for OS"
+                      />
                     )}
                   </div>
                 ))}
@@ -645,7 +717,7 @@ const PersonalHistory = ({
           </div>
           {/* Family Medical History */}
           <div>
-            <SearchableSelect
+            <ConditionPicker
               label={
                 <span>
                   Family Medical History{" "}
@@ -654,48 +726,145 @@ const PersonalHistory = ({
               }
               options={formatOptions(medicalConditions)}
               selectedValues={familyMedicalHistory.map((c) => ({
-                value: c.id,
-                label: c.name,
+                id: c.id,
+                name: c.name,
               }))}
               onSelect={handleSelect(
                 setFamilyMedicalHistory,
                 familyMedicalHistory
               )}
-              conditionKey="value"
-              conditionNameKey="label"
+              conditionKey="id"
+              conditionNameKey="name"
             />
 
             {familyMedicalHistory.length > 0 && (
               <div className="mt-4 space-y-4">
-                {familyMedicalHistory.map((c) => (
-                  <div key={c.id} className="p-4 bg-gray-50 border rounded">
-                    <div className="flex items-center justify-between mb-2">
-                      <h4 className="font-semibold">{c.name}</h4>
+                {familyMedicalHistory.map((item) => (
+                  <div
+                    key={item.id}
+                    className="p-4 bg-gray-50 border rounded space-y-4"
+                  >
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-semibold">{item.name}</h4>
                       <DeleteButton
                         onClick={() =>
                           handleDeleteCondition(
-                            c.id,
-                            familyMedicalHistory,
+                            item.id,
                             setFamilyMedicalHistory
                           )
                         }
                       />
                     </div>
-                    {c.name !== "None" && (
-                      <>
-                        <NotesTextArea
-                          value={c.notes}
-                          onChange={(val) =>
-                            updateEntry(
-                              c.id,
-                              "notes",
-                              val,
-                              familyMedicalHistory,
-                              setFamilyMedicalHistory
-                            )
-                          }
-                        />
-                      </>
+
+                    {item.has_text && (
+                      <TextInput
+                        valueOD={item.OD?.text || ""}
+                        valueOS={item.OS?.text || ""}
+                        onChangeOD={(val) =>
+                          handleFieldChange(
+                            item.id,
+                            "OD",
+                            "text",
+                            val,
+                            familyMedicalHistory,
+                            setFamilyMedicalHistory
+                          )
+                        }
+                        onChangeOS={(val) =>
+                          handleFieldChange(
+                            item.id,
+                            "OS",
+                            "text",
+                            val,
+                            familyMedicalHistory,
+                            setFamilyMedicalHistory
+                          )
+                        }
+                      />
+                    )}
+
+                    {item.has_dropdown && (
+                      <ConditionsDropdown
+                        valueOD={item.OD?.dropdown || ""}
+                        valueOS={item.OS?.dropdown || ""}
+                        options={item.dropdown_options}
+                        onChangeOD={(val) =>
+                          handleFieldChange(
+                            item.id,
+                            "OD",
+                            "dropdown",
+                            val,
+                            familyMedicalHistory,
+                            setFamilyMedicalHistory
+                          )
+                        }
+                        onChangeOS={(val) =>
+                          handleFieldChange(
+                            item.id,
+                            "OS",
+                            "dropdown",
+                            val,
+                            familyMedicalHistory,
+                            setFamilyMedicalHistory
+                          )
+                        }
+                      />
+                    )}
+
+                    {item.has_grading && (
+                      <GradingSelect
+                        valueOD={item.OD?.grading || ""}
+                        valueOS={item.OS?.grading || ""}
+                        onChangeOD={(val) =>
+                          handleFieldChange(
+                            item.id,
+                            "OD",
+                            "grading",
+                            val,
+                            familyMedicalHistory,
+                            setFamilyMedicalHistory
+                          )
+                        }
+                        onChangeOS={(val) =>
+                          handleFieldChange(
+                            item.id,
+                            "OS",
+                            "grading",
+                            val,
+                            familyMedicalHistory,
+                            setFamilyMedicalHistory
+                          )
+                        }
+                      />
+                    )}
+
+                    {item.has_notes && (
+                      <NotesTextArea
+                        valueOD={item.OD?.notes || ""}
+                        valueOS={item.OS?.notes || ""}
+                        onChangeOD={(val) =>
+                          handleFieldChange(
+                            item.id,
+                            "OD",
+                            "notes",
+                            val,
+                            familyMedicalHistory,
+                            setFamilyMedicalHistory
+                          )
+                        }
+                        onChangeOS={(val) =>
+                          handleFieldChange(
+                            item.id,
+                            "OS",
+                            "notes",
+                            val,
+                            familyMedicalHistory,
+                            setFamilyMedicalHistory
+                          )
+                        }
+                        placeholderOD="Notes for OD"
+                        placeholderOS="Notes for OS"
+                      />
                     )}
                   </div>
                 ))}
@@ -705,7 +874,7 @@ const PersonalHistory = ({
 
           {/* Family Ocular History */}
           <div>
-            <SearchableSelect
+            <ConditionPicker
               label={
                 <span>
                   Family Ocular History{" "}
@@ -714,72 +883,142 @@ const PersonalHistory = ({
               }
               options={formatOptions(ocularConditions)}
               selectedValues={familyOcularHistory.map((c) => ({
-                value: c.id,
-                label: c.name,
+                id: c.id,
+                name: c.name,
               }))}
               onSelect={handleSelect(
                 setFamilyOcularHistory,
                 familyOcularHistory
               )}
-              conditionKey="value"
-              conditionNameKey="label"
+              conditionKey="id"
+              conditionNameKey="name"
             />
 
             {familyOcularHistory.length > 0 && (
               <div className="mt-4 space-y-4">
-                {familyOcularHistory.map((c) => (
-                  <div key={c.id} className="p-4 bg-gray-50 border rounded">
-                    <div className="flex items-center justify-between mb-2">
-                      <h4 className="font-semibold">{c.name}</h4>
+                {familyOcularHistory.map((item) => (
+                  <div
+                    key={item.id}
+                    className="p-4 bg-gray-50 border rounded space-y-4"
+                  >
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-semibold">{item.name}</h4>
                       <DeleteButton
                         onClick={() =>
-                          handleDeleteCondition(
-                            c.id,
+                          handleDeleteCondition(item.id, setFamilyOcularHistory)
+                        }
+                      />
+                    </div>
+
+                    {item.has_text && (
+                      <TextInput
+                        valueOD={item.OD?.text || ""}
+                        valueOS={item.OS?.text || ""}
+                        onChangeOD={(val) =>
+                          handleFieldChange(
+                            item.id,
+                            "OD",
+                            "text",
+                            val,
+                            familyOcularHistory,
+                            setFamilyOcularHistory
+                          )
+                        }
+                        onChangeOS={(val) =>
+                          handleFieldChange(
+                            item.id,
+                            "OS",
+                            "text",
+                            val,
                             familyOcularHistory,
                             setFamilyOcularHistory
                           )
                         }
                       />
-                    </div>
-                    {c.name !== "None" && (
-                      <>
-                        <AffectedEyeSelect
-                          value={c.affected_eye}
-                          onChange={(val) =>
-                            updateEntry(
-                              c.id,
-                              "affected_eye",
-                              val,
-                              familyOcularHistory,
-                              setFamilyOcularHistory
-                            )
-                          }
-                        />
-                        <GradingSelect
-                          value={c.grading}
-                          onChange={(val) =>
-                            updateEntry(
-                              c.id,
-                              "grading",
-                              val,
-                              familyOcularHistory,
-                              setFamilyOcularHistory
-                            )
-                          }
-                        />
-                        <NotesTextArea
-                          value={c.notes}
-                          onChange={(val) =>
-                            updateEntry(
-                              c.id,
-                              "notes",
-                              val,
-                              familyOcularHistory,
-                              setFamilyOcularHistory
-                            )
-                          }
-                        />
-                      </>
+                    )}
+
+                    {item.has_dropdown && (
+                      <ConditionsDropdown
+                        valueOD={item.OD?.dropdown || ""}
+                        valueOS={item.OS?.dropdown || ""}
+                        options={item.dropdown_options}
+                        onChangeOD={(val) =>
+                          handleFieldChange(
+                            item.id,
+                            "OD",
+                            "dropdown",
+                            val,
+                            familyOcularHistory,
+                            setFamilyOcularHistory
+                          )
+                        }
+                        onChangeOS={(val) =>
+                          handleFieldChange(
+                            item.id,
+                            "OS",
+                            "dropdown",
+                            val,
+                            familyOcularHistory,
+                            setFamilyOcularHistory
+                          )
+                        }
+                      />
+                    )}
+
+                    {item.has_grading && (
+                      <GradingSelect
+                        valueOD={item.OD?.grading || ""}
+                        valueOS={item.OS?.grading || ""}
+                        onChangeOD={(val) =>
+                          handleFieldChange(
+                            item.id,
+                            "OD",
+                            "grading",
+                            val,
+                            familyOcularHistory,
+                            setFamilyOcularHistory
+                          )
+                        }
+                        onChangeOS={(val) =>
+                          handleFieldChange(
+                            item.id,
+                            "OS",
+                            "grading",
+                            val,
+                            familyOcularHistory,
+                            setFamilyOcularHistory
+                          )
+                        }
+                      />
+                    )}
+
+                    {item.has_notes && (
+                      <NotesTextArea
+                        valueOD={item.OD?.notes || ""}
+                        valueOS={item.OS?.notes || ""}
+                        onChangeOD={(val) =>
+                          handleFieldChange(
+                            item.id,
+                            "OD",
+                            "notes",
+                            val,
+                            familyOcularHistory,
+                            setFamilyOcularHistory
+                          )
+                        }
+                        onChangeOS={(val) =>
+                          handleFieldChange(
+                            item.id,
+                            "OS",
+                            "notes",
+                            val,
+                            familyOcularHistory,
+                            setFamilyOcularHistory
+                          )
+                        }
+                        placeholderOD="Notes for OD"
+                        placeholderOS="Notes for OS"
+                      />
                     )}
                   </div>
                 ))}
