@@ -263,6 +263,29 @@ const PersonalHistory = ({
     setter(updated);
   };
 
+  const buildConditionDetails = (list) => {
+    const observations = [];
+
+    list.forEach((item) => {
+      ["OD", "OS"].forEach((eye) => {
+        const data = item[eye] || {};
+        Object.entries(data).forEach(([field_type, value]) => {
+          if (value?.toString().trim()) {
+            const obs = {
+              condition: item.id,
+              field_type,
+              affected_eye: eye,
+              value,
+            };
+            observations.push(obs);
+          }
+        });
+      });
+    });
+
+    return observations;
+  };
+
   const handleSave = async () => {
     if (isFirstVisit && !validateRequiredFields()) {
       return;
@@ -280,28 +303,10 @@ const PersonalHistory = ({
       drug_entries: [{ name: drugHistory, notes: drugNotes }],
       allergy_entries: [{ name: allergyHistory, notes: allergyNotes }],
       social_entries: [{ name: socialHistory, notes: socialNotes }],
-      medical_history: selectedMedical.map((item) => ({
-        condition: item.id,
-        field_type: item.field_type,
-        value: item.value,
-      })),
-      ocular_history: selectedOcular.map((item) => ({
-        condition: item.id,
-        affected_eye: item.affected_eye,
-        field_type: item.field_type,
-        value: item.value,
-      })),
-      family_medical_history: familyMedicalHistory.map((item) => ({
-        condition: item.id,
-        field_type: item.field_type,
-        value: item.value,
-      })),
-      family_ocular_history: familyOcularHistory.map((item) => ({
-        condition: item.id,
-        affected_eye: item.affected_eye,
-        field_type: item.field_type,
-        value: item.value,
-      })),
+      medical_history: buildConditionDetails(selectedMedical),
+      ocular_history: buildConditionDetails(selectedOcular),
+      family_medical_history: buildConditionDetails(familyMedicalHistory),
+      family_ocular_history: buildConditionDetails(familyOcularHistory),
     };
 
     if (initialPayload && !hasFormChanged(initialPayload, payload)) {
