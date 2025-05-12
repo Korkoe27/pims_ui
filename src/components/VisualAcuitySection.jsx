@@ -1,4 +1,7 @@
 import React from "react";
+import SnellenInputValidator from "./validators/SnellenInputValidator";
+import LogMarInputValidator from "./validators/LogMarInputValidator";
+import OtherVAInput from "./validators/OtherVAInput"; // fallback if needed
 
 const EYES = ["OD", "OS"];
 
@@ -29,13 +32,6 @@ export const validateVASection = (sectionData, chartType, isNear = false) => {
   );
 };
 
-const getPlaceholder = (chartType) => {
-  if (chartType === "SNELLEN") return "6/6";
-  if (chartType === "LOGMAR") return "0.00";
-  if (chartType === "Others") return "Enter CF/HM/PL/NPL";
-  return "";
-};
-
 export default function VisualAcuitySection({
   title,
   fields,
@@ -43,6 +39,14 @@ export default function VisualAcuitySection({
   onChange,
   vaChart,
 }) {
+  const getInputComponent = (chartType) => {
+    if (chartType === "SNELLEN") return SnellenInputValidator;
+    if (chartType === "LOGMAR") return LogMarInputValidator;
+    return OtherVAInput; // fallback for "Others"
+  };
+
+  const InputComponent = getInputComponent(vaChart);
+
   return (
     <div>
       <h3 className="font-semibold text-lg mb-2">{title}</h3>
@@ -68,13 +72,11 @@ export default function VisualAcuitySection({
           <React.Fragment key={eye}>
             <div className="font-bold self-center">{eye}</div>
             {fields.map((field) => (
-              <input
+              <InputComponent
                 key={field.key}
-                type="text"
-                placeholder={getPlaceholder(vaChart)}
                 value={vaData[eye][field.key]}
-                onChange={(e) => onChange(eye, field.key, e.target.value)}
-                className="border rounded px-2 py-1"
+                onChange={(val) => onChange(eye, field.key, val)}
+                required={field.required}
               />
             ))}
           </React.Fragment>
