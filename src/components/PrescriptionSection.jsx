@@ -1,15 +1,14 @@
 import React from "react";
 import SPHValidator from "../components/validators/SPHValidator";
-import CYLValidator from "../components/validators/CYLValidator"; 
+import CYLValidator from "../components/validators/CYLValidator";
 import AXISValidator from "../components/validators/AXISValidator";
 import VAValidator from "../components/validators/VAValidator";
-import ADDValidator from "../components/validators/ADDValidator"; 
-import MNNotationValidator from "./validators/MNNotationValidator";
+import ADDValidator from "../components/validators/ADDValidator";
+import MNNotationValidator from "../components/validators/MNNotationValidator";
 
 const EYES = ["OD", "OS"];
 const PRESCRIPTION_TYPES = ["Spectacles", "Contact Lenses"];
 
-// ✅ Validator: only checks if prescriptionType is selected
 export function validatePrescription(
   hasPrescription,
   prescriptionType,
@@ -25,7 +24,7 @@ export function validatePrescription(
     return (
       typeof sph === "string" &&
       sph.trim() !== "" &&
-      /^[-+]?[0-9]+(\.25|\.50|\.75|\.00)?$/.test(sph.trim())
+      /^[-+][0-9]+(\.25|\.50|\.75|\.00)?$/.test(sph.trim())
     );
   });
 
@@ -112,10 +111,11 @@ export default function PrescriptionSection({
               {EYES.map((eye) => (
                 <React.Fragment key={eye}>
                   <div className="font-bold self-center">{eye}</div>
+
                   <SPHValidator
                     value={currentRx[eye].sph}
                     onChange={(val) => onRxChange(eye, "sph", val)}
-                    required={true}
+                    required
                   />
                   <CYLValidator
                     value={currentRx[eye].cyl}
@@ -124,6 +124,7 @@ export default function PrescriptionSection({
                   <AXISValidator
                     value={currentRx[eye].axis}
                     onChange={(val) => onRxChange(eye, "axis", val)}
+                    required={!!currentRx[eye].cyl?.trim()}
                   />
                   <VAValidator
                     value={currentRx[eye].va}
