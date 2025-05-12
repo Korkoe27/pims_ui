@@ -6,7 +6,7 @@ const MNNotationValidator = ({ value, onChange, required = false, label, vaChart
 
   const isValidMN = (val) => /^[MN]\d+(\.\d+)?$/i.test(val.trim());
 
-  const dynamicPlaceholder = vaChart ? "M1 / N5" : "";
+  const dynamicPlaceholder = vaChart ? "M/N Notation" : "";
 
   useEffect(() => {
     if (!touched) return;
