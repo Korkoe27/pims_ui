@@ -131,19 +131,57 @@ const PersonalHistory = ({
       setSocialHistory(personalHistory.social_history || "");
       setSocialNotes(personalHistory.social_notes || "");
 
-      const hydrate = (list = []) =>
-        list.map((item) => ({
-          id: item.condition,
-          name: item.condition_name,
-          field_type: item.field_type,
-          value: item.value,
-          affected_eye: item.affected_eye || "", // only relevant for ocular conditions
-        }));
+      const hydrate = (entries = [], allConditions = []) => {
+        const grouped = {};
 
-      const medicalHistory = hydrate(personalHistory.medical_history);
-      const ocularHistory = hydrate(personalHistory.ocular_history);
-      const famMedHistory = hydrate(personalHistory.family_medical_history);
-      const famOcularHistory = hydrate(personalHistory.family_ocular_history);
+        entries.forEach((entry) => {
+          const conditionId = entry.condition;
+          const eye = entry.affected_eye || "OD"; // fallback to OD if missing
+          const fieldType = entry.field_type;
+          const value = entry.value;
+
+          if (!grouped[conditionId]) {
+            const meta = allConditions.find((c) => c.id === conditionId) || {};
+            grouped[conditionId] = {
+              id: conditionId,
+              name: entry.condition_name || meta.name || "Unknown",
+              has_text: meta.has_text || false,
+              has_dropdown: meta.has_dropdown || false,
+              has_grading: meta.has_grading || false,
+              has_notes: meta.has_notes || false,
+              dropdown_options: meta.dropdown_options || [],
+              OD: {},
+              OS: {},
+            };
+          }
+
+          if (eye === "OD" || eye === "OS") {
+            grouped[conditionId][eye] = {
+              ...grouped[conditionId][eye],
+              [fieldType]: value,
+            };
+          }
+        });
+
+        return Object.values(grouped);
+      };
+
+      const medicalHistory = hydrate(
+        personalHistory.medical_history,
+        medicalConditions
+      );
+      const ocularHistory = hydrate(
+        personalHistory.ocular_history,
+        ocularConditions
+      );
+      const famMedHistory = hydrate(
+        personalHistory.family_medical_history,
+        medicalConditions
+      );
+      const famOcularHistory = hydrate(
+        personalHistory.family_ocular_history,
+        ocularConditions
+      );
 
       setSelectedMedical(medicalHistory);
       setSelectedOcular(ocularHistory);
