@@ -77,6 +77,7 @@ export default function VisualAcuitySection({
                 value={vaData[eye][field.key]}
                 onChange={(val) => onChange(eye, field.key, val)}
                 required={field.required}
+                vaChart={vaChart} // ✅ passed here
               />
             ))}
           </React.Fragment>

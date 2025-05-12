@@ -1,10 +1,18 @@
 import React, { useState, useEffect } from "react";
 
-const SnellenInputValidator = ({ value, onChange, required = false, label, placeholder }) => {
+const SnellenInputValidator = ({
+  value,
+  onChange,
+  required = false,
+  label,
+  vaChart,
+}) => {
   const [touched, setTouched] = useState(false);
   const [isValid, setIsValid] = useState(true);
 
   const isValidSnellen = (val) => /^\d{1,2}\/\d{1,2}$/.test(val.trim());
+
+  const dynamicPlaceholder = vaChart ? "6/6" : "";
 
   useEffect(() => {
     if (!touched) return;
@@ -26,7 +34,7 @@ const SnellenInputValidator = ({ value, onChange, required = false, label, place
       <input
         type="text"
         value={value}
-        placeholder={placeholder || "6/6"}
+        placeholder={dynamicPlaceholder}
         onChange={(e) => onChange(e.target.value)}
         onBlur={handleBlur}
         className={`w-full border px-3 py-2 rounded ${
@@ -37,7 +45,7 @@ const SnellenInputValidator = ({ value, onChange, required = false, label, place
         <p className="text-sm text-red-600">
           {required && !value.trim()
             ? "This field is required."
-            : "Invalid Snellen format (e.g. 6/6, 6/18)"}
+            : "Invalid Snellen format (e.g. 6/6, 6/18)."}
         </p>
       )}
     </div>

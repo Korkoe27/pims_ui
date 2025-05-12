@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 
-const LogMarInputValidator = ({ value, onChange, required = false, label, placeholder }) => {
+const LogMarInputValidator = ({ value, onChange, required = false, label, vaChart }) => {
   const [touched, setTouched] = useState(false);
   const [isValid, setIsValid] = useState(true);
 
@@ -8,6 +8,8 @@ const LogMarInputValidator = ({ value, onChange, required = false, label, placeh
     const num = parseFloat(val);
     return !isNaN(num) && num >= -0.02 && num <= 3.5;
   };
+
+  const dynamicPlaceholder = vaChart ? "0.00" : "";
 
   useEffect(() => {
     if (!touched) return;
@@ -29,7 +31,7 @@ const LogMarInputValidator = ({ value, onChange, required = false, label, placeh
       <input
         type="text"
         value={value}
-        placeholder={placeholder || "1.2"}
+        placeholder={dynamicPlaceholder}
         onChange={(e) => onChange(e.target.value)}
         onBlur={handleBlur}
         className={`w-full border px-3 py-2 rounded ${

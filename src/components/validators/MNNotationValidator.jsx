@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
 
-const MNNotationValidator = ({ value, onChange, required = false, label, placeholder }) => {
+const MNNotationValidator = ({ value, onChange, required = false, label, vaChart }) => {
   const [touched, setTouched] = useState(false);
   const [isValid, setIsValid] = useState(true);
 
   const isValidMN = (val) => /^[MN]\d+(\.\d+)?$/i.test(val.trim());
+
+  const dynamicPlaceholder = vaChart ? "M1 / N5" : "";
 
   useEffect(() => {
     if (!touched) return;
@@ -26,7 +28,7 @@ const MNNotationValidator = ({ value, onChange, required = false, label, placeho
       <input
         type="text"
         value={value}
-        placeholder={placeholder || "M1 / N5"}
+        placeholder={dynamicPlaceholder}
         onChange={(e) => onChange(e.target.value)}
         onBlur={handleBlur}
         className={`w-full border px-3 py-2 rounded ${
