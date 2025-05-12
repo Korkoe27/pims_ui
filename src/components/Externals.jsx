@@ -1,176 +1,159 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { FaChevronDown, FaChevronUp } from "react-icons/fa";
 import { useParams } from "react-router-dom";
 import useExternalObservationData from "../hooks/useExternalObservationData";
-import SearchableSelect from "./SearchableSelect";
-import GradingSelect from "./GradingSelect";
-import NotesTextArea from "./NotesTextArea";
+import ConditionPicker from "./ConditionPicker"; // ✅ our new condition picker
 import DeleteButton from "./DeleteButton";
 import { showToast, formatErrorMessage } from "../components/ToasterHelper";
-import { hasFormChanged } from "../utils/deepCompare";
+import TextInput from "./TextInput";
+import DropdownSelect from "./DropdownSelect";
+import GradingSelect from "./GradingSelect";
+import NotesTextArea from "./NotesTextArea";
 
 const Externals = ({ setActiveTab, setTabCompletionStatus }) => {
   const { appointmentId } = useParams();
 
   const [dropdowns, setDropdowns] = useState({});
   const [formData, setFormData] = useState({});
-  const [initialPayload, setInitialPayload] = useState(null);
-  const [errorMessage, setErrorMessage] = useState(null);
-  const [showErrorModal, setShowErrorModal] = useState(false);
 
   const {
-    externals,
     loadingExternals,
-    conditions,
     loadingConditions,
+    conditions,
     conditionsError,
     createExternalObservation,
   } = useExternalObservationData(appointmentId);
 
+  // Group conditions by main + sub
   const groupedConditions = conditions.reduce((acc, condition) => {
-    const groupName = condition.group_name;
-    if (!acc[groupName]) acc[groupName] = [];
-    acc[groupName].push(condition);
+    const mainGroup = condition.main_group_name;
+    const group = condition.group_name;
+    if (!acc[mainGroup]) acc[mainGroup] = {};
+    if (!acc[mainGroup][group]) acc[mainGroup][group] = [];
+    acc[mainGroup][group].push(condition);
     return acc;
   }, {});
 
-  useEffect(() => {
-    if (externals && conditions.length > 0) {
-      const initialFormData = {};
-      const snapshot = [];
-
-      externals.forEach((obs) => {
-        const condition = conditions.find((c) => c.id === obs.condition);
-        if (!condition) return;
-
-        const groupName = condition.group_name;
-        if (!initialFormData[groupName]) initialFormData[groupName] = [];
-
-        const entryIndex = initialFormData[groupName].findIndex(
-          (e) => e.id === condition.id
-        );
-
-        const detail = {
-          grading: obs.grading,
-          notes: obs.notes,
-        };
-
-        if (entryIndex === -1) {
-          initialFormData[groupName].push({
-            id: condition.id,
-            name: condition.name,
-            [obs.affected_eye]: detail,
-          });
-        } else {
-          initialFormData[groupName][entryIndex][obs.affected_eye] = detail;
-        }
-
-        snapshot.push({
-          condition: obs.condition,
-          affected_eye: obs.affected_eye,
-          grading: obs.grading,
-          notes: obs.notes,
-        });
-      });
-
-      setFormData(initialFormData);
-      setInitialPayload(snapshot);
-    }
-  }, [externals, conditions]);
-
-  useEffect(() => {
-    if (showErrorModal && errorMessage) {
-      showToast(errorMessage.detail, "error");
-      setShowErrorModal(false);
-    }
-  }, [showErrorModal, errorMessage]);
-
-  const toggleSection = (groupName) => {
-    setDropdowns((prev) => ({ ...prev, [groupName]: !prev[groupName] }));
+  const toggleSection = (mainGroup) => {
+    setDropdowns((prev) => ({
+      ...prev,
+      [mainGroup]: {
+        ...(prev[mainGroup] || {}),
+        isOpen: !prev[mainGroup]?.isOpen,
+      },
+    }));
   };
 
-  const handleSelectCondition = (groupName, selectedOption) => {
-    const selectedId = selectedOption.value;
-    const selectedName = selectedOption.label;
+  const toggleSubSection = (mainGroup, subGroup) => {
+    setDropdowns((prev) => ({
+      ...prev,
+      [mainGroup]: {
+        ...(prev[mainGroup] || { isOpen: true, subGroups: {} }),
+        subGroups: {
+          ...(prev[mainGroup]?.subGroups || {}),
+          [subGroup]: !prev[mainGroup]?.subGroups?.[subGroup],
+        },
+      },
+    }));
+  };
+
+  const handleSelectCondition = (mainGroup, group, condition) => {
+    const selectedId = condition.id;
+    const selectedName = condition.name;
 
     setFormData((prev) => {
-      const groupData = prev[groupName] || [];
-      if (groupData.some((item) => item.id === selectedId)) return prev;
+      const existing = prev[mainGroup]?.[group] || [];
+      if (existing.some((item) => item.id === selectedId)) return prev;
 
       return {
         ...prev,
-        [groupName]: [
-          ...groupData,
-          {
-            id: selectedId,
-            name: selectedName,
-            OD: { grading: "", notes: "" },
-            OS: { grading: "", notes: "" },
-          },
-        ],
+        [mainGroup]: {
+          ...prev[mainGroup],
+          [group]: [
+            ...existing,
+            {
+              id: selectedId,
+              name: selectedName,
+              field_config: condition.field_config || {
+                text: false,
+                dropdown: false,
+                grading: false,
+                notes: false,
+              },
+              dropdown_options: condition.dropdown_options || [],
+              OD: {},
+              OS: {},
+            },
+          ],
+        },
       };
     });
   };
 
-  const handleFieldChange = (groupName, conditionId, eye, field, value) => {
+  const handleFieldChange = (
+    mainGroup,
+    group,
+    conditionId,
+    eye,
+    fieldType,
+    value
+  ) => {
     setFormData((prev) => ({
       ...prev,
-      [groupName]: prev[groupName].map((item) =>
-        item.id === conditionId
-          ? {
-              ...item,
-              [eye]: { ...item[eye], [field]: value },
-            }
-          : item
-      ),
+      [mainGroup]: {
+        ...prev[mainGroup],
+        [group]: prev[mainGroup][group].map((item) =>
+          item.id === conditionId
+            ? {
+                ...item,
+                [eye]: {
+                  ...item[eye],
+                  [fieldType]: value,
+                },
+              }
+            : item
+        ),
+      },
     }));
   };
 
-  const handleDeleteCondition = (groupName, conditionId) => {
+  const handleDeleteCondition = (mainGroup, group, conditionId) => {
     setFormData((prev) => ({
       ...prev,
-      [groupName]: prev[groupName].filter((item) => item.id !== conditionId),
+      [mainGroup]: {
+        ...prev[mainGroup],
+        [group]: prev[mainGroup][group].filter(
+          (item) => item.id !== conditionId
+        ),
+      },
     }));
   };
 
   const handleSaveAndProceed = async () => {
-    setErrorMessage(null);
-    setShowErrorModal(false);
-
     const observations = [];
 
-    Object.entries(formData).forEach(([groupName, entries]) => {
-      entries.forEach((entry) => {
-        ["OD", "OS"].forEach((eye) => {
-          const details = entry[eye];
-          if (details && (details.grading || details.notes)) {
-            observations.push({
-              condition: entry.id,
-              affected_eye: eye,
-              grading: details.grading,
-              notes: details.notes,
+    Object.entries(formData).forEach(([mainGroup, groupEntries]) => {
+      Object.entries(groupEntries).forEach(([group, entries]) => {
+        entries.forEach((entry) => {
+          ["OD", "OS"].forEach((eye) => {
+            const data = entry[eye] || {};
+            Object.keys(entry.field_config || {}).forEach((field) => {
+              if (entry.field_config?.[field] && data[field]) {
+                observations.push({
+                  condition: entry.id,
+                  affected_eye: eye,
+                  field_type: field,
+                  value: data[field],
+                });
+              }
             });
-          }
+          });
         });
       });
     });
 
     if (observations.length === 0) {
-      setErrorMessage({
-        detail: "Please select and fill at least one condition. 👍",
-      });
-      setShowErrorModal(true);
-      return;
-    }
-
-    // ✅ Handle unchanged data
-    if (initialPayload && !hasFormChanged(initialPayload, observations)) {
-      showToast("No changes detected", "info");
-      setTabCompletionStatus?.((prev) => ({
-        ...prev,
-        externals: true,
-      }));
-      setActiveTab("internals");
+      showToast("Please select and fill at least one condition. 👍", "error");
       return;
     }
 
@@ -198,99 +181,167 @@ const Externals = ({ setActiveTab, setTabCompletionStatus }) => {
         <p className="text-red-500">Failed to load external conditions.</p>
       ) : (
         <div className="space-y-8">
-          {Object.entries(groupedConditions).map(
-            ([groupName, groupConditions]) => {
-              const options = groupConditions.map((c) => ({
-                value: c.id,
-                label: c.name,
-              }));
+          {Object.entries(groupedConditions).map(([mainGroup, subGroups]) => (
+            <div key={mainGroup} className="bg-white shadow rounded p-4">
+              <button
+                type="button"
+                onClick={() => toggleSection(mainGroup)}
+                className="w-full flex justify-between items-center text-left font-semibold"
+              >
+                <span>{mainGroup}</span>
+                {dropdowns[mainGroup]?.isOpen ? (
+                  <FaChevronUp />
+                ) : (
+                  <FaChevronDown />
+                )}
+              </button>
 
-              const selectedGroupConditions = formData[groupName] || [];
+              {dropdowns[mainGroup]?.isOpen &&
+                Object.entries(subGroups).map(([group, groupConditions]) => {
+                  const isSubOpen =
+                    dropdowns[mainGroup]?.subGroups?.[group] ?? true;
 
-              return (
-                <div key={groupName} className="bg-white shadow p-4 rounded">
-                  <button
-                    type="button"
-                    onClick={() => toggleSection(groupName)}
-                    className="w-full flex justify-between items-center text-left font-semibold"
-                  >
-                    <span>{groupName}</span>
-                    {dropdowns[groupName] ? <FaChevronUp /> : <FaChevronDown />}
-                  </button>
+                  const selectedConditions =
+                    formData[mainGroup]?.[group] || [];
 
-                  {dropdowns[groupName] && (
-                    <div className="mt-4 space-y-4">
-                      <SearchableSelect
-                        options={options}
-                        selectedValues={selectedGroupConditions.map((c) => ({
-                          value: c.id,
-                          label: c.name,
-                        }))}
-                        onSelect={(option) =>
-                          handleSelectCondition(groupName, option)
-                        }
-                        conditionKey="value"
-                        conditionNameKey="label"
-                      />
+                  return (
+                    <div
+                      key={group}
+                      className="mt-4 bg-gray-50 p-4 rounded space-y-4"
+                    >
+                      <button
+                        type="button"
+                        onClick={() => toggleSubSection(mainGroup, group)}
+                        className="w-full flex justify-between items-center text-left font-semibold"
+                      >
+                        <span>{group}</span>
+                        {isSubOpen ? <FaChevronUp /> : <FaChevronDown />}
+                      </button>
 
-                      {selectedGroupConditions.map((item) => (
-                        <div
-                          key={item.id}
-                          className="p-4 bg-gray-50 border rounded space-y-4"
-                        >
-                          <div className="flex justify-between items-center">
-                            <h4 className="font-semibold">{item.name}</h4>
-                            <DeleteButton
-                              onClick={() =>
-                                handleDeleteCondition(groupName, item.id)
-                              }
-                            />
-                          </div>
+                      {isSubOpen && (
+                        <div className="mt-4 space-y-4">
+                          <ConditionPicker
+                            options={groupConditions.map((c) => ({
+                              value: c.id,
+                              label: c.name,
+                              ...c,
+                            }))}
+                            selectedValues={selectedConditions.map((c) => ({
+                              value: c.id,
+                              label: c.name,
+                            }))}
+                            onSelect={(option) =>
+                              handleSelectCondition(mainGroup, group, option)
+                            }
+                            conditionKey="value"
+                            conditionNameKey="label"
+                          />
 
-                          <div className="grid grid-cols-2 gap-4">
-                            {["OD", "OS"].map((eye) => (
-                              <div key={eye}>
-                                <h5 className="font-medium text-sm mb-2">
-                                  {eye === "OD"
-                                    ? "OD (Right Eye)"
-                                    : "OS (Left Eye)"}
-                                </h5>
-                                <GradingSelect
-                                  value={item[eye]?.grading || ""}
-                                  onChange={(val) =>
-                                    handleFieldChange(
-                                      groupName,
-                                      item.id,
-                                      eye,
-                                      "grading",
-                                      val
+                          {selectedConditions.map((item) => (
+                            <div
+                              key={item.id}
+                              className="p-4 bg-white border rounded space-y-4"
+                            >
+                              <div className="flex justify-between items-center">
+                                <h4 className="font-semibold">{item.name}</h4>
+                                <DeleteButton
+                                  onClick={() =>
+                                    handleDeleteCondition(
+                                      mainGroup,
+                                      group,
+                                      item.id
                                     )
                                   }
-                                />
-                                <NotesTextArea
-                                  value={item[eye]?.notes || ""}
-                                  onChange={(val) =>
-                                    handleFieldChange(
-                                      groupName,
-                                      item.id,
-                                      eye,
-                                      "notes",
-                                      val
-                                    )
-                                  }
-                                  placeholder={`Notes for ${eye}`}
                                 />
                               </div>
-                            ))}
-                          </div>
+
+                              <div className="grid grid-cols-2 gap-4">
+                                {["OD", "OS"].map((eye) => (
+                                  <div key={eye}>
+                                    <h5 className="font-medium text-sm mb-2">
+                                      {eye === "OD"
+                                        ? "OD (Right Eye)"
+                                        : "OS (Left Eye)"}
+                                    </h5>
+
+                                    {item.field_config?.text && (
+                                      <TextInput
+                                        value={item[eye]?.text || ""}
+                                        onChange={(val) =>
+                                          handleFieldChange(
+                                            mainGroup,
+                                            group,
+                                            item.id,
+                                            eye,
+                                            "text",
+                                            val
+                                          )
+                                        }
+                                        placeholder={`Enter text for ${eye}`}
+                                      />
+                                    )}
+
+                                    {item.field_config?.dropdown && (
+                                      <DropdownSelect
+                                        value={item[eye]?.dropdown || ""}
+                                        options={item.dropdown_options}
+                                        onChange={(val) =>
+                                          handleFieldChange(
+                                            mainGroup,
+                                            group,
+                                            item.id,
+                                            eye,
+                                            "dropdown",
+                                            val
+                                          )
+                                        }
+                                      />
+                                    )}
+
+                                    {item.field_config?.grading && (
+                                      <GradingSelect
+                                        value={item[eye]?.grading || ""}
+                                        onChange={(val) =>
+                                          handleFieldChange(
+                                            mainGroup,
+                                            group,
+                                            item.id,
+                                            eye,
+                                            "grading",
+                                            val
+                                          )
+                                        }
+                                      />
+                                    )}
+
+                                    {item.field_config?.notes && (
+                                      <NotesTextArea
+                                        value={item[eye]?.notes || ""}
+                                        onChange={(val) =>
+                                          handleFieldChange(
+                                            mainGroup,
+                                            group,
+                                            item.id,
+                                            eye,
+                                            "notes",
+                                            val
+                                          )
+                                        }
+                                        placeholder={`Notes for ${eye}`}
+                                      />
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
                         </div>
-                      ))}
+                      )}
                     </div>
-                  )}
-                </div>
-              );
-            }
-          )}
+                  );
+                })}
+            </div>
+          ))}
 
           <div className="mt-8 flex justify-between items-center">
             <button

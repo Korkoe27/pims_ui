@@ -205,7 +205,7 @@ const Management = ({ setFlowStep, appointmentId }) => {
                   <button
                     onClick={() => {
                       closeModal();
-                      navigate("/dashboard");
+                      navigate("/");
                     }}
                     className="border border-gray-600 px-4 py-2 rounded-lg"
                   >
