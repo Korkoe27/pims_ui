@@ -101,11 +101,18 @@ export const createVisualAcuityUrl = "/tests/api/visual-acuity/";
 export const fetchVisualAcuityUrl = (appointmentId) =>
   `/tests/api/visual-acuity/${appointmentId}/`;
 
+///////////////////////////////
+// Externals & Internals Base 
+//////////////////////////////
+
+const fetchInternalExternalExaminationConditionsUrl = (type) =>
+  `/tests/api/examination-conditions/?type=${type}`;
+
 /////////////////////////
 // Externals
 /////////////////////////
 
-export const fetchExternalConditionsUrl = "/tests/api/external-conditions/";
+const externalUrl = fetchInternalExternalExaminationConditionsUrl("external");
 export const createExternalObservationUrl = (appointmentId) =>
   `/tests/api/external-observations/${appointmentId}/`;
 export const fetchExternalObservationsUrl = (appointmentId) =>
@@ -116,7 +123,7 @@ export const fetchExternalObservationsUrl = (appointmentId) =>
 // Internals
 /////////////////////////
 
-export const fetchInternalConditionsUrl = "/tests/api/internal-conditions/";
+const internalUrl = fetchInternalExternalExaminationConditionsUrl("internal");
 export const fetchInternalsUrl = (appointmentId) =>
   `/tests/api/internal-observations/${appointmentId}/`;
 export const createInternalsUrl = (appointmentId) =>
