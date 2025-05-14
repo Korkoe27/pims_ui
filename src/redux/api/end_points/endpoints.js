@@ -112,7 +112,7 @@ const fetchInternalExternalExaminationConditionsUrl = (type) =>
 // Externals
 /////////////////////////
 
-const externalUrl = fetchInternalExternalExaminationConditionsUrl("external");
+export const externalUrl = fetchInternalExternalExaminationConditionsUrl("external");
 export const createExternalObservationUrl = (appointmentId) =>
   `/tests/api/external-observations/${appointmentId}/`;
 export const fetchExternalObservationsUrl = (appointmentId) =>
@@ -123,7 +123,7 @@ export const fetchExternalObservationsUrl = (appointmentId) =>
 // Internals
 /////////////////////////
 
-const internalUrl = fetchInternalExternalExaminationConditionsUrl("internal");
+export const internalUrl = fetchInternalExternalExaminationConditionsUrl("internal");
 export const fetchInternalsUrl = (appointmentId) =>
   `/tests/api/internal-observations/${appointmentId}/`;
 export const createInternalsUrl = (appointmentId) =>

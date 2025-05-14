@@ -1,6 +1,6 @@
 import { apiClient } from "../api_client/apiClient";
 import {
-  fetchExternalConditionsUrl,
+  externalUrl,
   createExternalObservationUrl,
   fetchExternalObservationsUrl,
 } from "../end_points/endpoints";
@@ -9,7 +9,7 @@ export const externalsApi = apiClient.injectEndpoints({
   endpoints: (builder) => ({
     /** ✅ Fetch all available External Conditions **/
     fetchExternalConditions: builder.query({
-      query: () => fetchExternalConditionsUrl,
+      query: () => externalUrl,
       providesTags: ["ExternalConditions"],
     }),
 
