@@ -24,6 +24,10 @@ const Externals = ({ setActiveTab, setTabCompletionStatus }) => {
     createExternalObservation,
   } = useExternalObservationData(appointmentId);
 
+  console.log("rawConditions:", rawConditions);
+  console.log("loadingConditions:", loadingConditions);
+  console.log("conditionsError:", conditionsError);
+
   const flattenedConditions = rawConditions.flatMap((main) =>
     main.subgroups.flatMap((sub) =>
       sub.conditions.map((condition) => ({
@@ -162,6 +166,55 @@ const Externals = ({ setActiveTab, setTabCompletionStatus }) => {
     }));
   };
 
+  const handleSaveAndProceed = async () => {
+    try {
+      const payload = [];
+
+      Object.entries(formData).forEach(([mainGroup, groups]) => {
+        Object.entries(groups).forEach(([groupName, conditions]) => {
+          conditions.forEach((condition) => {
+            const { id, OD = {}, OS = {}, notes } = condition;
+
+            ["OD", "OS"].forEach((eye) => {
+              const fields = eye === "OD" ? OD : OS;
+              Object.entries(fields).forEach(([field_type, value]) => {
+                if (value !== "") {
+                  payload.push({
+                    condition: id,
+                    affected_eye: eye,
+                    field_type,
+                    value,
+                  });
+                }
+              });
+            });
+
+            // Handle single shared notes field (if present)
+            if (notes?.trim()) {
+              payload.push({
+                condition: id,
+                affected_eye: "OD", // or null if not per-eye
+                field_type: "notes",
+                value: notes.trim(),
+              });
+            }
+          });
+        });
+      });
+
+      await createExternalObservation({
+        appointment: appointmentId,
+        observations: payload,
+      });
+
+      showToast("External observations saved", "success");
+      setTabCompletionStatus("externals", true);
+      setActiveTab("internal"); // or next tab
+    } catch (error) {
+      showToast(formatErrorMessage(error), "error");
+    }
+  };
+
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-4">External Observations</h1>
@@ -263,30 +316,24 @@ const Externals = ({ setActiveTab, setTabCompletionStatus }) => {
 
                       {item.field_config?.notes && (
                         <NotesTextArea
-                          valueOD={item.OD?.notes || ""}
-                          valueOS={item.OS?.notes || ""}
-                          onChangeOD={(val) =>
-                            handleFieldChange(
-                              mainGroup,
-                              groupName,
-                              item.id,
-                              "OD",
-                              "notes",
-                              val
-                            )
+                          value={item.notes || ""}
+                          onChange={(val) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              [mainGroup]: {
+                                ...prev[mainGroup],
+                                [groupName]: prev[mainGroup][groupName].map(
+                                  (cond) =>
+                                    cond.id === item.id
+                                      ? {
+                                          ...cond,
+                                          notes: val,
+                                        }
+                                      : cond
+                                ),
+                              },
+                            }))
                           }
-                          onChangeOS={(val) =>
-                            handleFieldChange(
-                              mainGroup,
-                              groupName,
-                              item.id,
-                              "OS",
-                              "notes",
-                              val
-                            )
-                          }
-                          placeholderOD="Enter notes for OD"
-                          placeholderOS="Enter notes for OS"
                         />
                       )}
                     </div>
@@ -297,6 +344,16 @@ const Externals = ({ setActiveTab, setTabCompletionStatus }) => {
           })}
         </div>
       ))}
+
+      {/* ✅ Submit Button */}
+      <div className="mt-6 flex justify-end">
+        <button
+          onClick={handleSaveAndProceed}
+          className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded shadow"
+        >
+          Save and Continue
+        </button>
+      </div>
     </div>
   );
 };

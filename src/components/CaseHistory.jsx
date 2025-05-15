@@ -35,6 +35,8 @@ const CaseHistory = ({
   const [selectedConditions, setSelectedConditions] = useState([]);
   const [initialPayload, setInitialPayload] = useState(null);
 
+  const [notes, setNotes] = useState(""); // ✅ Add this
+
   const isLoading = loadingCaseHistory || loadingConditions;
 
   // Pre-fill data if editing existing case history
@@ -290,18 +292,7 @@ const CaseHistory = ({
 
                     {/* Notes */}
                     {item.has_notes && (
-                      <NotesTextArea
-                        valueOD={item.OD?.notes || ""}
-                        valueOS={item.OS?.notes || ""}
-                        onChangeOD={(val) =>
-                          handleFieldChange(item.id, "OD", "notes", val)
-                        }
-                        onChangeOS={(val) =>
-                          handleFieldChange(item.id, "OS", "notes", val)
-                        }
-                        placeholderOD="Notes for OD"
-                        placeholderOS="Notes for OS"
-                      />
+                      <NotesTextArea value={notes} onChange={setNotes} />
                     )}
                   </div>
                 ))}

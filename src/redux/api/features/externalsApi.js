@@ -24,7 +24,10 @@ export const externalsApi = apiClient.injectEndpoints({
       query: ({ appointmentId, observations }) => ({
         url: createExternalObservationUrl(appointmentId),
         method: "POST",
-        body: { observations }, // wrap observations list in an object
+        body: {
+          appointment: appointmentId, // ✅ crucial fix
+          observations,
+        },
       }),
       invalidatesTags: ["ExternalObservations"],
     }),
