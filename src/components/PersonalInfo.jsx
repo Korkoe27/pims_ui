@@ -7,14 +7,13 @@ import { useCreatePatientMutation } from "../redux/api/features/patientApi";
 import SelectClinicModal from "../components/SelectClinicModal";
 import ConfirmSaveModal from "./ConfirmSaveModal";
 import useCreateAppointment from "../hooks/useCreateAppointment";
+import { showToast } from "../components/ToasterHelper";
 
 const PersonalInfo = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch(); // ✅ Redux dispatch for storing patient ID
   const selectedClinic = useSelector((state) => state.clinic.selectedClinic);
   const [isModalOpen, setIsModalOpen] = useState(false);
-
-  console.log("Selected Clinic from Redux:", selectedClinic);
 
   const [formData, setFormData] = useState({
     first_name: "",
@@ -120,20 +119,15 @@ const PersonalInfo = () => {
     if (Object.keys(validationErrors).length > 0) return;
 
     try {
-      console.log("📡 Submitting patient data:", formData);
+      showToast("Creating patient...", "info"); // ⏳ Start
 
-      // ✅ Create patient with optional confirm_save
       const response = await createPatient({
         ...formData,
         confirm_save: confirmSave ? true : undefined,
       }).unwrap();
 
-      console.log("✅ Patient Created:", response);
-
-      // ✅ Store patient ID in Redux
       dispatch(setPatientId(response.id));
-
-      // ✅ Call the success function (redirects based on action)
+      showToast("Patient created successfully.", "success"); // ✅ Success
       onSuccess(response);
     } catch (error) {
       console.error("❌ Error creating patient:", error);
@@ -147,9 +141,13 @@ const PersonalInfo = () => {
           "A patient with this phone number already exists. Click 'Proceed' to continue."
         );
         setShowConfirmModal(true);
-        setRetryAction(() => () => createPatientHandler(onSuccess, true)); // ✅ Store retry action
+        setRetryAction(() => () => createPatientHandler(onSuccess, true));
       } else {
         setErrors(error.data || {});
+        showToast(
+          "Failed to create patient. Please check the form and try again.",
+          "error"
+        ); // ❌ Error
       }
     }
   };
@@ -159,13 +157,6 @@ const PersonalInfo = () => {
     setShowConfirmModal(false);
     retryAction && retryAction(); // ✅ Execute stored retry action
   };
-
-  // ✅ Action Handlers
-  // const handleAttendPatient = () => {
-  //   createPatientHandler((patient) => {
-  //     navigate("/case-history", { state: { patient } });
-  //   });
-  // };
 
   // ✅ Attend to Patient: Creates an appointment & redirects to consultation
   const handleAttendPatient = () => {
@@ -181,10 +172,6 @@ const PersonalInfo = () => {
       }
 
       const appointmentId = appointmentResult.data.id; // ✅ Extract appointment ID
-
-      console.log(
-        `✅ Redirecting to consultation with appointment ID: ${appointmentId}`
-      );
 
       // ✅ Redirect to the consultation page with the appointment ID
       navigate(`/consultation/${appointmentId}`);
@@ -301,7 +288,7 @@ const PersonalInfo = () => {
                 value={formData.occupation}
                 onChange={handleChange}
               />
-              
+
               <InputField
                 label="Address"
                 name="address"
@@ -420,7 +407,7 @@ const PersonalInfo = () => {
                 name="healthInsuranceProvider"
                 value={formData.healthInsuranceProvider}
                 onChange={handleChange}
-                options={["NHIS"]}
+                options={["NHIS", "Private"]}
               />
               <InputField
                 label="Insurance Number"
