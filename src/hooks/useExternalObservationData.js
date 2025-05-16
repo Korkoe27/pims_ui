@@ -6,6 +6,8 @@ import {
 import useApiData from "./useApiData";
 
 const useExternalObservationData = (appointmentId) => {
+
+  
   // Fetch observations by appointment ID
   const { data: externals, isLoading: loadingExternals } = useApiData(
     useFetchExternalObservationsQuery,

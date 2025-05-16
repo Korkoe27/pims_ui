@@ -11,10 +11,16 @@ import GradingSelect from "./GradingSelect";
 import NotesTextArea from "./NotesTextArea";
 
 const Externals = ({ setActiveTab, setTabCompletionStatus }) => {
+
+  
   const { appointmentId } = useParams();
   const [formData, setFormData] = useState({});
   const [mainOpen, setMainOpen] = useState({});
   const [subOpen, setSubOpen] = useState({});
+
+  // ✅ Safe to log it now
+  console.log("✅ appointmentId:", appointmentId);
+
 
   const {
     loadingConditions,
@@ -76,6 +82,60 @@ const Externals = ({ setActiveTab, setTabCompletionStatus }) => {
       },
     }));
   };
+
+  useEffect(() => {
+    if (!existingObservations || !rawConditions.length) return;
+
+    const map = {};
+
+    existingObservations.forEach((obs) => {
+      const matched = rawConditions
+        .flatMap((main) =>
+          main.subgroups.flatMap((sub) =>
+            sub.conditions.map((c) => ({
+              ...c,
+              main: main.name,
+              sub: sub.name,
+            }))
+          )
+        )
+        .find((c) => c.id === obs.condition);
+
+      if (!matched) return;
+
+      const { main, sub } = matched;
+      if (!map[main]) map[main] = {};
+      if (!map[main][sub]) map[main][sub] = [];
+
+      let existing = map[main][sub].find((c) => c.id === obs.condition);
+      if (!existing) {
+        existing = {
+          id: obs.condition,
+          name: obs.condition_name || matched.name,
+          has_text: matched.has_text,
+          has_dropdown: matched.has_dropdown,
+          has_grading: matched.has_grading,
+          has_notes: matched.has_notes,
+          dropdown_options: matched.dropdown_options || [],
+          OD: {},
+          OS: {},
+          notes: "",
+        };
+        map[main][sub].push(existing);
+      }
+
+      if (obs.field_type === "notes") {
+        existing.notes = obs.value;
+      } else if (obs.affected_eye) {
+        existing[obs.affected_eye] = {
+          ...(existing[obs.affected_eye] || {}),
+          [obs.field_type]: obs.value,
+        };
+      }
+    });
+
+    setFormData(map);
+  }, [existingObservations, rawConditions]);
 
   const handleFieldChange = (main, sub, id, eye, type, val) => {
     setFormData((prev) => ({
@@ -177,11 +237,7 @@ const Externals = ({ setActiveTab, setTabCompletionStatus }) => {
                     className="w-full text-left font-medium mb-2 flex justify-between items-center"
                   >
                     <span>{sub}</span>
-                    {subOpen[main]?.[sub] ? (
-                      <FaChevronUp />
-                    ) : (
-                      <FaChevronDown />
-                    )}
+                    {subOpen[main]?.[sub] ? <FaChevronUp /> : <FaChevronDown />}
                   </button>
 
                   {subOpen[main]?.[sub] && (
