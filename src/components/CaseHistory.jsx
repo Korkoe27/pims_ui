@@ -35,7 +35,7 @@ const CaseHistory = ({
   const [selectedConditions, setSelectedConditions] = useState([]);
   const [initialPayload, setInitialPayload] = useState(null);
 
-  const [notes, setNotes] = useState(""); // ✅ Add this
+  // const [notes, setNotes] = useState(""); // ✅ Add this
 
   const isLoading = loadingCaseHistory || loadingConditions;
 
@@ -65,11 +65,15 @@ const CaseHistory = ({
           };
         }
 
-        // ✅ MERGE instead of overwrite to keep all fields (text, grading, notes, etc.)
-        grouped[item.condition][item.affected_eye] = {
-          ...(grouped[item.condition][item.affected_eye] || {}),
-          [item.field_type]: item.value,
-        };
+        if (item.affected_eye === "OD" || item.affected_eye === "OS") {
+          grouped[item.condition][item.affected_eye] = {
+            ...(grouped[item.condition][item.affected_eye] || {}),
+            [item.field_type]: item.value,
+          };
+        } else {
+          // ✅ Handle shared fields like notes
+          grouped[item.condition][item.field_type] = item.value;
+        }
       });
 
       const mapped = Object.values(grouped);
@@ -141,9 +145,10 @@ const CaseHistory = ({
     const observations = [];
 
     selectedConditions.forEach((entry) => {
+      // Collect OD/OS specific fields
       ["OD", "OS"].forEach((eye) => {
         const data = entry[eye] || {};
-        ["text", "dropdown", "grading", "notes"].forEach((fieldType) => {
+        ["text", "dropdown", "grading"].forEach((fieldType) => {
           if (data[fieldType]) {
             observations.push({
               condition: entry.id,
@@ -154,6 +159,16 @@ const CaseHistory = ({
           }
         });
       });
+
+      // ✅ Add unified notes field (not per eye)
+      if (entry.notes?.trim()) {
+        observations.push({
+          condition: entry.id,
+          affected_eye: null, // ✅ properly unassign eye for unified notes
+          field_type: "notes",
+          value: entry.notes.trim(),
+        });
+      }
     });
 
     if (observations.length === 0) {
@@ -292,7 +307,16 @@ const CaseHistory = ({
 
                     {/* Notes */}
                     {item.has_notes && (
-                      <NotesTextArea value={notes} onChange={setNotes} />
+                      <NotesTextArea
+                        value={item.notes || ""}
+                        onChange={(val) =>
+                          setSelectedConditions((prev) =>
+                            prev.map((c) =>
+                              c.id === item.id ? { ...c, notes: val } : c
+                            )
+                          )
+                        }
+                      />
                     )}
                   </div>
                 ))}
