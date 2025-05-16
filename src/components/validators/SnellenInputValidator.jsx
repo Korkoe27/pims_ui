@@ -1,21 +1,27 @@
 import React, { useState, useEffect } from "react";
 
+// List of accepted denominators for Snellen
+const VALID_DENOMINATORS = [
+  "5", "6", "7.5", "9", "12", "15", "18", "21", "24", "30", "36", "48", "60", "75", "120",
+];
+
 const SnellenInputValidator = ({
   value,
   onChange,
   required = false,
   label,
-  vaChart,
 }) => {
   const [touched, setTouched] = useState(false);
   const [isValid, setIsValid] = useState(true);
 
-  const isValidSnellen = (val) => /^\d{1,2}\/\d{1,2}$/.test(val.trim());
-
-  const dynamicPlaceholder = vaChart ? "6/6" : "";
+  const isValidSnellen = (val) => {
+    const match = val.trim().match(/^6\/(\d+(\.\d+)?)$/);
+    return match && VALID_DENOMINATORS.includes(match[1]);
+  };
 
   useEffect(() => {
     if (!touched) return;
+
     const trimmed = value.trim();
     if (!trimmed && required) {
       setIsValid(false);
@@ -26,17 +32,15 @@ const SnellenInputValidator = ({
     }
   }, [value, touched, required]);
 
-  const handleBlur = () => setTouched(true);
-
   return (
     <div className="space-y-1">
       {label && <label className="block font-medium">{label}</label>}
       <input
         type="text"
         value={value}
-        placeholder={dynamicPlaceholder}
+        placeholder="6/6"
         onChange={(e) => onChange(e.target.value)}
-        onBlur={handleBlur}
+        onBlur={() => setTouched(true)}
         className={`w-full border px-3 py-2 rounded ${
           !isValid ? "border-red-500" : "border-gray-300"
         } focus:outline-none focus:ring-1 focus:ring-indigo-500`}
@@ -45,7 +49,7 @@ const SnellenInputValidator = ({
         <p className="text-sm text-red-600">
           {required && !value.trim()
             ? "This field is required."
-            : "Invalid Snellen format (e.g. 6/6, 6/18)."}
+            : "Please enter a valid Snellen value (e.g. 6/5, 6/6,)."}
         </p>
       )}
     </div>

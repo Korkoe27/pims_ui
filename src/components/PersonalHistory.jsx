@@ -18,7 +18,7 @@ const lastEyeExamOptions = [
   { value: "6 months - 1 year", label: "6 months - 1 year" },
   { value: "1 - 3 years", label: "1 - 3 years" },
   { value: ">3 years", label: "More than 3 years" },
-  { value: "Cannot remember", label: "Cannot remember" }
+  { value: "Cannot remember", label: "Cannot remember" },
 ];
 
 const PersonalHistory = ({
@@ -114,9 +114,9 @@ const PersonalHistory = ({
     return true;
   };
 
-  useEffect(() => {
-    console.log("Fetched Medical Conditions:", medicalConditions);
-  }, [medicalConditions]);
+  // useEffect(() => {
+  //   console.log("Fetched Medical Conditions:", medicalConditions);
+  // }, [medicalConditions]);
 
   useEffect(() => {
     if (personalHistory) {
@@ -133,12 +133,11 @@ const PersonalHistory = ({
 
         entries.forEach((entry) => {
           const conditionId = entry.condition;
-          const eye = entry.affected_eye || "OD"; // fallback to OD if missing
           const fieldType = entry.field_type;
           const value = entry.value;
+          const meta = allConditions.find((c) => c.id === conditionId) || {};
 
           if (!grouped[conditionId]) {
-            const meta = allConditions.find((c) => c.id === conditionId) || {};
             grouped[conditionId] = {
               id: conditionId,
               name: entry.condition_name || meta.name || "Unknown",
@@ -149,12 +148,18 @@ const PersonalHistory = ({
               dropdown_options: meta.dropdown_options || [],
               OD: {},
               OS: {},
+              notes: "",
             };
           }
 
-          if (eye === "OD" || eye === "OS") {
-            grouped[conditionId][eye] = {
-              ...grouped[conditionId][eye],
+          if (fieldType === "notes") {
+            grouped[conditionId].notes = value; // ✅ set unified notes
+          } else if (
+            entry.affected_eye === "OD" ||
+            entry.affected_eye === "OS"
+          ) {
+            grouped[conditionId][entry.affected_eye] = {
+              ...(grouped[conditionId][entry.affected_eye] || {}),
               [fieldType]: value,
             };
           }
@@ -207,31 +212,107 @@ const PersonalHistory = ({
             notes: personalHistory.social_notes || "",
           },
         ],
-        medical_history: medicalHistory.map((item) => ({
-          condition: item.id,
-          field_type: item.field_type,
-          value: item.value,
-        })),
-        ocular_history: ocularHistory.map((item) => ({
-          condition: item.id,
-          affected_eye: item.affected_eye,
-          field_type: item.field_type,
-          value: item.value,
-        })),
-        family_medical_history: famMedHistory.map((item) => ({
-          condition: item.id,
-          field_type: item.field_type,
-          value: item.value,
-        })),
-        family_ocular_history: famOcularHistory.map((item) => ({
-          condition: item.id,
-          affected_eye: item.affected_eye,
-          field_type: item.field_type,
-          value: item.value,
-        })),
+        medical_history: medicalHistory.flatMap((item) => {
+          const entries = [];
+          if (item.notes) {
+            entries.push({
+              condition: item.id,
+              field_type: "notes",
+              value: item.notes,
+              affected_eye: null,
+            });
+          }
+          ["OD", "OS"].forEach((eye) => {
+            const data = item[eye] || {};
+            Object.entries(data).forEach(([field_type, value]) => {
+              entries.push({
+                condition: item.id,
+                affected_eye: eye,
+                field_type,
+                value,
+              });
+            });
+          });
+          return entries;
+        }),
+        ocular_history: ocularHistory.flatMap((item) => {
+          const entries = [];
+          if (item.notes) {
+            entries.push({
+              condition: item.id,
+              field_type: "notes",
+              value: item.notes,
+              affected_eye: null,
+            });
+          }
+          ["OD", "OS"].forEach((eye) => {
+            const data = item[eye] || {};
+            Object.entries(data).forEach(([field_type, value]) => {
+              entries.push({
+                condition: item.id,
+                affected_eye: eye,
+                field_type,
+                value,
+              });
+            });
+          });
+          return entries;
+        }),
+        family_medical_history: famMedHistory.flatMap((item) => {
+          const entries = [];
+          if (item.notes) {
+            entries.push({
+              condition: item.id,
+              field_type: "notes",
+              value: item.notes,
+              affected_eye: null,
+            });
+          }
+          ["OD", "OS"].forEach((eye) => {
+            const data = item[eye] || {};
+            Object.entries(data).forEach(([field_type, value]) => {
+              entries.push({
+                condition: item.id,
+                affected_eye: eye,
+                field_type,
+                value,
+              });
+            });
+          });
+          return entries;
+        }),
+        family_ocular_history: famOcularHistory.flatMap((item) => {
+          const entries = [];
+          if (item.notes) {
+            entries.push({
+              condition: item.id,
+              field_type: "notes",
+              value: item.notes,
+              affected_eye: null,
+            });
+          }
+          ["OD", "OS"].forEach((eye) => {
+            const data = item[eye] || {};
+            Object.entries(data).forEach(([field_type, value]) => {
+              entries.push({
+                condition: item.id,
+                affected_eye: eye,
+                field_type,
+                value,
+              });
+            });
+          });
+          return entries;
+        }),
       });
     }
-  }, [personalHistory]);
+  }, [
+    personalHistory,
+    patientId,
+    appointmentId,
+    medicalConditions,
+    ocularConditions,
+  ]);
 
   const formatOptions = (list) =>
     (list || []).map((item) => ({
@@ -302,17 +383,26 @@ const PersonalHistory = ({
     const observations = [];
 
     list.forEach((item) => {
+      // ✅ Include unified notes
+      if (item.notes?.toString().trim()) {
+        observations.push({
+          condition: item.id,
+          field_type: "notes",
+          value: item.notes,
+          affected_eye: null,
+        });
+      }
+
       ["OD", "OS"].forEach((eye) => {
         const data = item[eye] || {};
         Object.entries(data).forEach(([field_type, value]) => {
           if (value?.toString().trim()) {
-            const obs = {
+            observations.push({
               condition: item.id,
               field_type,
               affected_eye: eye,
               value,
-            };
-            observations.push(obs);
+            });
           }
         });
       });
@@ -371,8 +461,6 @@ const PersonalHistory = ({
   };
 
   const formattedOptions = formatOptions(medicalConditions);
-  console.log("🧪 Condition Options:", formattedOptions);
-  console.log("📦 SelectedMedical:", selectedMedical);
 
   return (
     <div className="p-6 max-w-6xl mx-auto">
@@ -451,7 +539,7 @@ const PersonalHistory = ({
             />
           </div>
 
-          {/* Medical History (ODQ-style) */}
+          {/* Medical History */}
           <div>
             <div className="mb-6">
               <ConditionPicker
@@ -570,30 +658,14 @@ const PersonalHistory = ({
 
                       {item.has_notes && (
                         <NotesTextArea
-                          valueOD={item.OD?.notes || ""}
-                          valueOS={item.OS?.notes || ""}
-                          onChangeOD={(val) =>
-                            handleFieldChange(
-                              item.id,
-                              "OD",
-                              "notes",
-                              val,
-                              selectedMedical,
-                              setSelectedMedical
+                          value={item.notes || ""}
+                          onChange={(val) =>
+                            setSelectedMedical((prev) =>
+                              prev.map((c) =>
+                                c.id === item.id ? { ...c, notes: val } : c
+                              )
                             )
                           }
-                          onChangeOS={(val) =>
-                            handleFieldChange(
-                              item.id,
-                              "OS",
-                              "notes",
-                              val,
-                              selectedMedical,
-                              setSelectedMedical
-                            )
-                          }
-                          placeholderOD="Notes for OD"
-                          placeholderOS="Notes for OS"
                         />
                       )}
                     </div>
@@ -724,30 +796,14 @@ const PersonalHistory = ({
 
                     {item.has_notes && (
                       <NotesTextArea
-                        valueOD={item.OD?.notes || ""}
-                        valueOS={item.OS?.notes || ""}
-                        onChangeOD={(val) =>
-                          handleFieldChange(
-                            item.id,
-                            "OD",
-                            "notes",
-                            val,
-                            selectedOcular,
-                            setSelectedOcular
+                        value={item.notes || ""}
+                        onChange={(val) =>
+                          setSelectedOcular((prev) =>
+                            prev.map((c) =>
+                              c.id === item.id ? { ...c, notes: val } : c
+                            )
                           )
                         }
-                        onChangeOS={(val) =>
-                          handleFieldChange(
-                            item.id,
-                            "OS",
-                            "notes",
-                            val,
-                            selectedOcular,
-                            setSelectedOcular
-                          )
-                        }
-                        placeholderOD="Notes for OD"
-                        placeholderOS="Notes for OS"
                       />
                     )}
                   </div>
@@ -880,30 +936,14 @@ const PersonalHistory = ({
 
                     {item.has_notes && (
                       <NotesTextArea
-                        valueOD={item.OD?.notes || ""}
-                        valueOS={item.OS?.notes || ""}
-                        onChangeOD={(val) =>
-                          handleFieldChange(
-                            item.id,
-                            "OD",
-                            "notes",
-                            val,
-                            familyMedicalHistory,
-                            setFamilyMedicalHistory
+                        value={item.notes || ""}
+                        onChange={(val) =>
+                          setFamilyMedicalHistory((prev) =>
+                            prev.map((c) =>
+                              c.id === item.id ? { ...c, notes: val } : c
+                            )
                           )
                         }
-                        onChangeOS={(val) =>
-                          handleFieldChange(
-                            item.id,
-                            "OS",
-                            "notes",
-                            val,
-                            familyMedicalHistory,
-                            setFamilyMedicalHistory
-                          )
-                        }
-                        placeholderOD="Notes for OD"
-                        placeholderOS="Notes for OS"
                       />
                     )}
                   </div>
@@ -1034,30 +1074,14 @@ const PersonalHistory = ({
 
                     {item.has_notes && (
                       <NotesTextArea
-                        valueOD={item.OD?.notes || ""}
-                        valueOS={item.OS?.notes || ""}
-                        onChangeOD={(val) =>
-                          handleFieldChange(
-                            item.id,
-                            "OD",
-                            "notes",
-                            val,
-                            familyOcularHistory,
-                            setFamilyOcularHistory
+                        value={item.notes || ""}
+                        onChange={(val) =>
+                          setFamilyOcularHistory((prev) =>
+                            prev.map((c) =>
+                              c.id === item.id ? { ...c, notes: val } : c
+                            )
                           )
                         }
-                        onChangeOS={(val) =>
-                          handleFieldChange(
-                            item.id,
-                            "OS",
-                            "notes",
-                            val,
-                            familyOcularHistory,
-                            setFamilyOcularHistory
-                          )
-                        }
-                        placeholderOD="Notes for OD"
-                        placeholderOS="Notes for OS"
                       />
                     )}
                   </div>
