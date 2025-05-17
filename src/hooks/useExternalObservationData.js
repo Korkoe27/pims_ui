@@ -14,13 +14,6 @@ const useExternalObservationData = (appointmentId) => {
     { skip: !appointmentId }
   );
 
-  // Log the fetched observations
-  useEffect(() => {
-    if (externals) {
-      console.log("📥 Existing external observations fetched:", externals);
-    }
-  }, [externals]);
-
   // Fetch all external conditions
   const {
     data: conditions = [],
