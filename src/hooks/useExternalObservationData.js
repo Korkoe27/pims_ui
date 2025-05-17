@@ -25,7 +25,7 @@ const useExternalObservationData = (appointmentId) => {
     useCreateExternalObservationMutation();
 
   return {
-    externals,
+    existingObservations: externals,
     loadingExternals,
     conditions,
     loadingConditions,
