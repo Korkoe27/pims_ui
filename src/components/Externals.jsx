@@ -52,17 +52,25 @@ const Externals = ({ setActiveTab, setTabCompletionStatus }) => {
       )
     );
 
-    console.log("🧾 Flattened Conditions:", flatConditions);
-
     const map = {};
+    const mains = {};
+    const subs = {};
 
     existingObservations.forEach((obs) => {
       const matched = flatConditions.find((c) => c.id === obs.condition);
       if (!matched) return;
 
       const { main, sub } = matched;
-      if (!map[main]) map[main] = {};
-      if (!map[main][sub]) map[main][sub] = [];
+      if (!map[main]) {
+        map[main] = {};
+        mains[main] = true; // 👈 auto-open this main group
+      }
+
+      if (!map[main][sub]) {
+        map[main][sub] = [];
+        if (!subs[main]) subs[main] = {};
+        subs[main][sub] = true; // 👈 auto-open this sub group
+      }
 
       let condition = map[main][sub].find((c) => c.id === obs.condition);
       if (!condition) {
@@ -92,6 +100,8 @@ const Externals = ({ setActiveTab, setTabCompletionStatus }) => {
     });
 
     setFormData(map);
+    setMainOpen(mains); // 👈 apply open state
+    setSubOpen(subs); // 👈 apply open state
   }, [existingObservations, rawConditions]);
 
   // 3. UI toggles
