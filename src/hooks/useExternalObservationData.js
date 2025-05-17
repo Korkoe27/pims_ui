@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import {
   useFetchExternalObservationsQuery,
   useFetchExternalConditionsQuery,
@@ -6,14 +7,19 @@ import {
 import useApiData from "./useApiData";
 
 const useExternalObservationData = (appointmentId) => {
-
-  
   // Fetch observations by appointment ID
   const { data: externals, isLoading: loadingExternals } = useApiData(
     useFetchExternalObservationsQuery,
     appointmentId,
     { skip: !appointmentId }
   );
+
+  // Log the fetched observations
+  useEffect(() => {
+    if (externals) {
+      console.log("📥 Existing external observations fetched:", externals);
+    }
+  }, [externals]);
 
   // Fetch all external conditions
   const {

@@ -11,24 +11,20 @@ import GradingSelect from "./GradingSelect";
 import NotesTextArea from "./NotesTextArea";
 
 const Externals = ({ setActiveTab, setTabCompletionStatus }) => {
-
-  
   const { appointmentId } = useParams();
   const [formData, setFormData] = useState({});
   const [mainOpen, setMainOpen] = useState({});
   const [subOpen, setSubOpen] = useState({});
 
-  // ✅ Safe to log it now
-  console.log("✅ appointmentId:", appointmentId);
-
-
   const {
     loadingConditions,
+    loadingExternals,
     conditions: rawConditions,
     existingObservations,
     createExternalObservation,
   } = useExternalObservationData(appointmentId);
 
+  // 1. Group all conditions by main + sub
   const groupedConditions = (rawConditions || []).reduce((acc, main) => {
     acc[main.name] = main.subgroups.reduce((subAcc, subgroup) => {
       subAcc[subgroup.name] = subgroup.conditions.map((c) => ({
@@ -42,6 +38,61 @@ const Externals = ({ setActiveTab, setTabCompletionStatus }) => {
     return acc;
   }, {});
 
+  // 2. Hydrate formData
+  useEffect(() => {
+    if (!existingObservations || !rawConditions.length) return;
+
+    const flatConditions = rawConditions.flatMap((main) =>
+      main.subgroups.flatMap((sub) =>
+        sub.conditions.map((c) => ({
+          ...c,
+          main: main.name,
+          sub: sub.name,
+        }))
+      )
+    );
+
+    const map = {};
+
+    existingObservations.forEach((obs) => {
+      const matched = flatConditions.find((c) => c.id === obs.condition);
+      if (!matched) return;
+
+      const { main, sub } = matched;
+      if (!map[main]) map[main] = {};
+      if (!map[main][sub]) map[main][sub] = [];
+
+      let condition = map[main][sub].find((c) => c.id === obs.condition);
+      if (!condition) {
+        condition = {
+          id: obs.condition,
+          name: matched.name,
+          has_text: matched.has_text,
+          has_dropdown: matched.has_dropdown,
+          has_grading: matched.has_grading,
+          has_notes: matched.has_notes,
+          dropdown_options: matched.dropdown_options || [],
+          OD: {},
+          OS: {},
+          notes: "",
+        };
+        map[main][sub].push(condition);
+      }
+
+      if (obs.field_type === "notes") {
+        condition.notes = obs.value;
+      } else if (obs.affected_eye) {
+        condition[obs.affected_eye] = {
+          ...(condition[obs.affected_eye] || {}),
+          [obs.field_type]: obs.value,
+        };
+      }
+    });
+
+    setFormData(map);
+  }, [existingObservations, rawConditions]);
+
+  // 3. UI toggles
   const toggleMain = (main) =>
     setMainOpen((prev) => ({ ...prev, [main]: !prev[main] }));
 
@@ -51,6 +102,7 @@ const Externals = ({ setActiveTab, setTabCompletionStatus }) => {
       [main]: { ...prev[main], [sub]: !prev[main]?.[sub] },
     }));
 
+  // 4. Handlers
   const handleSelect = (main, sub, selected) => {
     setFormData((prev) => {
       const existing = prev[main]?.[sub] || [];
@@ -83,60 +135,6 @@ const Externals = ({ setActiveTab, setTabCompletionStatus }) => {
     }));
   };
 
-  useEffect(() => {
-    if (!existingObservations || !rawConditions.length) return;
-
-    const map = {};
-
-    existingObservations.forEach((obs) => {
-      const matched = rawConditions
-        .flatMap((main) =>
-          main.subgroups.flatMap((sub) =>
-            sub.conditions.map((c) => ({
-              ...c,
-              main: main.name,
-              sub: sub.name,
-            }))
-          )
-        )
-        .find((c) => c.id === obs.condition);
-
-      if (!matched) return;
-
-      const { main, sub } = matched;
-      if (!map[main]) map[main] = {};
-      if (!map[main][sub]) map[main][sub] = [];
-
-      let existing = map[main][sub].find((c) => c.id === obs.condition);
-      if (!existing) {
-        existing = {
-          id: obs.condition,
-          name: obs.condition_name || matched.name,
-          has_text: matched.has_text,
-          has_dropdown: matched.has_dropdown,
-          has_grading: matched.has_grading,
-          has_notes: matched.has_notes,
-          dropdown_options: matched.dropdown_options || [],
-          OD: {},
-          OS: {},
-          notes: "",
-        };
-        map[main][sub].push(existing);
-      }
-
-      if (obs.field_type === "notes") {
-        existing.notes = obs.value;
-      } else if (obs.affected_eye) {
-        existing[obs.affected_eye] = {
-          ...(existing[obs.affected_eye] || {}),
-          [obs.field_type]: obs.value,
-        };
-      }
-    });
-
-    setFormData(map);
-  }, [existingObservations, rawConditions]);
-
   const handleFieldChange = (main, sub, id, eye, type, val) => {
     setFormData((prev) => ({
       ...prev,
@@ -166,6 +164,7 @@ const Externals = ({ setActiveTab, setTabCompletionStatus }) => {
     }));
   };
 
+  // 5. Save logic
   const handleSave = async () => {
     const payload = [];
 
@@ -213,6 +212,11 @@ const Externals = ({ setActiveTab, setTabCompletionStatus }) => {
     }
   };
 
+  // 6. Render
+  if (loadingExternals || loadingConditions) {
+    return <div className="p-6 text-gray-600">Loading observations...</div>;
+  }
+
   return (
     <div className="p-6 max-w-6xl mx-auto">
       <h1 className="text-2xl font-bold mb-6">External Observations</h1>
@@ -230,6 +234,7 @@ const Externals = ({ setActiveTab, setTabCompletionStatus }) => {
           {mainOpen[main] &&
             Object.entries(subGroups).map(([sub, options]) => {
               const selected = formData[main]?.[sub] || [];
+
               return (
                 <div key={sub} className="border-t px-4 py-4">
                   <button
@@ -237,7 +242,11 @@ const Externals = ({ setActiveTab, setTabCompletionStatus }) => {
                     className="w-full text-left font-medium mb-2 flex justify-between items-center"
                   >
                     <span>{sub}</span>
-                    {subOpen[main]?.[sub] ? <FaChevronUp /> : <FaChevronDown />}
+                    {subOpen[main]?.[sub] ? (
+                      <FaChevronUp />
+                    ) : (
+                      <FaChevronDown />
+                    )}
                   </button>
 
                   {subOpen[main]?.[sub] && (
@@ -384,13 +393,13 @@ const Externals = ({ setActiveTab, setTabCompletionStatus }) => {
       <div className="mt-8 flex justify-between items-center">
         <button
           onClick={() => setActiveTab("case history")}
-          className="px-6 py-2 font-semibold text-indigo-600 border border-indigo-600 rounded-full shadow-sm hover:bg-indigo-50 transition-colors duration-200"
+          className="px-6 py-2 font-semibold text-indigo-600 border border-indigo-600 rounded-full hover:bg-indigo-50"
         >
           ← Back to Case History
         </button>
         <button
           onClick={handleSave}
-          className="px-6 py-2 font-semibold text-white rounded-full shadow-md transition-colors duration-200 bg-indigo-600 hover:bg-indigo-700"
+          className="px-6 py-2 font-semibold text-white rounded-full bg-indigo-600 hover:bg-indigo-700"
         >
           Save and Proceed
         </button>

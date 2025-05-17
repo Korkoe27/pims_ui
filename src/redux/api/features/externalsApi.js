@@ -15,7 +15,7 @@ export const externalsApi = apiClient.injectEndpoints({
 
     /** ✅ Fetch Observations for an Appointment **/
     fetchExternalObservations: builder.query({
-      query: (appointmentId) => fetchExternalObservationsUrl(appointmentId),
+      query: (appointment) => fetchExternalObservationsUrl(appointment),
       providesTags: ["ExternalObservations"],
     }),
 
