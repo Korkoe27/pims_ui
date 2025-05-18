@@ -19,14 +19,12 @@ export const internalsApi = apiClient.injectEndpoints({
       providesTags: ["InternalObservations"],
     }),
 
-    /** ✅ Create Internal Observations **/
     createInternalObservation: builder.mutation({
-      query: ({ appointmentId, observations }) => ({
-        url: createInternalsUrl(appointmentId),
+      query: ({ appointment, observations }) => ({
+        url: createInternalsUrl(appointment),
         method: "POST",
-        body: { observations },
+        body: { appointment, observations }, // ✅ use `appointment`, not `appointmentId`
       }),
-      invalidatesTags: ["InternalObservations"],
     }),
   }),
 });
