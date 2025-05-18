@@ -260,19 +260,17 @@ const CaseHistory = ({
                       />
                     </div>
 
-                    {/* Text Input */}
-                    {item.has_text && (
-                      <TextInput
-                        valueOD={item.OD?.text || ""}
-                        valueOS={item.OS?.text || ""}
+                    {/* Grading */}
+                    {item.has_grading && (
+                      <GradingSelect
+                        valueOD={item.OD?.grading || ""}
+                        valueOS={item.OS?.grading || ""}
                         onChangeOD={(val) =>
-                          handleFieldChange(item.id, "OD", "text", val)
+                          handleFieldChange(item.id, "OD", "grading", val)
                         }
                         onChangeOS={(val) =>
-                          handleFieldChange(item.id, "OS", "text", val)
+                          handleFieldChange(item.id, "OS", "grading", val)
                         }
-                        placeholderOD="Enter text for OD"
-                        placeholderOS="Enter text for OS"
                       />
                     )}
 
@@ -291,17 +289,19 @@ const CaseHistory = ({
                       />
                     )}
 
-                    {/* Grading */}
-                    {item.has_grading && (
-                      <GradingSelect
-                        valueOD={item.OD?.grading || ""}
-                        valueOS={item.OS?.grading || ""}
+                    {/* Text Input */}
+                    {item.has_text && (
+                      <TextInput
+                        valueOD={item.OD?.text || ""}
+                        valueOS={item.OS?.text || ""}
                         onChangeOD={(val) =>
-                          handleFieldChange(item.id, "OD", "grading", val)
+                          handleFieldChange(item.id, "OD", "text", val)
                         }
                         onChangeOS={(val) =>
-                          handleFieldChange(item.id, "OS", "grading", val)
+                          handleFieldChange(item.id, "OS", "text", val)
                         }
+                        placeholderOD="Enter text for OD"
+                        placeholderOS="Enter text for OS"
                       />
                     )}
 

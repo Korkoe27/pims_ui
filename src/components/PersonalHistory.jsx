@@ -114,10 +114,6 @@ const PersonalHistory = ({
     return true;
   };
 
-  // useEffect(() => {
-  //   console.log("Fetched Medical Conditions:", medicalConditions);
-  // }, [medicalConditions]);
-
   useEffect(() => {
     if (personalHistory) {
       setLastEyeExam(personalHistory.last_eye_examination || "");
@@ -472,7 +468,8 @@ const PersonalHistory = ({
           {/* Last Eye Exam */}
           <div>
             <label className="block font-medium mb-1">
-              Last Eye Examination
+              Last Eye Examination {" "}
+              {isFirstVisit && <span className="text-red-500">*</span>}
             </label>
             <select
               value={lastEyeExam}
@@ -490,7 +487,8 @@ const PersonalHistory = ({
 
           {/* Drug History */}
           <div className="space-y-2">
-            <label className="block font-medium mb-1">Drug History</label>
+            <label className="block font-medium mb-1">Drug History {" "}
+              {isFirstVisit && <span className="text-red-500">*</span>}</label>
             <input
               value={drugHistory}
               onChange={(e) => setDrugHistory(e.target.value)}
@@ -506,7 +504,8 @@ const PersonalHistory = ({
 
           {/* Allergy History */}
           <div>
-            <label className="block font-medium mb-1">Allergies</label>
+            <label className="block font-medium mb-1">Allergies {" "}
+              {isFirstVisit && <span className="text-red-500">*</span>}</label>
             <input
               value={allergyHistory}
               onChange={(e) => setAllergyHistory(e.target.value)}
