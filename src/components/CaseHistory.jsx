@@ -4,12 +4,13 @@ import {
   useCreateCaseHistoryMutation,
   useFetchCaseHistoryQuery,
 } from "../redux/api/features/caseHistoryApi";
-import SearchableSelect from "./SearchableSelect";
+import ConditionPicker from "./ConditionPicker";
 import { showToast } from "../components/ToasterHelper";
-import AffectedEyeSelect from "./AffectedEyeSelect";
+import DeleteButton from "./DeleteButton";
+import TextInput from "./TextInput";
+import ConditionsDropdown from "./ConditionsDropdown";
 import GradingSelect from "./GradingSelect";
 import NotesTextArea from "./NotesTextArea";
-import DeleteButton from "./DeleteButton";
 import { hasFormChanged } from "../utils/deepCompare";
 
 const CaseHistory = ({
@@ -33,94 +34,101 @@ const CaseHistory = ({
   const [chiefComplaint, setChiefComplaint] = useState("");
   const [selectedConditions, setSelectedConditions] = useState([]);
   const [initialPayload, setInitialPayload] = useState(null);
-  const [errorMessage, setErrorMessage] = useState(null);
-  const [showErrorModal, setShowErrorModal] = useState(false);
+
+  // const [notes, setNotes] = useState(""); // ✅ Add this
 
   const isLoading = loadingCaseHistory || loadingConditions;
 
+  // Pre-fill data if editing existing case history
   useEffect(() => {
     if (caseHistory) {
       setChiefComplaint(caseHistory?.chief_complaint || "");
 
-      const mapped = (caseHistory?.condition_details || []).map((item) => ({
-        id: item.condition,
-        name: item.condition_name || "",
-        affected_eye: item.affected_eye || "",
-        grading: item.grading || "",
-        notes: item.notes || "",
-      }));
+      const grouped = {};
+
+      (caseHistory?.condition_details || []).forEach((item) => {
+        const matchedCondition = directQuestioningConditions?.find(
+          (c) => c.id === item.condition
+        );
+
+        if (!grouped[item.condition]) {
+          grouped[item.condition] = {
+            id: item.condition,
+            name: item.condition_name || "",
+            has_text: matchedCondition?.has_text || false,
+            has_dropdown: matchedCondition?.has_dropdown || false,
+            has_grading: matchedCondition?.has_grading || false,
+            has_notes: matchedCondition?.has_notes || false,
+            dropdown_options: matchedCondition?.dropdown_options || [],
+            OD: {},
+            OS: {},
+          };
+        }
+
+        if (item.affected_eye === "OD" || item.affected_eye === "OS") {
+          grouped[item.condition][item.affected_eye] = {
+            ...(grouped[item.condition][item.affected_eye] || {}),
+            [item.field_type]: item.value,
+          };
+        } else {
+          // ✅ Handle shared fields like notes
+          grouped[item.condition][item.field_type] = item.value;
+        }
+      });
+
+      const mapped = Object.values(grouped);
 
       setSelectedConditions(mapped);
 
-      // Save the initial payload for comparison
       setInitialPayload({
         appointment: appointmentId,
         chief_complaint: caseHistory?.chief_complaint || "",
-        condition_details: (caseHistory?.condition_details || []).map(
-          (item) => ({
-            condition: item.condition,
-            affected_eye: item.affected_eye || "",
-            grading: item.grading || "",
-            notes: item.notes || "",
-          })
-        ),
+        condition_details: mapped,
       });
     }
-  }, [caseHistory]);
+  }, [caseHistory, appointmentId, directQuestioningConditions]);
 
-  useEffect(() => {
-    if (showErrorModal && errorMessage) {
-      showToast(errorMessage.detail, "error");
-      setShowErrorModal(false);
-    }
-  }, [showErrorModal, errorMessage]);
-
-  const formatErrorMessage = (data) => {
-    if (!data) return { detail: "An unexpected error occurred." };
-    if (typeof data.detail === "string") return { detail: data.detail };
-
-    if (typeof data === "object") {
-      const messages = Object.entries(data)
-        .map(([key, value]) => {
-          const label = key.replace(/_/g, " ").toUpperCase();
-          let msg;
-          if (typeof value === "object") {
-            msg = JSON.stringify(value);
-          } else {
-            msg = Array.isArray(value) ? value.join(", ") : value;
-          }
-          return `${label}: ${msg}`;
-        })
-        .join("\n");
-
-      return { detail: messages };
-    }
-
-    return { detail: "An unexpected error occurred." };
-  };
+  const formattedODQOptions = (directQuestioningConditions || []).map((c) => ({
+    value: c.id,
+    label: c.name,
+    ...c,
+  }));
 
   const handleSelect = (option) => {
-    if (selectedConditions.some((c) => c.id === option.value)) {
-      setErrorMessage({ detail: "This condition is already selected." });
-      setShowErrorModal(true);
+    if (selectedConditions.some((c) => c.id === option.id)) {
+      showToast("This condition is already selected.", "error");
       return;
     }
 
     setSelectedConditions((prev) => [
       ...prev,
       {
-        id: option.value,
-        name: option.label,
-        affected_eye: "",
-        grading: "",
-        notes: "",
+        id: option.id,
+        name: option.name,
+        has_text: option.has_text || false,
+        has_dropdown: option.has_dropdown || false,
+        has_grading: option.has_grading || false,
+        has_notes: option.has_notes || false,
+        dropdown_options: option.dropdown_options || [],
+        OD: {},
+        OS: {},
       },
     ]);
   };
 
-  const updateCondition = (id, field, value) => {
+  const handleFieldChange = (conditionId, eye, fieldType, value) => {
     setSelectedConditions((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, [field]: value } : c))
+      prev.map((c) =>
+        c.id === conditionId
+          ? {
+              ...c,
+              [eye]: {
+                ...c[eye],
+                [fieldType]: value,
+              },
+            }
+          : c
+      )
     );
   };
 
@@ -128,46 +136,50 @@ const CaseHistory = ({
     setSelectedConditions((prev) => prev.filter((c) => c.id !== id));
   };
 
-  const formattedODQOptions = (directQuestioningConditions || []).map((c) => ({
-    value: c.id,
-    label: c.name,
-  }));
-
   const handleSaveAndProceed = async () => {
     if (!chiefComplaint.trim()) {
       showToast("Chief complaint cannot be empty. 👍", "error");
       return;
     }
 
-    if (selectedConditions.length === 0) {
-      showToast(
-        "Select at least one on_direct question to continue. 👍",
-        "error"
-      );
-      return;
-    }
+    const observations = [];
 
-    const hasInvalidEye = selectedConditions.some(
-      (c) => !["OD", "OS", "OU"].includes(c.affected_eye)
-    );
+    selectedConditions.forEach((entry) => {
+      // Collect OD/OS specific fields
+      ["OD", "OS"].forEach((eye) => {
+        const data = entry[eye] || {};
+        ["text", "dropdown", "grading"].forEach((fieldType) => {
+          if (data[fieldType]) {
+            observations.push({
+              condition: entry.id,
+              affected_eye: eye,
+              field_type: fieldType,
+              value: data[fieldType],
+            });
+          }
+        });
+      });
 
-    if (hasInvalidEye) {
-      showToast(
-        "Each condition must have a valid affected eye (OD, OS, or OU). 👍",
-        "error"
-      );
+      // ✅ Add unified notes field (not per eye)
+      if (entry.notes?.trim()) {
+        observations.push({
+          condition: entry.id,
+          affected_eye: null, // ✅ properly unassign eye for unified notes
+          field_type: "notes",
+          value: entry.notes.trim(),
+        });
+      }
+    });
+
+    if (observations.length === 0) {
+      showToast("Please fill at least one condition field. 👍", "error");
       return;
     }
 
     const payload = {
       appointment: appointmentId,
       chief_complaint: chiefComplaint,
-      condition_details: selectedConditions.map((c) => ({
-        condition: c.id,
-        affected_eye: c.affected_eye,
-        grading: c.grading,
-        notes: c.notes,
-      })),
+      condition_details: observations,
     };
 
     if (initialPayload && !hasFormChanged(initialPayload, payload)) {
@@ -191,89 +203,145 @@ const CaseHistory = ({
       setActiveTab("personal history");
     } catch (error) {
       console.error("❌ Error saving:", error);
-      const formatted = formatErrorMessage(error?.data);
-      showToast(formatted?.detail || "Failed to save case history.", "error");
+      showToast("Failed to save case history.", "error");
     }
   };
 
   return (
-    <div className="p-6 bg-white rounded-md shadow-md max-w-3xl mx-auto">
+    <div className="p-6 pb-12 bg-white rounded-md shadow-md max-w-3xl mx-auto">
       <h1 className="text-2xl font-bold mb-4">Case History</h1>
 
-      {/* Chief Complaint Input */}
-      <div className="mb-4">
-        <label className="block font-semibold mb-1">
-          Chief Complaint <span className="text-red-500">*</span>
-        </label>
-        <textarea
-          value={chiefComplaint}
-          onChange={(e) => setChiefComplaint(e.target.value)}
-          className="w-full border p-3 rounded-md"
-          placeholder="Enter chief complaint..."
-        />
-      </div>
-
-      {/* On-Direct Questioning Condition Selection */}
-      <div className="mb-6">
-        <SearchableSelect
-          label={
-            <span>
-              On-Direct Questioning <span className="text-red-500">*</span>
-            </span>
-          }
-          options={formattedODQOptions}
-          selectedValues={selectedConditions.map((c) => ({
-            value: c.id,
-            label: c.name,
-          }))}
-          onSelect={handleSelect}
-          conditionKey="value"
-          conditionNameKey="label"
-        />
-
-        {selectedConditions.length > 0 && (
-          <div className="mt-4 space-y-4">
-            {selectedConditions.map((c) => (
-              <div key={c.id} className="p-4 bg-gray-50 border rounded">
-                <div className="flex items-center justify-between mb-2">
-                  <h4 className="font-semibold">{c.name}</h4>
-                  <DeleteButton onClick={() => handleDeleteCondition(c.id)} />
-                </div>
-
-                <AffectedEyeSelect
-                  value={c.affected_eye}
-                  onChange={(val) => updateCondition(c.id, "affected_eye", val)}
-                />
-
-                <GradingSelect
-                  value={c.grading}
-                  onChange={(val) => updateCondition(c.id, "grading", val)}
-                />
-
-                <NotesTextArea
-                  value={c.notes}
-                  onChange={(val) => updateCondition(c.id, "notes", val)}
-                />
-              </div>
-            ))}
+      {isLoading ? (
+        <p>Loading case history data...</p>
+      ) : (
+        <>
+          {/* Chief Complaint Input */}
+          <div className="mb-4">
+            <label className="block font-semibold mb-1">
+              Chief Complaint <span className="text-red-500">*</span>
+            </label>
+            <textarea
+              value={chiefComplaint}
+              onChange={(e) => setChiefComplaint(e.target.value)}
+              className="w-full border p-3 rounded-md"
+              placeholder="Enter chief complaint..."
+            />
           </div>
-        )}
-      </div>
 
-      {/* Save Button */}
-      <div className="flex justify-end pt-2">
-        <button
-          onClick={handleSaveAndProceed}
-          disabled={isSaving}
-          className={`px-6 py-2 font-semibold text-white rounded-full shadow-md transition-colors duration-200 ${
-            isSaving
-              ? "bg-gray-400 cursor-not-allowed"
-              : "bg-indigo-800 hover:bg-indigo-900"
-          }`}
-        >
-          {isSaving ? "Saving..." : "Save and proceed"}
-        </button>
-      </div>
+          {/* On-Direct Questioning Condition Selection */}
+          <div className="mb-6">
+            <ConditionPicker
+              label={
+                <span>
+                  On-Direct Questioning <span className="text-red-500">*</span>
+                </span>
+              }
+              options={formattedODQOptions}
+              selectedValues={selectedConditions.map((c) => ({
+                id: c.id,
+                name: c.name,
+              }))}
+              onSelect={handleSelect}
+              conditionKey="id"
+              conditionNameKey="name"
+            />
+
+            {selectedConditions.length > 0 && (
+              <div className="mt-4 space-y-4">
+                {selectedConditions.map((item) => (
+                  <div
+                    key={item.id}
+                    className="p-4 bg-gray-50 border rounded space-y-4"
+                  >
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-semibold">{item.name}</h4>
+                      <DeleteButton
+                        onClick={() => handleDeleteCondition(item.id)}
+                      />
+                    </div>
+
+                    {/* Grading */}
+                    {item.has_grading && (
+                      <GradingSelect
+                        valueOD={item.OD?.grading || ""}
+                        valueOS={item.OS?.grading || ""}
+                        onChangeOD={(val) =>
+                          handleFieldChange(item.id, "OD", "grading", val)
+                        }
+                        onChangeOS={(val) =>
+                          handleFieldChange(item.id, "OS", "grading", val)
+                        }
+                      />
+                    )}
+
+                    {/* Dropdown */}
+                    {item.has_dropdown && (
+                      <ConditionsDropdown
+                        valueOD={item.OD?.dropdown || ""}
+                        valueOS={item.OS?.dropdown || ""}
+                        options={item.dropdown_options}
+                        onChangeOD={(val) =>
+                          handleFieldChange(item.id, "OD", "dropdown", val)
+                        }
+                        onChangeOS={(val) =>
+                          handleFieldChange(item.id, "OS", "dropdown", val)
+                        }
+                      />
+                    )}
+
+                    {/* Text Input */}
+                    {item.has_text && (
+                      <TextInput
+                        valueOD={item.OD?.text || ""}
+                        valueOS={item.OS?.text || ""}
+                        onChangeOD={(val) =>
+                          handleFieldChange(item.id, "OD", "text", val)
+                        }
+                        onChangeOS={(val) =>
+                          handleFieldChange(item.id, "OS", "text", val)
+                        }
+                        placeholderOD="Enter text for OD"
+                        placeholderOS="Enter text for OS"
+                      />
+                    )}
+
+                    {/* Notes */}
+                    {item.has_notes && (
+                      <NotesTextArea
+                        value={item.notes || ""}
+                        onChange={(val) =>
+                          setSelectedConditions((prev) =>
+                            prev.map((c) =>
+                              c.id === item.id ? { ...c, notes: val } : c
+                            )
+                          )
+                        }
+                      />
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Save Button */}
+          {selectedConditions.length > 0 && (
+            <div className="flex justify-end pt-4">
+              <button
+                onClick={handleSaveAndProceed}
+                disabled={isSaving}
+                className={`px-6 py-2 font-semibold text-white rounded-full shadow-md transition-colors duration-200 ${
+                  isSaving
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-indigo-800 hover:bg-indigo-900"
+                }`}
+              >
+                {isSaving ? "Saving..." : "Save and proceed"}
+              </button>
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 };

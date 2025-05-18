@@ -1,6 +1,6 @@
 import { apiClient } from "../api_client/apiClient";
 import {
-  fetchInternalConditionsUrl,
+  internalUrl,
   fetchInternalsUrl,
   createInternalsUrl,
 } from "../end_points/endpoints";
@@ -9,7 +9,7 @@ export const internalsApi = apiClient.injectEndpoints({
   endpoints: (builder) => ({
     /** ✅ Fetch all available Internal Conditions **/
     fetchInternalConditions: builder.query({
-      query: () => fetchInternalConditionsUrl,
+      query: () => internalUrl,
       providesTags: ["InternalConditions"],
     }),
 

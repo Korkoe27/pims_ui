@@ -4,41 +4,36 @@ import { useParams } from "react-router-dom";
 import useRefractionData from "../hooks/useRefractionData";
 import ErrorModal from "./ErrorModal";
 import { showToast } from "../components/ToasterHelper";
-import { hasFormChanged } from "../utils/deepCompare"; // ✅ Add this
+import { hasFormChanged } from "../utils/deepCompare";
+import SPHValidator from "./validators/SPHValidator";
+import CYLValidator from "./validators/CYLValidator";
+import AXISValidator from "./validators/AXISValidator";
+import VAValidator from "./validators/VAValidator";
+import ADDValidator from "./validators/ADDValidator";
 
 const OBJECTIVE_METHOD_OPTIONS = [
   { value: "Retinoscopy", label: "Retinoscopy" },
   { value: "AutoRefraction", label: "AutoRefraction" },
 ];
 
-const PLACEHOLDERS = {
-  sph: "+1.00",
-  cyl: "-0.50",
-  axis: "0 - 180",
-  va_6m: "6/6",
-  add: "+1.00",
-  va_0_4m: "6/9",
+const FIELDS = {
+  sph: SPHValidator,
+  cyl: CYLValidator,
+  axis: AXISValidator,
+  va_6m: VAValidator,
+  add: ADDValidator,
+  va_0_4m: VAValidator,
 };
 
 const Refraction = ({ setActiveTab, setTabCompletionStatus }) => {
   const { appointmentId } = useParams();
-  const { refraction, loadingRefraction, createRefraction } =
-    useRefractionData(appointmentId);
+  const { refraction, loadingRefraction, createRefraction } = useRefractionData(appointmentId);
 
   const [formData, setFormData] = useState({
     objective_method: "",
-    objective: {
-      OD: { sph: "", cyl: "", axis: "", va_6m: "" },
-      OS: { sph: "", cyl: "", axis: "", va_6m: "" },
-    },
-    subjective: {
-      OD: { sph: "", cyl: "", axis: "", add: "", va_6m: "", va_0_4m: "" },
-      OS: { sph: "", cyl: "", axis: "", add: "", va_6m: "", va_0_4m: "" },
-    },
-    cycloplegic: {
-      OD: { sph: "", cyl: "", axis: "", va_6m: "" },
-      OS: { sph: "", cyl: "", axis: "", va_6m: "" },
-    },
+    objective: { OD: {}, OS: {} },
+    subjective: { OD: {}, OS: {} },
+    cycloplegic: { OD: {}, OS: {} },
   });
 
   const [initialPayload, setInitialPayload] = useState(null);
@@ -69,30 +64,15 @@ const Refraction = ({ setActiveTab, setTabCompletionStatus }) => {
       const payload = {
         appointment: appointmentId,
         objective_method: newData.objective_method,
-        objective: ["OD", "OS"].map((eye) => ({
-          eye,
-          ...newData.objective[eye],
-        })),
-        subjective: ["OD", "OS"].map((eye) => ({
-          eye,
-          ...newData.subjective[eye],
-        })),
-        cycloplegic:
-          Array.isArray(refraction.cycloplegic) &&
-          refraction.cycloplegic.length > 0
-            ? ["OD", "OS"].map((eye) => ({
-                eye,
-                ...newData.cycloplegic[eye],
-              }))
-            : [],
+        objective: ["OD", "OS"].map((eye) => ({ eye, ...newData.objective[eye] })),
+        subjective: ["OD", "OS"].map((eye) => ({ eye, ...newData.subjective[eye] })),
+        cycloplegic: refraction.cycloplegic?.length > 0
+          ? ["OD", "OS"].map((eye) => ({ eye, ...newData.cycloplegic[eye] }))
+          : [],
       };
 
       setInitialPayload(payload);
-
-      setShowCycloplegic(
-        Array.isArray(refraction.cycloplegic) &&
-          refraction.cycloplegic.length > 0
-      );
+      setShowCycloplegic(refraction.cycloplegic?.length > 0);
     }
   }, [refraction]);
 
@@ -113,26 +93,16 @@ const Refraction = ({ setActiveTab, setTabCompletionStatus }) => {
     const payload = {
       appointment: appointmentId,
       objective_method: formData.objective_method,
-      objective: ["OD", "OS"].map((eye) => ({
-        eye,
-        ...formData.objective[eye],
-      })),
-      subjective: ["OD", "OS"].map((eye) => ({
-        eye,
-        ...formData.subjective[eye],
-      })),
+      objective: ["OD", "OS"].map((eye) => ({ eye, ...formData.objective[eye] })),
+      subjective: ["OD", "OS"].map((eye) => ({ eye, ...formData.subjective[eye] })),
       cycloplegic: showCycloplegic
         ? ["OD", "OS"].map((eye) => ({ eye, ...formData.cycloplegic[eye] }))
         : [],
     };
 
-    // ✅ Check for no changes
     if (initialPayload && !hasFormChanged(initialPayload, payload)) {
       showToast("No changes detected", "info");
-      setTabCompletionStatus?.((prev) => ({
-        ...prev,
-        refraction: true,
-      }));
+      setTabCompletionStatus?.((prev) => ({ ...prev, refraction: true }));
       setActiveTab("extra tests");
       return;
     }
@@ -140,43 +110,33 @@ const Refraction = ({ setActiveTab, setTabCompletionStatus }) => {
     try {
       await createRefraction({ appointmentId, ...payload }).unwrap();
       showToast("Refraction saved successfully!", "success");
-      setTabCompletionStatus?.((prev) => ({
-        ...prev,
-        refraction: true,
-      }));
+      setTabCompletionStatus?.((prev) => ({ ...prev, refraction: true }));
       setActiveTab("extra tests");
-      return true;
     } catch (error) {
       console.log(error);
-      const message =
-        error?.data?.detail ||
-        "Failed to save refraction results. Please try again.";
+      const message = error?.data?.detail || "Failed to save refraction results. Please try again.";
       showToast(message, "error");
-      return false;
     }
   };
 
   const renderFields = (section, fields) => (
     <div className="flex gap-4">
-      {fields.map(({ label, name }) => (
-        <div key={name} className="flex flex-col">
-          <label className="text-center font-normal text-base">{label}</label>
-          <input
-            type="text"
-            value={formData[section].OD[name] ?? ""}
-            onChange={(e) => handleChange(section, "OD", name, e.target.value)}
-            placeholder={PLACEHOLDERS[name] || ""}
-            className="w-20 h-9 mb-4 rounded-md border border-[#d0d5dd]"
-          />
-          <input
-            type="text"
-            value={formData[section].OS[name] ?? ""}
-            onChange={(e) => handleChange(section, "OS", name, e.target.value)}
-            placeholder={PLACEHOLDERS[name] || ""}
-            className="w-20 h-9 rounded-md border border-[#d0d5dd]"
-          />
-        </div>
-      ))}
+      {fields.map(({ label, name }) => {
+        const ValidatorComponent = FIELDS[name];
+        return (
+          <div key={name} className="flex flex-col">
+            <label className="text-center font-normal text-base">{label}</label>
+            <ValidatorComponent
+              value={formData[section].OD[name] ?? ""}
+              onChange={(val) => handleChange(section, "OD", name, val)}
+            />
+            <ValidatorComponent
+              value={formData[section].OS[name] ?? ""}
+              onChange={(val) => handleChange(section, "OS", name, val)}
+            />
+          </div>
+        );
+      })}
     </div>
   );
 
@@ -199,16 +159,11 @@ const Refraction = ({ setActiveTab, setTabCompletionStatus }) => {
 
       <form className="flex flex-col gap-20">
         <div className="flex flex-col gap-1 h-20 w-[375px]">
-          <label className="text-base text-[#101928] font-medium">
-            Method for Objective Refraction
-          </label>
+          <label className="text-base text-[#101928] font-medium">Method for Objective Refraction</label>
           <select
             value={formData.objective_method || ""}
             onChange={(e) =>
-              setFormData((prev) => ({
-                ...prev,
-                objective_method: e.target.value,
-              }))
+              setFormData((prev) => ({ ...prev, objective_method: e.target.value }))
             }
             className="w-full p-4 h-14 rounded-md border border-[#d0d5dd] bg-white"
           >
@@ -222,9 +177,7 @@ const Refraction = ({ setActiveTab, setTabCompletionStatus }) => {
         </div>
 
         <section className="flex flex-col gap-16">
-          <h1 className="text-[#101928] text-base">
-            Objective Refraction Results
-          </h1>
+          <h1 className="text-[#101928] text-base">Objective Refraction Results</h1>
           <div className="flex gap-4">
             <div className="flex flex-col justify-end gap-4 items-baseline">
               <h1 className="text-xl font-bold text-center">OD</h1>
@@ -233,9 +186,7 @@ const Refraction = ({ setActiveTab, setTabCompletionStatus }) => {
             {renderFields("objective", objectiveFields)}
           </div>
 
-          <h1 className="text-[#101928] text-base">
-            Subjective Refraction Results
-          </h1>
+          <h1 className="text-[#101928] text-base">Subjective Refraction Results</h1>
           <div className="flex gap-4">
             <div className="flex flex-col justify-end gap-4 items-baseline">
               <h1 className="text-xl font-bold text-center">OD</h1>
@@ -262,9 +213,7 @@ const Refraction = ({ setActiveTab, setTabCompletionStatus }) => {
 
           {showCycloplegic && (
             <div className="flex flex-col gap-4">
-              <h1 className="text-[#101928] text-medium text-base">
-                Cycloplegic Refraction Results
-              </h1>
+              <h1 className="text-[#101928] text-medium text-base">Cycloplegic Refraction Results</h1>
               <div className="flex gap-4">
                 <div className="flex flex-col justify-end gap-4 items-baseline">
                   <h1 className="text-xl font-bold text-center">OD</h1>
@@ -296,10 +245,7 @@ const Refraction = ({ setActiveTab, setTabCompletionStatus }) => {
       </form>
 
       {showErrorModal && errorMessage && (
-        <ErrorModal
-          message={errorMessage}
-          onClose={() => setShowErrorModal(false)}
-        />
+        <ErrorModal message={errorMessage} onClose={() => setShowErrorModal(false)} />
       )}
     </div>
   );

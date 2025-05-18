@@ -1,4 +1,7 @@
 import React from "react";
+import SnellenInputValidator from "./validators/SnellenInputValidator";
+import LogMarInputValidator from "./validators/LogMarInputValidator";
+import OtherVAInput from "./validators/OtherVAInput"; // fallback if needed
 
 const EYES = ["OD", "OS"];
 
@@ -10,8 +13,7 @@ export const isValidLogMAR = (value) => {
   return !isNaN(num) && num >= -0.02 && num <= 3.5;
 };
 
-export const isValidNearVA = (value) =>
-  /^[MN]\d+(\.\d+)?$/i.test(value.trim());
+export const isValidNearVA = (value) => /^[MN]\d+(\.\d+)?$/i.test(value.trim());
 
 export const validateVASection = (sectionData, chartType, isNear = false) => {
   if (chartType === "Others") return true;
@@ -29,12 +31,6 @@ export const validateVASection = (sectionData, chartType, isNear = false) => {
     })
   );
 };
-const getPlaceholder = (chartType) => {
-  if (chartType === "SNELLEN") return "6/6";
-  if (chartType === "LOGMAR") return "0.00";
-  if (chartType === "Others") return "Enter CF/HM/PL/NPL";
-  return "";
-};
 
 export default function VisualAcuitySection({
   title,
@@ -43,20 +39,25 @@ export default function VisualAcuitySection({
   onChange,
   vaChart,
 }) {
+  const getInputComponent = (chartType) => {
+    if (chartType === "SNELLEN") return SnellenInputValidator;
+    if (chartType === "LOGMAR") return LogMarInputValidator;
+    return OtherVAInput; // fallback for "Others"
+  };
+
+  const InputComponent = getInputComponent(vaChart);
+
   return (
     <div>
-      <h3 className="font-semibold text-lg mb-2">
-        {title} <span className="text-red-500">*</span>
-      </h3>
+      <h3 className="font-semibold text-lg mb-2">{title}</h3>
 
       {fields.length > 1 && (
         <div className="grid grid-cols-[80px_repeat(3,_1fr)] gap-4 text-sm font-medium mb-2">
           <div></div>
-          {fields.map((f) => (
-            <div key={f}>
-              {f === "plusOne"
-                ? "+1.00"
-                : f.charAt(0).toUpperCase() + f.slice(1)}
+          {fields.map((field) => (
+            <div key={field.key}>
+              {field.label}{" "}
+              {field.required && <span className="text-red-500">*</span>}
             </div>
           ))}
         </div>
@@ -71,13 +72,12 @@ export default function VisualAcuitySection({
           <React.Fragment key={eye}>
             <div className="font-bold self-center">{eye}</div>
             {fields.map((field) => (
-              <input
-                key={field}
-                type="text"
-                placeholder={getPlaceholder(vaChart)}
-                value={vaData[eye][field]}
-                onChange={(e) => onChange(eye, field, e.target.value)}
-                className="border rounded px-2 py-1"
+              <InputComponent
+                key={field.key}
+                value={vaData[eye][field.key]}
+                onChange={(val) => onChange(eye, field.key, val)}
+                required={field.required}
+                vaChart={vaChart} // ✅ passed here
               />
             ))}
           </React.Fragment>

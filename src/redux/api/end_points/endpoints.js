@@ -60,7 +60,6 @@ export const getAppointmentsDetailsUrl = (appointmentId) =>
 export const markAppointmentCompletedUrl = (appointmentId) =>
   `/clients/api/${appointmentId}/complete/`;
 
-
 /////////////////////////
 // Case History
 /////////////////////////
@@ -85,10 +84,12 @@ export const createPatientHistoryUrl = "/tests/api/patient-history/";
 // Medical, Ocular & On Direct Question Conditions
 /////////////////////////
 
-export const fetchMedicalConditionsUrl = "/tests/api/medical-conditions/";
-export const fetchOcularConditionsUrl = "/tests/api/ocular-conditions/";
-export const fetchDirectQuestioningConditionsUrl = "/tests/api/direct-questioning-conditions/";
-
+export const fetchMedicalConditionsUrl =
+  "/tests/conditions?category=medical_history";
+export const fetchOcularConditionsUrl =
+  "/tests/conditions?category=ocular_history";
+export const fetchDirectQuestioningConditionsUrl =
+  "/tests/conditions?category=on_direct_questioning";
 
 /////////////////////////
 // Visual Acuity
@@ -101,22 +102,30 @@ export const createVisualAcuityUrl = "/tests/api/visual-acuity/";
 export const fetchVisualAcuityUrl = (appointmentId) =>
   `/tests/api/visual-acuity/${appointmentId}/`;
 
+///////////////////////////////
+// Externals & Internals Base
+//////////////////////////////
+
+const fetchInternalExternalExaminationConditionsUrl = (type) =>
+  `/tests/api/examination-conditions/?type=${type}`;
+
 /////////////////////////
 // Externals
 /////////////////////////
 
-export const fetchExternalConditionsUrl = "/tests/api/external-conditions/";
+export const externalUrl =
+  fetchInternalExternalExaminationConditionsUrl("external");
 export const createExternalObservationUrl = (appointmentId) =>
   `/tests/api/external-observations/${appointmentId}/`;
 export const fetchExternalObservationsUrl = (appointmentId) =>
   `/tests/api/external-observations/${appointmentId}/`;
 
-
 /////////////////////////
 // Internals
 /////////////////////////
 
-export const fetchInternalConditionsUrl = "/tests/api/internal-conditions/";
+export const internalUrl =
+  fetchInternalExternalExaminationConditionsUrl("internal");
 export const fetchInternalsUrl = (appointmentId) =>
   `/tests/api/internal-observations/${appointmentId}/`;
 export const createInternalsUrl = (appointmentId) =>
@@ -140,7 +149,6 @@ export const createExtraTestUrl = (appointmentId) =>
 export const fetchExtraTestsUrl = (appointmentId) =>
   `/tests/extra-tests/${appointmentId}/`;
 
-
 /////////////////////////
 // Diagnosis
 /////////////////////////
@@ -156,7 +164,6 @@ export const listAllDiagnosesUrl = "/diagnosis/codes/";
 export const fetchAppointmentDiagnosesUrl = (appointmentId) =>
   `/diagnosis/${appointmentId}/view/`;
 
-
 /////////////////////////
 // Management (Medications)
 /////////////////////////
@@ -170,7 +177,6 @@ export const listMedicationsUrl = "/pharmacy/medications/";
 // Filter medications by type (e.g. /pharmacy/api/medications/?type=1)
 export const filterMedicationsUrl = (typeId) =>
   `/pharmacy/api/medications/?type=${typeId}`;
-
 
 /////////////////////////
 // Management Plan
