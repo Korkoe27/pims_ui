@@ -218,7 +218,7 @@ const Externals = ({ setActiveTab, setTabCompletionStatus }) => {
         ...prev,
         externals: true,
       }));
-      setActiveTab("internal");
+      setActiveTab("internals");
     } catch (err) {
       showToast(formatErrorMessage(err?.data), "error");
     }

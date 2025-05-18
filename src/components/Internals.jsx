@@ -3,10 +3,12 @@ import { FaChevronDown, FaChevronUp } from "react-icons/fa";
 import { useParams } from "react-router-dom";
 import useInternalObservationData from "../hooks/useInternalObservationData";
 import ConditionPicker from "./ConditionPicker";
-import GradingSelect from "./GradingSelect";
-import NotesTextArea from "./NotesTextArea";
 import DeleteButton from "./DeleteButton";
 import { showToast, formatErrorMessage } from "../components/ToasterHelper";
+import TextInput from "./TextInput";
+import ConditionsDropdown from "./ConditionsDropdown";
+import GradingSelect from "./GradingSelect";
+import NotesTextArea from "./NotesTextArea";
 
 const Internals = ({ setActiveTab, setTabCompletionStatus }) => {
   const { appointmentId } = useParams();
@@ -15,14 +17,13 @@ const Internals = ({ setActiveTab, setTabCompletionStatus }) => {
   const [subOpen, setSubOpen] = useState({});
 
   const {
-    internals,
+    loadingConditions,
     loadingInternals,
     conditions: rawConditions,
-    loadingConditions,
+    existingObservations,
     createInternalObservation,
   } = useInternalObservationData(appointmentId);
 
-  // 1. Group all conditions by main + sub
   const groupedConditions = (rawConditions || []).reduce((acc, main) => {
     acc[main.name] = main.subgroups.reduce((subAcc, subgroup) => {
       subAcc[subgroup.name] = subgroup.conditions.map((c) => ({
@@ -36,9 +37,8 @@ const Internals = ({ setActiveTab, setTabCompletionStatus }) => {
     return acc;
   }, {});
 
-  // 2. Hydrate formData from existing internals
   useEffect(() => {
-    if (!internals || !rawConditions.length) return;
+    if (!existingObservations || !rawConditions.length) return;
 
     const flatConditions = rawConditions.flatMap((main) =>
       main.subgroups.flatMap((sub) =>
@@ -54,7 +54,7 @@ const Internals = ({ setActiveTab, setTabCompletionStatus }) => {
     const mains = {};
     const subs = {};
 
-    internals.forEach((obs) => {
+    existingObservations.forEach((obs) => {
       const matched = flatConditions.find((c) => c.id === obs.condition);
       if (!matched) return;
 
@@ -63,6 +63,7 @@ const Internals = ({ setActiveTab, setTabCompletionStatus }) => {
         map[main] = {};
         mains[main] = true;
       }
+
       if (!map[main][sub]) {
         map[main][sub] = [];
         if (!subs[main]) subs[main] = {};
@@ -74,8 +75,11 @@ const Internals = ({ setActiveTab, setTabCompletionStatus }) => {
         condition = {
           id: obs.condition,
           name: matched.name,
-          has_grading: true,
-          has_notes: true,
+          has_text: matched.has_text,
+          has_dropdown: matched.has_dropdown,
+          has_grading: matched.has_grading,
+          has_notes: matched.has_notes,
+          dropdown_options: matched.dropdown_options || [],
           OD: {},
           OS: {},
           notes: "",
@@ -83,16 +87,12 @@ const Internals = ({ setActiveTab, setTabCompletionStatus }) => {
         map[main][sub].push(condition);
       }
 
-      if (obs.notes) {
+      if (obs.field_type === "notes") {
+        condition.notes = obs.value;
+      } else if (obs.affected_eye) {
         condition[obs.affected_eye] = {
           ...(condition[obs.affected_eye] || {}),
-          notes: obs.notes,
-        };
-      }
-      if (obs.grading) {
-        condition[obs.affected_eye] = {
-          ...(condition[obs.affected_eye] || {}),
-          grading: obs.grading,
+          [obs.field_type]: obs.value,
         };
       }
     });
@@ -100,7 +100,7 @@ const Internals = ({ setActiveTab, setTabCompletionStatus }) => {
     setFormData(map);
     setMainOpen(mains);
     setSubOpen(subs);
-  }, [internals, rawConditions]);
+  }, [existingObservations, rawConditions]);
 
   const toggleMain = (main) =>
     setMainOpen((prev) => ({ ...prev, [main]: !prev[main] }));
@@ -118,8 +118,6 @@ const Internals = ({ setActiveTab, setTabCompletionStatus }) => {
 
       const updated = {
         ...selected,
-        has_grading: true,
-        has_notes: true,
         OD: {},
         OS: {},
         notes: "",
@@ -162,23 +160,44 @@ const Internals = ({ setActiveTab, setTabCompletionStatus }) => {
     }));
   };
 
-  // 5. Save logic
+  const handleNotesChange = (main, sub, id, val) => {
+    setFormData((prev) => ({
+      ...prev,
+      [main]: {
+        ...prev[main],
+        [sub]: prev[main][sub].map((item) =>
+          item.id === id ? { ...item, notes: val } : item
+        ),
+      },
+    }));
+  };
+
   const handleSave = async () => {
     const payload = [];
 
     Object.entries(formData).forEach(([main, subGroups]) => {
       Object.entries(subGroups).forEach(([sub, conditions]) => {
         conditions.forEach((item) => {
+          if (item.notes?.trim()) {
+            payload.push({
+              condition: item.id,
+              field_type: "notes",
+              value: item.notes,
+              affected_eye: null,
+            });
+          }
           ["OD", "OS"].forEach((eye) => {
             const data = item[eye] || {};
-            if (data.notes?.trim() || data.grading?.trim()) {
-              payload.push({
-                condition: item.id,
-                affected_eye: eye,
-                grading: data.grading || "",
-                notes: data.notes || "",
-              });
-            }
+            Object.entries(data).forEach(([type, val]) => {
+              if (val?.toString().trim()) {
+                payload.push({
+                  condition: item.id,
+                  affected_eye: eye,
+                  field_type: type,
+                  value: val,
+                });
+              }
+            });
           });
         });
       });
@@ -190,11 +209,8 @@ const Internals = ({ setActiveTab, setTabCompletionStatus }) => {
         observations: payload,
       });
       showToast("Internal Observations Saved", "success");
-      setTabCompletionStatus?.((prev) => ({
-        ...prev,
-        internals: true,
-      }));
-      setActiveTab("refraction");
+      setTabCompletionStatus?.((prev) => ({ ...prev, internals: true }));
+      setActiveTab("management");
     } catch (err) {
       showToast(formatErrorMessage(err?.data), "error");
     }
@@ -248,6 +264,11 @@ const Internals = ({ setActiveTab, setTabCompletionStatus }) => {
                           handleSelect(main, sub, {
                             id: opt.value,
                             name: opt.label,
+                            has_text: opt.has_text,
+                            has_dropdown: opt.has_dropdown,
+                            has_grading: opt.has_grading,
+                            has_notes: opt.has_notes,
+                            dropdown_options: opt.dropdown_options || [],
                           })
                         }
                         conditionKey="value"
@@ -263,50 +284,58 @@ const Internals = ({ setActiveTab, setTabCompletionStatus }) => {
                             <div className="flex justify-between items-center">
                               <h4 className="font-semibold">{item.name}</h4>
                               <DeleteButton
-                                onClick={() =>
-                                  handleDelete(main, sub, item.id)
-                                }
+                                onClick={() => handleDelete(main, sub, item.id)}
                               />
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4">
-                              {["OD", "OS"].map((eye) => (
-                                <div key={eye}>
-                                  <h5 className="font-medium text-sm mb-2">
-                                    {eye === "OD"
-                                      ? "OD (Right Eye)"
-                                      : "OS (Left Eye)"}
-                                  </h5>
-                                  <GradingSelect
-                                    value={item[eye]?.grading || ""}
-                                    onChange={(val) =>
-                                      handleFieldChange(
-                                        main,
-                                        sub,
-                                        item.id,
-                                        eye,
-                                        "grading",
-                                        val
-                                      )
-                                    }
-                                  />
-                                  <NotesTextArea
-                                    value={item[eye]?.notes || ""}
-                                    onChange={(val) =>
-                                      handleFieldChange(
-                                        main,
-                                        sub,
-                                        item.id,
-                                        eye,
-                                        "notes",
-                                        val
-                                      )
-                                    }
-                                    placeholder={`Notes for ${eye}`}
-                                  />
-                                </div>
-                              ))}
-                            </div>
+                            {item.has_text && (
+                              <TextInput
+                                valueOD={item.OD?.text || ""}
+                                valueOS={item.OS?.text || ""}
+                                onChangeOD={(val) =>
+                                  handleFieldChange(main, sub, item.id, "OD", "text", val)
+                                }
+                                onChangeOS={(val) =>
+                                  handleFieldChange(main, sub, item.id, "OS", "text", val)
+                                }
+                              />
+                            )}
+
+                            {item.has_dropdown && (
+                              <ConditionsDropdown
+                                valueOD={item.OD?.dropdown || ""}
+                                valueOS={item.OS?.dropdown || ""}
+                                options={item.dropdown_options || []}
+                                onChangeOD={(val) =>
+                                  handleFieldChange(main, sub, item.id, "OD", "dropdown", val)
+                                }
+                                onChangeOS={(val) =>
+                                  handleFieldChange(main, sub, item.id, "OS", "dropdown", val)
+                                }
+                              />
+                            )}
+
+                            {item.has_grading && (
+                              <GradingSelect
+                                valueOD={item.OD?.grading || ""}
+                                valueOS={item.OS?.grading || ""}
+                                onChangeOD={(val) =>
+                                  handleFieldChange(main, sub, item.id, "OD", "grading", val)
+                                }
+                                onChangeOS={(val) =>
+                                  handleFieldChange(main, sub, item.id, "OS", "grading", val)
+                                }
+                              />
+                            )}
+
+                            {item.has_notes && (
+                              <NotesTextArea
+                                value={item.notes || ""}
+                                onChange={(val) =>
+                                  handleNotesChange(main, sub, item.id, val)
+                                }
+                              />
+                            )}
                           </div>
                         ))}
                       </div>
@@ -323,7 +352,7 @@ const Internals = ({ setActiveTab, setTabCompletionStatus }) => {
           onClick={() => setActiveTab("externals")}
           className="px-6 py-2 font-semibold text-indigo-600 border border-indigo-600 rounded-full hover:bg-indigo-50"
         >
-          ← Back to Externals
+          ← Back to External Observations
         </button>
         <button
           onClick={handleSave}
