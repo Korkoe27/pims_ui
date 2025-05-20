@@ -97,8 +97,24 @@ const Refraction = ({ setActiveTab, setTabCompletionStatus }) => {
     }
 
     ["OD", "OS"].forEach((eye) => {
-      if (!formData.objective[eye].sph) {
+      const obj = formData.objective[eye];
+      if (!obj.sph) {
         errors[`objective-${eye}-sph`] = "SPH is required";
+      }
+      if (obj.cyl && !obj.axis) {
+        errors[`objective-${eye}-axis`] = "Axis is required when CYL is entered";
+      }
+
+      const sub = formData.subjective[eye];
+      if (sub.cyl && !sub.axis) {
+        errors[`subjective-${eye}-axis`] = "Axis is required when CYL is entered";
+      }
+
+      if (showCycloplegic) {
+        const cyc = formData.cycloplegic[eye];
+        if (cyc.cyl && !cyc.axis) {
+          errors[`cycloplegic-${eye}-axis`] = "Axis is required when CYL is entered";
+        }
       }
     });
 
@@ -154,12 +170,18 @@ const Refraction = ({ setActiveTab, setTabCompletionStatus }) => {
             {name === "sph" && fieldErrors[`${section}-OD-sph`] && (
               <span className="text-red-600 text-sm">{fieldErrors[`${section}-OD-sph`]}</span>
             )}
+            {name === "axis" && fieldErrors[`${section}-OD-axis`] && (
+              <span className="text-red-600 text-sm">{fieldErrors[`${section}-OD-axis`]}</span>
+            )}
             <ValidatorComponent
               value={formData[section].OS[name] ?? ""}
               onChange={(val) => handleChange(section, "OS", name, val)}
             />
             {name === "sph" && fieldErrors[`${section}-OS-sph`] && (
               <span className="text-red-600 text-sm">{fieldErrors[`${section}-OS-sph`]}</span>
+            )}
+            {name === "axis" && fieldErrors[`${section}-OS-axis`] && (
+              <span className="text-red-600 text-sm">{fieldErrors[`${section}-OS-axis`]}</span>
             )}
           </div>
         );
