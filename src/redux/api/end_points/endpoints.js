@@ -126,7 +126,7 @@ export const fetchExternalObservationsUrl = (appointmentId) =>
 
 export const internalUrl =
   fetchInternalExternalExaminationConditionsUrl("internal");
-export const fetchInternalsUrl = (appointmentId) =>
+export const fetchInternalObservationsUrl = (appointmentId) =>
   `/tests/api/internal-observations/${appointmentId}/`;
 export const createInternalsUrl = (appointmentId) =>
   `/tests/api/internal-observations/${appointmentId}/`;

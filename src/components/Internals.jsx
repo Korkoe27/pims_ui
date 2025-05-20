@@ -42,6 +42,9 @@ const Internals = ({ setActiveTab, setTabCompletionStatus }) => {
   useEffect(() => {
     if (!existingObservations || !rawConditions.length) return;
 
+     console.log("📦 Existing Internal Observations:", existingObservations); // 🔍 Add this line
+
+
     const flatConditions = rawConditions.flatMap((main) =>
       main.subgroups.flatMap((sub) =>
         sub.conditions.map((c) => ({

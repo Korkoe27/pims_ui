@@ -1,7 +1,7 @@
 import { apiClient } from "../api_client/apiClient";
 import {
   internalUrl,
-  fetchInternalsUrl,
+  fetchInternalObservationsUrl,
   createInternalsUrl,
 } from "../end_points/endpoints";
 
@@ -15,7 +15,7 @@ export const internalsApi = apiClient.injectEndpoints({
 
     /** ✅ Fetch Observations for an Appointment **/
     fetchInternalObservations: builder.query({
-      query: (appointmentId) => fetchInternalsUrl(appointmentId),
+      query: (appointmentId) => fetchInternalObservationsUrl(appointmentId),
       providesTags: ["InternalObservations"],
     }),
 
