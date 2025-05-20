@@ -10,8 +10,8 @@ const SPHValidator = ({
   const [touched, setTouched] = useState(false);
   const [isValid, setIsValid] = useState(true);
 
-  // ✅ Require + or - sign at the start
-  const isValidSPH = (val) => /^[+-][0-9]+(\.25|\.50|\.75|\.00)?$/.test(val.trim());
+  const isValidSPH = (val) =>
+    /^[+-][0-9]+(\.25|\.50|\.75|\.00)?$/.test(val.trim());
 
   useEffect(() => {
     if (!touched) return;
@@ -21,7 +21,12 @@ const SPHValidator = ({
 
   return (
     <div className="space-y-1">
-      {label && <label className="block font-medium">{label}</label>}
+      {label && (
+        <label className="block font-medium">
+          {label}
+          {required && <span className="text-red-600 ml-1">*</span>}
+        </label>
+      )}
       <input
         type="text"
         value={value}

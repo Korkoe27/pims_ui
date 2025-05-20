@@ -43,7 +43,8 @@ export default function PrescriptionSection({
     <div className="space-y-6">
       <div>
         <label className="block mb-1 font-medium">
-          Did patient come with a prescription? <span className="text-red-500">*</span>
+          Did patient come with a prescription?{" "}
+          <span className="text-red-500">*</span>
         </label>
         <div className="flex gap-4 mt-1">
           <label className="flex items-center gap-1">

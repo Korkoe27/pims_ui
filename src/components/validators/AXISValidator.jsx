@@ -6,9 +6,15 @@ const AXISValidator = ({ value, onChange, required = false, label, placeholder =
 
   useEffect(() => {
     if (!touched) return;
-    const num = Number(value.trim());
-    setIsValid(!value.trim() || (!isNaN(num) && Number.isInteger(num) && num >= 0 && num <= 180));
-  }, [value, touched]);
+
+    const trimmed = value?.trim();
+    const num = Number(trimmed);
+
+    const validAxis = !isNaN(num) && Number.isInteger(num) && num >= 0 && num <= 180;
+    const passesRequired = required ? !!trimmed : true;
+
+    setIsValid(passesRequired && (!trimmed || validAxis));
+  }, [value, touched, required]);
 
   return (
     <div className="space-y-1">
@@ -19,9 +25,16 @@ const AXISValidator = ({ value, onChange, required = false, label, placeholder =
         placeholder={placeholder}
         onChange={(e) => onChange(e.target.value)}
         onBlur={() => setTouched(true)}
-        className={`w-full border px-3 py-2 rounded ${!isValid ? "border-red-500" : "border-gray-300"} focus:outline-none focus:ring-1 focus:ring-indigo-500`}
+        className={`w-full border px-3 py-2 rounded ${
+          !isValid ? "border-red-500" : "border-gray-300"
+        } focus:outline-none focus:ring-1 focus:ring-indigo-500`}
       />
-      {!isValid && <p className="text-sm text-red-600">AXIS must be between 0 - 180</p>}
+      {!isValid && required && !value?.trim() && (
+        <p className="text-sm text-red-600">AXIS is required if CYL is entered</p>
+      )}
+      {!isValid && value?.trim() && (
+        <p className="text-sm text-red-600">AXIS must be a number between 0 and 180</p>
+      )}
     </div>
   );
 };

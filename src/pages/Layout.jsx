@@ -2,10 +2,10 @@
 import React from "react";
 import { Outlet } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
-import useAppointmentSocket from "../hooks/useAppointmentSocket"; // ✅ Add this
+import useWebSocketAppointments from "../hooks/useWebSocketAppointments"; // ✅ Add this
 
 const Layout = () => {
-  useAppointmentSocket(); // ✅ WebSocket listener initialized globally
+  useWebSocketAppointments(); // ✅ WebSocket listener initialized globally
 
   return (
     <div className="flex bg-[#f9fafb] h-full">
