@@ -15,7 +15,7 @@ const Internals = ({ setActiveTab, setTabCompletionStatus }) => {
   const [formData, setFormData] = useState({});
   const [mainOpen, setMainOpen] = useState({});
   const [subOpen, setSubOpen] = useState({});
-
+  
   const {
     loadingConditions,
     loadingInternals,
@@ -24,7 +24,6 @@ const Internals = ({ setActiveTab, setTabCompletionStatus }) => {
     createInternalObservation,
   } = useInternalObservationData(appointmentId);
 
-  // 1. Group conditions
   const groupedConditions = (rawConditions || []).reduce((acc, main) => {
     acc[main.name] = main.subgroups.reduce((subAcc, subgroup) => {
       subAcc[subgroup.name] = subgroup.conditions.map((c) => ({
@@ -38,7 +37,6 @@ const Internals = ({ setActiveTab, setTabCompletionStatus }) => {
     return acc;
   }, {});
 
-  // 2. Hydrate saved data
   useEffect(() => {
     if (!existingObservations || !rawConditions.length) return;
 
@@ -104,7 +102,12 @@ const Internals = ({ setActiveTab, setTabCompletionStatus }) => {
     setSubOpen(subs);
   }, [existingObservations, rawConditions]);
 
-  // 3. UI toggles
+  useEffect(() => {
+    console.log("Hydrating with:", existingObservations, rawConditions);
+    if (!existingObservations || !rawConditions.length) return;
+    // ...rest of hydration
+  }, [existingObservations, rawConditions]);
+
   const toggleMain = (main) =>
     setMainOpen((prev) => ({ ...prev, [main]: !prev[main] }));
 
@@ -114,7 +117,6 @@ const Internals = ({ setActiveTab, setTabCompletionStatus }) => {
       [main]: { ...prev[main], [sub]: !prev[main]?.[sub] },
     }));
 
-  // 4. Handlers
   const handleSelect = (main, sub, selected) => {
     setFormData((prev) => {
       const existing = prev[main]?.[sub] || [];
@@ -176,7 +178,6 @@ const Internals = ({ setActiveTab, setTabCompletionStatus }) => {
     }));
   };
 
-  // 5. Save
   const handleSave = async () => {
     const payload = [];
 
@@ -208,23 +209,22 @@ const Internals = ({ setActiveTab, setTabCompletionStatus }) => {
       });
     });
 
+    console.log("💾 Saving Internal Observations payload...");
+    console.log("Form data:", formData);
+
     try {
       await createInternalObservation({
         appointment: appointmentId,
         observations: payload,
-      }).unwrap();
+      });
       showToast("Internal Observations Saved", "success");
-      setTabCompletionStatus?.((prev) => ({
-        ...prev,
-        internals: true,
-      }));
-      setActiveTab("refraction");
+      setTabCompletionStatus?.((prev) => ({ ...prev, internals: true }));
+      setActiveTab("management");
     } catch (err) {
       showToast(formatErrorMessage(err?.data), "error");
     }
   };
 
-  // 6. Render
   if (loadingInternals || loadingConditions) {
     return <div className="p-6 text-gray-600">Loading observations...</div>;
   }

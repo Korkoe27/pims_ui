@@ -1,7 +1,7 @@
 import { apiClient } from "../api_client/apiClient";
 import {
-  fetchInternalConditionsUrl,
-  fetchInternalsUrl,
+  internalUrl,
+  fetchInternalObservationsUrl,
   createInternalsUrl,
 } from "../end_points/endpoints";
 
@@ -9,24 +9,22 @@ export const internalsApi = apiClient.injectEndpoints({
   endpoints: (builder) => ({
     /** ✅ Fetch all available Internal Conditions **/
     fetchInternalConditions: builder.query({
-      query: () => fetchInternalConditionsUrl,
+      query: () => internalUrl,
       providesTags: ["InternalConditions"],
     }),
 
     /** ✅ Fetch Observations for an Appointment **/
     fetchInternalObservations: builder.query({
-      query: (appointmentId) => fetchInternalsUrl(appointmentId),
+      query: (appointmentId) => fetchInternalObservationsUrl(appointmentId),
       providesTags: ["InternalObservations"],
     }),
 
-    /** ✅ Create Internal Observations **/
     createInternalObservation: builder.mutation({
-      query: ({ appointmentId, observations }) => ({
-        url: createInternalsUrl(appointmentId),
+      query: ({ appointment, observations }) => ({
+        url: createInternalsUrl(appointment),
         method: "POST",
-        body: { observations },
+        body: { appointment, observations }, // ✅ use `appointment`, not `appointmentId`
       }),
-      invalidatesTags: ["InternalObservations"],
     }),
   }),
 });

@@ -1,10 +1,10 @@
-// components/NotesTextArea.jsx
+// components/GeneralNotesTextArea.jsx
 import React from "react";
 
-const NotesTextArea = ({
+const GeneralNotesTextArea = ({
   value,
   onChange,
-  placeholder = "Enter notes",
+  placeholder = "Enter general notes...",
 }) => {
   return (
     <div>
@@ -19,4 +19,4 @@ const NotesTextArea = ({
   );
 };
 
-export default NotesTextArea;
+export default GeneralNotesTextArea;

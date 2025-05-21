@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import {
   useFetchExternalObservationsQuery,
   useFetchExternalConditionsQuery,
@@ -24,7 +25,7 @@ const useExternalObservationData = (appointmentId) => {
     useCreateExternalObservationMutation();
 
   return {
-    externals,
+    existingObservations: externals,
     loadingExternals,
     conditions,
     loadingConditions,

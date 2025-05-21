@@ -1,44 +1,34 @@
 import React from "react";
+import SPHValidator from "../components/validators/SPHValidator";
+import CYLValidator from "../components/validators/CYLValidator";
+import AXISValidator from "../components/validators/AXISValidator";
+import VAValidator from "../components/validators/VAValidator";
+import ADDValidator from "../components/validators/ADDValidator";
+import MNNotationValidator from "../components/validators/MNNotationValidator";
 
 const EYES = ["OD", "OS"];
 const PRESCRIPTION_TYPES = ["Spectacles", "Contact Lenses"];
 
-// 🔍 Validator Function (unchanged)
-export function validatePrescription(rx, hasPrescription) {
+export function validatePrescription(
+  hasPrescription,
+  prescriptionType,
+  currentRx
+) {
   if (!hasPrescription) return true;
 
-  const isQuarterStep = (value) =>
-    /^[-+]?\d+(\.25|\.50|\.75|\.00)?$/.test(value);
+  const isPrescriptionTypeValid =
+    typeof prescriptionType === "string" && prescriptionType.trim() !== "";
 
-  const isPositiveQuarter = (value) =>
-    /^\+?\d+(\.25|\.50|\.75|\.00)?$/.test(value);
-
-  const isNegativeQuarter = (value) =>
-    /^-\d+(\.25|\.50|\.75|\.00)?$/.test(value);
-
-  const isAxisValid = (value) => {
-    const num = Number(value);
-    return !isNaN(num) && num >= 0 && num <= 180 && Number.isInteger(num);
-  };
-
-  const isValidVA = (value) =>
-    /^(\d{1,3}\/\d{1,3}|\+?\d+(\.25|\.50|\.75|\.00)?)$/.test(value);
-
-  return ["OD", "OS"].every((eye) => {
-    const fields = rx[eye];
-    if (Object.values(fields).some((val) => val.trim() === "")) return false;
-
-    const { sph, cyl, axis, va, add, nearVa } = fields;
-
+  const isSPHValid = ["OD", "OS"].every((eye) => {
+    const sph = currentRx?.[eye]?.sph;
     return (
-      isQuarterStep(sph) &&
-      isNegativeQuarter(cyl) &&
-      isAxisValid(axis) &&
-      isValidVA(va) &&
-      isPositiveQuarter(add) &&
-      isValidVA(nearVa)
+      typeof sph === "string" &&
+      sph.trim() !== "" &&
+      /^[-+][0-9]+(\.25|\.50|\.75|\.00)?$/.test(sph.trim())
     );
   });
+
+  return isPrescriptionTypeValid && isSPHValid;
 }
 
 export default function PrescriptionSection({
@@ -48,24 +38,13 @@ export default function PrescriptionSection({
   setPrescriptionType,
   currentRx,
   onRxChange,
-  spectaclesType,
-  setSpectaclesType,
-  rxFieldErrors = {}, // 🆕 added
 }) {
-  const placeholders = {
-    sph: "+1.00 / -2.25",
-    cyl: "-0.50",
-    axis: "0 - 180",
-    va: "6/6 or 0.00",
-    add: "+1.00",
-    nearVa: "6/9 or 0.00",
-  };
-
   return (
     <div className="space-y-6">
       <div>
         <label className="block mb-1 font-medium">
-          Did patient come with a prescription?
+          Did patient come with a prescription?{" "}
+          <span className="text-red-500">*</span>
         </label>
         <div className="flex gap-4 mt-1">
           <label className="flex items-center gap-1">
@@ -95,7 +74,7 @@ export default function PrescriptionSection({
         <>
           <div>
             <label className="block mb-1 font-medium">
-              Type of Prescription
+              Type of Prescription <span className="text-red-500">*</span>
             </label>
             <select
               value={prescriptionType}
@@ -113,13 +92,14 @@ export default function PrescriptionSection({
 
           <div>
             <h3 className="font-semibold text-lg mb-2">
-              Patient’s Current Prescription{" "}
-              <span className="text-red-500">*</span>
+              Patient’s Current Prescription
             </h3>
 
             <div className="grid grid-cols-7 gap-4 text-sm font-semibold mb-1">
               <div></div>
-              <div>SPH</div>
+              <div>
+                SPH <span className="text-red-500">*</span>
+              </div>
               <div>CYL</div>
               <div>AXIS</div>
               <div>VA</div>
@@ -128,30 +108,42 @@ export default function PrescriptionSection({
             </div>
 
             <div className="grid grid-cols-7 gap-4">
-              {EYES.map((eye) => (
-                <React.Fragment key={eye}>
-                  <div className="font-bold self-center">{eye}</div>
-                  {["sph", "cyl", "axis", "va", "add", "nearVa"].map(
-                    (field) => {
-                      const hasError = rxFieldErrors?.[eye]?.[field] ?? false;
-                      return (
-                        <input
-                          key={field}
-                          type="text"
-                          value={currentRx[eye][field]}
-                          placeholder={placeholders[field]}
-                          onChange={(e) =>
-                            onRxChange(eye, field, e.target.value)
-                          }
-                          className={`border rounded px-2 py-1 ${
-                            hasError ? "border-red-500" : ""
-                          }`}
-                        />
-                      );
-                    }
-                  )}
-                </React.Fragment>
-              ))}
+              {EYES.map((eye) => {
+                const cyl = currentRx[eye].cyl?.trim();
+                const isAxisRequired = !!cyl;
+
+                return (
+                  <React.Fragment key={eye}>
+                    <div className="font-bold self-center">{eye}</div>
+                    <SPHValidator
+                      value={currentRx[eye].sph}
+                      onChange={(val) => onRxChange(eye, "sph", val)}
+                      required
+                    />
+                    <CYLValidator
+                      value={currentRx[eye].cyl}
+                      onChange={(val) => onRxChange(eye, "cyl", val)}
+                    />
+                    <AXISValidator
+                      value={currentRx[eye].axis}
+                      onChange={(val) => onRxChange(eye, "axis", val)}
+                      required={isAxisRequired}
+                    />
+                    <VAValidator
+                      value={currentRx[eye].va}
+                      onChange={(val) => onRxChange(eye, "va", val)}
+                    />
+                    <ADDValidator
+                      value={currentRx[eye].add}
+                      onChange={(val) => onRxChange(eye, "add", val)}
+                    />
+                    <MNNotationValidator
+                      value={currentRx[eye].nearVa}
+                      onChange={(val) => onRxChange(eye, "nearVa", val)}
+                    />
+                  </React.Fragment>
+                );
+              })}
             </div>
           </div>
         </>

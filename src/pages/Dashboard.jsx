@@ -11,8 +11,10 @@ import { resetDashboardState } from "../redux/slices/dashboardSlice";
 import LoadingSpinner from "../components/LoadingSpinner";
 import useHandleConsult from "../hooks/useHandleConsult";
 import Navbar from "../components/Navbar";
+import useWebSocketDashboard from "../hooks/useWebSocketDashboard";
 
 const Dashboard = () => {
+  useWebSocketDashboard(); // ✅ Start listening on mount
   const { handleLogout, isLoading: logoutLoading } = useLogout();
   const { handleConsult } = useHandleConsult();
 

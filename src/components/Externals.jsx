@@ -2,315 +2,416 @@ import React, { useState, useEffect } from "react";
 import { FaChevronDown, FaChevronUp } from "react-icons/fa";
 import { useParams } from "react-router-dom";
 import useExternalObservationData from "../hooks/useExternalObservationData";
-import SearchableSelect from "./SearchableSelect";
-import GradingSelect from "./GradingSelect";
-import NotesTextArea from "./NotesTextArea";
+import ConditionPicker from "./ConditionPicker";
 import DeleteButton from "./DeleteButton";
 import { showToast, formatErrorMessage } from "../components/ToasterHelper";
-import { hasFormChanged } from "../utils/deepCompare";
+import TextInput from "./TextInput";
+import ConditionsDropdown from "./ConditionsDropdown";
+import GradingSelect from "./GradingSelect";
+import NotesTextArea from "./NotesTextArea";
 
 const Externals = ({ setActiveTab, setTabCompletionStatus }) => {
   const { appointmentId } = useParams();
-
-  const [dropdowns, setDropdowns] = useState({});
   const [formData, setFormData] = useState({});
-  const [initialPayload, setInitialPayload] = useState(null);
-  const [errorMessage, setErrorMessage] = useState(null);
-  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [mainOpen, setMainOpen] = useState({});
+  const [subOpen, setSubOpen] = useState({});
 
   const {
-    externals,
-    loadingExternals,
-    conditions,
     loadingConditions,
-    conditionsError,
+    loadingExternals,
+    conditions: rawConditions,
+    existingObservations,
     createExternalObservation,
   } = useExternalObservationData(appointmentId);
 
-  const groupedConditions = conditions.reduce((acc, condition) => {
-    const groupName = condition.group_name;
-    if (!acc[groupName]) acc[groupName] = [];
-    acc[groupName].push(condition);
+  // 1. Group all conditions by main + sub
+  const groupedConditions = (rawConditions || []).reduce((acc, main) => {
+    acc[main.name] = main.subgroups.reduce((subAcc, subgroup) => {
+      subAcc[subgroup.name] = subgroup.conditions.map((c) => ({
+        ...c,
+        OD: {},
+        OS: {},
+        notes: "",
+      }));
+      return subAcc;
+    }, {});
     return acc;
   }, {});
 
+  // 2. Hydrate formData
   useEffect(() => {
-    if (externals && conditions.length > 0) {
-      const initialFormData = {};
-      const snapshot = [];
+    if (!existingObservations || !rawConditions.length) return;
 
-      externals.forEach((obs) => {
-        const condition = conditions.find((c) => c.id === obs.condition);
-        if (!condition) return;
+    const flatConditions = rawConditions.flatMap((main) =>
+      main.subgroups.flatMap((sub) =>
+        sub.conditions.map((c) => ({
+          ...c,
+          main: main.name,
+          sub: sub.name,
+        }))
+      )
+    );
 
-        const groupName = condition.group_name;
-        if (!initialFormData[groupName]) initialFormData[groupName] = [];
+    const map = {};
+    const mains = {};
+    const subs = {};
 
-        const entryIndex = initialFormData[groupName].findIndex(
-          (e) => e.id === condition.id
-        );
+    existingObservations.forEach((obs) => {
+      const matched = flatConditions.find((c) => c.id === obs.condition);
+      if (!matched) return;
 
-        const detail = {
-          grading: obs.grading,
-          notes: obs.notes,
+      const { main, sub } = matched;
+      if (!map[main]) {
+        map[main] = {};
+        mains[main] = true; // 👈 auto-open this main group
+      }
+
+      if (!map[main][sub]) {
+        map[main][sub] = [];
+        if (!subs[main]) subs[main] = {};
+        subs[main][sub] = true; // 👈 auto-open this sub group
+      }
+
+      let condition = map[main][sub].find((c) => c.id === obs.condition);
+      if (!condition) {
+        condition = {
+          id: obs.condition,
+          name: matched.name,
+          has_text: matched.has_text,
+          has_dropdown: matched.has_dropdown,
+          has_grading: matched.has_grading,
+          has_notes: matched.has_notes,
+          dropdown_options: matched.dropdown_options || [],
+          OD: {},
+          OS: {},
+          notes: "",
         };
+        map[main][sub].push(condition);
+      }
 
-        if (entryIndex === -1) {
-          initialFormData[groupName].push({
-            id: condition.id,
-            name: condition.name,
-            [obs.affected_eye]: detail,
-          });
-        } else {
-          initialFormData[groupName][entryIndex][obs.affected_eye] = detail;
-        }
+      if (obs.field_type === "notes") {
+        condition.notes = obs.value;
+      } else if (obs.affected_eye) {
+        condition[obs.affected_eye] = {
+          ...(condition[obs.affected_eye] || {}),
+          [obs.field_type]: obs.value,
+        };
+      }
+    });
 
-        snapshot.push({
-          condition: obs.condition,
-          affected_eye: obs.affected_eye,
-          grading: obs.grading,
-          notes: obs.notes,
-        });
-      });
+    setFormData(map);
+    setMainOpen(mains); // 👈 apply open state
+    setSubOpen(subs); // 👈 apply open state
+  }, [existingObservations, rawConditions]);
 
-      setFormData(initialFormData);
-      setInitialPayload(snapshot);
-    }
-  }, [externals, conditions]);
+  // 3. UI toggles
+  const toggleMain = (main) =>
+    setMainOpen((prev) => ({ ...prev, [main]: !prev[main] }));
 
-  useEffect(() => {
-    if (showErrorModal && errorMessage) {
-      showToast(errorMessage.detail, "error");
-      setShowErrorModal(false);
-    }
-  }, [showErrorModal, errorMessage]);
+  const toggleSub = (main, sub) =>
+    setSubOpen((prev) => ({
+      ...prev,
+      [main]: { ...prev[main], [sub]: !prev[main]?.[sub] },
+    }));
 
-  const toggleSection = (groupName) => {
-    setDropdowns((prev) => ({ ...prev, [groupName]: !prev[groupName] }));
-  };
-
-  const handleSelectCondition = (groupName, selectedOption) => {
-    const selectedId = selectedOption.value;
-    const selectedName = selectedOption.label;
-
+  // 4. Handlers
+  const handleSelect = (main, sub, selected) => {
     setFormData((prev) => {
-      const groupData = prev[groupName] || [];
-      if (groupData.some((item) => item.id === selectedId)) return prev;
+      const existing = prev[main]?.[sub] || [];
+      if (existing.some((c) => c.id === selected.id)) return prev;
+
+      const updated = {
+        ...selected,
+        OD: {},
+        OS: {},
+        notes: "",
+      };
 
       return {
         ...prev,
-        [groupName]: [
-          ...groupData,
-          {
-            id: selectedId,
-            name: selectedName,
-            OD: { grading: "", notes: "" },
-            OS: { grading: "", notes: "" },
-          },
-        ],
+        [main]: {
+          ...prev[main],
+          [sub]: [...existing, updated],
+        },
       };
     });
   };
 
-  const handleFieldChange = (groupName, conditionId, eye, field, value) => {
+  const handleDelete = (main, sub, id) => {
     setFormData((prev) => ({
       ...prev,
-      [groupName]: prev[groupName].map((item) =>
-        item.id === conditionId
-          ? {
-              ...item,
-              [eye]: { ...item[eye], [field]: value },
-            }
-          : item
-      ),
+      [main]: {
+        ...prev[main],
+        [sub]: prev[main][sub].filter((c) => c.id !== id),
+      },
     }));
   };
 
-  const handleDeleteCondition = (groupName, conditionId) => {
+  const handleFieldChange = (main, sub, id, eye, type, val) => {
     setFormData((prev) => ({
       ...prev,
-      [groupName]: prev[groupName].filter((item) => item.id !== conditionId),
+      [main]: {
+        ...prev[main],
+        [sub]: prev[main][sub].map((item) =>
+          item.id === id
+            ? {
+                ...item,
+                [eye]: { ...(item[eye] || {}), [type]: val },
+              }
+            : item
+        ),
+      },
     }));
   };
 
-  const handleSaveAndProceed = async () => {
-    setErrorMessage(null);
-    setShowErrorModal(false);
+  const handleNotesChange = (main, sub, id, val) => {
+    setFormData((prev) => ({
+      ...prev,
+      [main]: {
+        ...prev[main],
+        [sub]: prev[main][sub].map((item) =>
+          item.id === id ? { ...item, notes: val } : item
+        ),
+      },
+    }));
+  };
 
-    const observations = [];
+  // 5. Save logic
+  const handleSave = async () => {
+    const payload = [];
 
-    Object.entries(formData).forEach(([groupName, entries]) => {
-      entries.forEach((entry) => {
-        ["OD", "OS"].forEach((eye) => {
-          const details = entry[eye];
-          if (details && (details.grading || details.notes)) {
-            observations.push({
-              condition: entry.id,
-              affected_eye: eye,
-              grading: details.grading,
-              notes: details.notes,
+    Object.entries(formData).forEach(([main, subGroups]) => {
+      Object.entries(subGroups).forEach(([sub, conditions]) => {
+        conditions.forEach((item) => {
+          if (item.notes?.trim()) {
+            payload.push({
+              condition: item.id,
+              field_type: "notes",
+              value: item.notes,
+              affected_eye: null,
             });
           }
+          ["OD", "OS"].forEach((eye) => {
+            const data = item[eye] || {};
+            Object.entries(data).forEach(([type, val]) => {
+              if (val?.toString().trim()) {
+                payload.push({
+                  condition: item.id,
+                  affected_eye: eye,
+                  field_type: type,
+                  value: val,
+                });
+              }
+            });
+          });
         });
       });
     });
 
-    if (observations.length === 0) {
-      setErrorMessage({
-        detail: "Please select and fill at least one condition. 👍",
+    try {
+      await createExternalObservation({
+        appointment: appointmentId,
+        observations: payload,
       });
-      setShowErrorModal(true);
-      return;
-    }
-
-    // ✅ Handle unchanged data
-    if (initialPayload && !hasFormChanged(initialPayload, observations)) {
-      showToast("No changes detected", "info");
+      showToast("External Observations Saved", "success");
       setTabCompletionStatus?.((prev) => ({
         ...prev,
         externals: true,
       }));
       setActiveTab("internals");
-      return;
-    }
-
-    try {
-      await createExternalObservation({ appointmentId, observations }).unwrap();
-      setTabCompletionStatus?.((prev) => ({
-        ...prev,
-        externals: true,
-      }));
-      showToast("External observations saved successfully!", "success");
-      if (setActiveTab) setActiveTab("internals");
-    } catch (error) {
-      const formatted = formatErrorMessage(error?.data);
-      showToast(formatted, "error");
+    } catch (err) {
+      showToast(formatErrorMessage(err?.data), "error");
     }
   };
 
+  // 6. Render
+  if (loadingExternals || loadingConditions) {
+    return <div className="p-6 text-gray-600">Loading observations...</div>;
+  }
+
   return (
-    <div className="min-h-screen bg-gray-100 p-8">
-      <h1 className="text-2xl font-bold mb-6">Externals</h1>
+    <div className="p-6 max-w-6xl mx-auto">
+      <h1 className="text-2xl font-bold mb-6">External Observations</h1>
 
-      {loadingConditions || loadingExternals ? (
-        <p>Loading conditions...</p>
-      ) : conditionsError ? (
-        <p className="text-red-500">Failed to load external conditions.</p>
-      ) : (
-        <div className="space-y-8">
-          {Object.entries(groupedConditions).map(
-            ([groupName, groupConditions]) => {
-              const options = groupConditions.map((c) => ({
-                value: c.id,
-                label: c.name,
-              }));
+      {Object.entries(groupedConditions).map(([main, subGroups]) => (
+        <div key={main} className="mb-6 border rounded">
+          <button
+            onClick={() => toggleMain(main)}
+            className="w-full text-left px-4 py-2 font-semibold bg-gray-100 flex justify-between items-center"
+          >
+            <span>{main}</span>
+            {mainOpen[main] ? <FaChevronUp /> : <FaChevronDown />}
+          </button>
 
-              const selectedGroupConditions = formData[groupName] || [];
+          {mainOpen[main] &&
+            Object.entries(subGroups).map(([sub, options]) => {
+              const selected = formData[main]?.[sub] || [];
 
               return (
-                <div key={groupName} className="bg-white shadow p-4 rounded">
+                <div key={sub} className="border-t px-4 py-4">
                   <button
-                    type="button"
-                    onClick={() => toggleSection(groupName)}
-                    className="w-full flex justify-between items-center text-left font-semibold"
+                    onClick={() => toggleSub(main, sub)}
+                    className="w-full text-left font-medium mb-2 flex justify-between items-center"
                   >
-                    <span>{groupName}</span>
-                    {dropdowns[groupName] ? <FaChevronUp /> : <FaChevronDown />}
+                    <span>{sub}</span>
+                    {subOpen[main]?.[sub] ? <FaChevronUp /> : <FaChevronDown />}
                   </button>
 
-                  {dropdowns[groupName] && (
-                    <div className="mt-4 space-y-4">
-                      <SearchableSelect
-                        options={options}
-                        selectedValues={selectedGroupConditions.map((c) => ({
+                  {subOpen[main]?.[sub] && (
+                    <>
+                      <ConditionPicker
+                        options={options.map((c) => ({
+                          value: c.id,
+                          label: c.name,
+                          ...c,
+                        }))}
+                        selectedValues={selected.map((c) => ({
                           value: c.id,
                           label: c.name,
                         }))}
-                        onSelect={(option) =>
-                          handleSelectCondition(groupName, option)
+                        onSelect={(opt) =>
+                          handleSelect(main, sub, {
+                            id: opt.value,
+                            name: opt.label,
+                            has_text: opt.has_text,
+                            has_dropdown: opt.has_dropdown,
+                            has_grading: opt.has_grading,
+                            has_notes: opt.has_notes,
+                            dropdown_options: opt.dropdown_options || [],
+                          })
                         }
                         conditionKey="value"
                         conditionNameKey="label"
                       />
 
-                      {selectedGroupConditions.map((item) => (
-                        <div
-                          key={item.id}
-                          className="p-4 bg-gray-50 border rounded space-y-4"
-                        >
-                          <div className="flex justify-between items-center">
-                            <h4 className="font-semibold">{item.name}</h4>
-                            <DeleteButton
-                              onClick={() =>
-                                handleDeleteCondition(groupName, item.id)
-                              }
-                            />
-                          </div>
+                      <div className="space-y-4 mt-4">
+                        {selected.map((item) => (
+                          <div
+                            key={item.id}
+                            className="p-4 border rounded bg-gray-50 space-y-4"
+                          >
+                            <div className="flex justify-between items-center">
+                              <h4 className="font-semibold">{item.name}</h4>
+                              <DeleteButton
+                                onClick={() => handleDelete(main, sub, item.id)}
+                              />
+                            </div>
 
-                          <div className="grid grid-cols-2 gap-4">
-                            {["OD", "OS"].map((eye) => (
-                              <div key={eye}>
-                                <h5 className="font-medium text-sm mb-2">
-                                  {eye === "OD"
-                                    ? "OD (Right Eye)"
-                                    : "OS (Left Eye)"}
-                                </h5>
-                                <GradingSelect
-                                  value={item[eye]?.grading || ""}
-                                  onChange={(val) =>
-                                    handleFieldChange(
-                                      groupName,
-                                      item.id,
-                                      eye,
-                                      "grading",
-                                      val
-                                    )
-                                  }
-                                />
-                                <NotesTextArea
-                                  value={item[eye]?.notes || ""}
-                                  onChange={(val) =>
-                                    handleFieldChange(
-                                      groupName,
-                                      item.id,
-                                      eye,
-                                      "notes",
-                                      val
-                                    )
-                                  }
-                                  placeholder={`Notes for ${eye}`}
-                                />
-                              </div>
-                            ))}
+                            {item.has_text && (
+                              <TextInput
+                                valueOD={item.OD?.text || ""}
+                                valueOS={item.OS?.text || ""}
+                                onChangeOD={(val) =>
+                                  handleFieldChange(
+                                    main,
+                                    sub,
+                                    item.id,
+                                    "OD",
+                                    "text",
+                                    val
+                                  )
+                                }
+                                onChangeOS={(val) =>
+                                  handleFieldChange(
+                                    main,
+                                    sub,
+                                    item.id,
+                                    "OS",
+                                    "text",
+                                    val
+                                  )
+                                }
+                              />
+                            )}
+
+                            {item.has_dropdown && (
+                              <ConditionsDropdown
+                                valueOD={item.OD?.dropdown || ""}
+                                valueOS={item.OS?.dropdown || ""}
+                                options={item.dropdown_options || []}
+                                onChangeOD={(val) =>
+                                  handleFieldChange(
+                                    main,
+                                    sub,
+                                    item.id,
+                                    "OD",
+                                    "dropdown",
+                                    val
+                                  )
+                                }
+                                onChangeOS={(val) =>
+                                  handleFieldChange(
+                                    main,
+                                    sub,
+                                    item.id,
+                                    "OS",
+                                    "dropdown",
+                                    val
+                                  )
+                                }
+                              />
+                            )}
+
+                            {item.has_grading && (
+                              <GradingSelect
+                                valueOD={item.OD?.grading || ""}
+                                valueOS={item.OS?.grading || ""}
+                                onChangeOD={(val) =>
+                                  handleFieldChange(
+                                    main,
+                                    sub,
+                                    item.id,
+                                    "OD",
+                                    "grading",
+                                    val
+                                  )
+                                }
+                                onChangeOS={(val) =>
+                                  handleFieldChange(
+                                    main,
+                                    sub,
+                                    item.id,
+                                    "OS",
+                                    "grading",
+                                    val
+                                  )
+                                }
+                              />
+                            )}
+
+                            {item.has_notes && (
+                              <NotesTextArea
+                                value={item.notes || ""}
+                                onChange={(val) =>
+                                  handleNotesChange(main, sub, item.id, val)
+                                }
+                              />
+                            )}
                           </div>
-                        </div>
-                      ))}
-                    </div>
+                        ))}
+                      </div>
+                    </>
                   )}
                 </div>
               );
-            }
-          )}
-
-          <div className="mt-8 flex justify-between items-center">
-            <button
-              type="button"
-              onClick={() => setActiveTab("visual acuity")}
-              className="px-6 py-2 font-semibold text-indigo-600 border border-indigo-600 rounded-full shadow-sm hover:bg-indigo-50 transition-colors duration-200"
-            >
-              ← Back to Visual Acuity
-            </button>
-
-            <button
-              type="button"
-              onClick={handleSaveAndProceed}
-              className="px-6 py-2 font-semibold text-white rounded-full shadow-md transition-colors duration-200 bg-indigo-600 hover:bg-indigo-700"
-            >
-              Save and Proceed
-            </button>
-          </div>
+            })}
         </div>
-      )}
+      ))}
+
+      <div className="mt-8 flex justify-between items-center">
+        <button
+          onClick={() => setActiveTab("visual acuity")}
+          className="px-6 py-2 font-semibold text-indigo-600 border border-indigo-600 rounded-full hover:bg-indigo-50"
+        >
+          ← Back to Visual Acuity
+        </button>
+        <button
+          onClick={handleSave}
+          className="px-6 py-2 font-semibold text-white rounded-full bg-indigo-600 hover:bg-indigo-700"
+        >
+          Save and Proceed
+        </button>
+      </div>
     </div>
   );
 };

@@ -24,7 +24,7 @@ const useInternalObservationData = (appointmentId) => {
     useCreateInternalObservationMutation();
 
   return {
-    internals,
+    existingObservations: internals,
     loadingInternals,
     conditions,
     loadingConditions,

@@ -7,14 +7,14 @@ import { useCreatePatientMutation } from "../redux/api/features/patientApi";
 import SelectClinicModal from "../components/SelectClinicModal";
 import ConfirmSaveModal from "./ConfirmSaveModal";
 import useCreateAppointment from "../hooks/useCreateAppointment";
+import { showToast } from "../components/ToasterHelper";
 
 const PersonalInfo = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch(); // ✅ Redux dispatch for storing patient ID
   const selectedClinic = useSelector((state) => state.clinic.selectedClinic);
   const [isModalOpen, setIsModalOpen] = useState(false);
-
-  console.log("Selected Clinic from Redux:", selectedClinic);
+  const [generalError, setGeneralError] = useState("");
 
   const [formData, setFormData] = useState({
     first_name: "",
@@ -120,20 +120,15 @@ const PersonalInfo = () => {
     if (Object.keys(validationErrors).length > 0) return;
 
     try {
-      console.log("📡 Submitting patient data:", formData);
+      showToast("Creating patient...", "info"); // ⏳ Start
 
-      // ✅ Create patient with optional confirm_save
       const response = await createPatient({
         ...formData,
         confirm_save: confirmSave ? true : undefined,
       }).unwrap();
 
-      console.log("✅ Patient Created:", response);
-
-      // ✅ Store patient ID in Redux
       dispatch(setPatientId(response.id));
-
-      // ✅ Call the success function (redirects based on action)
+      showToast("Patient created successfully.", "success"); // ✅ Success
       onSuccess(response);
     } catch (error) {
       console.error("❌ Error creating patient:", error);
@@ -147,9 +142,16 @@ const PersonalInfo = () => {
           "A patient with this phone number already exists. Click 'Proceed' to continue."
         );
         setShowConfirmModal(true);
-        setRetryAction(() => () => createPatientHandler(onSuccess, true)); // ✅ Store retry action
+        setRetryAction(() => () => createPatientHandler(onSuccess, true));
       } else {
         setErrors(error.data || {});
+        if (error.data?.detail) {
+          setGeneralError(error.data.detail);
+        } else if (error.data?.non_field_errors?.[0]) {
+          setGeneralError(error.data.non_field_errors[0]);
+        } else {
+          setGeneralError("An unexpected error occurred.");
+        }
       }
     }
   };
@@ -159,13 +161,6 @@ const PersonalInfo = () => {
     setShowConfirmModal(false);
     retryAction && retryAction(); // ✅ Execute stored retry action
   };
-
-  // ✅ Action Handlers
-  // const handleAttendPatient = () => {
-  //   createPatientHandler((patient) => {
-  //     navigate("/case-history", { state: { patient } });
-  //   });
-  // };
 
   // ✅ Attend to Patient: Creates an appointment & redirects to consultation
   const handleAttendPatient = () => {
@@ -181,10 +176,6 @@ const PersonalInfo = () => {
       }
 
       const appointmentId = appointmentResult.data.id; // ✅ Extract appointment ID
-
-      console.log(
-        `✅ Redirecting to consultation with appointment ID: ${appointmentId}`
-      );
 
       // ✅ Redirect to the consultation page with the appointment ID
       navigate(`/consultation/${appointmentId}`);
@@ -210,6 +201,11 @@ const PersonalInfo = () => {
 
       {selectedClinic && (
         <form className="px-8 w-fit">
+          {generalError && (
+            <div className="mb-4 p-4 border border-red-500 bg-red-100 text-red-700 rounded">
+              {generalError}
+            </div>
+          )}
           {/* Section 1 */}
           <section className="flex gap-24 pb-16 justify-between">
             {/* Column 1 */}
@@ -301,7 +297,7 @@ const PersonalInfo = () => {
                 value={formData.occupation}
                 onChange={handleChange}
               />
-              
+
               <InputField
                 label="Address"
                 name="address"
@@ -420,7 +416,7 @@ const PersonalInfo = () => {
                 name="healthInsuranceProvider"
                 value={formData.healthInsuranceProvider}
                 onChange={handleChange}
-                options={["NHIS"]}
+                options={["NHIS", "Private"]}
               />
               <InputField
                 label="Insurance Number"
@@ -477,8 +473,24 @@ const InputField = ({
 }) => (
   <div className="flex flex-col gap-2">
     <label htmlFor={name} className="text-[#101928]">
-      {label}
+      {label}{" "}
+      {[
+        "first_name",
+        "last_name",
+        "occupation",
+        "dob",
+        "gender",
+        "clinic",
+        "address",
+        "landmark",
+        "hometown",
+        "region",
+        "primary_phone",
+        "emergency_contact_name",
+        "emergency_contact_number",
+      ].includes(name) && <span className="text-red-500">*</span>}
     </label>
+
     <div
       className={`flex items-center gap-2 p-4 bg-white border h-14 rounded-lg ${
         error ? "border-red-500" : "border-[#d0d5dd]"
@@ -501,8 +513,12 @@ const InputField = ({
 const SelectField = ({ label, name, value, onChange, options, error }) => (
   <div className="flex flex-col gap-2">
     <label htmlFor={name} className="text-[#101928]">
-      {label}
+      {label}{" "}
+      {["region", "clinic", "occupation_category"].includes(name) && (
+        <span className="text-red-500">*</span>
+      )}
     </label>
+
     <select
       name={name}
       value={value}

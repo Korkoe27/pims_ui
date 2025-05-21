@@ -1,6 +1,6 @@
 import { apiClient } from "../api_client/apiClient";
 import {
-  fetchExternalConditionsUrl,
+  externalUrl,
   createExternalObservationUrl,
   fetchExternalObservationsUrl,
 } from "../end_points/endpoints";
@@ -9,22 +9,25 @@ export const externalsApi = apiClient.injectEndpoints({
   endpoints: (builder) => ({
     /** ✅ Fetch all available External Conditions **/
     fetchExternalConditions: builder.query({
-      query: () => fetchExternalConditionsUrl,
+      query: () => externalUrl,
       providesTags: ["ExternalConditions"],
     }),
 
     /** ✅ Fetch Observations for an Appointment **/
     fetchExternalObservations: builder.query({
-      query: (appointmentId) => fetchExternalObservationsUrl(appointmentId),
+      query: (appointment) => fetchExternalObservationsUrl(appointment),
       providesTags: ["ExternalObservations"],
     }),
 
     /** ✅ Create an External Observation **/
     createExternalObservation: builder.mutation({
-      query: ({ appointmentId, observations }) => ({
-        url: createExternalObservationUrl(appointmentId),
+      query: ({ appointment, observations }) => ({
+        url: createExternalObservationUrl(appointment),
         method: "POST",
-        body: { observations }, // wrap observations list in an object
+        body: {
+          appointment, // ✅ crucial fix
+          observations,
+        },
       }),
       invalidatesTags: ["ExternalObservations"],
     }),
