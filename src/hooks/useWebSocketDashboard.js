@@ -5,17 +5,15 @@ import { appointmentsWebSocketUrl } from "../redux/api/base_url/endpoints";
 
 const socket = new WebSocket(appointmentsWebSocketUrl());
 
-
 const useWebSocketDashboard = () => {
   const dispatch = useDispatch();
 
   useEffect(() => {
     const socket = new WebSocket(appointmentsWebSocketUrl());
 
-
-    socket.onopen = () => {
-      console.log("✅ Connected to Dashboard WebSocket");
-    };
+    // socket.onopen = () => {
+    //   console.log("✅ Connected to Dashboard WebSocket");
+    // };
 
     socket.onmessage = (event) => {
       const data = JSON.parse(event.data);
@@ -25,9 +23,9 @@ const useWebSocketDashboard = () => {
       dispatch(dashboardApi.util.invalidateTags(["Dashboard"]));
     };
 
-    socket.onclose = () => {
-      console.log("❌ Dashboard WebSocket closed");
-    };
+    // socket.onclose = () => {
+    //   console.log("❌ Dashboard WebSocket closed");
+    // };
 
     socket.onerror = (err) => {
       console.error("🚫 WebSocket error:", err.message);
