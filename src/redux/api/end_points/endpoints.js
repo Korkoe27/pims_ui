@@ -185,3 +185,15 @@ export const filterMedicationsUrl = (typeId) =>
 // Create a new Management Plan OR fetch the most recent one
 export const managementPlanUrl = (appointmentId) =>
   `/management/${appointmentId}/`;
+
+
+/////////////////////////
+// WebSocket
+/////////////////////////
+
+// Dynamically generate the WebSocket URL for appointments
+export const appointmentsWebSocketUrl = () => {
+  const protocol = window.location.protocol === "https:" ? "wss" : "ws";
+  const host = window.location.host;
+  return `${protocol}://${host}/ws/appointments/`;
+};

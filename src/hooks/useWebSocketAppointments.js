@@ -7,7 +7,10 @@ const useWebSocketAppointments = () => {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    const socket = new WebSocket("ws://localhost:8000/ws/appointments/");
+    // TECH DEBT: Using hardcoded production WebSocket URL
+    const socket = new WebSocket(
+      "wss://optometryclinic-production.up.railway.app/ws/appointments/"
+    );
 
     socket.onopen = () => {
       console.log("✅ Connected to appointments WebSocket");
@@ -18,13 +21,9 @@ const useWebSocketAppointments = () => {
         const data = JSON.parse(event.data);
         console.log("📩 New appointment event:", data);
 
-        // 🔁 Invalidate tags to trigger RTK Query auto-refresh
+        // 🔁 Invalidate cache to trigger RTK Query re-fetch
         dispatch(appointmentsApi.util.invalidateTags(["Appointments"]));
         dispatch(dashboardApi.util.invalidateTags(["Dashboard"]));
-
-        // Optional: force-fetch (if invalidateTags is not enough)
-        // dispatch(dashboardApi.endpoints.getDashboardData.initiate());
-
       } catch (error) {
         console.error("❌ Failed to parse WebSocket message:", error);
       }
