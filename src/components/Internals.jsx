@@ -57,7 +57,10 @@ const Internals = ({ setActiveTab, setTabCompletionStatus }) => {
     const subs = {};
 
     existingObservations.forEach((obs) => {
-      const matched = flatConditions.find((c) => c.id === obs.condition);
+      const conditionId =
+        typeof obs.condition === "object" ? obs.condition.id : obs.condition;
+      const matched = flatConditions.find((c) => c.id === conditionId);
+
       if (!matched) return;
 
       const { main, sub } = matched;
