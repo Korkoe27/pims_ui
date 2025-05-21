@@ -7,7 +7,12 @@ const useWebSocketAppointments = () => {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    const socket = new WebSocket("ws://localhost:8000/ws/appointments/");
+    //const socket = new WebSocket("ws://localhost:8000/ws/appointments/");
+    // TECH DEBT: Using current location to infer WebSocket host; refactor into helper later.
+    const wsProtocol = window.location.protocol === "https:" ? "wss" : "ws";
+    const socket = new WebSocket(
+      `${wsProtocol}://${window.location.host}/ws/appointments/`
+    );
 
     socket.onopen = () => {
       console.log("✅ Connected to appointments WebSocket");
@@ -24,7 +29,6 @@ const useWebSocketAppointments = () => {
 
         // Optional: force-fetch (if invalidateTags is not enough)
         // dispatch(dashboardApi.endpoints.getDashboardData.initiate());
-
       } catch (error) {
         console.error("❌ Failed to parse WebSocket message:", error);
       }

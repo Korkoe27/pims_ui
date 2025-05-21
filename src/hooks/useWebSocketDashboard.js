@@ -1,12 +1,17 @@
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { dashboardApi } from "../redux/api/features/dashboardApi";
+import { appointmentsWebSocketUrl } from "../redux/api/base_url/endpoints";
+
+const socket = new WebSocket(appointmentsWebSocketUrl());
+
 
 const useWebSocketDashboard = () => {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    const socket = new WebSocket("ws://localhost:8000/ws/appointments/");
+    const socket = new WebSocket(appointmentsWebSocketUrl());
+
 
     socket.onopen = () => {
       console.log("✅ Connected to Dashboard WebSocket");
