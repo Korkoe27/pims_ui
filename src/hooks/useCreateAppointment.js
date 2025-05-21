@@ -19,10 +19,7 @@ const useCreateAppointment = () => {
       appointment_date: new Date().toISOString().split("T")[0], // Today's date
       appointment_type: "New",
       status: "Scheduled",
-      notes: "Quarterly follow-up",
     };
-
-    console.log("🚀 Creating appointment:", appointmentData);
 
     try {
       const response = await createAppointment(appointmentData).unwrap();

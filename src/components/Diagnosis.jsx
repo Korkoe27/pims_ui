@@ -15,12 +15,11 @@ const Diagnosis = ({ appointmentId, setFlowStep, setActiveTab }) => {
 
   const [differentialDiagnosis, setDifferentialDiagnosis] = useState("");
   const [finalDiagnosisEntries, setFinalDiagnosisEntries] = useState([]);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
-    if (appointmentDiagnosis) {
-      setDifferentialDiagnosis(
-        appointmentDiagnosis.differential_diagnosis || ""
-      );
+    if (appointmentDiagnosis && !isLoaded) {
+      setDifferentialDiagnosis(appointmentDiagnosis.differential_diagnosis || "");
 
       if (appointmentDiagnosis.final_diagnoses_info) {
         setFinalDiagnosisEntries(
@@ -34,8 +33,10 @@ const Diagnosis = ({ appointmentId, setFlowStep, setActiveTab }) => {
           }))
         );
       }
+
+      setIsLoaded(true);
     }
-  }, [appointmentDiagnosis]);
+  }, [appointmentDiagnosis, isLoaded]);
 
   const handleSubmit = async () => {
     if (!differentialDiagnosis.trim()) {
