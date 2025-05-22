@@ -60,6 +60,13 @@ const Management = ({ setFlowStep, appointmentId }) => {
     fitting_cross_height: "",
   });
 
+  const [details, setDetails] = useState({
+    surgery_details: "",
+    referral_details: "",
+    counselling_details: "",
+    low_vision_aid_details: "",
+  });
+
   const handleCheckboxChange = (e) => {
     const { name, checked } = e.target;
     setCheckboxes((prev) => ({ ...prev, [name]: checked }));
@@ -68,6 +75,14 @@ const Management = ({ setFlowStep, appointmentId }) => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setPrescription((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleDetailsChange = (e) => {
+    const { name, value } = e.target;
+    setDetails((prev) => ({
       ...prev,
       [name]: value,
     }));
@@ -87,8 +102,7 @@ const Management = ({ setFlowStep, appointmentId }) => {
 
       setPrescription((prev) => ({
         ...prev,
-        type_of_refractive_correction:
-          managementPlan.type_of_refractive_correction || "",
+        type_of_refractive_correction: managementPlan.type_of_refractive_correction || "",
         od_sph: managementPlan.od_sph || "",
         od_cyl: managementPlan.od_cyl || "",
         od_axis: managementPlan.od_axis || "",
@@ -102,6 +116,13 @@ const Management = ({ setFlowStep, appointmentId }) => {
         segment_height: managementPlan.segment_height || "",
         fitting_cross_height: managementPlan.fitting_cross_height || "",
       }));
+
+      setDetails({
+        surgery_details: managementPlan.surgery_details || "",
+        referral_details: managementPlan.referral_details || "",
+        counselling_details: managementPlan.counselling_details || "",
+        low_vision_aid_details: managementPlan.low_vision_aid_details || "",
+      });
     }
   }, [managementPlan]);
 
@@ -121,8 +142,7 @@ const Management = ({ setFlowStep, appointmentId }) => {
       os_add: parseFloat(prescription.os_add) || null,
       pd: parseFloat(prescription.pd) || null,
       segment_height: parseFloat(prescription.segment_height) || null,
-      fitting_cross_height:
-        parseFloat(prescription.fitting_cross_height) || null,
+      fitting_cross_height: parseFloat(prescription.fitting_cross_height) || null,
     };
 
     const payload = {
@@ -135,6 +155,7 @@ const Management = ({ setFlowStep, appointmentId }) => {
       surgery: checkboxes.surgery,
       referral: checkboxes.referral,
       ...processedPrescription,
+      ...details,
     };
 
     try {
@@ -157,9 +178,7 @@ const Management = ({ setFlowStep, appointmentId }) => {
   };
 
   if (isManagementPlanLoading) {
-    return (
-      <div className="ml-72 py-8 px-8">Loading latest management plan...</div>
-    );
+    return <div className="ml-72 py-8 px-8">Loading latest management plan...</div>;
   }
 
   return (
@@ -228,10 +247,7 @@ const Management = ({ setFlowStep, appointmentId }) => {
                 </label>
                 <div className="grid grid-cols-2 gap-5">
                   {Object.keys(checkboxes).map((key) => (
-                    <label
-                      key={key}
-                      className="flex items-center gap-1 capitalize"
-                    >
+                    <label key={key} className="flex items-center gap-1 capitalize">
                       <input
                         type="checkbox"
                         name={key}
@@ -260,6 +276,54 @@ const Management = ({ setFlowStep, appointmentId }) => {
                   filteredMedications={filteredMedications}
                   setSelectedTypeId={setSelectedTypeId}
                 />
+              )}
+
+              {checkboxes.surgery && (
+                <div className="flex flex-col gap-2">
+                  <label className="font-medium">Surgery Details</label>
+                  <textarea
+                    name="surgery_details"
+                    value={details.surgery_details}
+                    onChange={handleDetailsChange}
+                    className="w-full p-2 border rounded-md"
+                  />
+                </div>
+              )}
+
+              {checkboxes.referral && (
+                <div className="flex flex-col gap-2">
+                  <label className="font-medium">Referral Details</label>
+                  <textarea
+                    name="referral_details"
+                    value={details.referral_details}
+                    onChange={handleDetailsChange}
+                    className="w-full p-2 border rounded-md"
+                  />
+                </div>
+              )}
+
+              {checkboxes.counselling && (
+                <div className="flex flex-col gap-2">
+                  <label className="font-medium">Counselling Details</label>
+                  <textarea
+                    name="counselling_details"
+                    value={details.counselling_details}
+                    onChange={handleDetailsChange}
+                    className="w-full p-2 border rounded-md"
+                  />
+                </div>
+              )}
+
+              {checkboxes.lowVisionAid && (
+                <div className="flex flex-col gap-2">
+                  <label className="font-medium">Low Vision Aid Details</label>
+                  <textarea
+                    name="low_vision_aid_details"
+                    value={details.low_vision_aid_details}
+                    onChange={handleDetailsChange}
+                    className="w-full p-2 border rounded-md"
+                  />
+                </div>
               )}
             </section>
           </main>
