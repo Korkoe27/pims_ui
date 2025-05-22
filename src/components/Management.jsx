@@ -65,6 +65,7 @@ const Management = ({ setFlowStep, appointmentId }) => {
     referral_details: "",
     counselling_details: "",
     low_vision_aid_details: "",
+    therapy_details: "",
   });
 
   const handleCheckboxChange = (e) => {
@@ -102,7 +103,8 @@ const Management = ({ setFlowStep, appointmentId }) => {
 
       setPrescription((prev) => ({
         ...prev,
-        type_of_refractive_correction: managementPlan.type_of_refractive_correction || "",
+        type_of_refractive_correction:
+          managementPlan.type_of_refractive_correction || "",
         od_sph: managementPlan.od_sph || "",
         od_cyl: managementPlan.od_cyl || "",
         od_axis: managementPlan.od_axis || "",
@@ -122,6 +124,7 @@ const Management = ({ setFlowStep, appointmentId }) => {
         referral_details: managementPlan.referral_details || "",
         counselling_details: managementPlan.counselling_details || "",
         low_vision_aid_details: managementPlan.low_vision_aid_details || "",
+        therapy_details: managementPlan.therapy_details || "",
       });
     }
   }, [managementPlan]);
@@ -142,7 +145,8 @@ const Management = ({ setFlowStep, appointmentId }) => {
       os_add: parseFloat(prescription.os_add) || null,
       pd: parseFloat(prescription.pd) || null,
       segment_height: parseFloat(prescription.segment_height) || null,
-      fitting_cross_height: parseFloat(prescription.fitting_cross_height) || null,
+      fitting_cross_height:
+        parseFloat(prescription.fitting_cross_height) || null,
     };
 
     const payload = {
@@ -178,7 +182,9 @@ const Management = ({ setFlowStep, appointmentId }) => {
   };
 
   if (isManagementPlanLoading) {
-    return <div className="ml-72 py-8 px-8">Loading latest management plan...</div>;
+    return (
+      <div className="ml-72 py-8 px-8">Loading latest management plan...</div>
+    );
   }
 
   return (
@@ -247,7 +253,10 @@ const Management = ({ setFlowStep, appointmentId }) => {
                 </label>
                 <div className="grid grid-cols-2 gap-5">
                   {Object.keys(checkboxes).map((key) => (
-                    <label key={key} className="flex items-center gap-1 capitalize">
+                    <label
+                      key={key}
+                      className="flex items-center gap-1 capitalize"
+                    >
                       <input
                         type="checkbox"
                         name={key}
@@ -310,6 +319,19 @@ const Management = ({ setFlowStep, appointmentId }) => {
                     value={details.counselling_details}
                     onChange={handleDetailsChange}
                     className="w-full p-2 border rounded-md"
+                  />
+                </div>
+              )}
+
+              {checkboxes.therapy && (
+                <div className="flex flex-col gap-2">
+                  <label className="font-medium">Therapy Details</label>
+                  <textarea
+                    name="therapy_details"
+                    value={details.therapy_details}
+                    onChange={handleDetailsChange}
+                    className="w-full p-2 border rounded-md"
+                    placeholder="Type of therapy or exercises recommended..."
                   />
                 </div>
               )}
