@@ -5,7 +5,9 @@ const MedicationForm = ({
   medicationEntry,
   setMedicationEntry,
   medicationTypes = [],
+  medications = [], // full list passed in
   filteredMedications = [],
+  setSelectedTypeId,
 }) => {
   const handleChange = (field, value) => {
     setMedicationEntry((prev) => ({
@@ -13,6 +15,14 @@ const MedicationForm = ({
       [field]: value,
     }));
   };
+
+  const selectedTypeLabel =
+    medicationTypes.find((t) => t.id === medicationEntry.medication_type)
+      ?.name || "";
+
+  const selectedMedLabel =
+    medications.find((m) => m.id === medicationEntry.medication_name)?.name ||
+    "";
 
   return (
     <div className="flex flex-col gap-6 mt-6 max-w-lg">
@@ -25,10 +35,19 @@ const MedicationForm = ({
         }))}
         selectedValues={
           medicationEntry.medication_type
-            ? [{ value: medicationEntry.medication_type, label: "" }]
+            ? [
+                {
+                  value: medicationEntry.medication_type,
+                  label: selectedTypeLabel,
+                },
+              ]
             : []
         }
-        onSelect={(selected) => handleChange("medication_type", selected.value)}
+        onSelect={(selected) => {
+          handleChange("medication_type", selected.value);
+          setSelectedTypeId?.(selected.value);
+          handleChange("medication_name", ""); // reset name on type change
+        }}
         placeholder="Select medication type"
       />
 
@@ -41,12 +60,15 @@ const MedicationForm = ({
         }))}
         selectedValues={
           medicationEntry.medication_name
-            ? [{ value: medicationEntry.medication_name, label: "" }]
+            ? [
+                {
+                  value: medicationEntry.medication_name,
+                  label: selectedMedLabel,
+                },
+              ]
             : []
         }
-        onSelect={(selected) =>
-          handleChange("medication_name", selected.value)
-        }
+        onSelect={(selected) => handleChange("medication_name", selected.value)}
         placeholder="Search medication by name"
       />
 
