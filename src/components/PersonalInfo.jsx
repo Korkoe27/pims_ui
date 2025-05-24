@@ -531,19 +531,16 @@ const SelectField = ({ label, name, value, onChange, options, error }) => (
   </div>
 );
 
-const RadioField = ({ label, name, value, checked, onChange, error }) => (
-  <div className="flex flex-col">
-    <div className="flex items-center gap-1">
-      <input
-        type="radio"
-        name={name}
-        value={value}
-        checked={checked}
-        onChange={onChange}
-        className={`${error ? "border-red-500" : "border-[#d0d5dd]"}`}
-      />
-      <label className="text-[#101928]">{label}</label>
-    </div>
-    {error && <span className="text-red-500 text-sm">{error}</span>}
-  </div>
+const RadioField = ({ label, name, value, checked, onChange }) => (
+  <label className="flex items-center gap-2">
+    <input
+      type="radio"
+      name={name}
+      value={value}
+      checked={checked}
+      onChange={onChange}
+      className="border-[#d0d5dd]"
+    />
+    <span className="text-[#101928]">{label}</span>
+  </label>
 );
