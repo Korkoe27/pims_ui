@@ -42,6 +42,7 @@ const Internals = ({ setActiveTab, setTabCompletionStatus }) => {
   useEffect(() => {
     if (!existingObservations || !rawConditions.length) return;
 
+    // Flatten rawConditions into a list with group context
     const flatConditions = rawConditions.flatMap((main) =>
       main.subgroups.flatMap((sub) =>
         sub.conditions.map((c) => ({
@@ -52,15 +53,20 @@ const Internals = ({ setActiveTab, setTabCompletionStatus }) => {
       )
     );
 
-    const map = {};
-    const mains = {};
+    const map = {}; // final formData
+    const mains = {}; // for auto-expansion
     const subs = {};
 
     existingObservations.forEach((obs) => {
-      const matched = flatConditions.find((c) => c.id === obs.condition);
+      // obs.condition may be an ID or an object with id
+      const conditionId =
+        typeof obs.condition === "object" ? obs.condition.id : obs.condition;
+
+      const matched = flatConditions.find((c) => c.id === conditionId);
       if (!matched) return;
 
       const { main, sub } = matched;
+
       if (!map[main]) {
         map[main] = {};
         mains[main] = true;
@@ -72,10 +78,11 @@ const Internals = ({ setActiveTab, setTabCompletionStatus }) => {
         subs[main][sub] = true;
       }
 
-      let condition = map[main][sub].find((c) => c.id === obs.condition);
+      // Check if condition already exists in the sub group
+      let condition = map[main][sub].find((c) => c.id === matched.id);
       if (!condition) {
         condition = {
-          id: obs.condition,
+          id: matched.id,
           name: matched.name,
           has_text: matched.has_text,
           has_dropdown: matched.has_dropdown,

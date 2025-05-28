@@ -11,11 +11,13 @@ import { showToast } from "../components/ToasterHelper";
 
 const PersonalInfo = () => {
   const navigate = useNavigate();
-  const dispatch = useDispatch(); // ✅ Redux dispatch for storing patient ID
+  const dispatch = useDispatch();
   const selectedClinic = useSelector((state) => state.clinic.selectedClinic);
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [generalError, setGeneralError] = useState("");
 
+  /* ----------------------- state ----------------------- */
   const [formData, setFormData] = useState({
     first_name: "",
     last_name: "",
@@ -23,8 +25,9 @@ const PersonalInfo = () => {
     dob: "",
     gender: "",
     clinic: selectedClinic || "",
-    address: "",
+    occupation_category: "", // 🔸 NEW
     occupation: "",
+    address: "",
     residence: "",
     region: "",
     landmark: "",
@@ -41,86 +44,77 @@ const PersonalInfo = () => {
 
   const [errors, setErrors] = useState({});
   const { createAppointmentHandler } = useCreateAppointment();
-  const [createPatient, { isLoading, error }] = useCreatePatientMutation();
+  const [createPatient] = useCreatePatientMutation();
+
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [confirmMessage, setConfirmMessage] = useState("");
-  const [retryWithConfirmSave, setRetryWithConfirmSave] = useState(false);
   const [retryAction, setRetryAction] = useState(null);
 
+  /* -------------------- effects ------------------------ */
   useEffect(() => {
     if (selectedClinic) {
-      setFormData((prevData) => ({
-        ...prevData,
-        clinic: selectedClinic,
-      }));
+      setFormData((prev) => ({ ...prev, clinic: selectedClinic }));
     }
   }, [selectedClinic]);
 
   useEffect(() => {
-    if (!selectedClinic) {
-      setIsModalOpen(true); // Open modal if no clinic is selected
-    }
+    if (!selectedClinic) setIsModalOpen(true);
   }, [selectedClinic]);
 
+  /* ------------------- handlers ------------------------ */
   const handleChange = (e) => {
     const { name, value } = e.target;
 
-    // Apply validation rules on change
+    /* inline format / length checks -------------------- */
     let error = "";
-    if (
-      name === "first_name" ||
-      name === "last_name" ||
-      name === "otherNames"
-    ) {
-      if (!/^[A-Za-z ]{1,20}$/.test(value)) {
+    if (["first_name", "last_name", "otherNames"].includes(name)) {
+      if (!/^[A-Za-z ]{1,20}$/.test(value))
         error = "Only letters, max 20 chars";
-      }
     }
-
     if (
-      name === "primary_phone" ||
-      name === "alternate_phone" ||
-      name === "emergency_contact_number"
+      ["primary_phone", "alternate_phone", "emergency_contact_number"].includes(
+        name
+      )
     ) {
-      if (!/^\d{10}$/.test(value)) {
-        error = "Enter a valid 10-digit number";
-      }
+      if (!/^\d{10}$/.test(value)) error = "Enter a valid 10-digit number";
     }
-
     if (name === "healthInsuranceNumber" && value.length > 20) {
       error = "Max 20 characters";
     }
 
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-    setErrors((prev) => ({
-      ...prev,
-      [name]: error,
-    }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    setErrors((prev) => ({ ...prev, [name]: error }));
   };
 
-  const [retryButtonType, setRetryButtonType] = useState(null); // ✅ Store button type
-
+  /* full-form validation & submission ------------------ */
   const createPatientHandler = async (onSuccess, confirmSave = false) => {
-    // Validation
+    const required = [
+      "first_name",
+      "last_name",
+      "occupation",
+      "occupation_category",
+      "dob",
+      "gender",
+      "clinic",
+      "address",
+      "landmark",
+      "hometown",
+      "region",
+      "primary_phone",
+      "emergency_contact_name",
+      "emergency_contact_number",
+    ];
+
     const validationErrors = {};
-    if (!formData.first_name) validationErrors.first_name = "Required";
-    if (!formData.last_name) validationErrors.last_name = "Required";
-    if (!formData.dob) validationErrors.dob = "Required";
-    if (!formData.gender) validationErrors.gender = "Required";
-    if (!formData.primary_phone) validationErrors.primary_phone = "Required";
-    if (!formData.emergency_contact_name)
-      validationErrors.emergency_contact_name = "Required";
-    if (!formData.emergency_contact_number)
-      validationErrors.emergency_contact_number = "Required";
+    required.forEach((field) => {
+      if (!formData[field]) validationErrors[field] = "Required";
+    });
 
     setErrors(validationErrors);
-    if (Object.keys(validationErrors).length > 0) return;
+    if (Object.keys(validationErrors).length) return;
 
     try {
-      showToast("Creating patient...", "info"); // ⏳ Start
+      showToast("Creating patient...", "info");
 
       const response = await createPatient({
         ...formData,
@@ -128,7 +122,7 @@ const PersonalInfo = () => {
       }).unwrap();
 
       dispatch(setPatientId(response.id));
-      showToast("Patient created successfully.", "success"); // ✅ Success
+      showToast("Patient created successfully.", "success");
       onSuccess(response);
     } catch (error) {
       console.error("❌ Error creating patient:", error);
@@ -139,59 +133,46 @@ const PersonalInfo = () => {
         )
       ) {
         setConfirmMessage(
-          "A patient with this phone number already exists. Click 'Proceed' to continue."
+          "A patient with this phone number already exists. Click “Proceed” to continue."
         );
         setShowConfirmModal(true);
         setRetryAction(() => () => createPatientHandler(onSuccess, true));
       } else {
         setErrors(error.data || {});
-        if (error.data?.detail) {
-          setGeneralError(error.data.detail);
-        } else if (error.data?.non_field_errors?.[0]) {
+        if (error.data?.detail) setGeneralError(error.data.detail);
+        else if (error.data?.non_field_errors?.[0])
           setGeneralError(error.data.non_field_errors[0]);
-        } else {
-          setGeneralError("An unexpected error occurred.");
-        }
+        else setGeneralError("An unexpected error occurred.");
       }
     }
   };
 
-  // ✅ Retry function (only called when user confirms)
   const handleConfirmSave = () => {
     setShowConfirmModal(false);
-    retryAction && retryAction(); // ✅ Execute stored retry action
+    retryAction && retryAction();
   };
 
-  // ✅ Attend to Patient: Creates an appointment & redirects to consultation
   const handleAttendPatient = () => {
     createPatientHandler(async (patient) => {
-      dispatch(setPatientId(patient.id));
-
-      // ✅ Create appointment
       const appointmentResult = await createAppointmentHandler(patient);
-
       if (!appointmentResult.success) {
         alert("❌ Failed to create appointment. Please try again.");
         return;
       }
-
-      const appointmentId = appointmentResult.data.id; // ✅ Extract appointment ID
-
-      // ✅ Redirect to the consultation page with the appointment ID
-      navigate(`/consultation/${appointmentId}`);
+      navigate(`/consultation/${appointmentResult.data.id}`);
     });
   };
 
-  const handleScheduleAppointment = () => {
-    createPatientHandler((patient) => {
-      navigate("/createAppointment", { state: { patient } });
-    });
-  };
+  const handleScheduleAppointment = () =>
+    createPatientHandler((patient) =>
+      navigate("/createAppointment", { state: { patient } })
+    );
 
+  /* -------------------- render ------------------------ */
   return (
     <div className="px-72 bg-[#f9fafb] h-full w-full">
-      {/* ✅ Show Modal When No Clinic is Selected */}
       {isModalOpen && <SelectClinicModal setIsModalOpen={setIsModalOpen} />}
+
       <div className="flex flex-col gap-4 px-8 my-6">
         <h1 className="text-2xl font-semibold">New Patient</h1>
         <p className="text-base">
@@ -206,7 +187,8 @@ const PersonalInfo = () => {
               {generalError}
             </div>
           )}
-          {/* Section 1 */}
+
+          {/* ---------- Section 1 ---------- */}
           <section className="flex gap-24 pb-16 justify-between">
             {/* Column 1 */}
             <aside className="flex flex-col gap-8">
@@ -244,7 +226,7 @@ const PersonalInfo = () => {
               />
               <div className="flex flex-col gap-2">
                 <label htmlFor="gender" className="text-[#101928]">
-                  Gender
+                  Gender <span className="text-red-500">*</span>
                 </label>
                 <div className="flex gap-4">
                   <RadioField
@@ -253,6 +235,7 @@ const PersonalInfo = () => {
                     value="Male"
                     checked={formData.gender === "Male"}
                     onChange={handleChange}
+                    error={errors.gender}
                   />
                   <RadioField
                     label="Female"
@@ -260,8 +243,12 @@ const PersonalInfo = () => {
                     value="Female"
                     checked={formData.gender === "Female"}
                     onChange={handleChange}
+                    error={errors.gender}
                   />
                 </div>
+                {errors.gender && (
+                  <span className="text-red-500 text-sm">{errors.gender}</span>
+                )}
               </div>
             </aside>
 
@@ -289,6 +276,7 @@ const PersonalInfo = () => {
                   "Technical & Engineering",
                   "Miscellaneous & Others",
                 ]}
+                error={errors.occupation_category}
               />
 
               <InputField
@@ -296,8 +284,8 @@ const PersonalInfo = () => {
                 name="occupation"
                 value={formData.occupation}
                 onChange={handleChange}
+                error={errors.occupation}
               />
-
               <InputField
                 label="Address"
                 name="address"
@@ -336,12 +324,14 @@ const PersonalInfo = () => {
                   "Western",
                   "Western North",
                 ]}
+                error={errors.region}
               />
               <InputField
                 label="Landmark"
                 name="landmark"
                 value={formData.landmark}
                 onChange={handleChange}
+                error={errors.landmark}
                 placeholder="Closest Landmark"
               />
               <InputField
@@ -349,12 +339,13 @@ const PersonalInfo = () => {
                 name="hometown"
                 value={formData.hometown}
                 onChange={handleChange}
+                error={errors.hometown}
                 placeholder="Enter hometown"
               />
             </aside>
           </section>
 
-          {/* Section 2 */}
+          {/* ---------- Section 2 ---------- */}
           <section className="flex gap-24 pt-16 border-t border-[#d9d9d9] justify-between">
             {/* Column 1 */}
             <aside className="flex flex-col gap-8">
@@ -429,6 +420,7 @@ const PersonalInfo = () => {
             </aside>
           </section>
 
+          {/* ---------- actions ---------- */}
           <div className="flex gap-8 justify-center my-16">
             <button
               type="button"
@@ -447,7 +439,8 @@ const PersonalInfo = () => {
           </div>
         </form>
       )}
-      {/* Confirmation Modal */}
+
+      {/* confirmation modal */}
       <ConfirmSaveModal
         isOpen={showConfirmModal}
         onClose={() => setShowConfirmModal(false)}
@@ -460,7 +453,7 @@ const PersonalInfo = () => {
 
 export default PersonalInfo;
 
-// Utility Components for Input, Select, and Radio Fields
+/* ------------ utility inputs ------------ */
 const InputField = ({
   label,
   name,
@@ -538,19 +531,16 @@ const SelectField = ({ label, name, value, onChange, options, error }) => (
   </div>
 );
 
-const RadioField = ({ label, name, value, checked, onChange, error }) => (
-  <div className="flex flex-col">
-    <div className="flex items-center gap-1">
-      <input
-        type="radio"
-        name={name}
-        value={value}
-        checked={checked}
-        onChange={onChange}
-        className={`${error ? "border-red-500" : "border-[#d0d5dd]"}`}
-      />
-      <label className="text-[#101928]">{label}</label>
-    </div>
-    {error && <span className="text-red-500 text-sm">{error}</span>}
-  </div>
+const RadioField = ({ label, name, value, checked, onChange }) => (
+  <label className="flex items-center gap-2">
+    <input
+      type="radio"
+      name={name}
+      value={value}
+      checked={checked}
+      onChange={onChange}
+      className="border-[#d0d5dd]"
+    />
+    <span className="text-[#101928]">{label}</span>
+  </label>
 );
