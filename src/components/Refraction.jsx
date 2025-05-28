@@ -64,11 +64,18 @@ const Refraction = ({ setActiveTab, setTabCompletionStatus }) => {
       const payload = {
         appointment: appointmentId,
         objective_method: newData.objective_method,
-        objective: ["OD", "OS"].map((eye) => ({ eye, ...newData.objective[eye] })),
-        subjective: ["OD", "OS"].map((eye) => ({ eye, ...newData.subjective[eye] })),
-        cycloplegic: refraction.cycloplegic?.length > 0
-          ? ["OD", "OS"].map((eye) => ({ eye, ...newData.cycloplegic[eye] }))
-          : [],
+        objective: ["OD", "OS"].map((eye) => ({
+          eye,
+          ...newData.objective[eye],
+        })),
+        subjective: ["OD", "OS"].map((eye) => ({
+          eye,
+          ...newData.subjective[eye],
+        })),
+        cycloplegic:
+          refraction.cycloplegic?.length > 0
+            ? ["OD", "OS"].map((eye) => ({ eye, ...newData.cycloplegic[eye] }))
+            : [],
       };
 
       setInitialPayload(payload);
@@ -102,18 +109,32 @@ const Refraction = ({ setActiveTab, setTabCompletionStatus }) => {
         errors[`objective-${eye}-sph`] = "SPH is required";
       }
       if (obj.cyl && !obj.axis) {
-        errors[`objective-${eye}-axis`] = "Axis is required when CYL is entered";
+        errors[`objective-${eye}-axis`] =
+          "Axis is required when CYL is entered";
       }
 
       const sub = formData.subjective[eye];
-      if (sub.cyl && !sub.axis) {
-        errors[`subjective-${eye}-axis`] = "Axis is required when CYL is entered";
+
+      // ✅ Require SPH for subjective refraction
+      if (!sub.sph || sub.sph.trim() === "") {
+        errors[`subjective-${eye}-sph`] = "Subjective SPH is required";
+      }
+
+      // ✅ If CYL is entered, AXIS is required
+      if (
+        sub.cyl &&
+        sub.cyl.trim() !== "" &&
+        (!sub.axis || sub.axis.trim() === "")
+      ) {
+        errors[`subjective-${eye}-axis`] =
+          "Axis is required when CYL is entered";
       }
 
       if (showCycloplegic) {
         const cyc = formData.cycloplegic[eye];
         if (cyc.cyl && !cyc.axis) {
-          errors[`cycloplegic-${eye}-axis`] = "Axis is required when CYL is entered";
+          errors[`cycloplegic-${eye}-axis`] =
+            "Axis is required when CYL is entered";
         }
       }
     });
@@ -129,8 +150,14 @@ const Refraction = ({ setActiveTab, setTabCompletionStatus }) => {
     const payload = {
       appointment: appointmentId,
       objective_method: formData.objective_method,
-      objective: ["OD", "OS"].map((eye) => ({ eye, ...formData.objective[eye] })),
-      subjective: ["OD", "OS"].map((eye) => ({ eye, ...formData.subjective[eye] })),
+      objective: ["OD", "OS"].map((eye) => ({
+        eye,
+        ...formData.objective[eye],
+      })),
+      subjective: ["OD", "OS"].map((eye) => ({
+        eye,
+        ...formData.subjective[eye],
+      })),
       cycloplegic: showCycloplegic
         ? ["OD", "OS"].map((eye) => ({ eye, ...formData.cycloplegic[eye] }))
         : [],
@@ -149,7 +176,10 @@ const Refraction = ({ setActiveTab, setTabCompletionStatus }) => {
       setTabCompletionStatus?.((prev) => ({ ...prev, refraction: true }));
       setActiveTab("extra tests");
     } catch (error) {
-      showToast("Failed to save refraction results. Please try again.", "error");
+      showToast(
+        "Failed to save refraction results. Please try again.",
+        "error"
+      );
     }
   };
 
@@ -168,20 +198,28 @@ const Refraction = ({ setActiveTab, setTabCompletionStatus }) => {
               onChange={(val) => handleChange(section, "OD", name, val)}
             />
             {name === "sph" && fieldErrors[`${section}-OD-sph`] && (
-              <span className="text-red-600 text-sm">{fieldErrors[`${section}-OD-sph`]}</span>
+              <span className="text-red-600 text-sm">
+                {fieldErrors[`${section}-OD-sph`]}
+              </span>
             )}
             {name === "axis" && fieldErrors[`${section}-OD-axis`] && (
-              <span className="text-red-600 text-sm">{fieldErrors[`${section}-OD-axis`]}</span>
+              <span className="text-red-600 text-sm">
+                {fieldErrors[`${section}-OD-axis`]}
+              </span>
             )}
             <ValidatorComponent
               value={formData[section].OS[name] ?? ""}
               onChange={(val) => handleChange(section, "OS", name, val)}
             />
             {name === "sph" && fieldErrors[`${section}-OS-sph`] && (
-              <span className="text-red-600 text-sm">{fieldErrors[`${section}-OS-sph`]}</span>
+              <span className="text-red-600 text-sm">
+                {fieldErrors[`${section}-OS-sph`]}
+              </span>
             )}
             {name === "axis" && fieldErrors[`${section}-OS-axis`] && (
-              <span className="text-red-600 text-sm">{fieldErrors[`${section}-OS-axis`]}</span>
+              <span className="text-red-600 text-sm">
+                {fieldErrors[`${section}-OS-axis`]}
+              </span>
             )}
           </div>
         );
@@ -207,15 +245,21 @@ const Refraction = ({ setActiveTab, setTabCompletionStatus }) => {
       <form className="flex flex-col gap-20">
         <div className="flex flex-col gap-1 h-24 w-[375px]">
           <label className="text-base text-[#101928] font-medium">
-            Method for Objective Refraction <span className="text-red-500">*</span>
+            Method for Objective Refraction{" "}
+            <span className="text-red-500">*</span>
           </label>
           <select
             value={formData.objective_method || ""}
             onChange={(e) =>
-              setFormData((prev) => ({ ...prev, objective_method: e.target.value }))
+              setFormData((prev) => ({
+                ...prev,
+                objective_method: e.target.value,
+              }))
             }
             className={`w-full p-4 h-14 rounded-md border ${
-              fieldErrors["objective_method"] ? "border-red-500" : "border-[#d0d5dd]"
+              fieldErrors["objective_method"]
+                ? "border-red-500"
+                : "border-[#d0d5dd]"
             } bg-white`}
           >
             <option value="">Select Method</option>
@@ -226,12 +270,16 @@ const Refraction = ({ setActiveTab, setTabCompletionStatus }) => {
             ))}
           </select>
           {fieldErrors["objective_method"] && (
-            <span className="text-red-600 text-sm">{fieldErrors["objective_method"]}</span>
+            <span className="text-red-600 text-sm">
+              {fieldErrors["objective_method"]}
+            </span>
           )}
         </div>
 
         <section className="flex flex-col gap-16">
-          <h1 className="text-[#101928] text-base">Objective Refraction Results</h1>
+          <h1 className="text-[#101928] text-base">
+            Objective Refraction Results
+          </h1>
           <div className="flex gap-4">
             <div className="flex flex-col justify-end gap-4 items-baseline">
               <h1 className="text-xl font-bold text-center">OD</h1>
@@ -240,7 +288,9 @@ const Refraction = ({ setActiveTab, setTabCompletionStatus }) => {
             {renderFields("objective", objectiveFields)}
           </div>
 
-          <h1 className="text-[#101928] text-base">Subjective Refraction Results</h1>
+          <h1 className="text-[#101928] text-base">
+            Subjective Refraction Results
+          </h1>
           <div className="flex gap-4">
             <div className="flex flex-col justify-end gap-4 items-baseline">
               <h1 className="text-xl font-bold text-center">OD</h1>
@@ -260,12 +310,16 @@ const Refraction = ({ setActiveTab, setTabCompletionStatus }) => {
             type="button"
           >
             <GrAdd className="w-5 h-5" />
-            {showCycloplegic ? "Remove Cycloplegic Refraction" : "Add Cycloplegic Refraction"}
+            {showCycloplegic
+              ? "Remove Cycloplegic Refraction"
+              : "Add Cycloplegic Refraction"}
           </button>
 
           {showCycloplegic && (
             <div className="flex flex-col gap-4">
-              <h1 className="text-[#101928] text-medium text-base">Cycloplegic Refraction Results</h1>
+              <h1 className="text-[#101928] text-medium text-base">
+                Cycloplegic Refraction Results
+              </h1>
               <div className="flex gap-4">
                 <div className="flex flex-col justify-end gap-4 items-baseline">
                   <h1 className="text-xl font-bold text-center">OD</h1>
@@ -296,7 +350,10 @@ const Refraction = ({ setActiveTab, setTabCompletionStatus }) => {
       </form>
 
       {showErrorModal && (
-        <ErrorModal onClose={() => setShowErrorModal(false)} message="Something went wrong." />
+        <ErrorModal
+          onClose={() => setShowErrorModal(false)}
+          message="Something went wrong."
+        />
       )}
     </div>
   );

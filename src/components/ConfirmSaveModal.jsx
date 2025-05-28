@@ -8,8 +8,8 @@ const ConfirmSaveModal = ({ isOpen, onClose, onConfirm, message }) => {
       <div className="bg-white p-6 rounded-lg shadow-lg w-[400px]">
         <h2 className="text-xl font-semibold mb-4">Confirm Save</h2>
         <p className="text-gray-700">
-          A patient with this phone number already exists. Click 'Proceed' to
-          continue or check the number and try again.
+          An account with this primary phone number already exists. Click
+          ‘Proceed’ to continue, or verify the number and try again.
         </p>
 
         <div className="mt-6 flex justify-end gap-4">
