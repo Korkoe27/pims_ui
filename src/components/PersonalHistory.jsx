@@ -27,10 +27,15 @@ const PersonalHistory = ({
   setActiveTab,
   setTabCompletionStatus,
 }) => {
-  const { personalHistory, createPatientHistory, createPatientHistoryStatus } =
-    usePersonalHistoryData(patientId, appointmentId);
+  const {
+    personalHistory,
+    isLoading: loadingPersonalHistory,
+    createPatientHistory,
+    createPatientHistoryStatus,
+  } = usePersonalHistoryData(patientId, appointmentId);
 
   const { medicalConditions, ocularConditions } = useFetchConditionsData();
+  const isLoadingData = loadingPersonalHistory;
 
   const [lastEyeExam, setLastEyeExam] = useState("");
   const [drugHistory, setDrugHistory] = useState("");
@@ -466,8 +471,8 @@ const PersonalHistory = ({
   return (
     <div className="p-6 max-w-6xl mx-auto">
       <h1 className="text-2xl font-bold mb-6">Oculo-Medical History</h1>
-      {isLoading ? (
-        <p>Loading case history data...</p>
+      {isLoadingData ? (
+        <p>Loading Oculo-Medical History data...</p>
       ) : (
         <>
           <div className="flex flex-col md:flex-row md:items-start gap-10">
