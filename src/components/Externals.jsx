@@ -15,6 +15,7 @@ const Externals = ({ setActiveTab, setTabCompletionStatus }) => {
   const [formData, setFormData] = useState({});
   const [mainOpen, setMainOpen] = useState({});
   const [subOpen, setSubOpen] = useState({});
+  const [saving, setSaving] = useState(false);
 
   const {
     loadingConditions,
@@ -178,6 +179,7 @@ const Externals = ({ setActiveTab, setTabCompletionStatus }) => {
 
   // 5. Save logic
   const handleSave = async () => {
+    setSaving(true); // 🟢 Start saving
     const payload = [];
 
     Object.entries(formData).forEach(([main, subGroups]) => {
@@ -221,6 +223,8 @@ const Externals = ({ setActiveTab, setTabCompletionStatus }) => {
       setActiveTab("internals");
     } catch (err) {
       showToast(formatErrorMessage(err?.data), "error");
+    } finally {
+      setSaving(false); // 🔴 Done saving
     }
   };
 
@@ -407,9 +411,14 @@ const Externals = ({ setActiveTab, setTabCompletionStatus }) => {
         </button>
         <button
           onClick={handleSave}
-          className="px-6 py-2 font-semibold text-white rounded-full bg-indigo-600 hover:bg-indigo-700"
+          disabled={saving}
+          className={`px-6 py-2 font-semibold text-white rounded-full transition-colors duration-200 ${
+            saving
+              ? "bg-gray-400 cursor-not-allowed"
+              : "bg-indigo-600 hover:bg-indigo-700"
+          }`}
         >
-          Save and Proceed
+          {saving ? "Saving..." : "Save and Proceed"}
         </button>
       </div>
     </div>

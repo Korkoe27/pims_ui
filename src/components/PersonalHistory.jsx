@@ -472,7 +472,7 @@ const PersonalHistory = ({
     <div className="p-6 max-w-6xl mx-auto">
       <h1 className="text-2xl font-bold mb-6">Oculo-Medical History</h1>
       {isLoadingData ? (
-        <p>Loading Oculo-Medical History data...</p>
+        <p>Loading data. Please wait..</p>
       ) : (
         <>
           <div className="flex flex-col md:flex-row md:items-start gap-10">

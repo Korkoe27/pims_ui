@@ -3,14 +3,16 @@ import React, { useState, useEffect } from "react";
 const RefractiveCorrectionSection = ({ prescription, handleInputChange }) => {
   const [typeTouched, setTypeTouched] = useState(false);
 
-  const isTypeInvalid = typeTouched && !prescription.type_of_refractive_correction;
+  const isTypeInvalid =
+    typeTouched && !prescription.type_of_refractive_correction;
 
   return (
     <div className="flex flex-col gap-6">
       {/* --- Type of Refractive Correction --- */}
       <div className="flex flex-col gap-1">
         <label className="text-base font-medium flex items-center">
-          Type of Refractive Correction <span className="text-red-600 font-bold ml-1">*</span>
+          Type of Refractive Correction{" "}
+          <span className="text-red-600 font-bold ml-1">*</span>
         </label>
         <select
           name="type_of_refractive_correction"
@@ -53,6 +55,9 @@ const RefractiveCorrectionSection = ({ prescription, handleInputChange }) => {
             <div className="flex flex-col" key={field}>
               <label className="px-4 text-center font-normal text-base uppercase">
                 {field}
+                {field === "sph" && (
+                  <span className="text-red-600 font-bold ml-1">*</span>
+                )}
               </label>
               <input
                 type="text"
