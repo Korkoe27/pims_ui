@@ -85,7 +85,14 @@ const Management = ({ setFlowStep, appointmentId }) => {
   };
 
   const handleSubmit = async () => {
-    // ✅ Validate refractive correction type if selected
+    // ✅ Check at least one treatment option is selected
+    const atLeastOneSelected = Object.values(checkboxes).some((val) => val);
+    if (!atLeastOneSelected) {
+      showToast("Please select at least one management option.", "error");
+      return;
+    }
+
+    // ✅ Check refractive correction type if selected
     if (
       checkboxes.refractiveCorrection &&
       !prescription.type_of_refractive_correction
@@ -94,6 +101,28 @@ const Management = ({ setFlowStep, appointmentId }) => {
       return;
     }
 
+    // ✅ Validate SPH for both eyes
+    if (!prescription.od_sph.trim() || !prescription.os_sph.trim()) {
+      showToast(
+        "SPH is required for both eyes. Please fill it in. 👍",
+        "error"
+      );
+      return;
+    }
+
+    // ✅ Validate AXIS only if CYL is entered
+    if (
+      (prescription.od_cyl.trim() && !prescription.od_axis.trim()) ||
+      (prescription.os_cyl.trim() && !prescription.os_axis.trim())
+    ) {
+      showToast(
+        "AXIS is required for any eye where CYL is provided. Please correct it. 👍",
+        "error"
+      );
+      return;
+    }
+
+    // ✅ Convert numeric fields
     const processedPrescription = {
       ...prescription,
       od_sph: parseFloat(prescription.od_sph) || null,
@@ -110,6 +139,7 @@ const Management = ({ setFlowStep, appointmentId }) => {
         parseFloat(prescription.fitting_cross_height) || null,
     };
 
+    // ✅ Assemble payload
     const payload = {
       ...prescription,
       ...processedPrescription,
@@ -123,6 +153,7 @@ const Management = ({ setFlowStep, appointmentId }) => {
       referral: checkboxes.referral,
     };
 
+    // ✅ Submit and handle result
     try {
       showToast("Saving management plan...", "info");
       await createManagementPlan({ appointmentId, payload }).unwrap();

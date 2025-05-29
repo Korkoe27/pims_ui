@@ -458,644 +458,661 @@ const PersonalHistory = ({
 
   const formattedOptions = formatOptions(medicalConditions);
 
+  const isLoading =
+    (!isFirstVisit && !personalHistory) ||
+    medicalConditions.length === 0 ||
+    ocularConditions.length === 0;
+
   return (
     <div className="p-6 max-w-6xl mx-auto">
       <h1 className="text-2xl font-bold mb-6">Oculo-Medical History</h1>
-
-      <div className="flex flex-col md:flex-row md:items-start gap-10">
-        {/* Left Column */}
-        <div className="flex-1 space-y-6">
-          {/* Last Eye Exam */}
-          <div>
-            <label className="block font-medium mb-1">
-              Last Eye Examination{" "}
-              {isFirstVisit && <span className="text-red-500">*</span>}
-            </label>
-            <select
-              value={lastEyeExam}
-              onChange={(e) => setLastEyeExam(e.target.value)}
-              className="w-full border p-2 rounded"
-            >
-              <option value="">-- Select --</option>
-              {lastEyeExamOptions.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Drug History */}
-          <div className="space-y-2">
-            <label className="block font-medium mb-1">
-              Drug History{" "}
-              {isFirstVisit && <span className="text-red-500">*</span>}
-            </label>
-            <input
-              value={drugHistory}
-              onChange={(e) => setDrugHistory(e.target.value)}
-              className="w-full border p-2 rounded"
-              placeholder="E.g., Paracetamol"
-            />
-            <GeneralNotesTextArea
-              value={drugNotes}
-              onChange={setDrugNotes}
-              placeholder="Additional notes about the drug history..."
-            />
-          </div>
-
-          {/* Allergy History */}
-          <div>
-            <label className="block font-medium mb-1">
-              Allergies{" "}
-              {isFirstVisit && <span className="text-red-500">*</span>}
-            </label>
-            <input
-              value={allergyHistory}
-              onChange={(e) => setAllergyHistory(e.target.value)}
-              className="w-full border p-2 rounded"
-              placeholder="E.g., Penicillin"
-            />
-            <GeneralNotesTextArea
-              value={allergyNotes}
-              onChange={setAllergyNotes}
-              placeholder="Enter notes about patient's allergies"
-            />
-          </div>
-
-          {/* Social History */}
-          <div>
-            <label className="block font-medium mb-1">
-              Social History{" "}
-              {isFirstVisit && <span className="text-red-500">*</span>}
-            </label>
-            <input
-              value={socialHistory}
-              onChange={(e) => setSocialHistory(e.target.value)}
-              className="w-full border p-2 rounded"
-              placeholder="E.g., Smoker, Driver"
-            />
-            <GeneralNotesTextArea
-              value={socialNotes}
-              onChange={setSocialNotes}
-              placeholder="Enter notes about patient's social history"
-            />
-          </div>
-
-          {/* Medical History */}
-          <div>
-            <div className="mb-6">
-              <ConditionPicker
-                label={
-                  <span>
-                    Medical History{" "}
-                    {isFirstVisit && <span className="text-red-500">*</span>}
-                  </span>
-                }
-                options={formatOptions(medicalConditions)}
-                selectedValues={selectedMedical.map((c) => ({
-                  id: c.id,
-                  name: c.name,
-                }))}
-                onSelect={handleSelect(setSelectedMedical, selectedMedical)}
-                conditionKey="id"
-                conditionNameKey="name"
-              />
-              {selectedMedical.length > 0 && (
-                <div className="mt-4 space-y-4">
-                  {selectedMedical.map((item) => (
-                    <div
-                      key={item.id}
-                      className="p-4 bg-gray-50 border rounded space-y-4"
-                    >
-                      <div className="flex items-center justify-between">
-                        <h4 className="font-semibold">{item.name}</h4>
-                        <DeleteButton
-                          onClick={() =>
-                            handleDeleteCondition(item.id, setSelectedMedical)
-                          }
-                        />
-                      </div>
-
-                      {item.has_text && (
-                        <TextInput
-                          valueOD={item.OD?.text || ""}
-                          valueOS={item.OS?.text || ""}
-                          onChangeOD={(val) =>
-                            handleFieldChange(
-                              item.id,
-                              "OD",
-                              "text",
-                              val,
-                              selectedMedical,
-                              setSelectedMedical
-                            )
-                          }
-                          onChangeOS={(val) =>
-                            handleFieldChange(
-                              item.id,
-                              "OS",
-                              "text",
-                              val,
-                              selectedMedical,
-                              setSelectedMedical
-                            )
-                          }
-                        />
-                      )}
-
-                      {item.has_dropdown && (
-                        <ConditionsDropdown
-                          valueOD={item.OD?.dropdown || ""}
-                          valueOS={item.OS?.dropdown || ""}
-                          options={item.dropdown_options}
-                          onChangeOD={(val) =>
-                            handleFieldChange(
-                              item.id,
-                              "OD",
-                              "dropdown",
-                              val,
-                              selectedMedical,
-                              setSelectedMedical
-                            )
-                          }
-                          onChangeOS={(val) =>
-                            handleFieldChange(
-                              item.id,
-                              "OS",
-                              "dropdown",
-                              val,
-                              selectedMedical,
-                              setSelectedMedical
-                            )
-                          }
-                        />
-                      )}
-
-                      {item.has_grading && (
-                        <GradingSelect
-                          valueOD={item.OD?.grading || ""}
-                          valueOS={item.OS?.grading || ""}
-                          onChangeOD={(val) =>
-                            handleFieldChange(
-                              item.id,
-                              "OD",
-                              "grading",
-                              val,
-                              selectedMedical,
-                              setSelectedMedical
-                            )
-                          }
-                          onChangeOS={(val) =>
-                            handleFieldChange(
-                              item.id,
-                              "OS",
-                              "grading",
-                              val,
-                              selectedMedical,
-                              setSelectedMedical
-                            )
-                          }
-                        />
-                      )}
-
-                      {item.has_notes && (
-                        <NotesTextArea
-                          value={item.notes || ""}
-                          onChange={(val) =>
-                            setSelectedMedical((prev) =>
-                              prev.map((c) =>
-                                c.id === item.id ? { ...c, notes: val } : c
-                              )
-                            )
-                          }
-                        />
-                      )}
-                    </div>
+      {isLoading ? (
+        <p>Loading case history data...</p>
+      ) : (
+        <>
+          <div className="flex flex-col md:flex-row md:items-start gap-10">
+            {/* Left Column */}
+            <div className="flex-1 space-y-6">
+              {/* Last Eye Exam */}
+              <div>
+                <label className="block font-medium mb-1">
+                  Last Eye Examination{" "}
+                  {isFirstVisit && <span className="text-red-500">*</span>}
+                </label>
+                <select
+                  value={lastEyeExam}
+                  onChange={(e) => setLastEyeExam(e.target.value)}
+                  className="w-full border p-2 rounded"
+                >
+                  <option value="">-- Select --</option>
+                  {lastEyeExamOptions.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
                   ))}
+                </select>
+              </div>
+
+              {/* Drug History */}
+              <div className="space-y-2">
+                <label className="block font-medium mb-1">
+                  Drug History{" "}
+                  {isFirstVisit && <span className="text-red-500">*</span>}
+                </label>
+                <input
+                  value={drugHistory}
+                  onChange={(e) => setDrugHistory(e.target.value)}
+                  className="w-full border p-2 rounded"
+                  placeholder="E.g., Paracetamol"
+                />
+                <GeneralNotesTextArea
+                  value={drugNotes}
+                  onChange={setDrugNotes}
+                  placeholder="Additional notes about the drug history..."
+                />
+              </div>
+
+              {/* Allergy History */}
+              <div>
+                <label className="block font-medium mb-1">
+                  Allergies{" "}
+                  {isFirstVisit && <span className="text-red-500">*</span>}
+                </label>
+                <input
+                  value={allergyHistory}
+                  onChange={(e) => setAllergyHistory(e.target.value)}
+                  className="w-full border p-2 rounded"
+                  placeholder="E.g., Penicillin"
+                />
+                <GeneralNotesTextArea
+                  value={allergyNotes}
+                  onChange={setAllergyNotes}
+                  placeholder="Enter notes about patient's allergies"
+                />
+              </div>
+
+              {/* Social History */}
+              <div>
+                <label className="block font-medium mb-1">
+                  Social History{" "}
+                  {isFirstVisit && <span className="text-red-500">*</span>}
+                </label>
+                <input
+                  value={socialHistory}
+                  onChange={(e) => setSocialHistory(e.target.value)}
+                  className="w-full border p-2 rounded"
+                  placeholder="E.g., Smoker, Driver"
+                />
+                <GeneralNotesTextArea
+                  value={socialNotes}
+                  onChange={setSocialNotes}
+                  placeholder="Enter notes about patient's social history"
+                />
+              </div>
+
+              {/* Medical History */}
+              <div>
+                <div className="mb-6">
+                  <ConditionPicker
+                    label={
+                      <span>
+                        Medical History{" "}
+                        {isFirstVisit && (
+                          <span className="text-red-500">*</span>
+                        )}
+                      </span>
+                    }
+                    options={formatOptions(medicalConditions)}
+                    selectedValues={selectedMedical.map((c) => ({
+                      id: c.id,
+                      name: c.name,
+                    }))}
+                    onSelect={handleSelect(setSelectedMedical, selectedMedical)}
+                    conditionKey="id"
+                    conditionNameKey="name"
+                  />
+                  {selectedMedical.length > 0 && (
+                    <div className="mt-4 space-y-4">
+                      {selectedMedical.map((item) => (
+                        <div
+                          key={item.id}
+                          className="p-4 bg-gray-50 border rounded space-y-4"
+                        >
+                          <div className="flex items-center justify-between">
+                            <h4 className="font-semibold">{item.name}</h4>
+                            <DeleteButton
+                              onClick={() =>
+                                handleDeleteCondition(
+                                  item.id,
+                                  setSelectedMedical
+                                )
+                              }
+                            />
+                          </div>
+
+                          {item.has_text && (
+                            <TextInput
+                              valueOD={item.OD?.text || ""}
+                              valueOS={item.OS?.text || ""}
+                              onChangeOD={(val) =>
+                                handleFieldChange(
+                                  item.id,
+                                  "OD",
+                                  "text",
+                                  val,
+                                  selectedMedical,
+                                  setSelectedMedical
+                                )
+                              }
+                              onChangeOS={(val) =>
+                                handleFieldChange(
+                                  item.id,
+                                  "OS",
+                                  "text",
+                                  val,
+                                  selectedMedical,
+                                  setSelectedMedical
+                                )
+                              }
+                            />
+                          )}
+
+                          {item.has_dropdown && (
+                            <ConditionsDropdown
+                              valueOD={item.OD?.dropdown || ""}
+                              valueOS={item.OS?.dropdown || ""}
+                              options={item.dropdown_options}
+                              onChangeOD={(val) =>
+                                handleFieldChange(
+                                  item.id,
+                                  "OD",
+                                  "dropdown",
+                                  val,
+                                  selectedMedical,
+                                  setSelectedMedical
+                                )
+                              }
+                              onChangeOS={(val) =>
+                                handleFieldChange(
+                                  item.id,
+                                  "OS",
+                                  "dropdown",
+                                  val,
+                                  selectedMedical,
+                                  setSelectedMedical
+                                )
+                              }
+                            />
+                          )}
+
+                          {item.has_grading && (
+                            <GradingSelect
+                              valueOD={item.OD?.grading || ""}
+                              valueOS={item.OS?.grading || ""}
+                              onChangeOD={(val) =>
+                                handleFieldChange(
+                                  item.id,
+                                  "OD",
+                                  "grading",
+                                  val,
+                                  selectedMedical,
+                                  setSelectedMedical
+                                )
+                              }
+                              onChangeOS={(val) =>
+                                handleFieldChange(
+                                  item.id,
+                                  "OS",
+                                  "grading",
+                                  val,
+                                  selectedMedical,
+                                  setSelectedMedical
+                                )
+                              }
+                            />
+                          )}
+
+                          {item.has_notes && (
+                            <NotesTextArea
+                              value={item.notes || ""}
+                              onChange={(val) =>
+                                setSelectedMedical((prev) =>
+                                  prev.map((c) =>
+                                    c.id === item.id ? { ...c, notes: val } : c
+                                  )
+                                )
+                              }
+                            />
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              )}
+              </div>
+            </div>
+
+            {/* Right Column */}
+            <div className="flex-1 space-y-6">
+              {/* Ocular History */}
+              <div>
+                <ConditionPicker
+                  label={
+                    <span>
+                      Ocular History{" "}
+                      {isFirstVisit && <span className="text-red-500">*</span>}
+                    </span>
+                  }
+                  options={formatOptions(ocularConditions)}
+                  selectedValues={selectedOcular.map((c) => ({
+                    id: c.id,
+                    name: c.name,
+                  }))}
+                  onSelect={handleSelect(setSelectedOcular, selectedOcular)}
+                  conditionKey="id"
+                  conditionNameKey="name"
+                />
+
+                {selectedOcular.length > 0 && (
+                  <div className="mt-4 space-y-4">
+                    {selectedOcular.map((item) => (
+                      <div
+                        key={item.id}
+                        className="p-4 bg-gray-50 border rounded space-y-4"
+                      >
+                        <div className="flex items-center justify-between">
+                          <h4 className="font-semibold">{item.name}</h4>
+                          <DeleteButton
+                            onClick={() =>
+                              handleDeleteCondition(item.id, setSelectedOcular)
+                            }
+                          />
+                        </div>
+
+                        {item.has_text && (
+                          <TextInput
+                            valueOD={item.OD?.text || ""}
+                            valueOS={item.OS?.text || ""}
+                            onChangeOD={(val) =>
+                              handleFieldChange(
+                                item.id,
+                                "OD",
+                                "text",
+                                val,
+                                selectedOcular,
+                                setSelectedOcular
+                              )
+                            }
+                            onChangeOS={(val) =>
+                              handleFieldChange(
+                                item.id,
+                                "OS",
+                                "text",
+                                val,
+                                selectedOcular,
+                                setSelectedOcular
+                              )
+                            }
+                          />
+                        )}
+
+                        {item.has_dropdown && (
+                          <ConditionsDropdown
+                            valueOD={item.OD?.dropdown || ""}
+                            valueOS={item.OS?.dropdown || ""}
+                            options={item.dropdown_options}
+                            onChangeOD={(val) =>
+                              handleFieldChange(
+                                item.id,
+                                "OD",
+                                "dropdown",
+                                val,
+                                selectedOcular,
+                                setSelectedOcular
+                              )
+                            }
+                            onChangeOS={(val) =>
+                              handleFieldChange(
+                                item.id,
+                                "OS",
+                                "dropdown",
+                                val,
+                                selectedOcular,
+                                setSelectedOcular
+                              )
+                            }
+                          />
+                        )}
+
+                        {item.has_grading && (
+                          <GradingSelect
+                            valueOD={item.OD?.grading || ""}
+                            valueOS={item.OS?.grading || ""}
+                            onChangeOD={(val) =>
+                              handleFieldChange(
+                                item.id,
+                                "OD",
+                                "grading",
+                                val,
+                                selectedOcular,
+                                setSelectedOcular
+                              )
+                            }
+                            onChangeOS={(val) =>
+                              handleFieldChange(
+                                item.id,
+                                "OS",
+                                "grading",
+                                val,
+                                selectedOcular,
+                                setSelectedOcular
+                              )
+                            }
+                          />
+                        )}
+
+                        {item.has_notes && (
+                          <NotesTextArea
+                            value={item.notes || ""}
+                            onChange={(val) =>
+                              setSelectedOcular((prev) =>
+                                prev.map((c) =>
+                                  c.id === item.id ? { ...c, notes: val } : c
+                                )
+                              )
+                            }
+                          />
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              {/* Family Medical History */}
+              <div>
+                <ConditionPicker
+                  label={
+                    <span>
+                      Family Medical History{" "}
+                      {isFirstVisit && <span className="text-red-500">*</span>}
+                    </span>
+                  }
+                  options={formatOptions(medicalConditions)}
+                  selectedValues={familyMedicalHistory.map((c) => ({
+                    id: c.id,
+                    name: c.name,
+                  }))}
+                  onSelect={handleSelect(
+                    setFamilyMedicalHistory,
+                    familyMedicalHistory
+                  )}
+                  conditionKey="id"
+                  conditionNameKey="name"
+                />
+
+                {familyMedicalHistory.length > 0 && (
+                  <div className="mt-4 space-y-4">
+                    {familyMedicalHistory.map((item) => (
+                      <div
+                        key={item.id}
+                        className="p-4 bg-gray-50 border rounded space-y-4"
+                      >
+                        <div className="flex items-center justify-between">
+                          <h4 className="font-semibold">{item.name}</h4>
+                          <DeleteButton
+                            onClick={() =>
+                              handleDeleteCondition(
+                                item.id,
+                                setFamilyMedicalHistory
+                              )
+                            }
+                          />
+                        </div>
+
+                        {item.has_text && (
+                          <TextInput
+                            valueOD={item.OD?.text || ""}
+                            valueOS={item.OS?.text || ""}
+                            onChangeOD={(val) =>
+                              handleFieldChange(
+                                item.id,
+                                "OD",
+                                "text",
+                                val,
+                                familyMedicalHistory,
+                                setFamilyMedicalHistory
+                              )
+                            }
+                            onChangeOS={(val) =>
+                              handleFieldChange(
+                                item.id,
+                                "OS",
+                                "text",
+                                val,
+                                familyMedicalHistory,
+                                setFamilyMedicalHistory
+                              )
+                            }
+                          />
+                        )}
+
+                        {item.has_dropdown && (
+                          <ConditionsDropdown
+                            valueOD={item.OD?.dropdown || ""}
+                            valueOS={item.OS?.dropdown || ""}
+                            options={item.dropdown_options}
+                            onChangeOD={(val) =>
+                              handleFieldChange(
+                                item.id,
+                                "OD",
+                                "dropdown",
+                                val,
+                                familyMedicalHistory,
+                                setFamilyMedicalHistory
+                              )
+                            }
+                            onChangeOS={(val) =>
+                              handleFieldChange(
+                                item.id,
+                                "OS",
+                                "dropdown",
+                                val,
+                                familyMedicalHistory,
+                                setFamilyMedicalHistory
+                              )
+                            }
+                          />
+                        )}
+
+                        {item.has_grading && (
+                          <GradingSelect
+                            valueOD={item.OD?.grading || ""}
+                            valueOS={item.OS?.grading || ""}
+                            onChangeOD={(val) =>
+                              handleFieldChange(
+                                item.id,
+                                "OD",
+                                "grading",
+                                val,
+                                familyMedicalHistory,
+                                setFamilyMedicalHistory
+                              )
+                            }
+                            onChangeOS={(val) =>
+                              handleFieldChange(
+                                item.id,
+                                "OS",
+                                "grading",
+                                val,
+                                familyMedicalHistory,
+                                setFamilyMedicalHistory
+                              )
+                            }
+                          />
+                        )}
+
+                        {item.has_notes && (
+                          <NotesTextArea
+                            value={item.notes || ""}
+                            onChange={(val) =>
+                              setFamilyMedicalHistory((prev) =>
+                                prev.map((c) =>
+                                  c.id === item.id ? { ...c, notes: val } : c
+                                )
+                              )
+                            }
+                          />
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Family Ocular History */}
+              <div>
+                <ConditionPicker
+                  label={
+                    <span>
+                      Family Ocular History{" "}
+                      {isFirstVisit && <span className="text-red-500">*</span>}
+                    </span>
+                  }
+                  options={formatOptions(ocularConditions)}
+                  selectedValues={familyOcularHistory.map((c) => ({
+                    id: c.id,
+                    name: c.name,
+                  }))}
+                  onSelect={handleSelect(
+                    setFamilyOcularHistory,
+                    familyOcularHistory
+                  )}
+                  conditionKey="id"
+                  conditionNameKey="name"
+                />
+
+                {familyOcularHistory.length > 0 && (
+                  <div className="mt-4 space-y-4">
+                    {familyOcularHistory.map((item) => (
+                      <div
+                        key={item.id}
+                        className="p-4 bg-gray-50 border rounded space-y-4"
+                      >
+                        <div className="flex items-center justify-between">
+                          <h4 className="font-semibold">{item.name}</h4>
+                          <DeleteButton
+                            onClick={() =>
+                              handleDeleteCondition(
+                                item.id,
+                                setFamilyOcularHistory
+                              )
+                            }
+                          />
+                        </div>
+
+                        {item.has_text && (
+                          <TextInput
+                            valueOD={item.OD?.text || ""}
+                            valueOS={item.OS?.text || ""}
+                            onChangeOD={(val) =>
+                              handleFieldChange(
+                                item.id,
+                                "OD",
+                                "text",
+                                val,
+                                familyOcularHistory,
+                                setFamilyOcularHistory
+                              )
+                            }
+                            onChangeOS={(val) =>
+                              handleFieldChange(
+                                item.id,
+                                "OS",
+                                "text",
+                                val,
+                                familyOcularHistory,
+                                setFamilyOcularHistory
+                              )
+                            }
+                          />
+                        )}
+
+                        {item.has_dropdown && (
+                          <ConditionsDropdown
+                            valueOD={item.OD?.dropdown || ""}
+                            valueOS={item.OS?.dropdown || ""}
+                            options={item.dropdown_options}
+                            onChangeOD={(val) =>
+                              handleFieldChange(
+                                item.id,
+                                "OD",
+                                "dropdown",
+                                val,
+                                familyOcularHistory,
+                                setFamilyOcularHistory
+                              )
+                            }
+                            onChangeOS={(val) =>
+                              handleFieldChange(
+                                item.id,
+                                "OS",
+                                "dropdown",
+                                val,
+                                familyOcularHistory,
+                                setFamilyOcularHistory
+                              )
+                            }
+                          />
+                        )}
+
+                        {item.has_grading && (
+                          <GradingSelect
+                            valueOD={item.OD?.grading || ""}
+                            valueOS={item.OS?.grading || ""}
+                            onChangeOD={(val) =>
+                              handleFieldChange(
+                                item.id,
+                                "OD",
+                                "grading",
+                                val,
+                                familyOcularHistory,
+                                setFamilyOcularHistory
+                              )
+                            }
+                            onChangeOS={(val) =>
+                              handleFieldChange(
+                                item.id,
+                                "OS",
+                                "grading",
+                                val,
+                                familyOcularHistory,
+                                setFamilyOcularHistory
+                              )
+                            }
+                          />
+                        )}
+
+                        {item.has_notes && (
+                          <NotesTextArea
+                            value={item.notes || ""}
+                            onChange={(val) =>
+                              setFamilyOcularHistory((prev) =>
+                                prev.map((c) =>
+                                  c.id === item.id ? { ...c, notes: val } : c
+                                )
+                              )
+                            }
+                          />
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
-        </div>
-
-        {/* Right Column */}
-        <div className="flex-1 space-y-6">
-          {/* Ocular History */}
-          <div>
-            <ConditionPicker
-              label={
-                <span>
-                  Ocular History{" "}
-                  {isFirstVisit && <span className="text-red-500">*</span>}
-                </span>
-              }
-              options={formatOptions(ocularConditions)}
-              selectedValues={selectedOcular.map((c) => ({
-                id: c.id,
-                name: c.name,
-              }))}
-              onSelect={handleSelect(setSelectedOcular, selectedOcular)}
-              conditionKey="id"
-              conditionNameKey="name"
-            />
-
-            {selectedOcular.length > 0 && (
-              <div className="mt-4 space-y-4">
-                {selectedOcular.map((item) => (
-                  <div
-                    key={item.id}
-                    className="p-4 bg-gray-50 border rounded space-y-4"
-                  >
-                    <div className="flex items-center justify-between">
-                      <h4 className="font-semibold">{item.name}</h4>
-                      <DeleteButton
-                        onClick={() =>
-                          handleDeleteCondition(item.id, setSelectedOcular)
-                        }
-                      />
-                    </div>
-
-                    {item.has_text && (
-                      <TextInput
-                        valueOD={item.OD?.text || ""}
-                        valueOS={item.OS?.text || ""}
-                        onChangeOD={(val) =>
-                          handleFieldChange(
-                            item.id,
-                            "OD",
-                            "text",
-                            val,
-                            selectedOcular,
-                            setSelectedOcular
-                          )
-                        }
-                        onChangeOS={(val) =>
-                          handleFieldChange(
-                            item.id,
-                            "OS",
-                            "text",
-                            val,
-                            selectedOcular,
-                            setSelectedOcular
-                          )
-                        }
-                      />
-                    )}
-
-                    {item.has_dropdown && (
-                      <ConditionsDropdown
-                        valueOD={item.OD?.dropdown || ""}
-                        valueOS={item.OS?.dropdown || ""}
-                        options={item.dropdown_options}
-                        onChangeOD={(val) =>
-                          handleFieldChange(
-                            item.id,
-                            "OD",
-                            "dropdown",
-                            val,
-                            selectedOcular,
-                            setSelectedOcular
-                          )
-                        }
-                        onChangeOS={(val) =>
-                          handleFieldChange(
-                            item.id,
-                            "OS",
-                            "dropdown",
-                            val,
-                            selectedOcular,
-                            setSelectedOcular
-                          )
-                        }
-                      />
-                    )}
-
-                    {item.has_grading && (
-                      <GradingSelect
-                        valueOD={item.OD?.grading || ""}
-                        valueOS={item.OS?.grading || ""}
-                        onChangeOD={(val) =>
-                          handleFieldChange(
-                            item.id,
-                            "OD",
-                            "grading",
-                            val,
-                            selectedOcular,
-                            setSelectedOcular
-                          )
-                        }
-                        onChangeOS={(val) =>
-                          handleFieldChange(
-                            item.id,
-                            "OS",
-                            "grading",
-                            val,
-                            selectedOcular,
-                            setSelectedOcular
-                          )
-                        }
-                      />
-                    )}
-
-                    {item.has_notes && (
-                      <NotesTextArea
-                        value={item.notes || ""}
-                        onChange={(val) =>
-                          setSelectedOcular((prev) =>
-                            prev.map((c) =>
-                              c.id === item.id ? { ...c, notes: val } : c
-                            )
-                          )
-                        }
-                      />
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-          {/* Family Medical History */}
-          <div>
-            <ConditionPicker
-              label={
-                <span>
-                  Family Medical History{" "}
-                  {isFirstVisit && <span className="text-red-500">*</span>}
-                </span>
-              }
-              options={formatOptions(medicalConditions)}
-              selectedValues={familyMedicalHistory.map((c) => ({
-                id: c.id,
-                name: c.name,
-              }))}
-              onSelect={handleSelect(
-                setFamilyMedicalHistory,
-                familyMedicalHistory
-              )}
-              conditionKey="id"
-              conditionNameKey="name"
-            />
-
-            {familyMedicalHistory.length > 0 && (
-              <div className="mt-4 space-y-4">
-                {familyMedicalHistory.map((item) => (
-                  <div
-                    key={item.id}
-                    className="p-4 bg-gray-50 border rounded space-y-4"
-                  >
-                    <div className="flex items-center justify-between">
-                      <h4 className="font-semibold">{item.name}</h4>
-                      <DeleteButton
-                        onClick={() =>
-                          handleDeleteCondition(
-                            item.id,
-                            setFamilyMedicalHistory
-                          )
-                        }
-                      />
-                    </div>
-
-                    {item.has_text && (
-                      <TextInput
-                        valueOD={item.OD?.text || ""}
-                        valueOS={item.OS?.text || ""}
-                        onChangeOD={(val) =>
-                          handleFieldChange(
-                            item.id,
-                            "OD",
-                            "text",
-                            val,
-                            familyMedicalHistory,
-                            setFamilyMedicalHistory
-                          )
-                        }
-                        onChangeOS={(val) =>
-                          handleFieldChange(
-                            item.id,
-                            "OS",
-                            "text",
-                            val,
-                            familyMedicalHistory,
-                            setFamilyMedicalHistory
-                          )
-                        }
-                      />
-                    )}
-
-                    {item.has_dropdown && (
-                      <ConditionsDropdown
-                        valueOD={item.OD?.dropdown || ""}
-                        valueOS={item.OS?.dropdown || ""}
-                        options={item.dropdown_options}
-                        onChangeOD={(val) =>
-                          handleFieldChange(
-                            item.id,
-                            "OD",
-                            "dropdown",
-                            val,
-                            familyMedicalHistory,
-                            setFamilyMedicalHistory
-                          )
-                        }
-                        onChangeOS={(val) =>
-                          handleFieldChange(
-                            item.id,
-                            "OS",
-                            "dropdown",
-                            val,
-                            familyMedicalHistory,
-                            setFamilyMedicalHistory
-                          )
-                        }
-                      />
-                    )}
-
-                    {item.has_grading && (
-                      <GradingSelect
-                        valueOD={item.OD?.grading || ""}
-                        valueOS={item.OS?.grading || ""}
-                        onChangeOD={(val) =>
-                          handleFieldChange(
-                            item.id,
-                            "OD",
-                            "grading",
-                            val,
-                            familyMedicalHistory,
-                            setFamilyMedicalHistory
-                          )
-                        }
-                        onChangeOS={(val) =>
-                          handleFieldChange(
-                            item.id,
-                            "OS",
-                            "grading",
-                            val,
-                            familyMedicalHistory,
-                            setFamilyMedicalHistory
-                          )
-                        }
-                      />
-                    )}
-
-                    {item.has_notes && (
-                      <NotesTextArea
-                        value={item.notes || ""}
-                        onChange={(val) =>
-                          setFamilyMedicalHistory((prev) =>
-                            prev.map((c) =>
-                              c.id === item.id ? { ...c, notes: val } : c
-                            )
-                          )
-                        }
-                      />
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Family Ocular History */}
-          <div>
-            <ConditionPicker
-              label={
-                <span>
-                  Family Ocular History{" "}
-                  {isFirstVisit && <span className="text-red-500">*</span>}
-                </span>
-              }
-              options={formatOptions(ocularConditions)}
-              selectedValues={familyOcularHistory.map((c) => ({
-                id: c.id,
-                name: c.name,
-              }))}
-              onSelect={handleSelect(
-                setFamilyOcularHistory,
-                familyOcularHistory
-              )}
-              conditionKey="id"
-              conditionNameKey="name"
-            />
-
-            {familyOcularHistory.length > 0 && (
-              <div className="mt-4 space-y-4">
-                {familyOcularHistory.map((item) => (
-                  <div
-                    key={item.id}
-                    className="p-4 bg-gray-50 border rounded space-y-4"
-                  >
-                    <div className="flex items-center justify-between">
-                      <h4 className="font-semibold">{item.name}</h4>
-                      <DeleteButton
-                        onClick={() =>
-                          handleDeleteCondition(item.id, setFamilyOcularHistory)
-                        }
-                      />
-                    </div>
-
-                    {item.has_text && (
-                      <TextInput
-                        valueOD={item.OD?.text || ""}
-                        valueOS={item.OS?.text || ""}
-                        onChangeOD={(val) =>
-                          handleFieldChange(
-                            item.id,
-                            "OD",
-                            "text",
-                            val,
-                            familyOcularHistory,
-                            setFamilyOcularHistory
-                          )
-                        }
-                        onChangeOS={(val) =>
-                          handleFieldChange(
-                            item.id,
-                            "OS",
-                            "text",
-                            val,
-                            familyOcularHistory,
-                            setFamilyOcularHistory
-                          )
-                        }
-                      />
-                    )}
-
-                    {item.has_dropdown && (
-                      <ConditionsDropdown
-                        valueOD={item.OD?.dropdown || ""}
-                        valueOS={item.OS?.dropdown || ""}
-                        options={item.dropdown_options}
-                        onChangeOD={(val) =>
-                          handleFieldChange(
-                            item.id,
-                            "OD",
-                            "dropdown",
-                            val,
-                            familyOcularHistory,
-                            setFamilyOcularHistory
-                          )
-                        }
-                        onChangeOS={(val) =>
-                          handleFieldChange(
-                            item.id,
-                            "OS",
-                            "dropdown",
-                            val,
-                            familyOcularHistory,
-                            setFamilyOcularHistory
-                          )
-                        }
-                      />
-                    )}
-
-                    {item.has_grading && (
-                      <GradingSelect
-                        valueOD={item.OD?.grading || ""}
-                        valueOS={item.OS?.grading || ""}
-                        onChangeOD={(val) =>
-                          handleFieldChange(
-                            item.id,
-                            "OD",
-                            "grading",
-                            val,
-                            familyOcularHistory,
-                            setFamilyOcularHistory
-                          )
-                        }
-                        onChangeOS={(val) =>
-                          handleFieldChange(
-                            item.id,
-                            "OS",
-                            "grading",
-                            val,
-                            familyOcularHistory,
-                            setFamilyOcularHistory
-                          )
-                        }
-                      />
-                    )}
-
-                    {item.has_notes && (
-                      <NotesTextArea
-                        value={item.notes || ""}
-                        onChange={(val) =>
-                          setFamilyOcularHistory((prev) =>
-                            prev.map((c) =>
-                              c.id === item.id ? { ...c, notes: val } : c
-                            )
-                          )
-                        }
-                      />
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-
+        </>
+      )}
       <div className="mt-8 flex justify-between items-center">
         <button
           onClick={() => setActiveTab("case history")}
