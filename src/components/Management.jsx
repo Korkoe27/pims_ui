@@ -9,6 +9,11 @@ import { showToast } from "../components/ToasterHelper";
 import RefractiveCorrectionSection from "./RefractiveCorrectionSection";
 import MedicationForm from "./MedicationForm";
 
+import SPHValidator from "./validators/SPHValidator";
+import CYLValidator from "./validators/CYLValidator";
+import AXISValidator from "./validators/AXISValidator";
+import ADDValidator from "./validators/ADDValidator";
+
 const Management = ({ setFlowStep, appointmentId }) => {
   const navigate = useNavigate();
   const { markAppointmentCompletedHandler } = useMarkAppointmentCompleted();
@@ -84,45 +89,73 @@ const Management = ({ setFlowStep, appointmentId }) => {
     setDetails((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = async () => {
-    // ✅ Check at least one treatment option is selected
+  const validateBeforeConfirm = () => {
+    const isValidSPH = (val) =>
+      /^[+-][0-9]+(\.25|\.50|\.75|\.00)?$/.test(val.trim());
+    const isValidCYL = (val) =>
+      /^-[0-9]+(\.25|\.50|\.75|\.00)?$/.test(val.trim());
+    const isValidAXIS = (val) => {
+      const num = Number(val.trim());
+      return Number.isInteger(num) && num >= 0 && num <= 180;
+    };
+    const isValidADD = (val) =>
+      /^\+[0-9]+(\.25|\.50|\.75|\.00)?$/.test(val.trim());
+
     const atLeastOneSelected = Object.values(checkboxes).some((val) => val);
     if (!atLeastOneSelected) {
       showToast("Please select at least one management option.", "error");
-      return;
+      return false;
     }
 
-    // ✅ Check refractive correction type if selected
-    if (
-      checkboxes.refractiveCorrection &&
-      !prescription.type_of_refractive_correction
-    ) {
-      showToast("Please select a type of refractive correction.", "error");
-      return;
+    if (checkboxes.refractiveCorrection) {
+      if (!prescription.type_of_refractive_correction) {
+        showToast("Please select a type of refractive correction.", "error");
+        return false;
+      }
+
+      if (
+        !isValidSPH(prescription.od_sph) ||
+        !isValidSPH(prescription.os_sph)
+      ) {
+        showToast("SPH is required and must be valid for both eyes.", "error");
+        return false;
+      }
+
+      if (
+        (prescription.od_cyl && !isValidCYL(prescription.od_cyl)) ||
+        (prescription.os_cyl && !isValidCYL(prescription.os_cyl))
+      ) {
+        showToast("CYL must be negative and valid (e.g., -0.75).", "error");
+        return false;
+      }
+
+      if (
+        (prescription.od_cyl && !isValidAXIS(prescription.od_axis)) ||
+        (prescription.os_cyl && !isValidAXIS(prescription.os_axis))
+      ) {
+        showToast(
+          "AXIS is required and must be 0–180 if CYL is provided.",
+          "error"
+        );
+        return false;
+      }
+
+      if (
+        (prescription.od_add && !isValidADD(prescription.od_add)) ||
+        (prescription.os_add && !isValidADD(prescription.os_add))
+      ) {
+        showToast(
+          "ADD must start with '+' and be valid (e.g., +1.00).",
+          "error"
+        );
+        return false;
+      }
     }
 
-    // ✅ Validate SPH for both eyes
-    if (!prescription.od_sph.trim() || !prescription.os_sph.trim()) {
-      showToast(
-        "SPH is required for both eyes. Please fill it in. 👍",
-        "error"
-      );
-      return;
-    }
+    return true;
+  };
 
-    // ✅ Validate AXIS only if CYL is entered
-    if (
-      (prescription.od_cyl.trim() && !prescription.od_axis.trim()) ||
-      (prescription.os_cyl.trim() && !prescription.os_axis.trim())
-    ) {
-      showToast(
-        "AXIS is required for any eye where CYL is provided. Please correct it. 👍",
-        "error"
-      );
-      return;
-    }
-
-    // ✅ Convert numeric fields
+  const handleSubmit = async () => {
     const processedPrescription = {
       ...prescription,
       od_sph: parseFloat(prescription.od_sph) || null,
@@ -139,7 +172,6 @@ const Management = ({ setFlowStep, appointmentId }) => {
         parseFloat(prescription.fitting_cross_height) || null,
     };
 
-    // ✅ Assemble payload
     const payload = {
       ...prescription,
       ...processedPrescription,
@@ -153,15 +185,12 @@ const Management = ({ setFlowStep, appointmentId }) => {
       referral: checkboxes.referral,
     };
 
-    // ✅ Submit and handle result
     try {
       showToast("Saving management plan...", "info");
       await createManagementPlan({ appointmentId, payload }).unwrap();
       showToast("Management plan saved successfully!", "success");
-
       await markAppointmentCompletedHandler(appointmentId);
       showToast("Appointment marked as completed!", "success");
-
       setModal(true);
     } catch (error) {
       const message = Object.entries(error?.data || {})
@@ -173,39 +202,6 @@ const Management = ({ setFlowStep, appointmentId }) => {
       showToast(message || "Something went wrong while saving.", "error");
     }
   };
-
-  useEffect(() => {
-    if (managementPlan) {
-      setCheckboxes({
-        refractiveCorrection: managementPlan.refractive_correction,
-        medications: managementPlan.medications,
-        counselling: managementPlan.counselling,
-        lowVisionAid: managementPlan.low_vision_aid,
-        therapy: managementPlan.therapy,
-        surgery: managementPlan.surgery,
-        referral: managementPlan.referral,
-      });
-
-      setPrescription((prev) => ({
-        ...prev,
-        ...managementPlan,
-      }));
-
-      setDetails({
-        surgery_details: managementPlan.surgery_details || "",
-        referral_details: managementPlan.referral_details || "",
-        counselling_details: managementPlan.counselling_details || "",
-        low_vision_aid_details: managementPlan.low_vision_aid_details || "",
-        therapy_details: managementPlan.therapy_details || "",
-      });
-    }
-  }, [managementPlan]);
-
-  if (isManagementPlanLoading) {
-    return (
-      <div className="ml-72 py-8 px-8">Loading latest management plan...</div>
-    );
-  }
 
   return (
     <div className="ml-72 py-8 px-8 w-fit flex flex-col gap-12">
@@ -411,7 +407,7 @@ const Management = ({ setFlowStep, appointmentId }) => {
                   return;
                 }
 
-                setConfirmSave(true);
+                if (validateBeforeConfirm()) setConfirmSave(true);
               }}
               className="w-24 h-14 mx-auto mr-0 p-4 rounded-lg bg-[#2f3192] text-white"
             >
