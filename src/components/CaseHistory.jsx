@@ -212,7 +212,7 @@ const CaseHistory = ({
       <h1 className="text-2xl font-bold mb-4">Case History</h1>
 
       {isLoading ? (
-        <p>Loading case history data...</p>
+        <p>Loading patient case history...</p>
       ) : (
         <>
           {/* Chief Complaint Input */}

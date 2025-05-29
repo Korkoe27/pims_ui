@@ -85,6 +85,44 @@ const Management = ({ setFlowStep, appointmentId }) => {
   };
 
   const handleSubmit = async () => {
+    // ✅ Check at least one treatment option is selected
+    const atLeastOneSelected = Object.values(checkboxes).some((val) => val);
+    if (!atLeastOneSelected) {
+      showToast("Please select at least one management option.", "error");
+      return;
+    }
+
+    // ✅ Check refractive correction type if selected
+    if (
+      checkboxes.refractiveCorrection &&
+      !prescription.type_of_refractive_correction
+    ) {
+      showToast("Please select a type of refractive correction.", "error");
+      return;
+    }
+
+    // ✅ Validate SPH for both eyes
+    if (!prescription.od_sph.trim() || !prescription.os_sph.trim()) {
+      showToast(
+        "SPH is required for both eyes. Please fill it in. 👍",
+        "error"
+      );
+      return;
+    }
+
+    // ✅ Validate AXIS only if CYL is entered
+    if (
+      (prescription.od_cyl.trim() && !prescription.od_axis.trim()) ||
+      (prescription.os_cyl.trim() && !prescription.os_axis.trim())
+    ) {
+      showToast(
+        "AXIS is required for any eye where CYL is provided. Please correct it. 👍",
+        "error"
+      );
+      return;
+    }
+
+    // ✅ Convert numeric fields
     const processedPrescription = {
       ...prescription,
       od_sph: parseFloat(prescription.od_sph) || null,
@@ -97,9 +135,11 @@ const Management = ({ setFlowStep, appointmentId }) => {
       os_add: parseFloat(prescription.os_add) || null,
       pd: parseFloat(prescription.pd) || null,
       segment_height: parseFloat(prescription.segment_height) || null,
-      fitting_cross_height: parseFloat(prescription.fitting_cross_height) || null,
+      fitting_cross_height:
+        parseFloat(prescription.fitting_cross_height) || null,
     };
 
+    // ✅ Assemble payload
     const payload = {
       ...prescription,
       ...processedPrescription,
@@ -113,6 +153,7 @@ const Management = ({ setFlowStep, appointmentId }) => {
       referral: checkboxes.referral,
     };
 
+    // ✅ Submit and handle result
     try {
       showToast("Saving management plan...", "info");
       await createManagementPlan({ appointmentId, payload }).unwrap();
@@ -124,7 +165,10 @@ const Management = ({ setFlowStep, appointmentId }) => {
       setModal(true);
     } catch (error) {
       const message = Object.entries(error?.data || {})
-        .map(([field, messages]) => `${field.toUpperCase()}: ${messages.join(", ")}`)
+        .map(
+          ([field, messages]) =>
+            `${field.toUpperCase()}: ${messages.join(", ")}`
+        )
         .join("\n");
       showToast(message || "Something went wrong while saving.", "error");
     }
@@ -158,7 +202,9 @@ const Management = ({ setFlowStep, appointmentId }) => {
   }, [managementPlan]);
 
   if (isManagementPlanLoading) {
-    return <div className="ml-72 py-8 px-8">Loading latest management plan...</div>;
+    return (
+      <div className="ml-72 py-8 px-8">Loading latest management plan...</div>
+    );
   }
 
   return (
@@ -177,7 +223,8 @@ const Management = ({ setFlowStep, appointmentId }) => {
           <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md border border-gray-300">
             <h2 className="text-lg font-bold mb-2">Confirm Save</h2>
             <p className="mb-4">
-              Are you sure you want to save this treatment record? This action cannot be undone.
+              Are you sure you want to save this treatment record? This action
+              cannot be undone.
             </p>
             <div className="flex justify-end gap-4">
               <button
@@ -257,10 +304,15 @@ const Management = ({ setFlowStep, appointmentId }) => {
           <main className="flex gap-40">
             <section className="flex flex-col gap-12 w-fit">
               <div className="flex flex-col gap-2">
-                <label className="font-medium text-base">Treatment / Management Option(s)</label>
+                <label className="font-medium text-base">
+                  Treatment / Management Option(s)
+                </label>
                 <div className="grid grid-cols-2 gap-5">
                   {Object.keys(checkboxes).map((key) => (
-                    <label key={key} className="flex items-center gap-1 capitalize">
+                    <label
+                      key={key}
+                      className="flex items-center gap-1 capitalize"
+                    >
                       <input
                         type="checkbox"
                         name={key}
@@ -292,11 +344,18 @@ const Management = ({ setFlowStep, appointmentId }) => {
                 />
               )}
 
-              {["surgery", "referral", "counselling", "therapy", "lowVisionAid"].map((field) => {
+              {[
+                "surgery",
+                "referral",
+                "counselling",
+                "therapy",
+                "lowVisionAid",
+              ].map((field) => {
                 if (!checkboxes[field]) return null;
-                const label = `${field.replace(/([A-Z])/g, " $1")} Details`.replace(/^./, (s) =>
-                  s.toUpperCase()
-                );
+                const label = `${field.replace(
+                  /([A-Z])/g,
+                  " $1"
+                )} Details`.replace(/^./, (s) => s.toUpperCase());
                 const name = `${field}_details`;
                 return (
                   <div key={field} className="flex flex-col gap-2">
@@ -306,7 +365,11 @@ const Management = ({ setFlowStep, appointmentId }) => {
                       value={details[name]}
                       onChange={handleDetailsChange}
                       className="w-full p-2 border rounded-md"
-                      placeholder={field === "therapy" ? "Type of therapy or exercises..." : ""}
+                      placeholder={
+                        field === "therapy"
+                          ? "Type of therapy or exercises..."
+                          : ""
+                      }
                     />
                   </div>
                 );
@@ -325,7 +388,31 @@ const Management = ({ setFlowStep, appointmentId }) => {
 
             <button
               type="button"
-              onClick={() => setConfirmSave(true)}
+              onClick={() => {
+                const atLeastOneSelected = Object.values(checkboxes).some(
+                  (val) => val
+                );
+                if (!atLeastOneSelected) {
+                  showToast(
+                    "Please select at least one management option.",
+                    "error"
+                  );
+                  return;
+                }
+
+                if (
+                  checkboxes.refractiveCorrection &&
+                  !prescription.type_of_refractive_correction
+                ) {
+                  showToast(
+                    "Please select a type of refractive correction.",
+                    "error"
+                  );
+                  return;
+                }
+
+                setConfirmSave(true);
+              }}
               className="w-24 h-14 mx-auto mr-0 p-4 rounded-lg bg-[#2f3192] text-white"
             >
               {isCreatingManagementPlan ? "Saving..." : "Finish"}
