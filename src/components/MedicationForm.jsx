@@ -1,106 +1,97 @@
-import React from "react";
+import React, { useEffect } from "react";
 import SearchableSelect from "./SearchableSelect";
+import { showToast } from "../components/ToasterHelper"; // adjust the path as needed
 
 const MedicationForm = ({
-  medicationEntry,
-  setMedicationEntry,
-  medicationTypes = [],
-  medications = [], // full list passed in
-  filteredMedications = [],
-  setSelectedTypeId,
+  selectedMedications = [], // [{ id, name, dosage, eye }]
+  setSelectedMedications,
+  medications = [], // full list
 }) => {
-  const handleChange = (field, value) => {
-    setMedicationEntry((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
+  // When user selects meds from the dropdown
+  const handleMedicationSelect = (selectedOption) => {
+    if (!selectedOption || !selectedOption.id) return;
+
+    const id = selectedOption.id;
+    const name = selectedOption.name;
+
+    if (selectedMedications.some((med) => med.id === id)) {
+      showToast("Medication already selected.", "info");
+      return;
+    }
+
+    const newMedication = {
+      id,
+      name,
+      dosage: "",
+      eye: "",
+    };
+
+    setSelectedMedications((prev) => [...prev, newMedication]);
   };
 
-  const selectedTypeLabel =
-    medicationTypes.find((t) => t.id === medicationEntry.medication_type)
-      ?.name || "";
-
-  const selectedMedLabel =
-    medications.find((m) => m.id === medicationEntry.medication_name)?.name ||
-    "";
+  const handleFieldChange = (id, field, value) => {
+    const updated = selectedMedications.map((entry) =>
+      entry.id === id ? { ...entry, [field]: value } : entry
+    );
+    setSelectedMedications(updated);
+  };
 
   return (
-    <div className="flex flex-col gap-6 mt-6 max-w-lg">
-      {/* Medication Type */}
+    <div className="flex flex-col gap-6 mt-6">
+      {/* Multi Medication Selector */}
       <SearchableSelect
-        label="Medication Type"
-        options={medicationTypes.map((type) => ({
-          value: type.id,
-          label: type.name,
+        label="Select Medications"
+        options={medications.map((m) => ({
+          value: m.id,
+          label: m.name,
         }))}
-        selectedValues={
-          medicationEntry.medication_type
-            ? [
-                {
-                  value: medicationEntry.medication_type,
-                  label: selectedTypeLabel,
-                },
-              ]
-            : []
-        }
-        onSelect={(selected) => {
-          handleChange("medication_type", selected.value);
-          setSelectedTypeId?.(selected.value);
-          handleChange("medication_name", ""); // reset name on type change
-        }}
-        placeholder="Select medication type"
+        selectedValues={selectedMedications.map((m) => ({
+          id: m.id,
+          name: m.name,
+        }))}
+        onSelect={handleMedicationSelect}
       />
 
-      {/* Medication Name */}
-      <SearchableSelect
-        label="Medication Name"
-        options={filteredMedications.map((med) => ({
-          value: med.id,
-          label: med.name,
-        }))}
-        selectedValues={
-          medicationEntry.medication_name
-            ? [
-                {
-                  value: medicationEntry.medication_name,
-                  label: selectedMedLabel,
-                },
-              ]
-            : []
-        }
-        onSelect={(selected) => handleChange("medication_name", selected.value)}
-        placeholder="Search medication by name"
-      />
+      {/* Render fields for selected meds */}
+      {selectedMedications.map((med) => (
+        <div key={med.id} className="border p-4 rounded-md bg-gray-50">
+          <h4 className="font-semibold mb-2">{med.name}</h4>
 
-      {/* Eye Selection */}
-      <div className="flex flex-col gap-2">
-        <label className="font-medium text-base">Prescribed Eye</label>
-        <div className="flex gap-4">
-          {["OD", "OS", "OU"].map((eye) => (
-            <label key={eye} className="flex items-center gap-1">
-              <input
-                type="radio"
-                name="medication_eye"
-                value={eye}
-                checked={medicationEntry.medication_eye === eye}
-                onChange={(e) => handleChange("medication_eye", e.target.value)}
-              />
-              {eye}
-            </label>
-          ))}
+          {/* Eye Selection */}
+          <div className="flex flex-col gap-2 mb-4">
+            <label className="font-medium text-base">Prescribed Eye</label>
+            <div className="flex gap-4">
+              {["OD", "OS", "OU"].map((eye) => (
+                <label key={eye} className="flex items-center gap-1">
+                  <input
+                    type="radio"
+                    name={`eye_${med.id}`}
+                    value={eye}
+                    checked={med.eye === eye}
+                    onChange={(e) =>
+                      handleFieldChange(med.id, "eye", e.target.value)
+                    }
+                  />
+                  {eye}
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {/* Dosage */}
+          <div className="flex flex-col gap-1">
+            <label className="font-medium text-base">Dosage</label>
+            <textarea
+              placeholder="e.g. TID x 1/52"
+              value={med.dosage}
+              onChange={(e) =>
+                handleFieldChange(med.id, "dosage", e.target.value)
+              }
+              className="border border-[#d0d5dd] h-24 rounded-md p-3 text-sm"
+            />
+          </div>
         </div>
-      </div>
-
-      {/* Dosage */}
-      <div className="flex flex-col gap-1">
-        <label className="font-medium text-base">Medication Dosage</label>
-        <textarea
-          placeholder="Example: TID x 2/52"
-          value={medicationEntry.medication_dosage}
-          onChange={(e) => handleChange("medication_dosage", e.target.value)}
-          className="border border-[#d0d5dd] h-32 rounded-md p-3 text-sm"
-        />
-      </div>
+      ))}
     </div>
   );
 };

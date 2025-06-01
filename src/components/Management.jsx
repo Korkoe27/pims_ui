@@ -22,6 +22,7 @@ const Management = ({ setFlowStep, appointmentId }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [confirmSave, setConfirmSave] = useState(false);
   const [selectedTypeId, setSelectedTypeId] = useState(null);
+  const [selectedMedications, setSelectedMedications] = useState([]);
 
   const {
     medications,
@@ -331,12 +332,9 @@ const Management = ({ setFlowStep, appointmentId }) => {
 
               {checkboxes.medications && (
                 <MedicationForm
-                  medicationEntry={medicationEntry}
-                  setMedicationEntry={setMedicationEntry}
-                  medicationTypes={medicationTypes}
+                  selectedMedications={selectedMedications}
+                  setSelectedMedications={setSelectedMedications}
                   medications={medications}
-                  filteredMedications={filteredMedications}
-                  setSelectedTypeId={setSelectedTypeId}
                 />
               )}
 
