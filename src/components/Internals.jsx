@@ -9,6 +9,7 @@ import TextInput from "./TextInput";
 import ConditionsDropdown from "./ConditionsDropdown";
 import GradingSelect from "./GradingSelect";
 import NotesTextArea from "./NotesTextArea";
+import NavigationButtons from "../components/NavigationButtons";
 
 const Internals = ({ setActiveTab, setTabCompletionStatus }) => {
   const { appointmentId } = useParams();
@@ -40,6 +41,7 @@ const Internals = ({ setActiveTab, setTabCompletionStatus }) => {
 
   // 2. Hydrate saved data
   useEffect(() => {
+    if (loadingInternals || loadingConditions) return;
     if (!existingObservations || !rawConditions.length) return;
 
     // Flatten rawConditions into a list with group context
@@ -405,20 +407,13 @@ const Internals = ({ setActiveTab, setTabCompletionStatus }) => {
         </div>
       ))}
 
-      <div className="mt-8 flex justify-between items-center">
-        <button
-          onClick={() => setActiveTab("externals")}
-          className="px-6 py-2 font-semibold text-indigo-600 border border-indigo-600 rounded-full hover:bg-indigo-50"
-        >
-          ← Back to External Observations
-        </button>
-        <button
-          onClick={handleSave}
-          className="px-6 py-2 font-semibold text-white rounded-full bg-indigo-600 hover:bg-indigo-700"
-        >
-          Save and Proceed
-        </button>
-      </div>
+      <NavigationButtons
+        backLabel="← Back to External Observations"
+        backTo="externals"
+        onBack={setActiveTab}
+        onSave={handleSave}
+        saveLabel="Save and Proceed"
+      />
     </div>
   );
 };
