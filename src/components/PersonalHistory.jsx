@@ -155,7 +155,7 @@ const PersonalHistory = ({
           }
 
           if (fieldType === "notes") {
-            grouped[conditionId].notes = value; // ✅ set unified notes
+            grouped[conditionId].notes = value;
           } else if (
             entry.affected_eye === "OD" ||
             entry.affected_eye === "OS"
@@ -466,6 +466,8 @@ const PersonalHistory = ({
 
   const isLoading =
     (!isFirstVisit && !personalHistory) ||
+    !Array.isArray(medicalConditions) ||
+    !Array.isArray(ocularConditions) ||
     medicalConditions.length === 0 ||
     ocularConditions.length === 0;
 
