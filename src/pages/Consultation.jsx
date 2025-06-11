@@ -18,10 +18,40 @@ import Management from "../components/Management";
 const Consultation = () => {
   const { appointmentId } = useParams();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState("case history");
-  const [flowStep, setFlowStep] = useState("consultation");
+
+  // Keys
+  const LOCAL_TAB_KEY = `consultation-${appointmentId}-activeTab`;
+  const LOCAL_FLOW_KEY = `consultation-${appointmentId}-flowStep`;
+
+  // States (with lazy localStorage init)
+  const [activeTab, _setActiveTab] = useState(() => {
+    const stored = localStorage.getItem(LOCAL_TAB_KEY);
+    console.log("🚀 Initial activeTab from localStorage:", stored);
+    return stored || "case history";
+  });
+
+  const [flowStep, _setFlowStep] = useState(() => {
+    const stored = localStorage.getItem(LOCAL_FLOW_KEY);
+    console.log("🚀 Initial flowStep from localStorage:", stored);
+    return stored || "consultation";
+  });
+
   const [tabCompletionStatus, setTabCompletionStatus] = useState({});
 
+  // Wrapped setters with logging and storage
+  const setActiveTab = (tab) => {
+    console.log("📌 setActiveTab triggered:", tab);
+    localStorage.setItem(LOCAL_TAB_KEY, tab);
+    _setActiveTab(tab);
+  };
+
+  const setFlowStep = (step) => {
+    console.log("📌 setFlowStep triggered:", step);
+    localStorage.setItem(LOCAL_FLOW_KEY, step);
+    _setFlowStep(step);
+  };
+
+  // API
   const {
     data: selectedAppointment,
     error,
@@ -34,21 +64,18 @@ const Consultation = () => {
     management: 3,
   };
 
-  if (isLoading) {
-    return <p>Loading patient details...</p>;
-  }
+  // Handle loading/errors
+  if (isLoading) return <p>Loading patient details...</p>;
 
   if (error || !selectedAppointment) {
-    console.error(
-      "Error fetching appointment details. Redirecting to Dashboard..."
-    );
+    console.error("❌ Error fetching appointment details. Redirecting...");
     navigate("/dashboard");
     return <p>Redirecting to Dashboard...</p>;
   }
 
+  // Render selected tab
   const renderTabContent = () => {
     const tab = activeTab.toLowerCase();
-
     switch (tab) {
       case "case history":
         return (
@@ -114,6 +141,7 @@ const Consultation = () => {
     }
   };
 
+  // Render flow step
   const renderFlowStep = () => {
     switch (flowStep) {
       case "consultation":

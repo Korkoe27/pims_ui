@@ -9,6 +9,11 @@ import { showToast } from "../components/ToasterHelper";
 import RefractiveCorrectionSection from "./RefractiveCorrectionSection";
 import MedicationForm from "./MedicationForm";
 
+import SPHValidator from "./validators/SPHValidator";
+import CYLValidator from "./validators/CYLValidator";
+import AXISValidator from "./validators/AXISValidator";
+import ADDValidator from "./validators/ADDValidator";
+
 const Management = ({ setFlowStep, appointmentId }) => {
   const navigate = useNavigate();
   const { markAppointmentCompletedHandler } = useMarkAppointmentCompleted();
@@ -17,6 +22,7 @@ const Management = ({ setFlowStep, appointmentId }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [confirmSave, setConfirmSave] = useState(false);
   const [selectedTypeId, setSelectedTypeId] = useState(null);
+  const [selectedMedications, setSelectedMedications] = useState([]);
 
   const {
     medications,
@@ -84,6 +90,72 @@ const Management = ({ setFlowStep, appointmentId }) => {
     setDetails((prev) => ({ ...prev, [name]: value }));
   };
 
+  const validateBeforeConfirm = () => {
+    const isValidSPH = (val) =>
+      /^[+-][0-9]+(\.25|\.50|\.75|\.00)?$/.test(val.trim());
+    const isValidCYL = (val) =>
+      /^-[0-9]+(\.25|\.50|\.75|\.00)?$/.test(val.trim());
+    const isValidAXIS = (val) => {
+      const num = Number(val.trim());
+      return Number.isInteger(num) && num >= 0 && num <= 180;
+    };
+    const isValidADD = (val) =>
+      /^\+[0-9]+(\.25|\.50|\.75|\.00)?$/.test(val.trim());
+
+    const atLeastOneSelected = Object.values(checkboxes).some((val) => val);
+    if (!atLeastOneSelected) {
+      showToast("Please select at least one management option.", "error");
+      return false;
+    }
+
+    if (checkboxes.refractiveCorrection) {
+      if (!prescription.type_of_refractive_correction) {
+        showToast("Please select a type of refractive correction.", "error");
+        return false;
+      }
+
+      if (
+        !isValidSPH(prescription.od_sph) ||
+        !isValidSPH(prescription.os_sph)
+      ) {
+        showToast("SPH is required and must be valid for both eyes.", "error");
+        return false;
+      }
+
+      if (
+        (prescription.od_cyl && !isValidCYL(prescription.od_cyl)) ||
+        (prescription.os_cyl && !isValidCYL(prescription.os_cyl))
+      ) {
+        showToast("CYL must be negative and valid (e.g., -0.75).", "error");
+        return false;
+      }
+
+      if (
+        (prescription.od_cyl && !isValidAXIS(prescription.od_axis)) ||
+        (prescription.os_cyl && !isValidAXIS(prescription.os_axis))
+      ) {
+        showToast(
+          "AXIS is required and must be 0–180 if CYL is provided.",
+          "error"
+        );
+        return false;
+      }
+
+      if (
+        (prescription.od_add && !isValidADD(prescription.od_add)) ||
+        (prescription.os_add && !isValidADD(prescription.os_add))
+      ) {
+        showToast(
+          "ADD must start with '+' and be valid (e.g., +1.00).",
+          "error"
+        );
+        return false;
+      }
+    }
+
+    return true;
+  };
+
   const handleSubmit = async () => {
     const processedPrescription = {
       ...prescription,
@@ -97,7 +169,8 @@ const Management = ({ setFlowStep, appointmentId }) => {
       os_add: parseFloat(prescription.os_add) || null,
       pd: parseFloat(prescription.pd) || null,
       segment_height: parseFloat(prescription.segment_height) || null,
-      fitting_cross_height: parseFloat(prescription.fitting_cross_height) || null,
+      fitting_cross_height:
+        parseFloat(prescription.fitting_cross_height) || null,
     };
 
     const payload = {
@@ -117,49 +190,19 @@ const Management = ({ setFlowStep, appointmentId }) => {
       showToast("Saving management plan...", "info");
       await createManagementPlan({ appointmentId, payload }).unwrap();
       showToast("Management plan saved successfully!", "success");
-
       await markAppointmentCompletedHandler(appointmentId);
       showToast("Appointment marked as completed!", "success");
-
       setModal(true);
     } catch (error) {
       const message = Object.entries(error?.data || {})
-        .map(([field, messages]) => `${field.toUpperCase()}: ${messages.join(", ")}`)
+        .map(
+          ([field, messages]) =>
+            `${field.toUpperCase()}: ${messages.join(", ")}`
+        )
         .join("\n");
       showToast(message || "Something went wrong while saving.", "error");
     }
   };
-
-  useEffect(() => {
-    if (managementPlan) {
-      setCheckboxes({
-        refractiveCorrection: managementPlan.refractive_correction,
-        medications: managementPlan.medications,
-        counselling: managementPlan.counselling,
-        lowVisionAid: managementPlan.low_vision_aid,
-        therapy: managementPlan.therapy,
-        surgery: managementPlan.surgery,
-        referral: managementPlan.referral,
-      });
-
-      setPrescription((prev) => ({
-        ...prev,
-        ...managementPlan,
-      }));
-
-      setDetails({
-        surgery_details: managementPlan.surgery_details || "",
-        referral_details: managementPlan.referral_details || "",
-        counselling_details: managementPlan.counselling_details || "",
-        low_vision_aid_details: managementPlan.low_vision_aid_details || "",
-        therapy_details: managementPlan.therapy_details || "",
-      });
-    }
-  }, [managementPlan]);
-
-  if (isManagementPlanLoading) {
-    return <div className="ml-72 py-8 px-8">Loading latest management plan...</div>;
-  }
 
   return (
     <div className="ml-72 py-8 px-8 w-fit flex flex-col gap-12">
@@ -177,7 +220,8 @@ const Management = ({ setFlowStep, appointmentId }) => {
           <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md border border-gray-300">
             <h2 className="text-lg font-bold mb-2">Confirm Save</h2>
             <p className="mb-4">
-              Are you sure you want to save this treatment record? This action cannot be undone.
+              Are you sure you want to save this treatment record? This action
+              cannot be undone.
             </p>
             <div className="flex justify-end gap-4">
               <button
@@ -257,10 +301,15 @@ const Management = ({ setFlowStep, appointmentId }) => {
           <main className="flex gap-40">
             <section className="flex flex-col gap-12 w-fit">
               <div className="flex flex-col gap-2">
-                <label className="font-medium text-base">Treatment / Management Option(s)</label>
+                <label className="font-medium text-base">
+                  Treatment / Management Option(s)
+                </label>
                 <div className="grid grid-cols-2 gap-5">
                   {Object.keys(checkboxes).map((key) => (
-                    <label key={key} className="flex items-center gap-1 capitalize">
+                    <label
+                      key={key}
+                      className="flex items-center gap-1 capitalize"
+                    >
                       <input
                         type="checkbox"
                         name={key}
@@ -283,20 +332,24 @@ const Management = ({ setFlowStep, appointmentId }) => {
 
               {checkboxes.medications && (
                 <MedicationForm
-                  medicationEntry={medicationEntry}
-                  setMedicationEntry={setMedicationEntry}
-                  medicationTypes={medicationTypes}
+                  selectedMedications={selectedMedications}
+                  setSelectedMedications={setSelectedMedications}
                   medications={medications}
-                  filteredMedications={filteredMedications}
-                  setSelectedTypeId={setSelectedTypeId}
                 />
               )}
 
-              {["surgery", "referral", "counselling", "therapy", "lowVisionAid"].map((field) => {
+              {[
+                "surgery",
+                "referral",
+                "counselling",
+                "therapy",
+                "lowVisionAid",
+              ].map((field) => {
                 if (!checkboxes[field]) return null;
-                const label = `${field.replace(/([A-Z])/g, " $1")} Details`.replace(/^./, (s) =>
-                  s.toUpperCase()
-                );
+                const label = `${field.replace(
+                  /([A-Z])/g,
+                  " $1"
+                )} Details`.replace(/^./, (s) => s.toUpperCase());
                 const name = `${field}_details`;
                 return (
                   <div key={field} className="flex flex-col gap-2">
@@ -306,7 +359,11 @@ const Management = ({ setFlowStep, appointmentId }) => {
                       value={details[name]}
                       onChange={handleDetailsChange}
                       className="w-full p-2 border rounded-md"
-                      placeholder={field === "therapy" ? "Type of therapy or exercises..." : ""}
+                      placeholder={
+                        field === "therapy"
+                          ? "Type of therapy or exercises..."
+                          : ""
+                      }
                     />
                   </div>
                 );
@@ -325,7 +382,31 @@ const Management = ({ setFlowStep, appointmentId }) => {
 
             <button
               type="button"
-              onClick={() => setConfirmSave(true)}
+              onClick={() => {
+                const atLeastOneSelected = Object.values(checkboxes).some(
+                  (val) => val
+                );
+                if (!atLeastOneSelected) {
+                  showToast(
+                    "Please select at least one management option.",
+                    "error"
+                  );
+                  return;
+                }
+
+                if (
+                  checkboxes.refractiveCorrection &&
+                  !prescription.type_of_refractive_correction
+                ) {
+                  showToast(
+                    "Please select a type of refractive correction.",
+                    "error"
+                  );
+                  return;
+                }
+
+                if (validateBeforeConfirm()) setConfirmSave(true);
+              }}
               className="w-24 h-14 mx-auto mr-0 p-4 rounded-lg bg-[#2f3192] text-white"
             >
               {isCreatingManagementPlan ? "Saving..." : "Finish"}

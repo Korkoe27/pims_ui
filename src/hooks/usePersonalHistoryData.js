@@ -22,13 +22,13 @@ const usePersonalHistoryData = (patientId, appointmentId) => {
 
   return {
     personalHistory,
+    isLoading: loadingConditions || loadingHistory, // ✅ fixed
     isError,
     error,
     ocularConditions,
     medicalConditions,
     createPatientHistory,
     createPatientHistoryStatus,
-    isLoading: loadingConditions || loadingHistory,
   };
 };
 
