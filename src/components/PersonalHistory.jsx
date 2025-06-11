@@ -10,6 +10,7 @@ import GeneralNotesTextArea from "./GeneralNotesTextArea";
 import TextInput from "./TextInput";
 import ConditionsDropdown from "./ConditionsDropdown";
 import ConditionPicker from "./ConditionPicker";
+import NavigationButtons from "../components/NavigationButtons";
 
 const lastEyeExamOptions = [
   { value: "Never", label: "Never" },
@@ -1118,23 +1119,15 @@ const PersonalHistory = ({
           </div>
         </>
       )}
-      <div className="mt-8 flex justify-between items-center">
-        <button
-          onClick={() => setActiveTab("case history")}
-          className="px-6 py-2 font-semibold text-indigo-600 border border-indigo-600 rounded-full shadow-sm hover:bg-indigo-50 transition-colors duration-200"
-        >
-          ← Back to Case History
-        </button>
-
-        <button
-          onClick={handleSave}
-          disabled={isSaving}
-          className={`px-6 py-2 font-semibold text-white rounded-full shadow-md transition-colors duration-200 ${
-            isSaving ? "bg-gray-400" : "bg-indigo-600 hover:bg-indigo-700"
-          }`}
-        >
-          {isSaving ? "Saving..." : "Save and Proceed"}
-        </button>
+      <div className="mt-8">
+        <NavigationButtons
+          backLabel="← Back to Case History"
+          backTo="case history"
+          onBack={setActiveTab}
+          onSave={handleSave}
+          saving={isSaving}
+          saveLabel="Save and Proceed"
+        />
       </div>
     </div>
   );
