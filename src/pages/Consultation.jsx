@@ -14,6 +14,7 @@ import Refraction from "../components/Refraction";
 import ExtraTests from "../components/ExtraTests";
 import Diagnosis from "../components/Diagnosis";
 import Management from "../components/Management";
+import BouncingBallsLoader from "../components/BouncingBallsLoader";
 
 const Consultation = () => {
   const { appointmentId } = useParams();
@@ -65,7 +66,14 @@ const Consultation = () => {
   };
 
   // Handle loading/errors
-  if (isLoading) return <p>Loading patient details...</p>;
+  // if (isLoading) return <p>Loading patient details...</p>;
+  if (isLoading) {
+    return (
+      <div className="fixed inset-0 flex items-center justify-center bg-white z-50">
+        <BouncingBallsLoader />
+      </div>
+    );
+  }
 
   if (error || !selectedAppointment) {
     console.error("❌ Error fetching appointment details. Redirecting...");
