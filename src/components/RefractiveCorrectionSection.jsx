@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
+import SPHValidator from "./validators/SPHValidator";
+import CYLValidator from "./validators/CYLValidator";
+import AXISValidator from "./validators/AXISValidator";
+import ADDValidator from "./validators/ADDValidator";
 
 const RefractiveCorrectionSection = ({ prescription, handleInputChange }) => {
   const [typeTouched, setTypeTouched] = useState(false);
-
-  const isTypeInvalid =
-    typeTouched && !prescription.type_of_refractive_correction;
+  const isTypeInvalid = typeTouched && !prescription.type_of_refractive_correction;
 
   return (
     <div className="flex flex-col gap-6">
@@ -42,7 +44,7 @@ const RefractiveCorrectionSection = ({ prescription, handleInputChange }) => {
       {/* --- Final Prescription --- */}
       <div className="flex flex-col gap-2">
         <label className="text-base font-medium flex items-center">
-          Final Prescription <span className="text-red-600 font-bold">*</span>
+          Final Prescription <span className="text-red-600 font-bold ml-1">*</span>
         </label>
 
         <aside className="flex gap-4">
@@ -51,32 +53,38 @@ const RefractiveCorrectionSection = ({ prescription, handleInputChange }) => {
             <h1 className="text-xl font-bold text-center">OS</h1>
           </div>
 
-          {["sph", "cyl", "axis", "add"].map((field) => (
-            <div className="flex flex-col" key={field}>
-              <label className="px-4 text-center font-normal text-base uppercase">
-                {field}
-                {field === "sph" && (
-                  <span className="text-red-600 font-bold ml-1">*</span>
-                )}
-              </label>
-              <input
-                type="text"
-                className="w-20 h-9 mb-4 rounded-md border border-[#d0d5dd] px-4"
-                name={`od_${field}`}
-                value={prescription[`od_${field}`]}
-                onChange={handleInputChange}
-                placeholder={field === "axis" ? "90" : "-2.00"}
-              />
-              <input
-                type="text"
-                className="w-20 h-9 rounded-md border border-[#d0d5dd] px-4"
-                name={`os_${field}`}
-                value={prescription[`os_${field}`]}
-                onChange={handleInputChange}
-                placeholder={field === "axis" ? "90" : "-2.00"}
-              />
-            </div>
-          ))}
+          {["sph", "cyl", "axis", "add"].map((field) => {
+            const label = field.toUpperCase();
+            const ValidatorComponent = {
+              sph: SPHValidator,
+              cyl: CYLValidator,
+              axis: AXISValidator,
+              add: ADDValidator,
+            }[field];
+
+            return (
+              <div className="flex flex-col w-28" key={field}>
+                <label className="px-4 text-center font-normal text-base uppercase">
+                  {label}
+                  {field === "sph" && <span className="text-red-600 font-bold ml-1">*</span>}
+                </label>
+                <ValidatorComponent
+                  value={prescription[`od_${field}`]}
+                  onChange={(value) =>
+                    handleInputChange({ target: { name: `od_${field}`, value } })
+                  }
+                  required={field === "sph"}
+                />
+                <ValidatorComponent
+                  value={prescription[`os_${field}`]}
+                  onChange={(value) =>
+                    handleInputChange({ target: { name: `os_${field}`, value } })
+                  }
+                  required={field === "sph"}
+                />
+              </div>
+            );
+          })}
         </aside>
       </div>
 
