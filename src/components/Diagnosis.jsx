@@ -20,29 +20,23 @@ const Diagnosis = ({ appointmentId, setFlowStep, setActiveTab }) => {
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
-    console.log("🔍 appointmentDiagnosis", appointmentDiagnosis);
+    if (!appointmentDiagnosis) return;
 
-    if (appointmentDiagnosis && !isLoaded) {
-      setDifferentialDiagnosis(
-        appointmentDiagnosis.differential_diagnosis || ""
+    setDifferentialDiagnosis(appointmentDiagnosis.differential_diagnosis || "");
+
+    if (Array.isArray(appointmentDiagnosis.final_diagnoses_info)) {
+      setFinalDiagnosisEntries(
+        appointmentDiagnosis.final_diagnoses_info.map((d) => ({
+          id: d.code?.id,
+          name: d.code?.diagnosis || "Unnamed diagnosis",
+          affected_eye: d.affected_eye || "",
+          notes: d.notes || "",
+          queries: d.queries?.map((q) => ({ query: q })) || [{ query: "" }],
+          management_plan: d.management_plan || "",
+        }))
       );
-
-      if (appointmentDiagnosis.final_diagnoses_info) {
-        setFinalDiagnosisEntries(
-          appointmentDiagnosis.final_diagnoses_info.map((d) => ({
-            id: d.code?.id,
-            name: d.code?.diagnosis || "Unnamed diagnosis",
-            affected_eye: d.affected_eye || "",
-            notes: d.notes || "",
-            queries: d.queries?.map((q) => ({ query: q })) || [{ query: "" }],
-            management_plan: d.management_plan || "",
-          }))
-        );
-      }
-
-      setIsLoaded(true);
     }
-  }, [appointmentDiagnosis, isLoaded]);
+  }, [appointmentDiagnosis]);
 
   const handleSubmit = async () => {
     if (!differentialDiagnosis.trim()) {
@@ -143,7 +137,9 @@ const Diagnosis = ({ appointmentId, setFlowStep, setActiveTab }) => {
     setFinalDiagnosisEntries((prev) => prev.filter((d) => d.id !== id));
   };
 
-  const diagnosisOptions = (appointmentDiagnosis?.all_diagnosis_codes || []).map((d) => ({
+  const diagnosisOptions = (
+    appointmentDiagnosis?.all_diagnosis_codes || []
+  ).map((d) => ({
     value: d.id,
     label: `${d.diagnosis} ${d.icd_code ? `(${d.icd_code})` : ""}`,
   }));
