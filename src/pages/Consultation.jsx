@@ -77,7 +77,7 @@ const Consultation = () => {
 
   if (error || !selectedAppointment) {
     console.error("❌ Error fetching appointment details. Redirecting...");
-    navigate("/dashboard");
+    navigate("/");
     return <p>Redirecting to Dashboard...</p>;
   }
 

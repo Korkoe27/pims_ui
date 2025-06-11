@@ -40,6 +40,7 @@ const Internals = ({ setActiveTab, setTabCompletionStatus }) => {
 
   // 2. Hydrate saved data
   useEffect(() => {
+    if (loadingInternals || loadingConditions) return;
     if (!existingObservations || !rawConditions.length) return;
 
     // Flatten rawConditions into a list with group context
