@@ -108,23 +108,24 @@ const Refraction = ({ setActiveTab, setTabCompletionStatus }) => {
       if (!obj.sph) {
         errors[`objective-${eye}-sph`] = "SPH is required";
       }
-      if (obj.cyl && !obj.axis) {
+      if (
+        obj.cyl &&
+        (obj.axis === undefined || obj.axis === null || obj.axis === "")
+      ) {
         errors[`objective-${eye}-axis`] =
           "Axis is required when CYL is entered";
       }
 
       const sub = formData.subjective[eye];
 
-      // ✅ Require SPH for subjective refraction
       if (!sub.sph || sub.sph.trim() === "") {
         errors[`subjective-${eye}-sph`] = "Subjective SPH is required";
       }
 
-      // ✅ If CYL is entered, AXIS is required
       if (
         sub.cyl &&
         sub.cyl.trim() !== "" &&
-        (!sub.axis || sub.axis.trim() === "")
+        (sub.axis === undefined || sub.axis === null || sub.axis.trim() === "")
       ) {
         errors[`subjective-${eye}-axis`] =
           "Axis is required when CYL is entered";
@@ -132,7 +133,10 @@ const Refraction = ({ setActiveTab, setTabCompletionStatus }) => {
 
       if (showCycloplegic) {
         const cyc = formData.cycloplegic[eye];
-        if (cyc.cyl && !cyc.axis) {
+        if (
+          cyc.cyl &&
+          (cyc.axis === undefined || cyc.axis === null || cyc.axis === "")
+        ) {
           errors[`cycloplegic-${eye}-axis`] =
             "Axis is required when CYL is entered";
         }
