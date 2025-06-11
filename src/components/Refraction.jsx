@@ -10,6 +10,7 @@ import CYLValidator from "./validators/CYLValidator";
 import AXISValidator from "./validators/AXISValidator";
 import VAValidator from "./validators/VAValidator";
 import ADDValidator from "./validators/ADDValidator";
+import NavigationButtons from "../components/NavigationButtons";
 
 const OBJECTIVE_METHOD_OPTIONS = [
   { value: "Retinoscopy", label: "Retinoscopy" },
@@ -118,14 +119,13 @@ const Refraction = ({ setActiveTab, setTabCompletionStatus }) => {
 
       const sub = formData.subjective[eye];
 
-      if (!sub.sph || sub.sph.trim() === "") {
+      if (!sub.sph || (typeof sub.sph === "string" && sub.sph.trim() === "")) {
         errors[`subjective-${eye}-sph`] = "Subjective SPH is required";
       }
 
       if (
         sub.cyl &&
-        sub.cyl.trim() !== "" &&
-        (sub.axis === undefined || sub.axis === null || sub.axis.trim() === "")
+        (sub.axis === undefined || sub.axis === null || sub.axis === "")
       ) {
         errors[`subjective-${eye}-axis`] =
           "Axis is required when CYL is entered";
@@ -335,22 +335,13 @@ const Refraction = ({ setActiveTab, setTabCompletionStatus }) => {
           )}
         </section>
 
-        <div className="mt-8 flex justify-between items-center">
-          <button
-            type="button"
-            onClick={() => setActiveTab("internals")}
-            className="px-6 py-2 font-semibold text-indigo-600 border border-indigo-600 rounded-full hover:bg-indigo-50"
-          >
-            ← Back to Internals
-          </button>
-          <button
-            type="button"
-            onClick={handleSave}
-            className="px-6 py-2 font-semibold text-white bg-indigo-600 rounded-full hover:bg-indigo-700"
-          >
-            Save and Proceed
-          </button>
-        </div>
+        <NavigationButtons
+          backLabel="← Back to Internals"
+          backTo="internals"
+          onBack={setActiveTab}
+          onSave={handleSave}
+          saveLabel="Save and Proceed"
+        />
       </form>
 
       {showErrorModal && (
