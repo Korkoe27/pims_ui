@@ -9,14 +9,14 @@ const useWebSocketDashboard = () => {
   useEffect(() => {
     const socket = new WebSocket(appointmentsWebSocketUrl());
 
-    socket.onopen = () => {
-      console.log("✅ Connected to Dashboard WebSocket");
-    };
+    // socket.onopen = () => {
+    //   console.log("✅ Connected to Dashboard WebSocket");
+    // };
 
     socket.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
-        console.log("📩 Appointment Event Received:", data);
+        // console.log("📩 Appointment Event Received:", data);
 
         // 🔁 Refetch dashboard data
         dispatch(dashboardApi.util.invalidateTags(["Dashboard"]));
@@ -25,9 +25,9 @@ const useWebSocketDashboard = () => {
       }
     };
 
-    socket.onclose = () => {
-      console.log("❌ Dashboard WebSocket closed");
-    };
+    // socket.onclose = () => {
+    //   console.log("❌ Dashboard WebSocket closed");
+    // };
 
     socket.onerror = (err) => {
       console.error("🚫 WebSocket error:", err);

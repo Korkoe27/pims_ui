@@ -13,12 +13,12 @@ export function hasFormChanged(initialData, currentPayload, options = {}) {
 
   const changed = !isEqual(initialData, currentPayload);
 
-  if (debug) {
-    console.log("🔍 Comparing data:");
-    console.log("📦 Initial:", initialData);
-    console.log("🆕 Current:", currentPayload);
-    console.log(changed ? "❗ Change detected" : "✅ No changes");
-  }
+  // if (debug) {
+  //   console.log("🔍 Comparing data:");
+  //   console.log("📦 Initial:", initialData);
+  //   console.log("🆕 Current:", currentPayload);
+  //   console.log(changed ? "❗ Change detected" : "✅ No changes");
+  // }
 
   return changed;
 }

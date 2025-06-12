@@ -12,14 +12,13 @@ const useWebSocketAppointments = () => {
       "wss://optometryclinic-production.up.railway.app/ws/appointments/"
     );
 
-    socket.onopen = () => {
-      console.log("✅ Connected to appointments WebSocket");
-    };
+    // socket.onopen = () => {
+    //   console.log("✅ Connected to appointments WebSocket");
+    // };
 
     socket.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
-        console.log("📩 New appointment event:", data);
 
         // 🔁 Invalidate cache to trigger RTK Query re-fetch
         dispatch(appointmentsApi.util.invalidateTags(["Appointments"]));
@@ -33,9 +32,9 @@ const useWebSocketAppointments = () => {
       console.error("🚫 WebSocket error:", error);
     };
 
-    socket.onclose = () => {
-      console.log("❌ Disconnected from appointments WebSocket");
-    };
+    // socket.onclose = () => {
+    //   console.log("❌ Disconnected from appointments WebSocket");
+    // };
 
     return () => socket.close();
   }, [dispatch]);

@@ -8,7 +8,6 @@ const useHandleAppointmentNavigation = () => {
       console.error("Error: No patient data provided.");
       return;
     }
-    console.log("Navigating with patient:", patient); // Debugging: Check the data before navigation
 
     navigate("/createAppointment", { state: { patient } });
   };
