@@ -269,16 +269,6 @@ export default function VisualAcuityForm({
         });
       });
 
-      // if (hasErrors) {
-      //   console.log("📛 Prescription validation errors:", newErrors);
-
-      //   showToast(
-      //     "Some prescription values look invalid. Please check and correct them 👍.",
-      //     "error"
-      //   );
-      //   setRxFieldErrors(newErrors);
-      //   return;
-      // }
 
       // ✅ Check SPH for both eyes
       if (hasPrescription) {

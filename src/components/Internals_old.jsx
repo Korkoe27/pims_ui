@@ -103,7 +103,6 @@ const Internals = ({ setActiveTab, setTabCompletionStatus }) => {
   }, [existingObservations, rawConditions]);
 
   useEffect(() => {
-    console.log("Hydrating with:", existingObservations, rawConditions);
     if (!existingObservations || !rawConditions.length) return;
     // ...rest of hydration
   }, [existingObservations, rawConditions]);
@@ -209,8 +208,6 @@ const Internals = ({ setActiveTab, setTabCompletionStatus }) => {
       });
     });
 
-    console.log("💾 Saving Internal Observations payload...");
-    console.log("Form data:", formData);
 
     try {
       await createInternalObservation({

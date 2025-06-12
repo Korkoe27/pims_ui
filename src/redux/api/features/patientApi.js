@@ -63,7 +63,7 @@ export const patientApi = apiClient.injectEndpoints({
       async onQueryStarted(patientData, { dispatch, queryFulfilled }) {
         try {
           const { data } = await queryFulfilled;
-          console.log("✅ Patient Created Successfully:", data);
+          // console.log("✅ Patient Created Successfully:", data);
         } catch (error) {
           console.error("❌ Patient Creation Failed:", error);
         }

@@ -16,7 +16,6 @@ const useMarkAppointmentCompleted = () => {
 
     try {
       const response = await markCompleted(appointmentId).unwrap();
-      console.log("✅ Appointment marked as completed:", response);
       return { success: true, data: response };
     } catch (error) {
       console.error("❌ Failed to mark appointment as completed:", error);
