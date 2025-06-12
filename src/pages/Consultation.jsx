@@ -27,13 +27,11 @@ const Consultation = () => {
   // States (with lazy localStorage init)
   const [activeTab, _setActiveTab] = useState(() => {
     const stored = localStorage.getItem(LOCAL_TAB_KEY);
-    console.log("🚀 Initial activeTab from localStorage:", stored);
     return stored || "case history";
   });
 
   const [flowStep, _setFlowStep] = useState(() => {
     const stored = localStorage.getItem(LOCAL_FLOW_KEY);
-    console.log("🚀 Initial flowStep from localStorage:", stored);
     return stored || "consultation";
   });
 
@@ -41,13 +39,11 @@ const Consultation = () => {
 
   // Wrapped setters with logging and storage
   const setActiveTab = (tab) => {
-    console.log("📌 setActiveTab triggered:", tab);
     localStorage.setItem(LOCAL_TAB_KEY, tab);
     _setActiveTab(tab);
   };
 
   const setFlowStep = (step) => {
-    console.log("📌 setFlowStep triggered:", step);
     localStorage.setItem(LOCAL_FLOW_KEY, step);
     _setFlowStep(step);
   };

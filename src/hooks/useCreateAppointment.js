@@ -23,7 +23,6 @@ const useCreateAppointment = () => {
 
     try {
       const response = await createAppointment(appointmentData).unwrap();
-      console.log("✅ Appointment Created Successfully:", response);
       return { success: true, data: response };
     } catch (error) {
       console.error("❌ Failed to create appointment:", error);
