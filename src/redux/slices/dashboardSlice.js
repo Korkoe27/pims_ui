@@ -35,6 +35,13 @@ const dashboardSlice = createSlice({
       state.error = null;
       state.loading = false;
     },
+
+    // ✅ Add new appointment without needing a refresh or socket
+    addNewAppointment: (state, action) => {
+      state.todayAppointments.count += 1;
+      state.todayAppointments.data.unshift(action.payload); // Add to beginning
+      state.pendingAppointments += 1;
+    },
   },
   extraReducers: (builder) => {
     // Fetch Dashboard Data
@@ -66,11 +73,13 @@ const dashboardSlice = createSlice({
         dashboardApi.endpoints.getDashboardData.matchRejected,
         (state, action) => {
           state.loading = false;
-          state.error = action.error?.message || "Failed to fetch dashboard data";
+          state.error =
+            action.error?.message || "Failed to fetch dashboard data";
         }
       );
   },
 });
 
-export const { resetDashboardState } = dashboardSlice.actions;
+export const { resetDashboardState, addNewAppointment } =
+  dashboardSlice.actions;
 export default dashboardSlice.reducer;
