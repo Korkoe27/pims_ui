@@ -1,40 +1,67 @@
-// components/CheckboxInput.jsx
 import React from "react";
 
 const CheckboxInput = ({
-  checkedOD = false,
-  checkedOS = false,
+  checkedOD = null,
+  checkedOS = null,
   onChangeOD = () => {},
   onChangeOS = () => {},
   labelOD = "OD (Right Eye)",
   labelOS = "OS (Left Eye)",
 }) => {
   return (
-    <div className="grid grid-cols-2 gap-4">
-      <div className="flex items-center space-x-2">
-        <input
-          id="checkbox-od"
-          type="checkbox"
-          checked={checkedOD}
-          onChange={(e) => onChangeOD(e.target.checked)}
-          className="h-4 w-4 text-indigo-600 border-gray-300 rounded"
-        />
-        <label htmlFor="checkbox-od" className="text-sm font-medium">
-          {labelOD}
-        </label>
+    <div className="grid grid-cols-2 gap-6">
+      {/* OD */}
+      <div>
+        <p className="text-sm font-medium mb-1">{labelOD}</p>
+        <div className="flex space-x-4">
+          <label className="inline-flex items-center space-x-1">
+            <input
+              type="radio"
+              name={`checkbox-od`}
+              checked={checkedOD === true}
+              onChange={() => onChangeOD(true)}
+              className="text-indigo-600"
+            />
+            <span>Yes</span>
+          </label>
+          <label className="inline-flex items-center space-x-1">
+            <input
+              type="radio"
+              name={`checkbox-od`}
+              checked={checkedOD === false}
+              onChange={() => onChangeOD(false)}
+              className="text-indigo-600"
+            />
+            <span>No</span>
+          </label>
+        </div>
       </div>
 
-      <div className="flex items-center space-x-2">
-        <input
-          id="checkbox-os"
-          type="checkbox"
-          checked={checkedOS}
-          onChange={(e) => onChangeOS(e.target.checked)}
-          className="h-4 w-4 text-indigo-600 border-gray-300 rounded"
-        />
-        <label htmlFor="checkbox-os" className="text-sm font-medium">
-          {labelOS}
-        </label>
+      {/* OS */}
+      <div>
+        <p className="text-sm font-medium mb-1">{labelOS}</p>
+        <div className="flex space-x-4">
+          <label className="inline-flex items-center space-x-1">
+            <input
+              type="radio"
+              name={`checkbox-os`}
+              checked={checkedOS === true}
+              onChange={() => onChangeOS(true)}
+              className="text-indigo-600"
+            />
+            <span>Yes</span>
+          </label>
+          <label className="inline-flex items-center space-x-1">
+            <input
+              type="radio"
+              name={`checkbox-os`}
+              checked={checkedOS === false}
+              onChange={() => onChangeOS(false)}
+              className="text-indigo-600"
+            />
+            <span>No</span>
+          </label>
+        </div>
       </div>
     </div>
   );

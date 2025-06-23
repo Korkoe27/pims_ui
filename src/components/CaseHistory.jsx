@@ -68,7 +68,12 @@ const CaseHistory = ({
         if (item.affected_eye === "OD" || item.affected_eye === "OS") {
           grouped[item.condition][item.affected_eye] = {
             ...(grouped[item.condition][item.affected_eye] || {}),
-            [item.field_type]: item.value,
+            [item.field_type]:
+              item.value === "true"
+                ? true
+                : item.value === "false"
+                ? false
+                : item.value,
           };
         } else {
           grouped[item.condition][item.field_type] = item.value;
@@ -157,7 +162,7 @@ const CaseHistory = ({
               condition: entry.id,
               affected_eye: eye,
               field_type: fieldType,
-              value: String(value), // ✅ ensure string type
+              value: String(value),
             });
           }
         });
@@ -230,9 +235,16 @@ const CaseHistory = ({
 
           <div className="mb-6">
             <ConditionPicker
-              label={<span>On-Direct Questioning <span className="text-red-500">*</span></span>}
+              label={
+                <span>
+                  On-Direct Questioning <span className="text-red-500">*</span>
+                </span>
+              }
               options={formattedODQOptions}
-              selectedValues={selectedConditions.map((c) => ({ id: c.id, name: c.name }))}
+              selectedValues={selectedConditions.map((c) => ({
+                id: c.id,
+                name: c.name,
+              }))}
               onSelect={handleSelect}
               conditionKey="id"
               conditionNameKey="name"
@@ -241,18 +253,27 @@ const CaseHistory = ({
             {selectedConditions.length > 0 && (
               <div className="mt-4 space-y-4">
                 {selectedConditions.map((item) => (
-                  <div key={item.id} className="p-4 bg-gray-50 border rounded space-y-4">
+                  <div
+                    key={item.id}
+                    className="p-4 bg-gray-50 border rounded space-y-4"
+                  >
                     <div className="flex items-center justify-between">
                       <h4 className="font-semibold">{item.name}</h4>
-                      <DeleteButton onClick={() => handleDeleteCondition(item.id)} />
+                      <DeleteButton
+                        onClick={() => handleDeleteCondition(item.id)}
+                      />
                     </div>
 
                     {item.has_grading && (
                       <GradingSelect
                         valueOD={item.OD?.grading || ""}
                         valueOS={item.OS?.grading || ""}
-                        onChangeOD={(val) => handleFieldChange(item.id, "OD", "grading", val)}
-                        onChangeOS={(val) => handleFieldChange(item.id, "OS", "grading", val)}
+                        onChangeOD={(val) =>
+                          handleFieldChange(item.id, "OD", "grading", val)
+                        }
+                        onChangeOS={(val) =>
+                          handleFieldChange(item.id, "OS", "grading", val)
+                        }
                       />
                     )}
 
@@ -261,8 +282,12 @@ const CaseHistory = ({
                         valueOD={item.OD?.dropdown || ""}
                         valueOS={item.OS?.dropdown || ""}
                         options={item.dropdown_options}
-                        onChangeOD={(val) => handleFieldChange(item.id, "OD", "dropdown", val)}
-                        onChangeOS={(val) => handleFieldChange(item.id, "OS", "dropdown", val)}
+                        onChangeOD={(val) =>
+                          handleFieldChange(item.id, "OD", "dropdown", val)
+                        }
+                        onChangeOS={(val) =>
+                          handleFieldChange(item.id, "OS", "dropdown", val)
+                        }
                       />
                     )}
 
@@ -270,8 +295,12 @@ const CaseHistory = ({
                       <TextInput
                         valueOD={item.OD?.text || ""}
                         valueOS={item.OS?.text || ""}
-                        onChangeOD={(val) => handleFieldChange(item.id, "OD", "text", val)}
-                        onChangeOS={(val) => handleFieldChange(item.id, "OS", "text", val)}
+                        onChangeOD={(val) =>
+                          handleFieldChange(item.id, "OD", "text", val)
+                        }
+                        onChangeOS={(val) =>
+                          handleFieldChange(item.id, "OS", "text", val)
+                        }
                         placeholderOD="Enter text for OD"
                         placeholderOS="Enter text for OS"
                       />
@@ -279,10 +308,14 @@ const CaseHistory = ({
 
                     {item.has_checkbox && (
                       <CheckboxInput
-                        checkedOD={item.OD?.checkbox || false}
-                        checkedOS={item.OS?.checkbox || false}
-                        onChangeOD={(val) => handleFieldChange(item.id, "OD", "checkbox", val)}
-                        onChangeOS={(val) => handleFieldChange(item.id, "OS", "checkbox", val)}
+                        checkedOD={item.OD?.checkbox ?? false}
+                        checkedOS={item.OS?.checkbox ?? false}
+                        onChangeOD={(val) =>
+                          handleFieldChange(item.id, "OD", "checkbox", val)
+                        }
+                        onChangeOS={(val) =>
+                          handleFieldChange(item.id, "OS", "checkbox", val)
+                        }
                       />
                     )}
 
