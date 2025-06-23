@@ -1,17 +1,19 @@
 import React, { useState } from "react";
 import { useLocation } from "react-router-dom";
+import { useDispatch } from "react-redux";
 import toast, { Toaster } from "react-hot-toast";
+
 import { useCreateAppointmentMutation } from "../redux/api/features/appointmentsApi";
 import { showToast, formatErrorMessage } from "../components/ToasterHelper";
+import { addNewAppointment } from "../redux/slices/dashboardSlice"; // ✅ Import this
 
 const CreateAppointment = () => {
   const { state } = useLocation();
+  const dispatch = useDispatch(); // ✅ Get dispatch
 
-  const patient = state?.patient || null; // Ensure `patient` is always defined
+  const patient = state?.patient || null;
 
-  // ✅ Always call hooks at the top
-  const [createAppointment, { isLoading, isError, error, isSuccess }] =
-    useCreateAppointmentMutation();
+  const [createAppointment, { isLoading }] = useCreateAppointmentMutation();
 
   const [formData, setFormData] = useState({
     appointment_date: "",
@@ -20,7 +22,6 @@ const CreateAppointment = () => {
     notes: "",
   });
 
-  // If patient is null, just render an error message below (DO NOT return early)
   const APPOINTMENT_TYPES = [
     { value: "New", label: "New" },
     { value: "Review", label: "Review" },
@@ -39,13 +40,13 @@ const CreateAppointment = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!patient || !patient.id) {
+    if (!patient?.id) {
       console.error("Error: Patient ID is missing!");
       return;
     }
 
     const payload = {
-      patient: patient.id, // ✅ Ensure we are using `id` (not `patient_id`)
+      patient: patient.id,
       appointment_date: formData.appointment_date,
       appointment_type: formData.appointment_type,
       status: formData.status,
@@ -54,11 +55,24 @@ const CreateAppointment = () => {
 
     try {
       const toastId = showToast("Creating appointment...", "loading", {
-        autoClose: false, // Keep it visible until we manually update or remove it
-        isLoading: true, // Spinner or loading indicator if supported
+        autoClose: false,
+        isLoading: true,
       });
 
-      await createAppointment(payload).unwrap();
+      const response = await createAppointment(payload).unwrap();
+
+      // ✅ Immediately update Redux dashboard state
+      dispatch(
+        addNewAppointment({
+          ...response,
+          patient_id: patient.patient_id,
+          patient_name: `${patient.first_name} ${patient.last_name || ""}`,
+          appointment_type: formData.appointment_type,
+          appointment_date: formData.appointment_date,
+          status: formData.status,
+        })
+      );
+
       showToast("Appointment Created Successfully!", "success");
       setFormData({
         appointment_date: "",
@@ -78,14 +92,12 @@ const CreateAppointment = () => {
         Schedule an Appointment
       </h1>
 
-      {/* ✅ If `patient` is missing, show error but keep hooks running */}
       {!patient ? (
         <p className="text-red-500 text-center">
           Error: No valid patient selected.
         </p>
       ) : (
         <>
-          {/* Display Patient Info */}
           <div className="bg-gray-100 p-4 rounded-md shadow-md">
             <p>
               <strong>Patient Name:</strong> {patient.first_name}{" "}
@@ -176,9 +188,7 @@ const CreateAppointment = () => {
                 onChange={handleChange}
               ></textarea>
             </div>
-            {/* Hidden Field for Patient ID */}
-            <input type="hidden" name="patient" value={patient.id} />{" "}
-            {/* Use `id` for linking */}
+            <input type="hidden" name="patient" value={patient.id} />
             <div className="col-span-2 flex justify-center">
               <button
                 type="submit"

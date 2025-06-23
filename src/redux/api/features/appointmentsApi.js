@@ -7,6 +7,8 @@ import {
 } from "../end_points/endpoints";
 
 export const appointmentsApi = apiClient.injectEndpoints({
+  tagTypes: ["Dashboard"], // ✅ Register tag used by consumers like Sidebar/Dashboard
+
   endpoints: (builder) => ({
     // Fetch all appointments
     getAppointments: builder.query({
@@ -25,29 +27,30 @@ export const appointmentsApi = apiClient.injectEndpoints({
       }),
     }),
 
-    // Create a new appointment
+    // ✅ Create a new appointment and invalidate dashboard
     createAppointment: builder.mutation({
       query: (appointmentData) => ({
         url: createNewAppointmentUrl,
         method: "POST",
         body: appointmentData,
       }),
+      invalidatesTags: ["Dashboard"], // ✅ Triggers background refetch of useGetDashboardDataQuery()
     }),
 
-    // ✅ Mark appointment as completed
+    // ✅ Mark appointment as completed and refresh dashboard
     markAppointmentCompleted: builder.mutation({
       query: (appointmentId) => ({
         url: markAppointmentCompletedUrl(appointmentId),
         method: "PATCH",
       }),
+      invalidatesTags: ["Dashboard"],
     }),
   }),
 });
-
 
 export const {
   useGetAppointmentsQuery,
   useGetAppointmentDetailsQuery,
   useCreateAppointmentMutation,
-  useMarkAppointmentCompletedMutation, // ✅ Add this line
+  useMarkAppointmentCompletedMutation,
 } = appointmentsApi;
