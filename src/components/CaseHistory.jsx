@@ -37,11 +37,8 @@ const CaseHistory = ({
   const [selectedConditions, setSelectedConditions] = useState([]);
   const [initialPayload, setInitialPayload] = useState(null);
 
-  // const [notes, setNotes] = useState(""); // ✅ Add this
-
   const isLoading = loadingCaseHistory || loadingConditions;
 
-  // Pre-fill data if editing existing case history
   useEffect(() => {
     if (caseHistory) {
       setChiefComplaint(caseHistory?.chief_complaint || "");
@@ -61,6 +58,7 @@ const CaseHistory = ({
             has_dropdown: matchedCondition?.has_dropdown || false,
             has_grading: matchedCondition?.has_grading || false,
             has_notes: matchedCondition?.has_notes || false,
+            has_checkbox: matchedCondition?.has_checkbox || false,
             dropdown_options: matchedCondition?.dropdown_options || [],
             OD: {},
             OS: {},
@@ -73,7 +71,6 @@ const CaseHistory = ({
             [item.field_type]: item.value,
           };
         } else {
-          // ✅ Handle shared fields like notes
           grouped[item.condition][item.field_type] = item.value;
         }
       });
@@ -111,7 +108,7 @@ const CaseHistory = ({
         has_dropdown: option.has_dropdown || false,
         has_grading: option.has_grading || false,
         has_notes: option.has_notes || false,
-        has_checkbox: option.has_checkbox || false, // ✅ add this
+        has_checkbox: option.has_checkbox || false,
         dropdown_options: option.dropdown_options || [],
         OD: {},
         OS: {},
@@ -148,26 +145,28 @@ const CaseHistory = ({
     const observations = [];
 
     selectedConditions.forEach((entry) => {
-      // Collect OD/OS specific fields
       ["OD", "OS"].forEach((eye) => {
         const data = entry[eye] || {};
-        ["text", "dropdown", "grading"].forEach((fieldType) => {
-          if (data[fieldType]) {
+        ["text", "dropdown", "grading", "checkbox"].forEach((fieldType) => {
+          const value = data[fieldType];
+          if (
+            fieldType === "checkbox" ||
+            (value !== undefined && value !== null && value !== "")
+          ) {
             observations.push({
               condition: entry.id,
               affected_eye: eye,
               field_type: fieldType,
-              value: data[fieldType],
+              value: String(value), // ✅ ensure string type
             });
           }
         });
       });
 
-      // ✅ Add unified notes field (not per eye)
       if (entry.notes?.trim()) {
         observations.push({
           condition: entry.id,
-          affected_eye: null, // ✅ properly unassign eye for unified notes
+          affected_eye: null,
           field_type: "notes",
           value: entry.notes.trim(),
         });
@@ -213,12 +212,10 @@ const CaseHistory = ({
   return (
     <div className="p-6 pb-12 bg-white rounded-md shadow-md max-w-3xl mx-auto">
       <h1 className="text-2xl font-bold mb-4">Case History</h1>
-
       {isLoading ? (
         <p>Loading patient case history...</p>
       ) : (
         <>
-          {/* Chief Complaint Input */}
           <div className="mb-4">
             <label className="block font-semibold mb-1">
               Chief Complaint <span className="text-red-500">*</span>
@@ -231,19 +228,11 @@ const CaseHistory = ({
             />
           </div>
 
-          {/* On-Direct Questioning Condition Selection */}
           <div className="mb-6">
             <ConditionPicker
-              label={
-                <span>
-                  On-Direct Questioning <span className="text-red-500">*</span>
-                </span>
-              }
+              label={<span>On-Direct Questioning <span className="text-red-500">*</span></span>}
               options={formattedODQOptions}
-              selectedValues={selectedConditions.map((c) => ({
-                id: c.id,
-                name: c.name,
-              }))}
+              selectedValues={selectedConditions.map((c) => ({ id: c.id, name: c.name }))}
               onSelect={handleSelect}
               conditionKey="id"
               conditionNameKey="name"
@@ -252,77 +241,51 @@ const CaseHistory = ({
             {selectedConditions.length > 0 && (
               <div className="mt-4 space-y-4">
                 {selectedConditions.map((item) => (
-                  <div
-                    key={item.id}
-                    className="p-4 bg-gray-50 border rounded space-y-4"
-                  >
+                  <div key={item.id} className="p-4 bg-gray-50 border rounded space-y-4">
                     <div className="flex items-center justify-between">
                       <h4 className="font-semibold">{item.name}</h4>
-                      <DeleteButton
-                        onClick={() => handleDeleteCondition(item.id)}
-                      />
+                      <DeleteButton onClick={() => handleDeleteCondition(item.id)} />
                     </div>
 
-                    {/* Grading */}
                     {item.has_grading && (
                       <GradingSelect
                         valueOD={item.OD?.grading || ""}
                         valueOS={item.OS?.grading || ""}
-                        onChangeOD={(val) =>
-                          handleFieldChange(item.id, "OD", "grading", val)
-                        }
-                        onChangeOS={(val) =>
-                          handleFieldChange(item.id, "OS", "grading", val)
-                        }
+                        onChangeOD={(val) => handleFieldChange(item.id, "OD", "grading", val)}
+                        onChangeOS={(val) => handleFieldChange(item.id, "OS", "grading", val)}
                       />
                     )}
 
-                    {/* Dropdown */}
                     {item.has_dropdown && (
                       <ConditionsDropdown
                         valueOD={item.OD?.dropdown || ""}
                         valueOS={item.OS?.dropdown || ""}
                         options={item.dropdown_options}
-                        onChangeOD={(val) =>
-                          handleFieldChange(item.id, "OD", "dropdown", val)
-                        }
-                        onChangeOS={(val) =>
-                          handleFieldChange(item.id, "OS", "dropdown", val)
-                        }
+                        onChangeOD={(val) => handleFieldChange(item.id, "OD", "dropdown", val)}
+                        onChangeOS={(val) => handleFieldChange(item.id, "OS", "dropdown", val)}
                       />
                     )}
 
-                    {/* Text Input */}
                     {item.has_text && (
                       <TextInput
                         valueOD={item.OD?.text || ""}
                         valueOS={item.OS?.text || ""}
-                        onChangeOD={(val) =>
-                          handleFieldChange(item.id, "OD", "text", val)
-                        }
-                        onChangeOS={(val) =>
-                          handleFieldChange(item.id, "OS", "text", val)
-                        }
+                        onChangeOD={(val) => handleFieldChange(item.id, "OD", "text", val)}
+                        onChangeOS={(val) => handleFieldChange(item.id, "OS", "text", val)}
                         placeholderOD="Enter text for OD"
                         placeholderOS="Enter text for OS"
                       />
                     )}
 
-                    {/* Checkbox */}
                     {item.has_checkbox && (
                       <CheckboxInput
                         checkedOD={item.OD?.checkbox || false}
                         checkedOS={item.OS?.checkbox || false}
-                        onChangeOD={(val) =>
-                          handleFieldChange(item.id, "OD", "checkbox", val)
-                        }
-                        onChangeOS={(val) =>
-                          handleFieldChange(item.id, "OS", "checkbox", val)
-                        }
+                        onChangeOD={(val) => handleFieldChange(item.id, "OD", "checkbox", val)}
+                        onChangeOS={(val) => handleFieldChange(item.id, "OS", "checkbox", val)}
                       />
                     )}
 
-                    {/* Notes */}
                     {item.has_notes && (
                       <NotesTextArea
                         value={item.notes || ""}
@@ -341,11 +304,10 @@ const CaseHistory = ({
             )}
           </div>
 
-          {/* Save Button */}
           {selectedConditions.length > 0 && (
             <div className="pt-4">
               <NavigationButtons
-                hideBack={true} // 👈 hide back button
+                hideBack={true}
                 onSave={handleSaveAndProceed}
                 saving={isSaving}
                 saveLabel="Save and Proceed"
