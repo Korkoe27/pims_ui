@@ -38,9 +38,30 @@ const dashboardSlice = createSlice({
 
     // ✅ Add new appointment without needing a refresh or socket
     addNewAppointment: (state, action) => {
-      state.todayAppointments.count += 1;
-      state.todayAppointments.data.unshift(action.payload); // Add to beginning
-      state.pendingAppointments += 1;
+      const newAppt = action.payload;
+
+      const isToday =
+        new Date(newAppt.appointment_date).toDateString() ===
+        new Date().toDateString();
+
+      if (!isToday) return;
+
+      const alreadyExists = state.todayAppointments.data.some(
+        (appt) => appt.id === newAppt.id
+      );
+
+      if (!alreadyExists) {
+        state.todayAppointments.data.unshift(newAppt);
+        state.todayAppointments.count += 1;
+
+        if (newAppt.status === "Scheduled") {
+          state.pendingAppointments += 1;
+        }
+
+        if (newAppt.status === "Completed") {
+          state.completedAppointments += 1;
+        }
+      }
     },
   },
   extraReducers: (builder) => {
