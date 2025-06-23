@@ -35,6 +35,34 @@ const dashboardSlice = createSlice({
       state.error = null;
       state.loading = false;
     },
+
+    // ✅ Add new appointment without needing a refresh or socket
+    addNewAppointment: (state, action) => {
+      const newAppt = action.payload;
+
+      const isToday =
+        new Date(newAppt.appointment_date).toDateString() ===
+        new Date().toDateString();
+
+      if (!isToday) return;
+
+      const alreadyExists = state.todayAppointments.data.some(
+        (appt) => appt.id === newAppt.id
+      );
+
+      if (!alreadyExists) {
+        state.todayAppointments.data.unshift(newAppt);
+        state.todayAppointments.count += 1;
+
+        if (newAppt.status === "Scheduled") {
+          state.pendingAppointments += 1;
+        }
+
+        if (newAppt.status === "Completed") {
+          state.completedAppointments += 1;
+        }
+      }
+    },
   },
   extraReducers: (builder) => {
     // Fetch Dashboard Data
@@ -66,11 +94,13 @@ const dashboardSlice = createSlice({
         dashboardApi.endpoints.getDashboardData.matchRejected,
         (state, action) => {
           state.loading = false;
-          state.error = action.error?.message || "Failed to fetch dashboard data";
+          state.error =
+            action.error?.message || "Failed to fetch dashboard data";
         }
       );
   },
 });
 
-export const { resetDashboardState } = dashboardSlice.actions;
+export const { resetDashboardState, addNewAppointment } =
+  dashboardSlice.actions;
 export default dashboardSlice.reducer;
