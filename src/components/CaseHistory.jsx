@@ -13,6 +13,7 @@ import GradingSelect from "./GradingSelect";
 import NotesTextArea from "./NotesTextArea";
 import { hasFormChanged } from "../utils/deepCompare";
 import NavigationButtons from "../components/NavigationButtons";
+import CheckboxInput from "./CheckboxInput";
 
 const CaseHistory = ({
   patientId,
@@ -110,6 +111,7 @@ const CaseHistory = ({
         has_dropdown: option.has_dropdown || false,
         has_grading: option.has_grading || false,
         has_notes: option.has_notes || false,
+        has_checkbox: option.has_checkbox || false, // ✅ add this
         dropdown_options: option.dropdown_options || [],
         OD: {},
         OS: {},
@@ -303,6 +305,20 @@ const CaseHistory = ({
                         }
                         placeholderOD="Enter text for OD"
                         placeholderOS="Enter text for OS"
+                      />
+                    )}
+
+                    {/* Checkbox */}
+                    {item.has_checkbox && (
+                      <CheckboxInput
+                        checkedOD={item.OD?.checkbox || false}
+                        checkedOS={item.OS?.checkbox || false}
+                        onChangeOD={(val) =>
+                          handleFieldChange(item.id, "OD", "checkbox", val)
+                        }
+                        onChangeOS={(val) =>
+                          handleFieldChange(item.id, "OS", "checkbox", val)
+                        }
                       />
                     )}
 
