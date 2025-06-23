@@ -416,7 +416,7 @@ export default function VisualAcuityForm({
           />
 
           <NavigationButtons
-            backLabel="← Back to Personal History"
+            backLabel="← Back to Oculo Medical History"
             backTo="personal history"
             onBack={setActiveTab}
             onSave={handleSaveAndProceed}
