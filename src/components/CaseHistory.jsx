@@ -14,7 +14,6 @@ import NotesTextArea from "./NotesTextArea";
 import { hasFormChanged } from "../utils/deepCompare";
 import NavigationButtons from "../components/NavigationButtons";
 
-
 const CaseHistory = ({
   patientId,
   appointmentId,
@@ -330,9 +329,7 @@ const CaseHistory = ({
           {selectedConditions.length > 0 && (
             <div className="pt-4">
               <NavigationButtons
-                backLabel="← Back to Visual Acuity"
-                backTo="visual acuity"
-                onBack={setActiveTab}
+                hideBack={true} // 👈 hide back button
                 onSave={handleSaveAndProceed}
                 saving={isSaving}
                 saveLabel="Save and Proceed"
