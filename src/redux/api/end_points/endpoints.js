@@ -194,5 +194,5 @@ export const managementPlanUrl = (appointmentId) =>
 
 // Dynamically generate the WebSocket URL for appointments
 
-export const appointmentsWebSocketUrl = () =>
-  "wss://optometryclinic-production.up.railway.app/ws/appointments/";
+// export const appointmentsWebSocketUrl = () =>
+//   "wss://optometryclinic-production.up.railway.app/ws/appointments/";

@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { IoClose } from "react-icons/io5";
 import { showToast } from "../components/ToasterHelper";
 import ExtraTestUploadModal from "./ExtraTestUploadModal";
 import {
@@ -7,14 +6,6 @@ import {
   useFetchExtraTestsQuery,
 } from "../redux/api/features/extraTestsApi";
 
-export const TEST_OPTIONS = [
-  "OCT",
-  "Perimetry",
-  "Color Vision",
-  "Visual Field Test",
-  "B-Scan",
-  "Pachymetry",
-];
 
 const ExtraTests = ({
   appointmentId,
@@ -27,8 +18,6 @@ const ExtraTests = ({
     useFetchExtraTestsQuery(appointmentId);
 
   const proceedToDiagnosis = () => {
-    
-
     setTabCompletionStatus?.((prev) => ({
       ...prev,
       "extra tests": true,
@@ -61,15 +50,42 @@ const ExtraTests = ({
               className="border rounded-lg p-4 shadow relative bg-white"
             >
               <p className="font-semibold mb-2">{test.name}</p>
+
+              {/* ✅ Tonometry-specific fields */}
+              {test.name.toLowerCase().includes("tonometry") && (
+                <div className="text-sm text-gray-700 mb-2 space-y-1">
+                  <p>
+                    <strong>Method:</strong> {test.method || "N/A"}
+                  </p>
+                  <p>
+                    <strong>IOP OD:</strong> {test.iop_od ?? "N/A"}
+                  </p>
+                  <p>
+                    <strong>IOP OS:</strong> {test.iop_os ?? "N/A"}
+                  </p>
+                  <p>
+                    <strong>Recorded At:</strong>{" "}
+                    {test.recorded_at
+                      ? new Date(test.recorded_at).toLocaleString()
+                      : "N/A"}
+                  </p>
+                </div>
+              )}
+
+              {/* File display */}
               {test.file?.includes(".pdf") ? (
                 <p className="text-sm text-gray-600 truncate">{test.file}</p>
               ) : (
-                <img
-                  src={test.file}
-                  alt={test.name}
-                  className="w-full h-40 object-cover rounded"
-                />
+                test.file && (
+                  <img
+                    src={test.file}
+                    alt={test.name}
+                    className="w-full h-40 object-cover rounded"
+                  />
+                )
               )}
+
+              {/* Notes */}
               {test.notes && (
                 <p className="text-sm mt-2 text-gray-700 italic">
                   {test.notes}
@@ -98,13 +114,13 @@ const ExtraTests = ({
         </button>
       </div>
 
-      {/* Modal */}
+      {/* Upload Modal */}
       <ExtraTestUploadModal
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
         appointmentId={appointmentId}
         onUploadSuccess={() => {
-          refetch(); // if you're using useFetchExtraTestsQuery
+          refetch();
           setModalOpen(false);
         }}
       />

@@ -15,6 +15,8 @@ import { caseHistoryApi } from "../api/features/caseHistoryApi";
 import { visualAcuityApi } from "../api/features/visualAcuityApi";
 import { diagnosisApi } from "../api/features/diagnosisApi";
 import { managementApi } from "../api/features/managementApi";
+import { dashboardApi } from "../api/features/dashboardApi"; // ✅ NEW
+import { appointmentsApi } from "../api/features/appointmentsApi"; // ✅ NEW
 
 // State slices
 import authReducer from "../slices/authSlice";
@@ -54,6 +56,8 @@ export const store = configureStore({
     [visualAcuityApi.reducerPath]: visualAcuityApi.reducer,
     [diagnosisApi.reducerPath]: diagnosisApi.reducer,
     [managementApi.reducerPath]: managementApi.reducer,
+    [dashboardApi.reducerPath]: dashboardApi.reducer, // ✅ ADDED
+    [appointmentsApi.reducerPath]: appointmentsApi.reducer, // ✅ ADDED
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
@@ -64,7 +68,9 @@ export const store = configureStore({
       .concat(caseHistoryApi.middleware)
       .concat(visualAcuityApi.middleware)
       .concat(diagnosisApi.middleware)
-      .concat(managementApi.middleware),
+      .concat(managementApi.middleware)
+      .concat(dashboardApi.middleware) // ✅ ADDED
+      .concat(appointmentsApi.middleware), // ✅ ADDED
 });
 
 export const persistor = persistStore(store);
