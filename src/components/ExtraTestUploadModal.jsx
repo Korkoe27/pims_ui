@@ -10,6 +10,7 @@ const TEST_OPTIONS = [
   "Visual Field Test",
   "B-Scan",
   "Pachymetry",
+  "Tonometry", // ✅ Added
 ];
 
 const ExtraTestUploadModal = ({
@@ -22,6 +23,12 @@ const ExtraTestUploadModal = ({
   const [notes, setNotes] = useState("");
   const [file, setFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
+
+  // Tonometry-specific fields
+  const [method, setMethod] = useState("");
+  const [iopOd, setIopOd] = useState("");
+  const [iopOs, setIopOs] = useState("");
+  const [recordedAt, setRecordedAt] = useState("");
 
   const [createExtraTest] = useCreateExtraTestMutation();
 
@@ -53,6 +60,13 @@ const ExtraTestUploadModal = ({
     formData.append("notes", notes);
     formData.append("file", file);
     formData.append("appointment", appointmentId);
+
+    if (testName.toLowerCase().includes("tonometry")) {
+      formData.append("method", method);
+      formData.append("iop_od", iopOd);
+      formData.append("iop_os", iopOs);
+      formData.append("recorded_at", recordedAt);
+    }
 
     try {
       await createExtraTest(formData).unwrap();
@@ -92,6 +106,41 @@ const ExtraTestUploadModal = ({
               </option>
             ))}
           </select>
+
+          {/* ✅ Tonometry-specific fields */}
+          {testName.toLowerCase().includes("tonometry") && (
+            <>
+              <input
+                type="text"
+                value={method}
+                onChange={(e) => setMethod(e.target.value)}
+                placeholder="Tonometry Method"
+                className="border rounded p-3"
+              />
+              <div className="flex gap-2">
+                <input
+                  type="number"
+                  value={iopOd}
+                  onChange={(e) => setIopOd(e.target.value)}
+                  placeholder="IOP OD"
+                  className="border rounded p-3 w-full"
+                />
+                <input
+                  type="number"
+                  value={iopOs}
+                  onChange={(e) => setIopOs(e.target.value)}
+                  placeholder="IOP OS"
+                  className="border rounded p-3 w-full"
+                />
+              </div>
+              <input
+                type="datetime-local"
+                value={recordedAt}
+                onChange={(e) => setRecordedAt(e.target.value)}
+                className="border rounded p-3"
+              />
+            </>
+          )}
 
           <textarea
             value={notes}
