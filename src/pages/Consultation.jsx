@@ -20,11 +20,12 @@ const Consultation = () => {
   const { appointmentId } = useParams();
   const navigate = useNavigate();
 
-  // Keys
+  // LocalStorage keys
   const LOCAL_TAB_KEY = `consultation-${appointmentId}-activeTab`;
   const LOCAL_FLOW_KEY = `consultation-${appointmentId}-flowStep`;
+  const LOCAL_STATUS_KEY = `consultation-${appointmentId}-tabCompletionStatus`;
 
-  // States (with lazy localStorage init)
+  // Initial state setup
   const [activeTab, _setActiveTab] = useState(() => {
     const stored = localStorage.getItem(LOCAL_TAB_KEY);
     return stored || "case history";
@@ -35,17 +36,33 @@ const Consultation = () => {
     return stored || "consultation";
   });
 
-  const [tabCompletionStatus, setTabCompletionStatus] = useState({});
+  const [tabCompletionStatus, _setTabCompletionStatus] = useState(() => {
+    const stored = localStorage.getItem(LOCAL_STATUS_KEY);
+    return stored ? JSON.parse(stored) : {};
+  });
 
-  // Wrapped setters with logging and storage
+  // Persisting active tab
   const setActiveTab = (tab) => {
     localStorage.setItem(LOCAL_TAB_KEY, tab);
     _setActiveTab(tab);
   };
 
+  // Persisting flow step
   const setFlowStep = (step) => {
     localStorage.setItem(LOCAL_FLOW_KEY, step);
     _setFlowStep(step);
+  };
+
+  // Persisting completion status
+  const setTabCompletionStatus = (updateFnOrObject) => {
+    _setTabCompletionStatus((prev) => {
+      const update =
+        typeof updateFnOrObject === "function"
+          ? updateFnOrObject(prev)
+          : { ...prev, ...updateFnOrObject };
+      localStorage.setItem(LOCAL_STATUS_KEY, JSON.stringify(update));
+      return update;
+    });
   };
 
   // API
@@ -62,7 +79,6 @@ const Consultation = () => {
   };
 
   // Handle loading/errors
-  // if (isLoading) return <p>Loading patient details...</p>;
   if (isLoading) {
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-white z-50">
@@ -145,7 +161,7 @@ const Consultation = () => {
     }
   };
 
-  // Render flow step
+  // Render current flow step
   const renderFlowStep = () => {
     switch (flowStep) {
       case "consultation":
