@@ -10,7 +10,7 @@ const TEST_OPTIONS = [
   "Visual Field Test",
   "B-Scan",
   "Pachymetry",
-  "Tonometry", // ✅ Added
+  "Tonometry",
 ];
 
 const ExtraTestUploadModal = ({
@@ -49,8 +49,9 @@ const ExtraTestUploadModal = ({
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const isTonometry = testName.toLowerCase().includes("tonometry");
 
-    if (!testName || !file) {
+    if (!testName || (!file && !isTonometry)) {
       showToast("Test name and file are required.", "error");
       return;
     }
@@ -58,10 +59,13 @@ const ExtraTestUploadModal = ({
     const formData = new FormData();
     formData.append("name", testName);
     formData.append("notes", notes);
-    formData.append("file", file);
     formData.append("appointment", appointmentId);
 
-    if (testName.toLowerCase().includes("tonometry")) {
+    if (file) {
+      formData.append("file", file);
+    }
+
+    if (isTonometry) {
       formData.append("method", method);
       formData.append("iop_od", iopOd);
       formData.append("iop_os", iopOs);
@@ -154,6 +158,7 @@ const ExtraTestUploadModal = ({
             className="border rounded p-3"
           />
 
+          {/* File Upload */}
           <label className="border rounded p-3 cursor-pointer bg-gray-50 text-sm text-gray-700 hover:bg-gray-100">
             {file ? "Change File" : "Upload File"}
             <input
