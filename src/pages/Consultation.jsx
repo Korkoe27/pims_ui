@@ -14,18 +14,17 @@ import Refraction from "../components/Refraction";
 import ExtraTests from "../components/ExtraTests";
 import Diagnosis from "../components/Diagnosis";
 import Management from "../components/Management";
+import CompleteConsultation from "../components/CompleteConsultation";
 import BouncingBallsLoader from "../components/BouncingBallsLoader";
 
 const Consultation = () => {
   const { appointmentId } = useParams();
   const navigate = useNavigate();
 
-  // LocalStorage keys
   const LOCAL_TAB_KEY = `consultation-${appointmentId}-activeTab`;
   const LOCAL_FLOW_KEY = `consultation-${appointmentId}-flowStep`;
   const LOCAL_STATUS_KEY = `consultation-${appointmentId}-tabCompletionStatus`;
 
-  // Initial state setup
   const [activeTab, _setActiveTab] = useState(() => {
     const stored = localStorage.getItem(LOCAL_TAB_KEY);
     return stored || "case history";
@@ -41,19 +40,16 @@ const Consultation = () => {
     return stored ? JSON.parse(stored) : {};
   });
 
-  // Persisting active tab
   const setActiveTab = (tab) => {
     localStorage.setItem(LOCAL_TAB_KEY, tab);
     _setActiveTab(tab);
   };
 
-  // Persisting flow step
   const setFlowStep = (step) => {
     localStorage.setItem(LOCAL_FLOW_KEY, step);
     _setFlowStep(step);
   };
 
-  // Persisting completion status
   const setTabCompletionStatus = (updateFnOrObject) => {
     _setTabCompletionStatus((prev) => {
       const update =
@@ -65,7 +61,6 @@ const Consultation = () => {
     });
   };
 
-  // API
   const {
     data: selectedAppointment,
     error,
@@ -76,9 +71,9 @@ const Consultation = () => {
     consultation: 1,
     diagnosis: 2,
     management: 3,
+    complete: 4,
   };
 
-  // Handle loading/errors
   if (isLoading) {
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-white z-50">
@@ -93,7 +88,6 @@ const Consultation = () => {
     return <p>Redirecting to Dashboard...</p>;
   }
 
-  // Render selected tab
   const renderTabContent = () => {
     const tab = activeTab.toLowerCase();
     switch (tab) {
@@ -161,7 +155,6 @@ const Consultation = () => {
     }
   };
 
-  // Render current flow step
   const renderFlowStep = () => {
     switch (flowStep) {
       case "consultation":
@@ -189,6 +182,13 @@ const Consultation = () => {
             setActiveTab={setActiveTab}
             appointmentId={appointmentId}
             setFlowStep={setFlowStep}
+          />
+        );
+      case "complete":
+        return (
+          <CompleteConsultation
+            appointmentId={appointmentId}
+            navigate={navigate}
           />
         );
       default:
