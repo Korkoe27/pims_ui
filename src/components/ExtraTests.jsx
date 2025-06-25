@@ -6,15 +6,6 @@ import {
   useFetchExtraTestsQuery,
 } from "../redux/api/features/extraTestsApi";
 
-export const TEST_OPTIONS = [
-  "OCT",
-  "Perimetry",
-  "Color Vision",
-  "Visual Field Test",
-  "B-Scan",
-  "Pachymetry",
-  "Tonometry", // ✅ Make sure this is also selectable if needed
-];
 
 const ExtraTests = ({
   appointmentId,
