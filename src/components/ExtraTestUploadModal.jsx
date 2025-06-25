@@ -110,13 +110,17 @@ const ExtraTestUploadModal = ({
           {/* ✅ Tonometry-specific fields */}
           {testName.toLowerCase().includes("tonometry") && (
             <>
-              <input
-                type="text"
+              <select
                 value={method}
                 onChange={(e) => setMethod(e.target.value)}
-                placeholder="Tonometry Method"
                 className="border rounded p-3"
-              />
+              >
+                <option value="">Select Tonometry Method</option>
+                <option value="Applanation">Applanation</option>
+                <option value="Tonopen">Tonopen</option>
+                <option value="Non-Contact">Non-Contact</option>
+                <option value="Other">Other</option>
+              </select>
               <div className="flex gap-2">
                 <input
                   type="number"
