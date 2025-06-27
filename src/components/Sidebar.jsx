@@ -7,9 +7,12 @@ import { useSelector } from "react-redux";
 import useLogout from "../hooks/useLogout";
 import { useGetDashboardDataQuery } from "../redux/api/features/dashboardApi";
 
+
+
 const Sidebar = () => {
   const { user } = useSelector((state) => state.auth);
   const { handleLogout, isLoading } = useLogout(); // Use the logout hook
+  const role = user?.role?.toLowerCase();
 
   // Fetch dashboard data
   const { data: dashboardData, isLoading: isDashboardLoading } =
@@ -37,7 +40,9 @@ const Sidebar = () => {
         </Link>
       </div>
       <div className="mt-10 border border-l-0 border-t-0 border-r-0 border-b-[#f0f2f5]">
-        {Sidebar_links.map((item) => (
+        {Sidebar_links.filter(
+          (item) => item.roles === "all" || item.roles.includes(role)
+        ).map((item) => (
           <NavLink
             to={item.path}
             key={item.name}
