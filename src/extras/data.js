@@ -19,7 +19,7 @@ export const Sidebar_links = [
     name: "patients",
     icon: <LuUsers2 className="text-xl font-bold" />,
     path: "/my-patients",
-    roles: [ROLES.STUDENT, ROLES.LECTURER, ROLES.HOSPITAL_ADMIN],
+    roles: "all",
   },
   {
     name: "appointments",
@@ -43,19 +43,19 @@ export const Sidebar_links = [
     name: "case reviews",
     icon: <MdAssignment className="text-xl font-bold" />,
     path: "/case-reviews",
-    roles: [ROLES.LECTURER],
+    roles: [ROLES.STUDENT],
   },
   {
     name: "clinic schedule",
     icon: <MdOutlineSchedule className="text-xl font-bold" />,
     path: "/clinic-schedule",
-    roles: [ROLES.HOSPITAL_ADMIN],
+    roles: "all",
   },
   {
     name: "absent request",
     icon: <MdOutlineLogout className="text-xl font-bold" />,
     path: "/absent-request",
-    roles: [ROLES.STUDENT, ROLES.HOSPITAL_ADMIN],
+    roles: "all",
   },
 ];
 
