@@ -25,6 +25,7 @@ import {
   PatientDetails,
   Login,
   PatientSearchResults,
+  AbsentRequest,
 } from "./pages";
 import Layout from "./pages/Layout";
 import ProtectedRoute from "./hooks/ProtectedRoute";
@@ -86,6 +87,7 @@ const App = () => {
               element={<Consultation />}
             />
             <Route path="/patients/search" element={<PatientSearchResults />} />
+            <Route path="/absent-request" element={<AbsentRequest />} />
           </Route>
         </Routes>
       </BrowserRouter>

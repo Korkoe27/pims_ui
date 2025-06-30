@@ -1,3 +1,4 @@
+export { default as AbsentRequest } from './AbsentRequest';
 export {default as Consultation} from './Consultation';
 export {default as Dashboard} from './Dashboard';
 export {default as Patients} from './Patients';

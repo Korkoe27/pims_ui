@@ -43,7 +43,7 @@ const Dashboard = () => {
 
   return (
     <div className="px-8 ml-72 flex flex-col mt-4 gap-8 bg-[#f9fafb] h-screen w-full">
-      <Navbar />
+      {/* <Navbar /> */}
       {/* Appointment Cards */}
       <div className="grid grid-cols-12 gap-9 w-full">
         <div className="bg-[#ececf9] p-4 h-36 col-span-4">

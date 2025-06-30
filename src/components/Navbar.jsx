@@ -7,7 +7,7 @@ import { useNavigate } from "react-router-dom";
 import PatientModal from "../components/SelectClinicModal";
 import { useSelector } from "react-redux";
 import SearchModalUnfilled from "./SearchModalUnfilled";
-import useLogout from "../hooks/useLogout"; // Import the useLogout hook
+import useLogout from "../hooks/useLogout";
 import { useLazySearchPatientsQuery } from "../redux/api/features/patientApi";
 import LoadingSpinner from "./LoadingSpinner";
 import { showToast } from "../components/ToasterHelper";
@@ -21,31 +21,22 @@ const Navbar = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [triggerSearch] = useLazySearchPatientsQuery();
 
-  const { handleLogout } = useLogout(); // Access the logout function
+  const { handleLogout } = useLogout();
 
   const openModal = () => setIsModalOpen(true);
-  const openSearchModal = () => setSearchModalVisibility(true);
   const toggleDropdown = () => setIsDropdownOpen(!isDropdownOpen);
 
-  // Fetch user data from Redux store
   const user = useSelector((state) => state.auth.user);
-
-  // const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  // const navigate = useNavigate();
-
-  //
 
   const handleSearch = async (event) => {
     event.preventDefault();
-
     if (searchQuery.trim()) {
       setIsLoading(true);
       showToast("Searching for patient...", "loading", {
         duration: 10000,
         isLoading: true,
       });
-
       try {
         await triggerSearch(searchQuery);
         showToast("Search completed successfully!", "success");
@@ -59,25 +50,25 @@ const Navbar = () => {
     }
   };
 
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Morning";
+    if (hour < 18) return "Afternoon";
+    return "Evening";
+  };
+
   return (
     <div className="dashboard_header grid items-center grid-cols-12 h-[10%]">
       {isModalOpen && <PatientModal setIsModalOpen={setIsModalOpen} />}
-      {/*{isSearchModalVisible && (
-        <SearchModalUnfilled
-          setSearchModalVisibility={setSearchModalVisibility}
-        />
-      )} */}
       <div className="col-span-3">
         <h2 className="xl:text-lg 2xl:text-xl font-bold">
-          Good{" "}
-          {`${
-            new Date().getHours() < 12
-              ? "Morning"
-              : new Date().getHours() < 18
-              ? "Afternoon"
-              : "Evening"
-          }`}
-          , <span>{user?.first_name || "User"}</span> 👋🏾
+          {user ? (
+            <>
+              Good {getGreeting()}, <span>{user.first_name}</span> 👋🏾
+            </>
+          ) : (
+            "Loading user..."
+          )}
         </h2>
       </div>
 
@@ -93,8 +84,6 @@ const Navbar = () => {
             placeholder="Search Patients"
             className="p-4 focus:outline-none w-full"
             value={searchQuery}
-            // disabled={isLoading}
-            // onKeyDown={handleSearch}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
           {isLoading && (
@@ -114,10 +103,10 @@ const Navbar = () => {
           </button>
         </div>
       </div>
+
       <div className="relative flex items-end justify-end gap-12 col-span-1">
         <div className="flex justify-end gap-3 items-center">
           <span className="bg-[#ffe7cc] px-5 py-2 w-14 h-14 text-[#3e3838] flex justify-center items-center rounded-[100%] font-semibold text-xl">
-            {/* Display user's initials */}
             {user
               ? `${user.first_name[0] || ""}${user.last_name[0] || ""}`
               : "U"}
@@ -125,19 +114,16 @@ const Navbar = () => {
           <FaChevronDown
             title="Menu"
             className="cursor-pointer font-800 h-6 w-6"
-            onClick={toggleDropdown} // Toggle the dropdown
+            onClick={toggleDropdown}
           />
         </div>
-        {/* Dropdown for Logout */}
         {isDropdownOpen && (
           <div className="absolute right-0 top-14 bg-white border rounded-lg p-2 shadow-lg">
             <form>
               <button
                 className="block px-4 py-2 text-gray-700 hover:bg-gray-200 w-full text-left"
                 type="button"
-                onClick={() => {
-                  handleLogout(); // Call the logout function
-                }}
+                onClick={handleLogout}
               >
                 Logout
               </button>
