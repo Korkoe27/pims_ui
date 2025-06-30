@@ -26,6 +26,9 @@ import {
   Login,
   PatientSearchResults,
   AbsentRequest,
+  MyPortal,
+  CaseReviews,
+  ClinicSchedule
 } from "./pages";
 import Layout from "./pages/Layout";
 import ProtectedRoute from "./hooks/ProtectedRoute";
@@ -88,6 +91,9 @@ const App = () => {
             />
             <Route path="/patients/search" element={<PatientSearchResults />} />
             <Route path="/absent-request" element={<AbsentRequest />} />
+            <Route path="/my-portal" element={<MyPortal />} />
+            <Route path="/case-reviews" element={<CaseReviews />} />
+            <Route path="/clinic-schedule" element={<ClinicSchedule />} />
           </Route>
         </Routes>
       </BrowserRouter>

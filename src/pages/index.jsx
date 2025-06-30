@@ -8,3 +8,6 @@ export {default as Inventory} from './Inventory';
 export {default as Dispensary} from './Dispensary';
 export {default as Login} from './Login';
 export {default as PatientSearchResults} from './PatientSearchResults';
+export { default as MyPortal } from './MyPortal';
+export { default as CaseReviews } from './CaseReviews';
+export { default as ClinicSchedule } from './ClinicSchedule';
