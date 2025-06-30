@@ -5,11 +5,13 @@ import Navbar from "../components/Navbar";
 
 const Layout = () => {
   return (
-    <div className="flex bg-[#f9fafb] h-full">
+    <div>
       <Sidebar />
-      <div className="flex-1">
+      <div className="ml-72">
         <Navbar />
-        <Outlet />
+        <div className="pt-16 px-8 bg-[#f9fafb] min-h-screen">
+          <Outlet />
+        </div>
       </div>
     </div>
   );
