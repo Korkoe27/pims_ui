@@ -1,11 +1,11 @@
 import React from "react";
 import { Tabs, Tab } from "../components/ui/tabs";
-import  Card  from "../components/ui/card";
-
+import Card from "../components/ui/card";
+import PageContainer from "../components/PageContainer";
 
 const AbsentRequest = () => {
   return (
-    <div className="p-6">
+    <PageContainer>
       <h1 className="text-2xl font-bold mb-4">Absent Requests</h1>
       <Tabs>
         <Tab title="Pending Requests">
@@ -18,7 +18,7 @@ const AbsentRequest = () => {
           <Card className="p-4 mt-4">No rejected requests.</Card>
         </Tab>
       </Tabs>
-    </div>
+    </PageContainer>
   );
 };
 

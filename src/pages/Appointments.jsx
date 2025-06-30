@@ -45,7 +45,7 @@ const Appointments = () => {
   return (
     <div className="px-8 ml-72 flex flex-col mt-8 gap-8 bg-[#f9fafb] w-full shadow-md sm:rounded-lg">
 
-    <Navbar  />
+    {/* <Navbar  /> */}
       {loading && <LoadingSpinner />}
 
       <h1 className="font-extrabold text-xl">Today's Appointments</h1>
