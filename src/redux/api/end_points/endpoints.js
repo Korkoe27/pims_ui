@@ -189,10 +189,21 @@ export const managementPlanUrl = (appointmentId) =>
   `/management/${appointmentId}/`;
 
 /////////////////////////
+// Absent Requests
+/////////////////////////
+
+// List or create absent requests
+export const absentRequestsUrl = "/absences/absent-requests/";
+
+// Update absent request by ID
+export const updateAbsentRequestUrl = (id) => `/absences/absent-requests/${id}/`;
+
+
+/////////////////////////
 // WebSocket
 /////////////////////////
 
 // Dynamically generate the WebSocket URL for appointments
 
-export const appointmentsWebSocketUrl = () =>
-  "wss://optometryclinic-production.up.railway.app/ws/appointments/";
+// export const appointmentsWebSocketUrl = () =>
+//   "wss://optometryclinic-production.up.railway.app/ws/appointments/";

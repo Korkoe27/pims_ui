@@ -14,17 +14,17 @@ import Refraction from "../components/Refraction";
 import ExtraTests from "../components/ExtraTests";
 import Diagnosis from "../components/Diagnosis";
 import Management from "../components/Management";
+import CompleteConsultation from "../components/CompleteConsultation";
 import BouncingBallsLoader from "../components/BouncingBallsLoader";
 
 const Consultation = () => {
   const { appointmentId } = useParams();
   const navigate = useNavigate();
 
-  // Keys
   const LOCAL_TAB_KEY = `consultation-${appointmentId}-activeTab`;
   const LOCAL_FLOW_KEY = `consultation-${appointmentId}-flowStep`;
+  const LOCAL_STATUS_KEY = `consultation-${appointmentId}-tabCompletionStatus`;
 
-  // States (with lazy localStorage init)
   const [activeTab, _setActiveTab] = useState(() => {
     const stored = localStorage.getItem(LOCAL_TAB_KEY);
     return stored || "case history";
@@ -35,9 +35,11 @@ const Consultation = () => {
     return stored || "consultation";
   });
 
-  const [tabCompletionStatus, setTabCompletionStatus] = useState({});
+  const [tabCompletionStatus, _setTabCompletionStatus] = useState(() => {
+    const stored = localStorage.getItem(LOCAL_STATUS_KEY);
+    return stored ? JSON.parse(stored) : {};
+  });
 
-  // Wrapped setters with logging and storage
   const setActiveTab = (tab) => {
     localStorage.setItem(LOCAL_TAB_KEY, tab);
     _setActiveTab(tab);
@@ -48,7 +50,17 @@ const Consultation = () => {
     _setFlowStep(step);
   };
 
-  // API
+  const setTabCompletionStatus = (updateFnOrObject) => {
+    _setTabCompletionStatus((prev) => {
+      const update =
+        typeof updateFnOrObject === "function"
+          ? updateFnOrObject(prev)
+          : { ...prev, ...updateFnOrObject };
+      localStorage.setItem(LOCAL_STATUS_KEY, JSON.stringify(update));
+      return update;
+    });
+  };
+
   const {
     data: selectedAppointment,
     error,
@@ -59,10 +71,9 @@ const Consultation = () => {
     consultation: 1,
     diagnosis: 2,
     management: 3,
+    complete: 4,
   };
 
-  // Handle loading/errors
-  // if (isLoading) return <p>Loading patient details...</p>;
   if (isLoading) {
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-white z-50">
@@ -77,7 +88,6 @@ const Consultation = () => {
     return <p>Redirecting to Dashboard...</p>;
   }
 
-  // Render selected tab
   const renderTabContent = () => {
     const tab = activeTab.toLowerCase();
     switch (tab) {
@@ -145,7 +155,6 @@ const Consultation = () => {
     }
   };
 
-  // Render flow step
   const renderFlowStep = () => {
     switch (flowStep) {
       case "consultation":
@@ -173,6 +182,13 @@ const Consultation = () => {
             setActiveTab={setActiveTab}
             appointmentId={appointmentId}
             setFlowStep={setFlowStep}
+          />
+        );
+      case "complete":
+        return (
+          <CompleteConsultation
+            appointmentId={appointmentId}
+            navigate={navigate}
           />
         );
       default:

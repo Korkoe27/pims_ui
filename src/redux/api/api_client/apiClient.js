@@ -7,6 +7,7 @@
 
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { baseURL } from "../base_url/baseurl";
+import { TAGS } from "../tags/tags";
 
 export const apiClient = createApi({
   reducerPath: "apiClient",
@@ -65,6 +66,7 @@ export const apiClient = createApi({
 
     return result;
   },
+  tagTypes: Object.values(TAGS),
   endpoints: () => ({}),
 });
 

@@ -1,11 +1,4 @@
-/**
- * Dashboard Slice
- *
- * Manages the state for the dashboard, including patients and appointment statistics.
- */
-
 import { createSlice } from "@reduxjs/toolkit";
-import { dashboardApi } from "../api/features/dashboardApi"; // Use the correct API slice
 
 const initialState = {
   totalPatients: 0,
@@ -23,7 +16,6 @@ const dashboardSlice = createSlice({
   name: "dashboard",
   initialState,
   reducers: {
-    // Reset dashboard state
     resetDashboardState: (state) => {
       state.totalPatients = 0;
       state.pendingAppointments = 0;
@@ -35,11 +27,8 @@ const dashboardSlice = createSlice({
       state.error = null;
       state.loading = false;
     },
-
-    // ✅ Add new appointment without needing a refresh or socket
     addNewAppointment: (state, action) => {
       const newAppt = action.payload;
-
       const isToday =
         new Date(newAppt.appointment_date).toDateString() ===
         new Date().toDateString();
@@ -65,17 +54,20 @@ const dashboardSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
-    // Fetch Dashboard Data
     builder
       .addMatcher(
-        dashboardApi.endpoints.getDashboardData.matchPending,
+        (action) =>
+          action.type === "api/executeQuery/pending" &&
+          action.meta.arg.endpointName === "getDashboardData",
         (state) => {
           state.loading = true;
           state.error = null;
         }
       )
       .addMatcher(
-        dashboardApi.endpoints.getDashboardData.matchFulfilled,
+        (action) =>
+          action.type === "api/executeQuery/fulfilled" &&
+          action.meta.arg.endpointName === "getDashboardData",
         (state, action) => {
           const {
             total_patients,
@@ -83,6 +75,7 @@ const dashboardSlice = createSlice({
             completed_appointments,
             today_appointments,
           } = action.payload;
+
           state.totalPatients = total_patients;
           state.pendingAppointments = pending_appointments;
           state.completedAppointments = completed_appointments;
@@ -91,7 +84,9 @@ const dashboardSlice = createSlice({
         }
       )
       .addMatcher(
-        dashboardApi.endpoints.getDashboardData.matchRejected,
+        (action) =>
+          action.type === "api/executeQuery/rejected" &&
+          action.meta.arg.endpointName === "getDashboardData",
         (state, action) => {
           state.loading = false;
           state.error =
@@ -103,4 +98,5 @@ const dashboardSlice = createSlice({
 
 export const { resetDashboardState, addNewAppointment } =
   dashboardSlice.actions;
+
 export default dashboardSlice.reducer;

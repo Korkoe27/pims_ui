@@ -10,6 +10,7 @@ const TEST_OPTIONS = [
   "Visual Field Test",
   "B-Scan",
   "Pachymetry",
+  "Tonometry",
 ];
 
 const ExtraTestUploadModal = ({
@@ -22,6 +23,12 @@ const ExtraTestUploadModal = ({
   const [notes, setNotes] = useState("");
   const [file, setFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
+
+  // Tonometry-specific fields
+  const [method, setMethod] = useState("");
+  const [iopOd, setIopOd] = useState("");
+  const [iopOs, setIopOs] = useState("");
+  const [recordedAt, setRecordedAt] = useState("");
 
   const [createExtraTest] = useCreateExtraTestMutation();
 
@@ -42,8 +49,9 @@ const ExtraTestUploadModal = ({
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const isTonometry = testName.toLowerCase().includes("tonometry");
 
-    if (!testName || !file) {
+    if (!testName || (!file && !isTonometry)) {
       showToast("Test name and file are required.", "error");
       return;
     }
@@ -51,8 +59,18 @@ const ExtraTestUploadModal = ({
     const formData = new FormData();
     formData.append("name", testName);
     formData.append("notes", notes);
-    formData.append("file", file);
     formData.append("appointment", appointmentId);
+
+    if (file) {
+      formData.append("file", file);
+    }
+
+    if (isTonometry) {
+      formData.append("method", method);
+      formData.append("iop_od", iopOd);
+      formData.append("iop_os", iopOs);
+      formData.append("recorded_at", recordedAt);
+    }
 
     try {
       await createExtraTest(formData).unwrap();
@@ -93,6 +111,45 @@ const ExtraTestUploadModal = ({
             ))}
           </select>
 
+          {/* ✅ Tonometry-specific fields */}
+          {testName.toLowerCase().includes("tonometry") && (
+            <>
+              <select
+                value={method}
+                onChange={(e) => setMethod(e.target.value)}
+                className="border rounded p-3"
+              >
+                <option value="">Select Tonometry Method</option>
+                <option value="Applanation">Applanation</option>
+                <option value="Tonopen">Tonopen</option>
+                <option value="Non-Contact">Non-Contact</option>
+                <option value="Other">Other</option>
+              </select>
+              <div className="flex gap-2">
+                <input
+                  type="number"
+                  value={iopOd}
+                  onChange={(e) => setIopOd(e.target.value)}
+                  placeholder="IOP OD"
+                  className="border rounded p-3 w-full"
+                />
+                <input
+                  type="number"
+                  value={iopOs}
+                  onChange={(e) => setIopOs(e.target.value)}
+                  placeholder="IOP OS"
+                  className="border rounded p-3 w-full"
+                />
+              </div>
+              <input
+                type="datetime-local"
+                value={recordedAt}
+                onChange={(e) => setRecordedAt(e.target.value)}
+                className="border rounded p-3"
+              />
+            </>
+          )}
+
           <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
@@ -101,6 +158,7 @@ const ExtraTestUploadModal = ({
             className="border rounded p-3"
           />
 
+          {/* File Upload */}
           <label className="border rounded p-3 cursor-pointer bg-gray-50 text-sm text-gray-700 hover:bg-gray-100">
             {file ? "Change File" : "Upload File"}
             <input
