@@ -3,34 +3,28 @@ import { CiSearch } from "react-icons/ci";
 import { FaChevronDown } from "react-icons/fa6";
 import { GrAdd } from "react-icons/gr";
 import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 
 import PatientModal from "../components/SelectClinicModal";
-import { useSelector } from "react-redux";
 import SearchModalUnfilled from "./SearchModalUnfilled";
+import LoadingSpinner from "./LoadingSpinner";
 import useLogout from "../hooks/useLogout";
 import { useLazySearchPatientsQuery } from "../redux/api/features/patientApi";
-import LoadingSpinner from "./LoadingSpinner";
 import { showToast } from "../components/ToasterHelper";
 
 const Navbar = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [isSearchModalVisible, setSearchModalVisibility] = useState(false);
-
-  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
-  const [triggerSearch] = useLazySearchPatientsQuery();
-
-  const { handleLogout } = useLogout();
-
-  const openModal = () => setIsModalOpen(true);
-  const toggleDropdown = () => setIsDropdownOpen(!isDropdownOpen);
-
-  const user = useSelector((state) => state.auth.user);
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSearch = async (event) => {
-    event.preventDefault();
+  const user = useSelector((state) => state.auth.user);
+  const { handleLogout } = useLogout();
+  const navigate = useNavigate();
+  const [triggerSearch] = useLazySearchPatientsQuery();
+
+  const handleSearch = async (e) => {
+    e.preventDefault();
     if (searchQuery.trim()) {
       setIsLoading(true);
       showToast("Searching for patient...", "loading", {
@@ -58,10 +52,12 @@ const Navbar = () => {
   };
 
   return (
-    <div className="dashboard_header grid items-center grid-cols-12 h-[10%]">
+    <div className="h-16 w-full px-6 flex items-center justify-between bg-white z-20">
       {isModalOpen && <PatientModal setIsModalOpen={setIsModalOpen} />}
-      <div className="col-span-3">
-        <h2 className="xl:text-lg 2xl:text-xl font-bold">
+
+      {/* Greeting */}
+      <div>
+        <h2 className="text-base font-bold">
           {user ? (
             <>
               Good {getGreeting()}, <span>{user.first_name}</span> 👋🏾
@@ -72,62 +68,52 @@ const Navbar = () => {
         </h2>
       </div>
 
-      <div className="flex items-center justify-end gap-5 h-14 col-span-8 w-full border-[#d0d5dd]">
+      {/* Center search and button */}
+      <div className="flex items-center gap-4 flex-1 justify-center">
         <form
           onSubmit={handleSearch}
-          className="flex items-center text-left gap-0 w-2/3 border bg-white rounded-md px-4"
+          className="flex items-center w-[60%] max-w-xl bg-white border rounded-md px-4 relative"
         >
-          <CiSearch title="Search" className="bg-white cursor-pointer" />
+          <CiSearch className="text-gray-500" />
           <input
             type="search"
-            name="search"
             placeholder="Search Patients"
-            className="p-4 focus:outline-none w-full"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full p-2 focus:outline-none"
           />
           {isLoading && (
-            <div className="absolute right-0 top-0 h-full w-full flex items-center justify-center bg-white rounded-md">
+            <div className="absolute inset-0 flex items-center justify-center bg-white rounded-md">
               <LoadingSpinner />
             </div>
           )}
         </form>
-        <div className="flex items-center">
-          <button
-            className="flex items-center p-4 text-white bg-[#2f3192] gap-2 rounded-md text-sm"
-            type="button"
-            onClick={openModal}
-          >
-            <GrAdd />
-            Add New Patient
-          </button>
-        </div>
+        <button
+          onClick={() => setIsModalOpen(true)}
+          className="flex items-center gap-2 px-4 py-2 text-white bg-[#2f3192] rounded-md text-sm"
+        >
+          <GrAdd />
+          Add New Patient
+        </button>
       </div>
 
-      <div className="relative flex items-end justify-end gap-12 col-span-1">
-        <div className="flex justify-end gap-3 items-center">
-          <span className="bg-[#ffe7cc] px-5 py-2 w-14 h-14 text-[#3e3838] flex justify-center items-center rounded-[100%] font-semibold text-xl">
-            {user
-              ? `${user.first_name[0] || ""}${user.last_name[0] || ""}`
-              : "U"}
-          </span>
-          <FaChevronDown
-            title="Menu"
-            className="cursor-pointer font-800 h-6 w-6"
-            onClick={toggleDropdown}
-          />
+      {/* Avatar and dropdown */}
+      <div className="relative flex items-center gap-3">
+        <div className="w-12 h-12 bg-[#ffe7cc] rounded-full flex items-center justify-center font-semibold text-xl text-[#3e3838]">
+          {user ? `${user.first_name[0] || ""}${user.last_name[0] || ""}` : "U"}
         </div>
+        <FaChevronDown
+          className="cursor-pointer"
+          onClick={() => setIsDropdownOpen((prev) => !prev)}
+        />
         {isDropdownOpen && (
-          <div className="absolute right-0 top-14 bg-white border rounded-lg p-2 shadow-lg">
-            <form>
-              <button
-                className="block px-4 py-2 text-gray-700 hover:bg-gray-200 w-full text-left"
-                type="button"
-                onClick={handleLogout}
-              >
-                Logout
-              </button>
-            </form>
+          <div className="absolute right-0 top-14 bg-white border rounded shadow-md w-36 z-50">
+            <button
+              onClick={handleLogout}
+              className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+            >
+              Logout
+            </button>
           </div>
         )}
       </div>
