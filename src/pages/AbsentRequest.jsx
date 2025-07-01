@@ -33,58 +33,82 @@ const AbsentRequest = () => {
       </div>
 
       <Tabs>
+        {/* Pending Requests */}
         <Tab title="Pending Requests">
-          <Card className="p-4 mt-4">
+          <Card className="p-4 mt-4 overflow-x-auto">
             {pending.length === 0 ? (
               <p>No pending requests.</p>
             ) : (
-              <table className="w-full">
-                <thead>
-                  <tr>
-                    <th>From</th>
-                    <th>To</th>
-                    <th>Reason</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {pending.map((req) => (
-                    <tr key={req.id}>
-                      <td>{req.from_date}</td>
-                      <td>{req.to_date}</td>
-                      <td>{req.reason}</td>
-                      <td>
-                        <button className="text-green-600">Approve</button>
-                        <button className="text-red-600 ml-2">Decline</button>
-                      </td>
+              <div className="w-full overflow-x-auto">
+                <table className="min-w-full text-sm text-left text-gray-500">
+                  <thead className="text-sm text-gray-700 uppercase bg-gray-100">
+                    <tr>
+                      <th className="px-6 py-3 font-bold">From</th>
+                      <th className="px-6 py-3 font-bold">To</th>
+                      <th className="px-6 py-3 font-bold">Reason</th>
+                      <th className="px-6 py-3 font-bold">Actions</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {pending.map((req) => (
+                      <tr key={req.id} className="border-b bg-white">
+                        <td className="px-6 py-4">{req.from_date}</td>
+                        <td className="px-6 py-4">{req.to_date}</td>
+                        <td className="px-6 py-4">{req.reason}</td>
+                        <td className="px-6 py-4 flex gap-2">
+                          <button className="bg-green-600 text-white hover:bg-green-700 px-4 py-2 rounded-md text-sm font-semibold shadow transition cursor-pointer">
+                            Approve
+                          </button>
+                          <button className="bg-red-600 text-white hover:bg-red-700 px-4 py-2 rounded-md text-sm font-semibold shadow transition cursor-pointer">
+                            Decline
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             )}
           </Card>
         </Tab>
+
+        {/* Approved Requests */}
         <Tab title="Approved Requests">
-          <Card className="p-4 mt-4">
+          <Card className="p-4 mt-4 overflow-x-auto">
             {approved.length === 0 ? (
               <p>No approved requests.</p>
             ) : (
-              <ul>
-                {approved.map((req) => (
-                  <li key={req.id}>
-                    {req.reason} ({req.from_date} - {req.to_date})
-                  </li>
-                ))}
-              </ul>
+              <div className="w-full overflow-x-auto">
+                <table className="min-w-full text-sm text-left text-gray-500">
+                  <thead className="text-sm text-gray-700 uppercase bg-gray-100">
+                    <tr>
+                      <th className="px-6 py-3 font-bold">From</th>
+                      <th className="px-6 py-3 font-bold">To</th>
+                      <th className="px-6 py-3 font-bold">Reason</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {approved.map((req) => (
+                      <tr key={req.id} className="border-b bg-white">
+                        <td className="px-6 py-4">{req.from_date}</td>
+                        <td className="px-6 py-4">{req.to_date}</td>
+                        <td className="px-6 py-4">{req.reason}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             )}
           </Card>
         </Tab>
+
+        {/* Rejected Requests */}
         <Tab title="Rejected Requests">
           <Card className="p-4 mt-4">
             {rejected.length === 0 ? (
               <p>No rejected requests.</p>
             ) : (
-              <ul>
+              <ul className="list-disc pl-5 space-y-2">
                 {rejected.map((req) => (
                   <li key={req.id}>
                     {req.reason} ({req.from_date} - {req.to_date})
@@ -96,6 +120,7 @@ const AbsentRequest = () => {
         </Tab>
       </Tabs>
 
+      {/* Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded shadow-lg w-full max-w-md">
