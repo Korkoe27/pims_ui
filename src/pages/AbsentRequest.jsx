@@ -2,7 +2,10 @@ import React, { useState } from "react";
 import { Tabs, Tab } from "../components/ui/tabs";
 import Card from "../components/ui/card";
 import PageContainer from "../components/PageContainer";
-import { useGetAbsentRequestsQuery, useCreateAbsentRequestMutation } from "../redux/api/features/absentRequestApi";
+import {
+  useGetAbsentRequestsQuery,
+  useCreateAbsentRequestMutation,
+} from "../redux/api/features/absentRequestApi";
 
 const AbsentRequest = () => {
   const [showModal, setShowModal] = useState(false);
@@ -68,7 +71,9 @@ const AbsentRequest = () => {
             ) : (
               <ul>
                 {approved.map((req) => (
-                  <li key={req.id}>{req.reason} ({req.from_date} - {req.to_date})</li>
+                  <li key={req.id}>
+                    {req.reason} ({req.from_date} - {req.to_date})
+                  </li>
                 ))}
               </ul>
             )}
@@ -81,7 +86,9 @@ const AbsentRequest = () => {
             ) : (
               <ul>
                 {rejected.map((req) => (
-                  <li key={req.id}>{req.reason} ({req.from_date} - {req.to_date})</li>
+                  <li key={req.id}>
+                    {req.reason} ({req.from_date} - {req.to_date})
+                  </li>
                 ))}
               </ul>
             )}
@@ -90,11 +97,73 @@ const AbsentRequest = () => {
       </Tabs>
 
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-          <div className="bg-white p-6 rounded shadow w-1/3">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded shadow-lg w-full max-w-md">
             <h2 className="text-xl font-bold mb-4">New Absent Request</h2>
-            {/* Form fields for from_date, to_date, reason */}
-            <button onClick={() => setShowModal(false)} className="mt-4 text-red-600">Close</button>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                const form = e.target;
+                const data = {
+                  from_date: form.from_date.value,
+                  to_date: form.to_date.value,
+                  reason: form.reason.value,
+                };
+                handleCreateRequest(data);
+              }}
+              className="space-y-4"
+            >
+              <div>
+                <label htmlFor="from_date" className="block font-medium mb-1">
+                  From Date
+                </label>
+                <input
+                  type="date"
+                  name="from_date"
+                  required
+                  className="w-full border border-gray-300 px-3 py-2 rounded"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="to_date" className="block font-medium mb-1">
+                  To Date
+                </label>
+                <input
+                  type="date"
+                  name="to_date"
+                  required
+                  className="w-full border border-gray-300 px-3 py-2 rounded"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="reason" className="block font-medium mb-1">
+                  Reason
+                </label>
+                <textarea
+                  name="reason"
+                  required
+                  className="w-full border border-gray-300 px-3 py-2 rounded h-24 resize-none"
+                ></textarea>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowModal(false)}
+                  className="text-gray-600 hover:text-gray-800"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                >
+                  Submit Request
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
