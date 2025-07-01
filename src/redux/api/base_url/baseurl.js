@@ -7,7 +7,7 @@
  */
 
 // Base URL for Production Environment
-//xport const baseURL = "https://web-production-94f67.up.railway.app/";
+export const baseURL = "https://web-production-94f67.up.railway.app/";
 
 // Uncomment the following line for Local Development
-export const baseURL = 'http://localhost:8000/';
+//export const baseURL = 'http://localhost:8000/';
