@@ -2,18 +2,50 @@ import React, { useState } from "react";
 import { Tabs, Tab } from "../components/ui/tabs";
 import Card from "../components/ui/card";
 import PageContainer from "../components/PageContainer";
+import ConfirmationModal from "../components/ConfirmationModal";
 import {
   useGetAbsentRequestsQuery,
   useCreateAbsentRequestMutation,
+  useUpdateAbsentRequestMutation,
 } from "../redux/api/features/absentRequestApi";
+import { toast } from "react-hot-toast";
 
 const AbsentRequest = () => {
   const [showModal, setShowModal] = useState(false);
+  const [modalData, setModalData] = useState({
+    open: false,
+    id: null,
+    status: "",
+    action: "",
+  });
+
   const { data: requests = [] } = useGetAbsentRequestsQuery();
   const [createAbsentRequest] = useCreateAbsentRequestMutation();
+  const [updateAbsentRequest] = useUpdateAbsentRequestMutation();
 
-  const handleCreateRequest = (data) => {
-    createAbsentRequest(data).then(() => setShowModal(false));
+  const handleCreateRequest = async (data) => {
+    try {
+      await createAbsentRequest(data).unwrap();
+      toast.success("Absent request submitted successfully");
+      setShowModal(false);
+    } catch (err) {
+      toast.error("Failed to submit request");
+    }
+  };
+
+  const handleStatusChange = (id, status) => {
+    const action = status === "approved" ? "Approve" : "Decline";
+    setModalData({ open: true, id, status, action });
+  };
+
+  const confirmStatusChange = async () => {
+    const { id, status, action } = modalData;
+    try {
+      await updateAbsentRequest({ id, status }).unwrap();
+      toast.success(`Request ${action.toLowerCase()}d`);
+    } catch (err) {
+      toast.error(`Failed to ${action.toLowerCase()} request`);
+    }
   };
 
   const pending = requests.filter((r) => r.status === "pending");
@@ -33,7 +65,6 @@ const AbsentRequest = () => {
       </div>
 
       <Tabs>
-        {/* Pending Requests */}
         <Tab title="Pending Requests">
           <Card className="p-4 mt-4 overflow-x-auto">
             {pending.length === 0 ? (
@@ -56,10 +87,20 @@ const AbsentRequest = () => {
                         <td className="px-6 py-4">{req.to_date}</td>
                         <td className="px-6 py-4">{req.reason}</td>
                         <td className="px-6 py-4 flex gap-2">
-                          <button className="bg-green-600 text-white hover:bg-green-700 px-4 py-2 rounded-md text-sm font-semibold shadow transition cursor-pointer">
+                          <button
+                            onClick={() =>
+                              handleStatusChange(req.id, "approved")
+                            }
+                            className="bg-green-600 text-white hover:bg-green-700 px-4 py-2 rounded-md text-sm font-semibold shadow transition cursor-pointer"
+                          >
                             Approve
                           </button>
-                          <button className="bg-red-600 text-white hover:bg-red-700 px-4 py-2 rounded-md text-sm font-semibold shadow transition cursor-pointer">
+                          <button
+                            onClick={() =>
+                              handleStatusChange(req.id, "rejected")
+                            }
+                            className="bg-red-600 text-white hover:bg-red-700 px-4 py-2 rounded-md text-sm font-semibold shadow transition cursor-pointer"
+                          >
                             Decline
                           </button>
                         </td>
@@ -72,7 +113,6 @@ const AbsentRequest = () => {
           </Card>
         </Tab>
 
-        {/* Approved Requests */}
         <Tab title="Approved Requests">
           <Card className="p-4 mt-4 overflow-x-auto">
             {approved.length === 0 ? (
@@ -102,25 +142,44 @@ const AbsentRequest = () => {
           </Card>
         </Tab>
 
-        {/* Rejected Requests */}
         <Tab title="Rejected Requests">
-          <Card className="p-4 mt-4">
+          <Card className="p-4 mt-4 overflow-x-auto">
             {rejected.length === 0 ? (
               <p>No rejected requests.</p>
             ) : (
-              <ul className="list-disc pl-5 space-y-2">
-                {rejected.map((req) => (
-                  <li key={req.id}>
-                    {req.reason} ({req.from_date} - {req.to_date})
-                  </li>
-                ))}
-              </ul>
+              <div className="w-full overflow-x-auto">
+                <table className="min-w-full text-sm text-left text-gray-500">
+                  <thead className="text-sm text-gray-700 uppercase bg-gray-100">
+                    <tr>
+                      <th className="px-6 py-3 font-bold">From</th>
+                      <th className="px-6 py-3 font-bold">To</th>
+                      <th className="px-6 py-3 font-bold">Reason</th>
+                      <th className="px-6 py-3 font-bold">Actioned By</th>
+                      <th className="px-6 py-3 font-bold">Actioned At</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {rejected.map((req) => (
+                      <tr key={req.id} className="border-b bg-white">
+                        <td className="px-6 py-4">{req.from_date}</td>
+                        <td className="px-6 py-4">{req.to_date}</td>
+                        <td className="px-6 py-4">{req.reason}</td>
+                        <td className="px-6 py-4">{req.actioned_by || "—"}</td>
+                        <td className="px-6 py-4">
+                          {req.actioned_at
+                            ? new Date(req.actioned_at).toLocaleString()
+                            : "—"}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             )}
           </Card>
         </Tab>
       </Tabs>
 
-      {/* Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded shadow-lg w-full max-w-md">
@@ -192,6 +251,14 @@ const AbsentRequest = () => {
           </div>
         </div>
       )}
+
+      <ConfirmationModal
+        isOpen={modalData.open}
+        title={`${modalData.action} Request`}
+        message={`Are you sure you want to ${modalData.action.toLowerCase()} this request?`}
+        onConfirm={confirmStatusChange}
+        onClose={() => setModalData({ ...modalData, open: false })}
+      />
     </PageContainer>
   );
 };
