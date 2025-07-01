@@ -1,27 +1,18 @@
 import React, { useState, useEffect } from "react";
-import { CiSearch } from "react-icons/ci";
+import { Link } from "react-router-dom";
+import { useSelector, useDispatch } from "react-redux";
+import { HiOutlineUser } from "react-icons/hi2";
 import { LuClock3 } from "react-icons/lu";
 import { FiUserCheck } from "react-icons/fi";
-import { HiOutlineUser } from "react-icons/hi2";
-import { Link, useNavigate } from "react-router-dom";
-import { useSelector, useDispatch } from "react-redux";
-import useLogout from "../hooks/useLogout";
 import { useGetDashboardDataQuery } from "../redux/api/features/dashboardApi";
 import { resetDashboardState } from "../redux/slices/dashboardSlice";
 import LoadingSpinner from "../components/LoadingSpinner";
 import useHandleConsult from "../hooks/useHandleConsult";
-import Navbar from "../components/Navbar";
-
+import PageContainer from "../components/PageContainer";
 
 const Dashboard = () => {
-  const { handleLogout, isLoading: logoutLoading } = useLogout();
   const { handleConsult } = useHandleConsult();
-
-  const navigate = useNavigate();
   const dispatch = useDispatch();
-
-  const { user } = useSelector((state) => state.auth);
-
   const {
     data: dashboardData,
     isLoading: dashboardLoading,
@@ -42,9 +33,7 @@ const Dashboard = () => {
   const recentPatientActivity = dashboardData?.recent_activity || [];
 
   return (
-    <div className="px-8 ml-72 flex flex-col mt-4 gap-8 bg-[#f9fafb] h-screen w-full">
-      <Navbar />
-      {/* Appointment Cards */}
+    <PageContainer>
       <div className="grid grid-cols-12 gap-9 w-full">
         <div className="bg-[#ececf9] p-4 h-36 col-span-4">
           <h3 className="flex items-center text-base gap-[12px] font-normal">
@@ -75,7 +64,6 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Upcoming Appointments Table */}
       <div>
         <div className="flex justify-between my-[15px]">
           <h2 className="font-bold text-xl">Upcoming Appointments</h2>
@@ -84,14 +72,11 @@ const Dashboard = () => {
           </Link>
         </div>
 
-        {/* Loader */}
         {dashboardLoading ? (
           <div className="flex justify-center items-center">
             <LoadingSpinner />
           </div>
-        ) : todayAppointments.filter(
-            (appointment) => appointment.status === "Scheduled"
-          ).length > 0 ? (
+        ) : todayAppointments.filter((a) => a.status === "Scheduled").length > 0 ? (
           <table className="w-full">
             <thead className="text-black uppercase text-left h-16 bg-[#f0f2f5]">
               <tr>
@@ -104,22 +89,14 @@ const Dashboard = () => {
             </thead>
             <tbody>
               {todayAppointments
-                .filter((appointment) => appointment.status === "Scheduled")
+                .filter((a) => a.status === "Scheduled")
                 .slice(0, 5)
                 .map((appointment) => (
                   <tr key={appointment.id} className="bg-white border-b">
-                    <td className="px-3 py-3">
-                      {appointment.appointment_date}
-                    </td>
-                    <td className="px-3 py-3">
-                      {appointment.patient_id}
-                    </td>
-                    <td className="px-3 py-3">
-                      {appointment.patient_name}
-                    </td>
-                    <td className="px-3 py-3">
-                      {appointment.appointment_type}
-                    </td>
+                    <td className="px-3 py-3">{appointment.appointment_date}</td>
+                    <td className="px-3 py-3">{appointment.patient_id}</td>
+                    <td className="px-3 py-3">{appointment.patient_name}</td>
+                    <td className="px-3 py-3">{appointment.appointment_type}</td>
                     <td className="py-3 flex justify-center">
                       <button
                         className="text-white bg-[#2f3192] px-4 py-2 rounded-lg"
@@ -178,7 +155,7 @@ const Dashboard = () => {
           </tbody>
         </table>
       </div> */}
-    </div>
+    </PageContainer>
   );
 };
 

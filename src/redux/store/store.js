@@ -1,12 +1,6 @@
-/**
- * Store Configuration
- *
- * Configures the Redux store with authentication, patient management, consultation, and other modules using RTK Query and persistence.
- */
-
 import { configureStore } from "@reduxjs/toolkit";
 import { persistStore, persistReducer } from "redux-persist";
-import storage from "redux-persist/lib/storage"; // Defaults to localStorage
+import storage from "redux-persist/lib/storage";
 
 // API slices
 import { authApi } from "../api/features/authApi";
@@ -15,8 +9,9 @@ import { caseHistoryApi } from "../api/features/caseHistoryApi";
 import { visualAcuityApi } from "../api/features/visualAcuityApi";
 import { diagnosisApi } from "../api/features/diagnosisApi";
 import { managementApi } from "../api/features/managementApi";
-import { dashboardApi } from "../api/features/dashboardApi"; // ✅ NEW
-import { appointmentsApi } from "../api/features/appointmentsApi"; // ✅ NEW
+import { dashboardApi } from "../api/features/dashboardApi";
+import { appointmentsApi } from "../api/features/appointmentsApi";
+import { absentRequestApi } from "../api/features/absentRequestApi";
 
 // State slices
 import authReducer from "../slices/authSlice";
@@ -27,15 +22,14 @@ import caseHistoryReducer from "../slices/consultationSlice";
 import clinicReducer from "../slices/clinicSlice";
 import diagnosisReducer from "../slices/diagnosisSlice";
 import managementReducer from "../slices/managementSlice";
+import absentRequestReducer from "../slices/absentRequestSlice";
 
-// Persistence configuration for the auth slice
 const persistConfig = {
   key: "auth",
   storage,
-  whitelist: ["user"], // Persist only the 'user' field in the auth state
+  whitelist: ["user"],
 };
 
-// Apply persistence to the auth reducer
 const persistedAuthReducer = persistReducer(persistConfig, authReducer);
 
 export const store = configureStore({
@@ -48,29 +42,29 @@ export const store = configureStore({
     clinic: clinicReducer,
     diagnosis: diagnosisReducer,
     management: managementReducer,
+    absentRequests: absentRequestReducer,
 
-    // RTK Query reducers
     [authApi.reducerPath]: authApi.reducer,
     [patientApi.reducerPath]: patientApi.reducer,
     [caseHistoryApi.reducerPath]: caseHistoryApi.reducer,
     [visualAcuityApi.reducerPath]: visualAcuityApi.reducer,
     [diagnosisApi.reducerPath]: diagnosisApi.reducer,
     [managementApi.reducerPath]: managementApi.reducer,
-    [dashboardApi.reducerPath]: dashboardApi.reducer, // ✅ ADDED
-    [appointmentsApi.reducerPath]: appointmentsApi.reducer, // ✅ ADDED
+    [dashboardApi.reducerPath]: dashboardApi.reducer,
+    [appointmentsApi.reducerPath]: appointmentsApi.reducer,
+    [absentRequestApi.reducerPath]: absentRequestApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware({
-      serializableCheck: false,
-    })
+    getDefaultMiddleware({ serializableCheck: false })
       .concat(authApi.middleware)
       .concat(patientApi.middleware)
       .concat(caseHistoryApi.middleware)
       .concat(visualAcuityApi.middleware)
       .concat(diagnosisApi.middleware)
       .concat(managementApi.middleware)
-      .concat(dashboardApi.middleware) // ✅ ADDED
-      .concat(appointmentsApi.middleware), // ✅ ADDED
+      .concat(dashboardApi.middleware)
+      .concat(appointmentsApi.middleware)
+      .concat(absentRequestApi.middleware),
 });
 
 export const persistor = persistStore(store);

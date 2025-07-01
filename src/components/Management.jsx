@@ -192,7 +192,9 @@ const Management = ({ setFlowStep, appointmentId }) => {
       showToast("Management plan saved successfully!", "success");
       await markAppointmentCompletedHandler(appointmentId);
       showToast("Appointment marked as completed!", "success");
-      setModal(true);
+
+      // ✅ Redirect to final step
+      setFlowStep("complete");
     } catch (error) {
       const message = Object.entries(error?.data || {})
         .map(
