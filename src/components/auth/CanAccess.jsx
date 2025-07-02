@@ -1,15 +1,19 @@
-import React from "react";
 import { useSelector } from "react-redux";
 
-const CanAccess = ({ allowedRoles = [], children, fallback = null }) => {
-  const user = useSelector((state) => state.auth.user);
+/**
+ * Renders children only if the user's role matches allowedRoles
+ */
+const CanAccess = ({ allowedRoles = [], children }) => {
+  const userRole = useSelector((state) => state.auth.user?.role?.toLowerCase());
 
-  // If no user or roles info yet, don't render anything
-  if (!user || !user.role) return null;
+  if (
+    !userRole ||
+    !allowedRoles.map((r) => r.toLowerCase()).includes(userRole)
+  ) {
+    return null;
+  }
 
-  const hasAccess = allowedRoles.includes(user.role);
-
-  return hasAccess ? children : fallback;
+  return <>{children}</>;
 };
 
 export default CanAccess;
