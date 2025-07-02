@@ -7,6 +7,7 @@ import useHandlePatientDetails from "../hooks/useHandlePatientDetails";
 import useHandleAppointmentNavigation from "../hooks/useHandleAppointmentNavigation";
 import PageContainer from "../components/PageContainer";
 import CanAccess from "../components/auth/CanAccess";
+import { ROLES } from "../constants/roles";
 
 const Patients = () => {
   const { currentPage, pageSize, handlePageChange } = usePagination();
@@ -63,7 +64,7 @@ const Patients = () => {
                   {patient.primary_phone || "Not provided"}
                 </td>
                 <td className="px-6 py-4 flex gap-4">
-                  <CanAccess allowedRoles={["Hospital Administrator"]}>
+                  <CanAccess allowedRoles={[ROLES.HOSPITAL_ADMIN]}>
                     <button
                       className="text-white bg-blue-500 hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2"
                       onClick={() =>
