@@ -1,9 +1,11 @@
 import React, { useState } from "react";
 import PageContainer from "../components/PageContainer";
 import Card from "../components/ui/card";
+import ClinicScheduleCalendar from "../components/ClinicScheduleCalendar";
 import {
   useGetScheduleStaffQuery,
   useCreateClinicScheduleMutation,
+  useGetClinicSchedulesQuery,
 } from "../redux/api/features/clinicScheduleApi";
 import { toast } from "react-hot-toast";
 
@@ -11,6 +13,10 @@ const ClinicSchedule = () => {
   const [showModal, setShowModal] = useState(false);
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedStaff, setSelectedStaff] = useState([]);
+  const [startTime, setStartTime] = useState("08:00");
+  const [endTime, setEndTime] = useState("14:00");
+  const { data: scheduleData = [], isLoading: scheduleLoading } =
+    useGetClinicSchedulesQuery();
 
   const { data: staff = [] } = useGetScheduleStaffQuery();
   const [createSchedule] = useCreateClinicScheduleMutation();
@@ -30,11 +36,15 @@ const ClinicSchedule = () => {
       return;
     }
 
+    const schedules = selectedStaff.map((id) => ({
+      staff_id: id,
+      date: selectedDate,
+      start_time: startTime,
+      end_time: endTime,
+    }));
+
     try {
-      await createSchedule({
-        date: selectedDate,
-        staff_ids: selectedStaff,
-      }).unwrap();
+      await createSchedule(schedules).unwrap();
       toast.success("Clinic schedule created successfully.");
       setShowModal(false);
       setSelectedDate("");
@@ -56,10 +66,10 @@ const ClinicSchedule = () => {
         </button>
       </div>
 
-      {/* Future display of schedule here */}
-      <Card className="p-4">Schedules will show here soon.</Card>
+      <Card className="p-4">
+        <ClinicScheduleCalendar />
+      </Card>
 
-      {/* Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50">
           <div className="bg-white rounded-lg shadow-md p-6 w-full max-w-md">
@@ -76,6 +86,29 @@ const ClinicSchedule = () => {
                   required
                   className="w-full border px-3 py-2 rounded"
                 />
+              </div>
+
+              <div className="flex gap-2">
+                <div className="flex-1">
+                  <label className="block mb-1 font-medium">Start Time</label>
+                  <input
+                    type="time"
+                    value={startTime}
+                    onChange={(e) => setStartTime(e.target.value)}
+                    required
+                    className="w-full border px-3 py-2 rounded"
+                  />
+                </div>
+                <div className="flex-1">
+                  <label className="block mb-1 font-medium">End Time</label>
+                  <input
+                    type="time"
+                    value={endTime}
+                    onChange={(e) => setEndTime(e.target.value)}
+                    required
+                    className="w-full border px-3 py-2 rounded"
+                  />
+                </div>
               </div>
 
               <div>
