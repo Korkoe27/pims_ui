@@ -200,6 +200,21 @@ export const updateAbsentRequestUrl = (id) => `/absences/absent-requests/${id}/`
 
 
 /////////////////////////
+// Clinic Schedule
+/////////////////////////
+
+// List or create clinic schedules
+export const clinicScheduleUrl = "/clinic-schedule/schedules/";
+
+// Fetch schedules for a specific date
+export const fetchClinicScheduleByDateUrl = (date) =>
+  `/clinic-schedule/schedules/?date=${date}`;
+
+// Get all staff that can be scheduled
+export const listScheduleStaffUrl = "/clinic-schedule/staff/";
+
+
+/////////////////////////
 // WebSocket
 /////////////////////////
 
