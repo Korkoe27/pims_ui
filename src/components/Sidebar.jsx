@@ -10,7 +10,7 @@ import { useGetDashboardDataQuery } from "../redux/api/features/dashboardApi";
 const Sidebar = () => {
   const { user } = useSelector((state) => state.auth);
   const { handleLogout, isLoading } = useLogout();
-  const role = user?.role?.toLowerCase();
+  const role = user?.role;
 
   const { data: dashboardData, isLoading: isDashboardLoading } =
     useGetDashboardDataQuery();

@@ -55,7 +55,7 @@ export const Sidebar_links = [
     name: "absent request",
     icon: <MdOutlineLogout className="text-xl font-bold" />,
     path: "/absent-request",
-    roles: "all",
+    roles: [ROLES.STUDENT, ROLES.LECTURER],
   },
 ];
 
