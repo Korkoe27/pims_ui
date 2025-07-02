@@ -8,6 +8,8 @@ import {
   useGetClinicSchedulesQuery,
 } from "../redux/api/features/clinicScheduleApi";
 import { toast } from "react-hot-toast";
+import CanAccess from "../components/auth/CanAccess";
+import { ROLES } from "../constants/roles";
 
 const ClinicSchedule = () => {
   const [showModal, setShowModal] = useState(false);
@@ -58,12 +60,14 @@ const ClinicSchedule = () => {
     <PageContainer>
       <div className="flex justify-between mb-4">
         <h1 className="text-2xl font-bold">Clinic Schedule</h1>
-        <button
-          onClick={() => setShowModal(true)}
-          className="bg-blue-600 text-white px-4 py-2 rounded"
-        >
-          Create Schedule
-        </button>
+        <CanAccess allowedRoles={[ROLES.COORDINATOR]}>
+          <button
+            onClick={() => setShowModal(true)}
+            className="bg-blue-600 text-white px-4 py-2 rounded"
+          >
+            Create Schedule
+          </button>
+        </CanAccess>
       </div>
 
       <Card className="p-4">
