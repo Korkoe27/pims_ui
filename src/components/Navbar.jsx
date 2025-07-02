@@ -11,6 +11,7 @@ import LoadingSpinner from "./LoadingSpinner";
 import useLogout from "../hooks/useLogout";
 import { useLazySearchPatientsQuery } from "../redux/api/features/patientApi";
 import { showToast } from "../components/ToasterHelper";
+import CanAccess from "../components/auth/CanAccess";
 
 const Navbar = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -88,13 +89,15 @@ const Navbar = () => {
             </div>
           )}
         </form>
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="flex items-center gap-2 px-4 py-2 text-white bg-[#2f3192] rounded-md text-sm"
-        >
-          <GrAdd />
-          Add New Patient
-        </button>
+        <CanAccess allowedRoles={["Hospital Administrator"]}>
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="flex items-center gap-2 px-4 py-2 text-white bg-[#2f3192] rounded-md text-sm"
+          >
+            <GrAdd />
+            Add New Patient
+          </button>
+        </CanAccess>
       </div>
 
       {/* Avatar and dropdown */}
