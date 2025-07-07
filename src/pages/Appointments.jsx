@@ -4,6 +4,8 @@ import { useSelector, useDispatch } from "react-redux";
 import Pagination from "../components/Pagination";
 import useHandleConsult from "../hooks/useHandleConsult";
 import PageContainer from "../components/PageContainer";
+import CanAccess from "../components/auth/CanAccess";
+import { ROLES } from "../constants/roles";
 
 const Appointments = () => {
   const dispatch = useDispatch();
@@ -46,12 +48,26 @@ const Appointments = () => {
           <table className="w-full text-base text-left rtl:text-right text-gray-500">
             <thead className="text-base text-gray-700 uppercase bg-gray-50">
               <tr>
-                <th scope="col" className="px-6 py-3">Date</th>
-                <th scope="col" className="px-6 py-3">Patient ID</th>
-                <th scope="col" className="px-6 py-3">Name</th>
-                <th scope="col" className="px-6 py-3">Type</th>
-                <th scope="col" className="px-6 py-3">Status</th>
-                <th scope="col" className="px-3 min-w-40 py-3">Action</th>
+                <th scope="col" className="px-6 py-3">
+                  Date
+                </th>
+                <th scope="col" className="px-6 py-3">
+                  Patient ID
+                </th>
+                <th scope="col" className="px-6 py-3">
+                  Name
+                </th>
+                <th scope="col" className="px-6 py-3">
+                  Type
+                </th>
+                <th scope="col" className="px-6 py-3">
+                  Status
+                </th>
+                <CanAccess allowedRoles={[ROLES.STUDENT, ROLES.LECTURER]}>
+                <th scope="col" className="px-3 min-w-40 py-3">
+                  Action
+                </th>
+                </CanAccess>
               </tr>
             </thead>
             <tbody>
@@ -62,19 +78,23 @@ const Appointments = () => {
                   <td className="px-6 py-4">{appointment?.patient_name}</td>
                   <td className="px-6 py-4">{appointment?.appointment_type}</td>
                   <td className="w-fit mx-auto">
-                    <span className={`px-6 rounded-full py-2 text-base font-medium text-white w-5 ${checkStatus(appointment?.status)}`}>
+                    <span
+                      className={`px-6 rounded-full py-2 text-base font-medium text-white w-5 ${checkStatus(
+                        appointment?.status
+                      )}`}
+                    >
                       {appointment?.status}
                     </span>
                   </td>
                   <td className="px-6 py-4 flex gap-10">
-                    {appointment?.status === "Scheduled" && (
+                    <CanAccess allowedRoles={[ROLES.STUDENT, ROLES.LECTURER]}>
                       <button
                         onClick={() => handleConsult(appointment)}
                         className="focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5"
                       >
                         Consult
                       </button>
-                    )}
+                    </CanAccess>
                   </td>
                 </tr>
               ))}
@@ -89,7 +109,9 @@ const Appointments = () => {
         </>
       ) : (
         !loading && (
-          <p className="text-gray-500 text-center">No appointments available.</p>
+          <p className="text-gray-500 text-center">
+            No appointments available.
+          </p>
         )
       )}
     </PageContainer>

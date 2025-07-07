@@ -10,6 +10,7 @@ import {
 } from "../redux/api/features/absentRequestApi";
 import { toast } from "react-hot-toast";
 
+
 const AbsentRequest = () => {
   const [showModal, setShowModal] = useState(false);
   const [modalData, setModalData] = useState({

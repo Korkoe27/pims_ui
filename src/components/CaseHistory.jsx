@@ -14,6 +14,8 @@ import NotesTextArea from "./NotesTextArea";
 import { hasFormChanged } from "../utils/deepCompare";
 import NavigationButtons from "../components/NavigationButtons";
 import CheckboxInput from "./CheckboxInput";
+import PageContainer from "./PageContainer";
+
 
 const CaseHistory = ({
   patientId,
@@ -215,7 +217,8 @@ const CaseHistory = ({
   };
 
   return (
-    <div className="p-6 pb-12 bg-white rounded-md shadow-md max-w-3xl mx-auto">
+    <PageContainer>
+    <div className="bg-white rounded-md shadow p-4">
       <h1 className="text-2xl font-bold mb-4">Case History</h1>
       {isLoading ? (
         <p>Loading patient case history...</p>
@@ -350,6 +353,7 @@ const CaseHistory = ({
         </>
       )}
     </div>
+    </PageContainer>
   );
 };
 

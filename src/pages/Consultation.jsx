@@ -197,11 +197,15 @@ const Consultation = () => {
   };
 
   return (
-    <div className="px-8 ml-72 flex flex-col mt-8 gap-8 bg-[#f9fafb] w-full shadow-md sm:rounded-lg">
-      <h1 className="font-extrabold text-xl">Consultation</h1>
-      <Header patient={selectedAppointment} appointmentId={appointmentId} />
-      <ProgressBar step={stepMap[flowStep] || 1} setStep={setFlowStep} />
-      {renderFlowStep()}
+    <div className="min-h-screen bg-[#f9fafb] pt-6 px-4 md:px-12 lg:px-24">
+      <div className="max-w-6xl mx-auto">
+        <h1 className="font-extrabold text-xl mb-2">Consultation</h1>
+        <Header patient={selectedAppointment} appointmentId={appointmentId} />
+        <div className="mt-4 mb-6">
+          <ProgressBar step={stepMap[flowStep] || 1} setStep={setFlowStep} />
+        </div>
+        <div className="mb-10">{renderFlowStep()}</div>
+      </div>
     </div>
   );
 };
