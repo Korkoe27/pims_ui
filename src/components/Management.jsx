@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { IoClose } from "react-icons/io5";
 import { IoIosCheckmarkCircle } from "react-icons/io";
@@ -16,7 +16,7 @@ const Management = ({ setFlowStep, appointmentId }) => {
   const [modal, setModal] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [confirmSave, setConfirmSave] = useState(false);
-  const [selectedTypeId, setSelectedTypeId] = useState(null);
+  const [selectedTypeId] = useState(null);
   const [selectedMedications, setSelectedMedications] = useState([]);
 
   const {
@@ -25,12 +25,12 @@ const Management = ({ setFlowStep, appointmentId }) => {
     isCreatingManagementPlan,
   } = useManagementData(appointmentId, selectedTypeId);
 
-  const [medicationEntry, setMedicationEntry] = useState({
-    medication_eye: "",
-    medication_name: "",
-    medication_type: "",
-    medication_dosage: "",
-  });
+  // const [medicationEntry, setMedicationEntry] = useState({
+  //   medication_eye: "",
+  //   medication_name: "",
+  //   medication_type: "",
+  //   medication_dosage: "",
+  // });
 
   const [checkboxes, setCheckboxes] = useState({
     refractiveCorrection: false,

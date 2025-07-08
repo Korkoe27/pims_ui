@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import LoadingSpinner from "../components/LoadingSpinner";
-import { useSelector, useDispatch } from "react-redux";
 import Pagination from "../components/Pagination";
 import useHandleConsult from "../hooks/useHandleConsult";
 import PageContainer from "../components/PageContainer";
@@ -9,7 +8,6 @@ import { ROLES } from "../constants/roles";
 import { useGetTodaysAppointmentsQuery } from "../redux/api/features/appointmentsApi";
 
 const Appointments = () => {
-  const dispatch = useDispatch();
   const { handleConsult } = useHandleConsult();
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
