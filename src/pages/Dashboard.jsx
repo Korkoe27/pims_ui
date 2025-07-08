@@ -87,7 +87,9 @@ const Dashboard = () => {
                 <th className="px-3 py-3">Patient’s ID</th>
                 <th className="px-3 py-3">Name</th>
                 <th className="px-3 py-3">Appointment Type</th>
+                <CanAccess allowedRoles={[ROLES.STUDENT, ROLES.LECTURER]}>
                 <th className="px-3 py-3 text-center">Action</th>
+                </CanAccess>
               </tr>
             </thead>
             <tbody>

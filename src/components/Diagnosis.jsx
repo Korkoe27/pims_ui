@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { showToast } from "../components/ToasterHelper";
 import SearchableSelect from "./SearchableSelect";
 import AffectedEyeSelect from "./AffectedEyeSelect";
@@ -17,7 +17,6 @@ const Diagnosis = ({ appointmentId, setFlowStep, setActiveTab }) => {
 
   const [differentialDiagnosis, setDifferentialDiagnosis] = useState("");
   const [finalDiagnosisEntries, setFinalDiagnosisEntries] = useState([]);
-  const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
     if (!appointmentDiagnosis) return;

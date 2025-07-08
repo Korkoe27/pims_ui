@@ -6,6 +6,7 @@ import useHandleConsult from "../hooks/useHandleConsult";
 import PageContainer from "../components/PageContainer";
 import CanAccess from "../components/auth/CanAccess";
 import { ROLES } from "../constants/roles";
+import { useGetTodaysAppointmentsQuery } from "../redux/api/features/appointmentsApi";
 
 const Appointments = () => {
   const dispatch = useDispatch();
@@ -13,13 +14,8 @@ const Appointments = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
 
-  const { todayAppointments, loading, error } = useSelector((state) => ({
-    todayAppointments: state.dashboard.todayAppointments,
-    loading: state.dashboard.loading,
-    error: state.dashboard.error,
-  }));
-
-  const appointments = todayAppointments?.data || [];
+  const { data, isLoading, error } = useGetTodaysAppointmentsQuery();
+  const appointments = data?.data || [];
 
   const sortedAppointments = [...appointments].sort((a, b) => {
     const statusOrder = { Scheduled: 1, Completed: 2, Cancelled: 3 };
@@ -38,17 +34,16 @@ const Appointments = () => {
   };
 
   // 👇 Add logs right here before return
-  console.log("📦 todayAppointments from Redux:", todayAppointments);
   console.log("📋 appointments:", appointments);
   console.log("📄 paginatedAppointments:", paginatedAppointments);
 
   return (
     <PageContainer>
-      {loading && <LoadingSpinner />}
+      {isLoading && <LoadingSpinner />}
       <h1 className="font-extrabold text-xl">Today's Appointments</h1>
       {error && <p className="text-red-500">Error: {error}</p>}
 
-      {!loading && paginatedAppointments?.length > 0 ? (
+      {!isLoading && paginatedAppointments?.length > 0 ? (
         <>
           <table className="w-full text-base text-left rtl:text-right text-gray-500">
             <thead className="text-base text-gray-700 uppercase bg-gray-50">
@@ -113,7 +108,7 @@ const Appointments = () => {
           />
         </>
       ) : (
-        !loading && (
+        !isLoading && (
           <p className="text-gray-500 text-center">
             No appointments available.
           </p>

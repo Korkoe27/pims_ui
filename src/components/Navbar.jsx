@@ -6,7 +6,6 @@ import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 
 import PatientModal from "../components/SelectClinicModal";
-import SearchModalUnfilled from "./SearchModalUnfilled";
 import LoadingSpinner from "./LoadingSpinner";
 import useLogout from "../hooks/useLogout";
 import { useLazySearchPatientsQuery } from "../redux/api/features/patientApi";

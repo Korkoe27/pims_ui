@@ -9,11 +9,6 @@ import { showToast } from "../components/ToasterHelper";
 import RefractiveCorrectionSection from "./RefractiveCorrectionSection";
 import MedicationForm from "./MedicationForm";
 
-import SPHValidator from "./validators/SPHValidator";
-import CYLValidator from "./validators/CYLValidator";
-import AXISValidator from "./validators/AXISValidator";
-import ADDValidator from "./validators/ADDValidator";
-
 const Management = ({ setFlowStep, appointmentId }) => {
   const navigate = useNavigate();
   const { markAppointmentCompletedHandler } = useMarkAppointmentCompleted();
@@ -26,11 +21,7 @@ const Management = ({ setFlowStep, appointmentId }) => {
 
   const {
     medications,
-    medicationTypes,
-    filteredMedications,
-    managementPlan,
     createManagementPlan,
-    isManagementPlanLoading,
     isCreatingManagementPlan,
   } = useManagementData(appointmentId, selectedTypeId);
 
