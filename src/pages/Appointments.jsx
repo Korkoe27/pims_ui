@@ -37,6 +37,11 @@ const Appointments = () => {
     setCurrentPage(page);
   };
 
+  // 👇 Add logs right here before return
+  console.log("📦 todayAppointments from Redux:", todayAppointments);
+  console.log("📋 appointments:", appointments);
+  console.log("📄 paginatedAppointments:", paginatedAppointments);
+
   return (
     <PageContainer>
       {loading && <LoadingSpinner />}
@@ -64,9 +69,9 @@ const Appointments = () => {
                   Status
                 </th>
                 <CanAccess allowedRoles={[ROLES.STUDENT, ROLES.LECTURER]}>
-                <th scope="col" className="px-3 min-w-40 py-3">
-                  Action
-                </th>
+                  <th scope="col" className="px-3 min-w-40 py-3">
+                    Action
+                  </th>
                 </CanAccess>
               </tr>
             </thead>
