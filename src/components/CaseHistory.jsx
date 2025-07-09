@@ -223,8 +223,11 @@ const CaseHistory = ({
           <h1 className="text-2xl font-bold">Case History</h1>
           {caseHistory && (
             <SupervisorGradingButton
-              appointmentId={appointmentId}
-              section="case-history"
+              sectionLabel="Grading: Case History"
+              averageMarks={76.8}
+              // onSubmit={({ marks, remarks }) => {
+              //   submitDiagnosisGrading({ appointmentId, marks, remarks });
+              // }}
             />
           )}
         </div>

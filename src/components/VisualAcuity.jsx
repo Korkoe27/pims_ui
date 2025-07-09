@@ -8,6 +8,7 @@ import PrescriptionSection, {
 import { showToast } from "../components/ToasterHelper";
 import { hasFormChanged } from "../utils/deepCompare";
 import NavigationButtons from "../components/NavigationButtons";
+import SupervisorGradingButton from "./SupervisorGradingButton";
 
 const CHART_OPTIONS = [
   { value: "SNELLEN", label: "Snellen" },
@@ -269,7 +270,6 @@ export default function VisualAcuityForm({
         });
       });
 
-
       // ✅ Check SPH for both eyes
       if (hasPrescription) {
         const newErrors = { OD: {}, OS: {} };
@@ -360,6 +360,18 @@ export default function VisualAcuityForm({
   return (
     <div className="space-y-8 pb-12">
       <h1 className="text-2xl font-bold mb-6">Visual Acuity</h1>
+      {!loadingVA && (
+        <div className="flex justify-end">
+          <SupervisorGradingButton
+            sectionLabel="Grading: Visual Acuity"
+            averageMarks={visualAcuity?.average_marks ?? null}
+            // onSubmit={handleSubmitGrading(
+            //   submitVisualAcuityGrading,
+            //   appointmentId
+            // )}
+          />
+        </div>
+      )}
 
       {loadingVA ? (
         <p className="text-gray-600 italic">Loading visual acuity...</p>

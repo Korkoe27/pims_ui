@@ -64,7 +64,7 @@ const Patients = () => {
                   {patient.primary_phone || "Not provided"}
                 </td>
                 <td className="px-6 py-4 flex gap-4">
-                  <CanAccess allowedRoles={[ROLES.HOSPITAL_ADMIN]}>
+                  <CanAccess allowedRoles={[ROLES.HOSPITAL_ADMIN, ROLES.SYSTEMS_ADMIN]}>
                     <button
                       className="text-white bg-blue-500 hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2"
                       onClick={() =>

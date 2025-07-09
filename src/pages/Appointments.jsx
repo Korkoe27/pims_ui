@@ -31,10 +31,6 @@ const Appointments = () => {
     setCurrentPage(page);
   };
 
-  // 👇 Add logs right here before return
-  console.log("📋 appointments:", appointments);
-  console.log("📄 paginatedAppointments:", paginatedAppointments);
-
   return (
     <PageContainer>
       {isLoading && <LoadingSpinner />}
@@ -61,7 +57,7 @@ const Appointments = () => {
                 <th scope="col" className="px-6 py-3">
                   Status
                 </th>
-                <CanAccess allowedRoles={[ROLES.STUDENT, ROLES.LECTURER]}>
+                <CanAccess allowedRoles={[ROLES.STUDENT, ROLES.LECTURER, ROLES.SYSTEMS_ADMIN]}>
                   <th scope="col" className="px-3 min-w-40 py-3">
                     Action
                   </th>
@@ -85,7 +81,7 @@ const Appointments = () => {
                     </span>
                   </td>
                   <td className="px-6 py-4 flex gap-10">
-                    <CanAccess allowedRoles={[ROLES.STUDENT, ROLES.LECTURER]}>
+                    <CanAccess allowedRoles={[ROLES.STUDENT, ROLES.LECTURER, ROLES.SYSTEMS_ADMIN]}>
                       <button
                         onClick={() => handleConsult(appointment)}
                         className="focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5"
