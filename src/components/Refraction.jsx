@@ -11,6 +11,8 @@ import AXISValidator from "./validators/AXISValidator";
 import VAValidator from "./validators/VAValidator";
 import ADDValidator from "./validators/ADDValidator";
 import NavigationButtons from "../components/NavigationButtons";
+import SupervisorGradingButton from "./SupervisorGradingButton";
+
 
 const OBJECTIVE_METHOD_OPTIONS = [
   { value: "Retinoscopy", label: "Retinoscopy" },
@@ -247,6 +249,14 @@ const Refraction = ({ setActiveTab, setTabCompletionStatus }) => {
   return (
     <div className="my-8 px-16 flex flex-col gap-12">
       <form className="flex flex-col gap-20">
+        <div className="flex items-center justify-between mb-4">
+          <h1 className="text-2xl font-bold text-[#101928]">Refraction</h1>
+          <SupervisorGradingButton
+            sectionLabel="Grading: Refraction"
+            averageMarks={refraction?.average_marks ?? null}
+            // onSubmit={handleSubmitGrading(submitRefractionGrading, appointmentId)}
+          />
+        </div>
         <div className="flex flex-col gap-1 h-24 w-[375px]">
           <label className="text-base text-[#101928] font-medium">
             Method for Objective Refraction{" "}

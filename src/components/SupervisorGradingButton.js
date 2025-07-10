@@ -3,7 +3,7 @@ import React, { useState } from "react";
 const SupervisorGradingButton = ({
   onSubmit,
   sectionLabel = "Supervisor Grading",
-  averageMarks = null, // optional
+  averageMarks = null,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [marks, setMarks] = useState("");
@@ -21,6 +21,7 @@ const SupervisorGradingButton = ({
   return (
     <>
       <button
+        type="button" // ✅ prevent form submission
         onClick={() => setIsOpen(true)}
         className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded shadow ml-auto"
       >
@@ -73,12 +74,14 @@ const SupervisorGradingButton = ({
 
             <div className="flex justify-end gap-2">
               <button
+                type="button" // ✅ prevent form submission
                 onClick={() => setIsOpen(false)}
                 className="bg-gray-300 px-4 py-2 rounded"
               >
                 Cancel
               </button>
               <button
+                type="button" // ✅ prevent form submission
                 onClick={handleSubmit}
                 className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded"
               >

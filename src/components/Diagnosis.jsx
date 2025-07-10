@@ -6,6 +6,7 @@ import NotesTextArea from "./NotesTextArea";
 import DiagnosisQuerySection from "./DiagnosisQuerySection";
 import ManagementPlanSection from "./ManagementPlanSection";
 import useDiagnosisData from "../hooks/useDiagnosisData";
+import SupervisorGradingButton from "./SupervisorGradingButton";
 
 const Diagnosis = ({ appointmentId, setFlowStep, setActiveTab }) => {
   const {
@@ -145,8 +146,14 @@ const Diagnosis = ({ appointmentId, setFlowStep, setActiveTab }) => {
 
   return (
     <div className="p-6 bg-white rounded-md shadow-md max-w-3xl mx-auto">
-      <h1 className="text-2xl font-bold mb-4">Diagnosis</h1>
-
+      <h1 className="text-2xl font-bold text-[#101928]">Diagnosis</h1>
+      <SupervisorGradingButton
+        sectionLabel="Grading: Diagnosis"
+        // averageMarks={appointmentDiagnosis?.average_marks}
+        onSubmit={(grading) => {
+          console.log("Diagnosis grading submitted:", grading);
+        }}
+      />
       {isAppointmentDiagnosisLoading ? (
         <p className="text-gray-500">Loading diagnosis data...</p>
       ) : (

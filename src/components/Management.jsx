@@ -8,6 +8,7 @@ import useMarkAppointmentCompleted from "../hooks/useMarkAppointmentCompleted";
 import { showToast } from "../components/ToasterHelper";
 import RefractiveCorrectionSection from "./RefractiveCorrectionSection";
 import MedicationForm from "./MedicationForm";
+import SupervisorGradingButton from "./SupervisorGradingButton";
 
 const Management = ({ setFlowStep, appointmentId }) => {
   const navigate = useNavigate();
@@ -19,11 +20,8 @@ const Management = ({ setFlowStep, appointmentId }) => {
   const [selectedTypeId] = useState(null);
   const [selectedMedications, setSelectedMedications] = useState([]);
 
-  const {
-    medications,
-    createManagementPlan,
-    isCreatingManagementPlan,
-  } = useManagementData(appointmentId, selectedTypeId);
+  const { medications, createManagementPlan, isCreatingManagementPlan } =
+    useManagementData(appointmentId, selectedTypeId);
 
   // const [medicationEntry, setMedicationEntry] = useState({
   //   medication_eye: "",
@@ -199,6 +197,14 @@ const Management = ({ setFlowStep, appointmentId }) => {
 
   return (
     <div className="ml-72 py-8 px-8 w-fit flex flex-col gap-12">
+      <SupervisorGradingButton
+        sectionLabel="Grading: Management"
+        // averageMarks={...}
+        onSubmit={(grading) => {
+          console.log("Management grading submitted:", grading);
+        }}
+      />
+
       {isModalOpen && <PatientModal setIsModalOpen={setIsModalOpen} />}
 
       {confirmSave && (
