@@ -15,6 +15,8 @@ import ExtraTests from "../components/ExtraTests";
 import Diagnosis from "../components/Diagnosis";
 import Management from "../components/Management";
 import CompleteConsultation from "../components/CompleteConsultation";
+import CaseManagementGuide from "../components/CaseManagementGuide";
+import Grading from "../components/Grading"; // ✅ NEW
 import BouncingBallsLoader from "../components/BouncingBallsLoader";
 
 const Consultation = () => {
@@ -71,7 +73,8 @@ const Consultation = () => {
     consultation: 1,
     diagnosis: 2,
     management: 3,
-    complete: 4,
+    grading: 4, // ✅ Added grading step
+    complete: 5,
   };
 
   if (isLoading) {
@@ -150,6 +153,14 @@ const Consultation = () => {
             setTabCompletionStatus={setTabCompletionStatus}
           />
         );
+      case "case management guide":
+        return (
+          <CaseManagementGuide
+            appointmentId={appointmentId}
+            setActiveTab={setActiveTab}
+            setTabCompletionStatus={setTabCompletionStatus}
+          />
+        );
       default:
         return <p>Select a tab to continue.</p>;
     }
@@ -184,6 +195,13 @@ const Consultation = () => {
             setFlowStep={setFlowStep}
           />
         );
+      case "grading":
+        return (
+          <Grading
+            appointmentId={appointmentId}
+            setFlowStep={setFlowStep}
+          />
+        );
       case "complete":
         return (
           <CompleteConsultation
@@ -211,3 +229,4 @@ const Consultation = () => {
 };
 
 export default Consultation;
+// This file is the main Consultation page that orchestrates the flow of the consultation process.
