@@ -1,61 +1,44 @@
 import React from "react";
 
+const steps = [
+  "Consultation",
+  "Diagnosis and Plan",
+  "Management",
+  "Case Management Guide",
+  "Submit",
+  "Complete",
+  "Grading",
+  "Logs",
+];
+
 const ProgressBar = ({ step }) => {
   return (
-    <div className="flex bg-[#f9fafb]">
-      {/* Step 1: Consultation */}
-      <div className="w-64">
-        <div className="flex justify-end items-center">
-          <span
-            className={`border border-[#2f3192] w-6 h-6 rounded-full ${
-              step === 1 ? "bg-[#2F3192]" : "bg-white"
-            }`}
-          ></span>
-          <span className="border bg-[#2f3192] border-[#2f3192] h-[2px] w-28"></span>
-        </div>
-        <h1 className="text-center font-medium text-base">Consultation</h1>
-      </div>
+    <div className="flex bg-[#f9fafb] w-full">
+      {steps.map((label, index) => (
+        <div key={index} className="w-1/5">
+          <div className="flex items-center justify-center">
+            {/* Left connector (skip for first item) */}
+            {index > 0 && (
+              <span className="flex-grow h-[2px] bg-[#2f3192]"></span>
+            )}
 
-      {/* Step 2: Diagnosis and Plan */}
-      <div>
-        <div className="flex items-center justify-end">
-          <span className="border bg-[#2f3192] border-[#2f3192] h-[2px] w-28"></span>
-          <span
-            className={`border border-[#2f3192] w-6 h-6 rounded-full ${
-              step === 2 ? "bg-[#2F3192]" : "bg-white"
-            }`}
-          ></span>
-          <span className="border bg-[#2f3192] border-[#2f3192] h-[2px] w-28"></span>
-        </div>
-        <h1 className="text-center font-medium">Diagnosis and Plan</h1>
-      </div>
+            {/* Step Circle */}
+            <span
+              className={`border border-[#2f3192] w-6 h-6 rounded-full ${
+                step === index + 1 ? "bg-[#2F3192]" : "bg-white"
+              }`}
+            ></span>
 
-      {/* Step 3: Management */}
-      <div>
-        <div className="flex items-center justify-end">
-          <span className="border bg-[#2f3192] border-[#2f3192] h-[2px] w-28"></span>
-          <span
-            className={`border border-[#2f3192] w-6 h-6 rounded-full ${
-              step === 3 ? "bg-[#2F3192]" : "bg-white"
-            }`}
-          ></span>
-          <span className="border bg-[#2f3192] border-[#2f3192] h-[2px] w-28"></span>
-        </div>
-        <h1 className="text-center font-medium">Management</h1>
-      </div>
+            {/* Right connector (skip for last item) */}
+            {index < steps.length - 1 && (
+              <span className="flex-grow h-[2px] bg-[#2f3192]"></span>
+            )}
+          </div>
 
-      {/* ✅ Step 4: Complete */}
-      <div className="w-64">
-        <div className="flex items-center justify-start">
-          <span className="border bg-[#2f3192] border-[#2f3192] h-[2px] w-28"></span>
-          <span
-            className={`border border-[#2f3192] w-6 h-6 rounded-full ${
-              step === 4 ? "bg-[#2F3192]" : "bg-white"
-            }`}
-          ></span>
+          {/* Step Label */}
+          <h1 className="text-center font-medium text-sm mt-2">{label}</h1>
         </div>
-        <h1 className="text-center font-medium">Complete</h1>
-      </div>
+      ))}
     </div>
   );
 };
