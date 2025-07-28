@@ -5,7 +5,7 @@ import {
   useCreateExtraTestMutation,
   useFetchExtraTestsQuery,
 } from "../redux/api/features/extraTestsApi";
-
+import SupervisorGradingButton from "./SupervisorGradingButton";
 
 const ExtraTests = ({
   appointmentId,
@@ -29,7 +29,15 @@ const ExtraTests = ({
 
   return (
     <div className="py-10 px-6 flex flex-col items-center max-w-5xl mx-auto">
-      <h2 className="text-2xl font-bold mb-8 text-center">Extra Tests</h2>
+      <h2 className="text-2xl font-bold">Extra Tests</h2>
+      <SupervisorGradingButton
+        sectionLabel="Grading: Extra Tests"
+        // averageMarks={someData?.average_marks}
+        onSubmit={(grading) => {
+          // TODO: hook this to your grading API
+          console.log("Grading submitted for Extra Tests:", grading);
+        }}
+      />
 
       {/* Upload Modal Trigger */}
       <div className="flex justify-center mb-8">

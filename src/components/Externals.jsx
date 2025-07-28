@@ -10,6 +10,7 @@ import ConditionsDropdown from "./ConditionsDropdown";
 import GradingSelect from "./GradingSelect";
 import NotesTextArea from "./NotesTextArea";
 import NavigationButtons from "../components/NavigationButtons";
+import SupervisorGradingButton from "./SupervisorGradingButton";
 
 const Externals = ({ setActiveTab, setTabCompletionStatus }) => {
   const { appointmentId } = useParams();
@@ -236,7 +237,14 @@ const Externals = ({ setActiveTab, setTabCompletionStatus }) => {
 
   return (
     <div className="p-6 max-w-6xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">External Observations</h1>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-bold">External Observations</h1>
+        <SupervisorGradingButton
+          sectionLabel="Grading: Externals"
+          averageMarks={existingObservations?.average_marks ?? null}
+          // onSubmit={handleSubmitGrading(submitExternalGrading, appointmentId)}
+        />
+      </div>
 
       {Object.entries(groupedConditions).map(([main, subGroups]) => (
         <div key={main} className="mb-6 border rounded">

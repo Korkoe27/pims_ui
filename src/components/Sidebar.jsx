@@ -36,7 +36,8 @@ const Sidebar = () => {
       {/* Nav links section */}
       <div className="flex-1 overflow-y-auto px-2 mt-6 border-t border-gray-100 pt-4">
         {Sidebar_links.filter(
-          (item) => item.roles === "all" || item.roles.includes(role)
+          (item) =>
+            item.roles === "all" || item.roles.includes(role?.toLowerCase())
         ).map((item) => (
           <NavLink
             to={item.path}

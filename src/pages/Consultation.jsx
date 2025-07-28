@@ -15,6 +15,8 @@ import ExtraTests from "../components/ExtraTests";
 import Diagnosis from "../components/Diagnosis";
 import Management from "../components/Management";
 import CompleteConsultation from "../components/CompleteConsultation";
+import CaseManagementGuide from "../components/CaseManagementGuide";
+import Grading from "../components/Grading"; // ✅ NEW
 import BouncingBallsLoader from "../components/BouncingBallsLoader";
 
 const Consultation = () => {
@@ -71,7 +73,8 @@ const Consultation = () => {
     consultation: 1,
     diagnosis: 2,
     management: 3,
-    complete: 4,
+    grading: 4, // ✅ Added grading step
+    complete: 5,
   };
 
   if (isLoading) {
@@ -150,6 +153,14 @@ const Consultation = () => {
             setTabCompletionStatus={setTabCompletionStatus}
           />
         );
+      case "case management guide":
+        return (
+          <CaseManagementGuide
+            appointmentId={appointmentId}
+            setActiveTab={setActiveTab}
+            setTabCompletionStatus={setTabCompletionStatus}
+          />
+        );
       default:
         return <p>Select a tab to continue.</p>;
     }
@@ -184,6 +195,13 @@ const Consultation = () => {
             setFlowStep={setFlowStep}
           />
         );
+      case "grading":
+        return (
+          <Grading
+            appointmentId={appointmentId}
+            setFlowStep={setFlowStep}
+          />
+        );
       case "complete":
         return (
           <CompleteConsultation
@@ -197,13 +215,18 @@ const Consultation = () => {
   };
 
   return (
-    <div className="px-8 ml-72 flex flex-col mt-8 gap-8 bg-[#f9fafb] w-full shadow-md sm:rounded-lg">
-      <h1 className="font-extrabold text-xl">Consultation</h1>
-      <Header patient={selectedAppointment} appointmentId={appointmentId} />
-      <ProgressBar step={stepMap[flowStep] || 1} setStep={setFlowStep} />
-      {renderFlowStep()}
+    <div className="min-h-screen bg-[#f9fafb] pt-6 px-4 md:px-12 lg:px-24">
+      <div className="max-w-6xl mx-auto">
+        <h1 className="font-extrabold text-xl mb-2">Consultation</h1>
+        <Header patient={selectedAppointment} appointmentId={appointmentId} />
+        <div className="mt-4 mb-6">
+          <ProgressBar step={stepMap[flowStep] || 1} setStep={setFlowStep} />
+        </div>
+        <div className="mb-10">{renderFlowStep()}</div>
+      </div>
     </div>
   );
 };
 
 export default Consultation;
+// This file is the main Consultation page that orchestrates the flow of the consultation process.
