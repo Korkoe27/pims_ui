@@ -11,3 +11,6 @@ export {default as PatientSearchResults} from './PatientSearchResults';
 export { default as MyPortal } from './MyPortal';
 export { default as CaseReviews } from './CaseReviews';
 export { default as ClinicSchedule } from './ClinicSchedule';
+export { default as PendingReviews } from "./PendingReviews";
+export { default as Reports } from "./Reports";
+

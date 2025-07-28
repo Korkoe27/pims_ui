@@ -10,7 +10,7 @@ import RefractionView from "../components/RefractionView";
 import ExtraTestsView from "../components/ExtraTestsView";
 import DiagnosisView from "../components/DiagnosisView";
 import ManagementView from "../components/ManagementView";
-
+import PageContainer from "../components/PageContainer";
 
 const TabButton = ({ label, value, active, onClick }) => (
   <button
@@ -36,18 +36,7 @@ const PatientDetails = () => {
     data: appointments,
     isLoading,
     error,
-  } = useGetPatientAppointmentsQuery(patient?.id, {
-    skip: !patient,
-  });
-
-  if (!patient) {
-    return (
-      <div className="px-8 ml-72 mt-8 text-gray-500">
-        <h1 className="text-xl font-bold">Patient Details</h1>
-        <p>No patient data available.</p>
-      </div>
-    );
-  }
+  } = useGetPatientAppointmentsQuery(patient?.id, { skip: !patient });
 
   const tabs = [
     { label: "More Info", value: "info" },
@@ -66,66 +55,61 @@ const PatientDetails = () => {
     { label: "Management", value: "management" },
   ];
 
-  return (
-    <div className="px-8 ml-72 mt-8 w-full space-y-8">
-      {/* Basic Info */}
-      <div className="bg-white p-6 rounded shadow">
-        <h2 className="text-2xl font-bold text-[#2f3192] mb-4">
-          Patient Details
-        </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-          <Detail
-            label="Name"
-            value={`${patient.first_name} ${patient.last_name}`}
-          />
-          <Detail label="Patient ID" value={patient.patient_id} />
-          <Detail label="Phone" value={patient.primary_phone} />
-          <Detail label="Age" value={patient.age} />
-          <Detail label="Gender" value={patient.gender} />
-          <Detail label="Date of Birth" value={patient.dob} />
+  if (!patient) {
+    return (
+      <PageContainer>
+        <div className="text-gray-500">
+          <h1 className="text-xl font-bold">Patient Details</h1>
+          <p>No patient data available.</p>
         </div>
-      </div>
+      </PageContainer>
+    );
+  }
 
-      {/* Tabs */}
-      <div className="border-b flex">
-        {tabs.map((tab) => (
-          <TabButton
-            key={tab.value}
-            {...tab}
-            active={activeTab}
-            onClick={setActiveTab}
+  return (
+    <PageContainer>
+      <div className="w-full space-y-8">
+        {/* Basic Info */}
+        <div className="bg-white p-6 rounded shadow">
+          <h2 className="text-2xl font-bold text-[#2f3192] mb-4">Patient Details</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+            <Detail label="Name" value={`${patient.first_name} ${patient.last_name}`} />
+            <Detail label="Patient ID" value={patient.patient_id} />
+            <Detail label="Phone" value={patient.primary_phone} />
+            <Detail label="Age" value={patient.age} />
+            <Detail label="Gender" value={patient.gender} />
+            <Detail label="Date of Birth" value={patient.dob} />
+          </div>
+        </div>
+
+        {/* Tabs */}
+        <div className="border-b flex">
+          {tabs.map((tab) => (
+            <TabButton key={tab.value} {...tab} active={activeTab} onClick={setActiveTab} />
+          ))}
+        </div>
+
+        {/* Tab Content */}
+        {activeTab === "info" && <PatientInfoSection patient={patient} />}
+        {activeTab === "appointments" && (
+          <AppointmentSection
+            appointments={appointments}
+            isLoading={isLoading}
+            error={error}
+            onView={(appt) => setSelectedAppointment(appt)}
           />
-        ))}
+        )}
       </div>
-
-      {/* Tab Content */}
-      {activeTab === "info" && <PatientInfoSection patient={patient} />}
-      {activeTab === "appointments" && (
-        <AppointmentSection
-          appointments={appointments}
-          isLoading={isLoading}
-          error={error}
-          onView={(appt) => setSelectedAppointment(appt)}
-        />
-      )}
 
       {/* Modal */}
       {selectedAppointment && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white p-6 w-3/4 rounded shadow-lg relative">
-            <h3 className="text-xl font-bold text-[#2f3192] mb-4">
-              Appointment Details
-            </h3>
+          <div className="bg-white p-6 w-3/4 rounded shadow-lg relative max-h-[90vh] overflow-y-auto">
+            <h3 className="text-xl font-bold text-[#2f3192] mb-4">Appointment Details</h3>
 
-            {/* Modal Tabs */}
             <div className="border-b flex">
               {modalTabs.map((tab) => (
-                <TabButton
-                  key={tab.value}
-                  {...tab}
-                  active={modalTab}
-                  onClick={setModalTab}
-                />
+                <TabButton key={tab.value} {...tab} active={modalTab} onClick={setModalTab} />
               ))}
             </div>
 
@@ -133,38 +117,30 @@ const PatientDetails = () => {
               {modalTab === "casehistory" && (
                 <CaseHistoryView appointmentId={selectedAppointment.id} />
               )}
-
               {modalTab === "personalhistory" && (
                 <PersonalHistoryView
                   patientId={selectedAppointment.patient}
                   appointmentId={selectedAppointment.id}
                 />
               )}
-
               {modalTab === "visualacuity" && (
                 <VisualAcuityView appointmentId={selectedAppointment.id} />
               )}
-
               {modalTab === "externals" && (
                 <ExternalsView appointmentId={selectedAppointment.id} />
               )}
-
               {modalTab === "internals" && (
                 <InternalsView appointmentId={selectedAppointment.id} />
               )}
-
               {modalTab === "refraction" && (
                 <RefractionView appointmentId={selectedAppointment.id} />
               )}
-
               {modalTab === "extratest" && (
                 <ExtraTestsView appointmentId={selectedAppointment.id} />
               )}
-
               {modalTab === "diagnosis" && (
                 <DiagnosisView appointmentId={selectedAppointment.id} />
               )}
-
               {modalTab === "management" && (
                 <ManagementView appointmentId={selectedAppointment.id} />
               )}
@@ -179,7 +155,7 @@ const PatientDetails = () => {
           </div>
         </div>
       )}
-    </div>
+    </PageContainer>
   );
 };
 
@@ -192,9 +168,7 @@ const Detail = ({ label, value }) => (
 
 const PatientInfoSection = ({ patient }) => (
   <div className="bg-gray-50 p-6 rounded shadow">
-    <h3 className="text-xl font-bold text-[#2f3192] mb-4">
-      Patient Information
-    </h3>
+    <h3 className="text-xl font-bold text-[#2f3192] mb-4">Patient Information</h3>
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
       <Detail label="ID Type" value={patient.id_type} />
       <Detail label="ID Number" value={patient.id_number} />
@@ -203,14 +177,8 @@ const PatientInfoSection = ({ patient }) => (
       <Detail label="Address" value={patient.address} />
       <Detail label="Landmark" value={patient.landmark} />
       <Detail label="Region" value={patient.region} />
-      <Detail
-        label="Emergency Contact"
-        value={patient.emergency_contact_name}
-      />
-      <Detail
-        label="Emergency Number"
-        value={patient.emergency_contact_number}
-      />
+      <Detail label="Emergency Contact" value={patient.emergency_contact_name} />
+      <Detail label="Emergency Number" value={patient.emergency_contact_number} />
       <Detail label="Insurance Type" value={patient.insurance_type} />
       <Detail label="Insurance Provider" value={patient.insurance_provider} />
       <Detail label="Insurance Number" value={patient.insurance_number} />

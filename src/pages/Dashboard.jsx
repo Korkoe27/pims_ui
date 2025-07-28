@@ -9,6 +9,8 @@ import { resetDashboardState } from "../redux/slices/dashboardSlice";
 import LoadingSpinner from "../components/LoadingSpinner";
 import useHandleConsult from "../hooks/useHandleConsult";
 import PageContainer from "../components/PageContainer";
+import CanAccess from "../components/auth/CanAccess";
+import { ROLES } from "../constants/roles";
 
 const Dashboard = () => {
   const { handleConsult } = useHandleConsult();
@@ -76,7 +78,8 @@ const Dashboard = () => {
           <div className="flex justify-center items-center">
             <LoadingSpinner />
           </div>
-        ) : todayAppointments.filter((a) => a.status === "Scheduled").length > 0 ? (
+        ) : todayAppointments.filter((a) => a.status === "Scheduled").length >
+          0 ? (
           <table className="w-full">
             <thead className="text-black uppercase text-left h-16 bg-[#f0f2f5]">
               <tr>
@@ -84,7 +87,9 @@ const Dashboard = () => {
                 <th className="px-3 py-3">Patient’s ID</th>
                 <th className="px-3 py-3">Name</th>
                 <th className="px-3 py-3">Appointment Type</th>
+                <CanAccess allowedRoles={[ROLES.STUDENT, ROLES.LECTURER]}>
                 <th className="px-3 py-3 text-center">Action</th>
+                </CanAccess>
               </tr>
             </thead>
             <tbody>
@@ -93,17 +98,23 @@ const Dashboard = () => {
                 .slice(0, 5)
                 .map((appointment) => (
                   <tr key={appointment.id} className="bg-white border-b">
-                    <td className="px-3 py-3">{appointment.appointment_date}</td>
+                    <td className="px-3 py-3">
+                      {appointment.appointment_date}
+                    </td>
                     <td className="px-3 py-3">{appointment.patient_id}</td>
                     <td className="px-3 py-3">{appointment.patient_name}</td>
-                    <td className="px-3 py-3">{appointment.appointment_type}</td>
+                    <td className="px-3 py-3">
+                      {appointment.appointment_type}
+                    </td>
                     <td className="py-3 flex justify-center">
-                      <button
-                        className="text-white bg-[#2f3192] px-4 py-2 rounded-lg"
-                        onClick={() => handleConsult(appointment)}
-                      >
-                        Attend to Patient
-                      </button>
+                      <CanAccess allowedRoles={[ROLES.STUDENT, ROLES.LECTURER]}>
+                        <button
+                          className="text-white bg-[#2f3192] px-4 py-2 rounded-lg"
+                          onClick={() => handleConsult(appointment)}
+                        >
+                          Attend to Patient
+                        </button>
+                      </CanAccess>
                     </td>
                   </tr>
                 ))}

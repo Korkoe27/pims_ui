@@ -1,7 +1,6 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useLocation } from "react-router-dom";
 import { useDispatch } from "react-redux";
-import toast, { Toaster } from "react-hot-toast";
 
 import { useCreateAppointmentMutation } from "../redux/api/features/appointmentsApi";
 import { showToast, formatErrorMessage } from "../components/ToasterHelper";
@@ -54,10 +53,7 @@ const CreateAppointment = () => {
     };
 
     try {
-      const toastId = showToast("Creating appointment...", "loading", {
-        autoClose: false,
-        isLoading: true,
-      });
+      
 
       const response = await createAppointment(payload).unwrap();
 

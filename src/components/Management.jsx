@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { IoClose } from "react-icons/io5";
 import { IoIosCheckmarkCircle } from "react-icons/io";
@@ -8,11 +8,7 @@ import useMarkAppointmentCompleted from "../hooks/useMarkAppointmentCompleted";
 import { showToast } from "../components/ToasterHelper";
 import RefractiveCorrectionSection from "./RefractiveCorrectionSection";
 import MedicationForm from "./MedicationForm";
-
-import SPHValidator from "./validators/SPHValidator";
-import CYLValidator from "./validators/CYLValidator";
-import AXISValidator from "./validators/AXISValidator";
-import ADDValidator from "./validators/ADDValidator";
+import SupervisorGradingButton from "./SupervisorGradingButton";
 
 const Management = ({ setFlowStep, appointmentId }) => {
   const navigate = useNavigate();
@@ -21,25 +17,18 @@ const Management = ({ setFlowStep, appointmentId }) => {
   const [modal, setModal] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [confirmSave, setConfirmSave] = useState(false);
-  const [selectedTypeId, setSelectedTypeId] = useState(null);
+  const [selectedTypeId] = useState(null);
   const [selectedMedications, setSelectedMedications] = useState([]);
 
-  const {
-    medications,
-    medicationTypes,
-    filteredMedications,
-    managementPlan,
-    createManagementPlan,
-    isManagementPlanLoading,
-    isCreatingManagementPlan,
-  } = useManagementData(appointmentId, selectedTypeId);
+  const { medications, createManagementPlan, isCreatingManagementPlan } =
+    useManagementData(appointmentId, selectedTypeId);
 
-  const [medicationEntry, setMedicationEntry] = useState({
-    medication_eye: "",
-    medication_name: "",
-    medication_type: "",
-    medication_dosage: "",
-  });
+  // const [medicationEntry, setMedicationEntry] = useState({
+  //   medication_eye: "",
+  //   medication_name: "",
+  //   medication_type: "",
+  //   medication_dosage: "",
+  // });
 
   const [checkboxes, setCheckboxes] = useState({
     refractiveCorrection: false,
@@ -208,6 +197,14 @@ const Management = ({ setFlowStep, appointmentId }) => {
 
   return (
     <div className="ml-72 py-8 px-8 w-fit flex flex-col gap-12">
+      <SupervisorGradingButton
+        sectionLabel="Grading: Management"
+        // averageMarks={...}
+        onSubmit={(grading) => {
+          console.log("Management grading submitted:", grading);
+        }}
+      />
+
       {isModalOpen && <PatientModal setIsModalOpen={setIsModalOpen} />}
 
       {confirmSave && (

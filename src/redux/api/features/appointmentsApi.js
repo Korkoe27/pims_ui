@@ -4,6 +4,7 @@ import {
   fetchAppointmentsUrl,
   getAppointmentsDetailsUrl,
   markAppointmentCompletedUrl,
+  getTodaysAppointmentUrl,
 } from "../end_points/endpoints";
 
 export const appointmentsApi = apiClient.injectEndpoints({
@@ -45,12 +46,21 @@ export const appointmentsApi = apiClient.injectEndpoints({
       }),
       invalidatesTags: ["Dashboard"],
     }),
+
+    // ✅ Get today's appointments
+    getTodaysAppointments: builder.query({
+      query: () => ({
+        url: getTodaysAppointmentUrl,
+        method: "GET",
+      }),
+    }),
   }),
 });
 
 export const {
   useGetAppointmentsQuery,
   useGetAppointmentDetailsQuery,
+  useGetTodaysAppointmentsQuery,
   useCreateAppointmentMutation,
   useMarkAppointmentCompletedMutation,
 } = appointmentsApi;

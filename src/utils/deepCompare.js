@@ -9,7 +9,6 @@ import isEqual from "lodash.isequal";
  * @returns {boolean}
  */
 export function hasFormChanged(initialData, currentPayload, options = {}) {
-  const { debug = false } = options;
 
   const changed = !isEqual(initialData, currentPayload);
 
