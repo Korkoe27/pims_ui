@@ -1,26 +1,49 @@
 import React from "react";
 
-const steps = [
+const allSteps = [
   "Consultation",
   "Diagnosis and Plan",
   "Management",
-  "Case Management Guide",
-  "Submit",
-  "Complete",
-  "Grading",
-  "Logs",
+  "Case Management Guide", // Student only
+  "Submit",                // Student only
+  "Complete",              // Lecturer only
+  "Grading",               // Lecturer only
+  "Logs",                  // Student only
 ];
 
-const ProgressBar = ({ step }) => {
+const getStepsForRole = (role) => {
+  const normalizedRole = role?.toLowerCase();
+  if (normalizedRole === "student") {
+    return [
+      "Consultation",
+      "Diagnosis and Plan",
+      "Management",
+      "Case Management Guide",
+      "Submit",
+      "Logs",
+    ];
+  } else if (normalizedRole === "lecturer") {
+    return [
+      "Consultation",
+      "Diagnosis and Plan",
+      "Management",
+      "Grading",
+      "Complete",
+    ];
+  }
+  return allSteps;
+};
+
+const ProgressBar = ({ step, role }) => {
+  const stepsToRender = getStepsForRole(role);
+
   return (
     <div className="flex bg-[#f9fafb] w-full">
-      {steps.map((label, index) => (
-        <div key={index} className="w-1/5">
+      {stepsToRender.map((label, index) => (
+        <div key={index} className={`w-full max-w-[${100 / stepsToRender.length}%]`}>
           <div className="flex items-center justify-center">
-            {/* Left connector (skip for first item) */}
-            {index > 0 && (
-              <span className="flex-grow h-[2px] bg-[#2f3192]"></span>
-            )}
+            {/* Left connector */}
+            {index > 0 && <span className="flex-grow h-[2px] bg-[#2f3192]"></span>}
 
             {/* Step Circle */}
             <span
@@ -29,13 +52,11 @@ const ProgressBar = ({ step }) => {
               }`}
             ></span>
 
-            {/* Right connector (skip for last item) */}
-            {index < steps.length - 1 && (
+            {/* Right connector */}
+            {index < stepsToRender.length - 1 && (
               <span className="flex-grow h-[2px] bg-[#2f3192]"></span>
             )}
           </div>
-
-          {/* Step Label */}
           <h1 className="text-center font-medium text-sm mt-2">{label}</h1>
         </div>
       ))}

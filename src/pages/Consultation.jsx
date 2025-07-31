@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useGetAppointmentDetailsQuery } from "../redux/api/features/appointmentsApi";
+import { useSelector } from "react-redux";
 
 import Header from "../components/Header";
 import ProgressBar from "../components/ProgressBar";
@@ -16,12 +17,15 @@ import Diagnosis from "../components/Diagnosis";
 import Management from "../components/Management";
 import CompleteConsultation from "../components/CompleteConsultation";
 import CaseManagementGuide from "../components/CaseManagementGuide";
-import Grading from "../components/Grading"; // ✅ NEW
+import Grading from "../components/Grading";
 import BouncingBallsLoader from "../components/BouncingBallsLoader";
 
 const Consultation = () => {
   const { appointmentId } = useParams();
   const navigate = useNavigate();
+
+  const { user } = useSelector((state) => state.auth);
+  const userRole = user?.role?.toLowerCase();
 
   const LOCAL_TAB_KEY = `consultation-${appointmentId}-activeTab`;
   const LOCAL_FLOW_KEY = `consultation-${appointmentId}-flowStep`;
@@ -73,8 +77,16 @@ const Consultation = () => {
     consultation: 1,
     diagnosis: 2,
     management: 3,
-    grading: 4, // ✅ Added grading step
+    grading: 4,
     complete: 5,
+  };
+
+  // ✅ Determine Flow Type using Redux + API
+  const determineFlowType = () => {
+    const startedBy = selectedAppointment?.started_by?.toLowerCase();
+    if (userRole === "lecturer" && startedBy === "student") return "lecturer_reviewing";
+    if (userRole === "lecturer" && startedBy === "lecturer") return "lecturer_consulting";
+    return "student_consulting";
   };
 
   if (isLoading) {
@@ -90,6 +102,8 @@ const Consultation = () => {
     navigate("/");
     return <p>Redirecting to Dashboard...</p>;
   }
+
+  const flowType = determineFlowType();
 
   const renderTabContent = () => {
     const tab = activeTab.toLowerCase();
@@ -219,9 +233,15 @@ const Consultation = () => {
       <div className="max-w-6xl mx-auto">
         <h1 className="font-extrabold text-xl mb-2">Consultation</h1>
         <Header patient={selectedAppointment} appointmentId={appointmentId} />
+
         <div className="mt-4 mb-6">
-          <ProgressBar step={stepMap[flowStep] || 1} setStep={setFlowStep} />
+          <ProgressBar
+            step={stepMap[flowStep] || 1}
+            role={userRole}
+          />
+
         </div>
+
         <div className="mb-10">{renderFlowStep()}</div>
       </div>
     </div>
@@ -229,4 +249,3 @@ const Consultation = () => {
 };
 
 export default Consultation;
-// This file is the main Consultation page that orchestrates the flow of the consultation process.
