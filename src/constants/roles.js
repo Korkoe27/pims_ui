@@ -1,6 +1,6 @@
 export const ROLES = {
   SYSTEMS_ADMIN: "systems administrator",
-  HOSPITAL_ADMIN: "hospital administrator",
+  HOSPITAL_ADMIN: "Administrator",
   LECTURER: "lecturer",
   STUDENT: "student",
   COORDINATOR: "coordinator", // if needed
