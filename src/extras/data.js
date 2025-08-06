@@ -6,7 +6,10 @@ import {
   MdAssignment,
   MdOutlineSchedule,
   MdOutlineLogout,
+  MdOutlinePayment,
 } from "react-icons/md";
+import { BsBoxSeam } from "react-icons/bs";
+import { MdOutlineRestorePage } from "react-icons/md";
 import { HiOutlineClipboardList } from "react-icons/hi";
 import { BiUserCircle } from "react-icons/bi";
 import { HiOutlineDocumentReport } from "react-icons/hi";
@@ -44,7 +47,7 @@ export const Sidebar_links = [
     roles: [ROLES.LECTURER],
   },
   {
-    name: "case reviews",
+    name: "My Cases",
     icon: <MdAssignment className="text-xl font-bold" />,
     path: "/case-reviews",
     roles: [ROLES.STUDENT],
@@ -67,7 +70,26 @@ export const Sidebar_links = [
     path: "/reports",
     roles: [ROLES.STUDENT, ROLES.LECTURER],
   },
+  {
+    name: "inventory",
+    icon: <BsBoxSeam className="text-xl font-bold" />,
+    path: "/inventory",
+    roles: "all",
+  },
+  {
+    name: "dispensary",
+    icon: <MdOutlineRestorePage className="text-xl font-bold" />,
+    path: "/dispensary",
+    roles: "all",
+  },
+  {
+    name: "billing",
+    icon: <MdOutlinePayment className="text-xl font-bold" />, // 💳 Payment icon
+    path: "/billing",
+    roles: "all", // Restrict to admin + finance
+  },
 ];
+
 
 // {
 //   name: "My Patients",
@@ -80,11 +102,7 @@ export const Sidebar_links = [
 //   path: "/",
 // },
 
-// {
-//   name: "inventory",
-//   icon: <BsBoxSeam className="text-xl font-bold" />,
-//   path: "/inventory",
-// },
+
 // {
 //   name: "dispensary",
 //   icon: <MdOutlineRestorePage className="text-xl font-bold" />,
