@@ -86,7 +86,9 @@ const Dashboard = () => {
                 <th className="px-3 py-3">Patient’s ID</th>
                 <th className="px-3 py-3">Name</th>
                 <th className="px-3 py-3">Appointment Type</th>
-                <th className="px-3 py-3 text-center">Action</th>
+                <CanAccess allowedRoles={[ROLES.STUDENT, ROLES.LECTURER]}>
+                  <th className="px-3 py-3 text-center">Action</th>
+                </CanAccess>
               </tr>
             </thead>
             <tbody>
@@ -96,16 +98,16 @@ const Dashboard = () => {
                   <td className="px-3 py-3">{appointment.patient_id}</td>
                   <td className="px-3 py-3">{appointment.patient_name}</td>
                   <td className="px-3 py-3">{appointment.appointment_type}</td>
-                  <td className="py-3 flex justify-center">
-                    <CanAccess allowedRoles={[ROLES.STUDENT, ROLES.LECTURER]}>
+                  <CanAccess allowedRoles={[ROLES.STUDENT, ROLES.LECTURER]}>
+                    <td className="py-3 flex justify-center">
                       <button
                         className="text-white bg-[#2f3192] px-4 py-2 rounded-lg"
                         onClick={() => handleConsult(appointment)}
                       >
                         Attend to Patient
                       </button>
-                    </CanAccess>
-                  </td>
+                    </td>
+                  </CanAccess>
                 </tr>
               ))}
             </tbody>
@@ -117,9 +119,7 @@ const Dashboard = () => {
 
       {/* Pending Reviews */}
       <div className="mt-10">
-        <div className="flex justify-between my-[15px]">
-          <h2 className="font-bold text-xl">Pending Review</h2>
-        </div>
+        <h2 className="font-bold text-xl mb-4">Pending Review</h2>
         {dashboardLoading ? (
           <div className="flex justify-center items-center">
             <LoadingSpinner />
@@ -132,7 +132,9 @@ const Dashboard = () => {
                 <th className="px-3 py-3">Patient’s ID</th>
                 <th className="px-3 py-3">Name</th>
                 <th className="px-3 py-3">Appointment Type</th>
-                <th className="px-3 py-3 text-center">Action</th>
+                <CanAccess allowedRoles={[ROLES.LECTURER]}>
+                  <th className="px-3 py-3 text-center">Action</th>
+                </CanAccess>
               </tr>
             </thead>
             <tbody>
@@ -142,16 +144,16 @@ const Dashboard = () => {
                   <td className="px-3 py-3">{appointment.patient_id}</td>
                   <td className="px-3 py-3">{appointment.patient_name}</td>
                   <td className="px-3 py-3">{appointment.appointment_type}</td>
-                  <td className="py-3 flex justify-center">
-                    <CanAccess allowedRoles={[ROLES.LECTURER]}>
+                  <CanAccess allowedRoles={[ROLES.LECTURER]}>
+                    <td className="py-3 flex justify-center">
                       <button
                         className="text-white bg-[#2f3192] px-4 py-2 rounded-lg"
                         onClick={() => handleConsult(appointment)}
                       >
                         Review Case
                       </button>
-                    </CanAccess>
-                  </td>
+                    </td>
+                  </CanAccess>
                 </tr>
               ))}
             </tbody>
