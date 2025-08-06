@@ -31,7 +31,9 @@ const Dashboard = () => {
   const scheduledAppointments = dashboardData?.scheduled_appointments?.data || [];
   const pendingReviews = dashboardData?.pending_reviews?.data || [];
   const totalPatients = dashboardData?.total_patients || 0;
+  const totalAppointments = dashboardData?.total_appointments || 0;
   const completedAppointments = dashboardData?.completed_appointments || 0;
+  const pendingAppointments = dashboardData?.pending_appointments || 0;
 
   return (
     <PageContainer>
@@ -40,19 +42,19 @@ const Dashboard = () => {
         <div className="bg-[#ececf9] p-4 h-36 col-span-4">
           <h3 className="flex items-center text-base gap-[12px] font-normal">
             <HiOutlineUser className="w-6 h-6" />
-            Total Patients
+            Total Appointments
           </h3>
           <span className="text-[50px] font-bold text-[#2f3192]">
-            {dashboardLoading ? <LoadingSpinner /> : totalPatients}
+            {dashboardLoading ? <LoadingSpinner /> : totalAppointments}
           </span>
         </div>
         <div className="bg-[#fbeae9] p-4 h-36 col-span-4">
           <h3 className="flex items-center text-base gap-[12px] font-normal">
             <LuClock3 className="w-6 h-6" />
-            Scheduled Appointments
+            Pending Appointments
           </h3>
           <span className="text-[50px] font-bold text-[#d42620]">
-            {dashboardLoading ? <LoadingSpinner /> : scheduledAppointments.length}
+            {dashboardLoading ? <LoadingSpinner /> : pendingAppointments}
           </span>
         </div>
         <div className="bg-[#e7f6ec] p-4 h-36 col-span-4">
