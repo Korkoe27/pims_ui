@@ -11,10 +11,10 @@
 // Authentication
 /////////////////////////
 
-export const loginUrl = "auth/auth/jwt/create/";
-export const logoutUrl = "/auth/api/logout/";
-export const checkSessionUrl = "auth/api/check-session/";
-export const getUserUrl = "auth/auth/users/me/";
+export const loginUrl = "auth/api/auth/jwt/create/";
+export const logoutUrl = "auth/api/auth/logout/";
+export const checkSessionUrl = "auth/api/auth/check-session/";
+export const getUserUrl = "auth/api/auth/users/me/";
 
 /////////////////////////
 // Dashboard

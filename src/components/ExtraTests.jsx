@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { showToast } from "../components/ToasterHelper";
 import ExtraTestUploadModal from "./ExtraTestUploadModal";
 import {
-  useCreateExtraTestMutation,
   useFetchExtraTestsQuery,
 } from "../redux/api/features/extraTestsApi";
 import SupervisorGradingButton from "./SupervisorGradingButton";
