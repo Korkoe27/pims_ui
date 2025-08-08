@@ -53,6 +53,12 @@ export const Sidebar_links = [
     roles: [ROLES.STUDENT],
   },
   {
+    name: "My Scores",
+    icon: <MdAssignment className="text-xl font-bold" />,
+    path: "/case-reviews",
+    roles: [ROLES.STUDENT, ROLES.LECTURER],
+  },
+  {
     name: "clinic schedule",
     icon: <MdOutlineSchedule className="text-xl font-bold" />,
     path: "/clinic-schedule",
@@ -74,7 +80,7 @@ export const Sidebar_links = [
     name: "inventory",
     icon: <BsBoxSeam className="text-xl font-bold" />,
     path: "/inventory",
-    roles: "all",
+    roles: [ROLES.HOSPITAL_ADMIN],
   },
   {
     name: "dispensary",
@@ -86,7 +92,7 @@ export const Sidebar_links = [
     name: "billing",
     icon: <MdOutlinePayment className="text-xl font-bold" />, // 💳 Payment icon
     path: "/billing",
-    roles: "all", // Restrict to admin + finance
+    roles: [ROLES.FINANCE, ROLES.HOSPITAL_ADMIN], // Restrict to admin + finance
   },
 ];
 

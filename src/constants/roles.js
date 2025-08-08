@@ -3,6 +3,7 @@ export const ROLES = {
   HOSPITAL_ADMIN: "Administrator",
   LECTURER: "lecturer",
   STUDENT: "student",
-  COORDINATOR: "coordinator", // if needed
-  DEFAULT: "default group",    // if you plan to use it
+  COORDINATOR: "coordinator",
+  FINANCE: "finance",
+  PHARMACY: "pharmacy",
 };
