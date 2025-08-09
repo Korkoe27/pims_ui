@@ -50,13 +50,13 @@ export const Sidebar_links = [
     name: "My Cases",
     icon: <MdAssignment className="text-xl font-bold" />,
     path: "/case-reviews",
-    roles: [ROLES.STUDENT],
+    roles: [ROLES.STUDENT, ROLES.LECTURER],
   },
   {
     name: "My Scores",
     icon: <MdAssignment className="text-xl font-bold" />,
     path: "/case-reviews",
-    roles: [ROLES.STUDENT, ROLES.LECTURER],
+    roles: [ROLES.STUDENT],
   },
   {
     name: "clinic schedule",
@@ -68,7 +68,7 @@ export const Sidebar_links = [
     name: "absent request",
     icon: <MdOutlineLogout className="text-xl font-bold" />,
     path: "/absent-request",
-    roles: [ROLES.STUDENT, ROLES.LECTURER],
+    roles: [ROLES.STUDENT, ROLES.LECTURER, ROLES.COORDINATOR],
   },
   {
     name: "reports",
