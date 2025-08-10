@@ -24,9 +24,9 @@ export const Sidebar_links = [
     roles: "all",
   },
   {
-    name: "patients",
-    icon: <LuUsers2 className="text-xl font-bold" />,
-    path: "/my-patients",
+    name: "clinic schedule",
+    icon: <MdOutlineSchedule className="text-xl font-bold" />,
+    path: "/clinic-schedule",
     roles: "all",
   },
   {
@@ -36,22 +36,22 @@ export const Sidebar_links = [
     roles: "all",
   },
   {
+    name: "patients",
+    icon: <LuUsers2 className="text-xl font-bold" />,
+    path: "/my-patients",
+    roles: "all",
+  },
+  {
     name: "my portal",
     icon: <BiUserCircle className="text-xl font-bold" />,
     path: "/my-portal",
     roles: [ROLES.STUDENT],
   },
   {
-    name: "pending reviews",
-    icon: <HiOutlineClipboardList className="text-xl font-bold" />,
-    path: "/pending-reviews",
-    roles: [ROLES.LECTURER],
-  },
-  {
-  name: "My Cases",
-  icon: <MdAssignment className="text-xl font-bold" />,
-  path: "/my-cases",
-  roles: [ROLES.STUDENT, ROLES.LECTURER],
+    name: "My Cases",
+    icon: <MdAssignment className="text-xl font-bold" />,
+    path: "/my-cases",
+    roles: [ROLES.STUDENT, ROLES.LECTURER],
   },
   {
     name: "My Scores",
@@ -60,10 +60,10 @@ export const Sidebar_links = [
     roles: [ROLES.STUDENT],
   },
   {
-    name: "clinic schedule",
-    icon: <MdOutlineSchedule className="text-xl font-bold" />,
-    path: "/clinic-schedule",
-    roles: "all",
+    name: "pending reviews",
+    icon: <HiOutlineClipboardList className="text-xl font-bold" />,
+    path: "/pending-reviews",
+    roles: [ROLES.LECTURER],
   },
   {
     name: "absent request",
@@ -81,21 +81,22 @@ export const Sidebar_links = [
     name: "inventory",
     icon: <BsBoxSeam className="text-xl font-bold" />,
     path: "/inventory",
-    roles: [ROLES.HOSPITAL_ADMIN],
+    roles: [ROLES.ADMINISTRATOR, ROLES.INVENTORY],
   },
   {
     name: "dispensary",
     icon: <MdOutlineRestorePage className="text-xl font-bold" />,
     path: "/dispensary",
-    roles: "all",
+    roles: [ROLES.ADMINISTRATOR, ROLES.PHARMACY],
   },
   {
     name: "billing",
-    icon: <MdOutlinePayment className="text-xl font-bold" />, // 💳 Payment icon
+    icon: <MdOutlinePayment className="text-xl font-bold" />,
     path: "/billing",
-    roles: [ROLES.FINANCE, ROLES.HOSPITAL_ADMIN], // Restrict to admin + finance
+    roles: [ROLES.FINANCE, ROLES.ADMINISTRATOR],
   },
 ];
+
 
 export const Consultation_nav = [
   { name: "case history" },
