@@ -24,17 +24,18 @@ export const Sidebar_links = [
     roles: "all",
   },
   {
-    name: "clinic schedule",
-    icon: <MdOutlineSchedule className="text-xl font-bold" />,
-    path: "/clinic-schedule",
-    roles: "all",
-  },
-  {
     name: "appointments",
     icon: <IoCalendarClearOutline className="text-xl font-bold" />,
     path: "/appointments",
     roles: "all",
   },
+  {
+    name: "clinic schedule",
+    icon: <MdOutlineSchedule className="text-xl font-bold" />,
+    path: "/clinic-schedule",
+    roles: "all",
+  },
+  
   {
     name: "patients",
     icon: <LuUsers2 className="text-xl font-bold" />,
