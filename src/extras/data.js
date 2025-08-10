@@ -7,6 +7,7 @@ import {
   MdOutlineSchedule,
   MdOutlineLogout,
   MdOutlinePayment,
+  MdLeaderboard,
 } from "react-icons/md";
 import { BsBoxSeam } from "react-icons/bs";
 import { MdOutlineRestorePage } from "react-icons/md";
@@ -47,15 +48,15 @@ export const Sidebar_links = [
     roles: [ROLES.LECTURER],
   },
   {
-    name: "My Cases",
-    icon: <MdAssignment className="text-xl font-bold" />,
-    path: "/case-reviews",
-    roles: [ROLES.STUDENT, ROLES.LECTURER],
+  name: "My Cases",
+  icon: <MdAssignment className="text-xl font-bold" />,
+  path: "/my-cases",
+  roles: [ROLES.STUDENT, ROLES.LECTURER],
   },
   {
     name: "My Scores",
-    icon: <MdAssignment className="text-xl font-bold" />,
-    path: "/case-reviews",
+    icon: <MdLeaderboard className="text-xl font-bold" />,
+    path: "/my-scores",
     roles: [ROLES.STUDENT],
   },
   {
@@ -95,25 +96,6 @@ export const Sidebar_links = [
     roles: [ROLES.FINANCE, ROLES.HOSPITAL_ADMIN], // Restrict to admin + finance
   },
 ];
-
-
-// {
-//   name: "My Patients",
-//   icon: <IoCalendarClearOutline className="text-xl font-bold" />,
-//   path: "/",
-// },
-// {
-//   name: "Pending Appointments",
-//   icon: <IoCalendarClearOutline className="text-xl font-bold" />,
-//   path: "/",
-// },
-
-
-// {
-//   name: "dispensary",
-//   icon: <MdOutlineRestorePage className="text-xl font-bold" />,
-//   path: "/dispensary",
-// },
 
 export const Consultation_nav = [
   { name: "case history" },
