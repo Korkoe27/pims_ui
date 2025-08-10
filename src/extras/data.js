@@ -64,7 +64,7 @@ export const Sidebar_links = [
     name: "pending reviews",
     icon: <HiOutlineClipboardList className="text-xl font-bold" />,
     path: "/pending-reviews",
-    roles: [ROLES.LECTURER],
+    roles: [ROLES.LECTURER, ROLES.STUDENT],
   },
   {
     name: "absent request",
@@ -76,13 +76,13 @@ export const Sidebar_links = [
     name: "reports",
     icon: <HiOutlineDocumentReport className="text-xl font-bold" />,
     path: "/reports",
-    roles: [ROLES.STUDENT, ROLES.LECTURER],
+    roles: [ROLES.STUDENT, ROLES.LECTURER, ROLES.COORDINATOR],
   },
   {
     name: "inventory",
     icon: <BsBoxSeam className="text-xl font-bold" />,
     path: "/inventory",
-    roles: [ROLES.ADMINISTRATOR, ROLES.INVENTORY],
+    roles: "all",
   },
   {
     name: "dispensary",
