@@ -68,11 +68,12 @@ export const getTodaysAppointmentUrl = "/clients/api/appointments/today/";
 // Case History
 /////////////////////////
 
-export const createCaseHistoryUrl = "/tests/api/case-history/";
-export const updateCaseHistoryUrl = (appointmentId) =>
-  `/tests/api/case-history/${appointmentId}/`;
+// POST here to create/update by appointment (payload must include `appointment`)
+export const createOrUpdateCaseHistoryUrl = "/tests/case-history/";
+
+// GET with query param to fetch latest by appointment
 export const fetchCaseHistoryUrl = (appointmentId) =>
-  `/tests/api/case-history/${appointmentId}/`;
+  `/tests/case-history/?appointment=${appointmentId}`;
 
 /////////////////////////
 // Patient History
@@ -89,11 +90,11 @@ export const createPatientHistoryUrl = "/tests/api/patient-history/";
 /////////////////////////
 
 export const fetchMedicalConditionsUrl =
-  "/tests/conditions?category=medical_history";
+  "/tests/case-history/conditions?category=medical_history";
 export const fetchOcularConditionsUrl =
-  "/tests/conditions?category=ocular_history";
+  "/tests/case-history/conditions?category=ocular_history";
 export const fetchDirectQuestioningConditionsUrl =
-  "/tests/conditions?category=on_direct_questioning";
+  "/tests/case-history/conditions?category=on_direct_questioning";
 
 /////////////////////////
 // Visual Acuity
