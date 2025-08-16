@@ -30,7 +30,9 @@ import {
   CaseReviews,
   ClinicSchedule,
   PendingReviews,
-  Reports
+  Reports,
+  MyCases,
+  MyScores
 } from "./pages";
 import Layout from "./pages/Layout";
 import ProtectedRoute from "./hooks/ProtectedRoute";
@@ -98,6 +100,9 @@ const App = () => {
             <Route path="/clinic-schedule" element={<ClinicSchedule />} />
             <Route path="/pending-reviews" element={<PendingReviews />} />
             <Route path="/reports" element={<Reports />} />
+            <Route path="/my-cases" element={<MyCases />} />
+            <Route path="/my-scores" element={<MyScores />} />
+
           </Route>
         </Routes>
       </BrowserRouter>

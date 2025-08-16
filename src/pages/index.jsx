@@ -13,4 +13,8 @@ export { default as CaseReviews } from './CaseReviews';
 export { default as ClinicSchedule } from './ClinicSchedule';
 export { default as PendingReviews } from "./PendingReviews";
 export { default as Reports } from "./Reports";
+export { default as MyCases } from "./MyCases";
+export { default as MyScores } from "./MyScores";
+
+
 
