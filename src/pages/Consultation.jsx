@@ -14,10 +14,16 @@ import Refraction from "../components/Refraction";
 import ExtraTests from "../components/ExtraTests";
 import Diagnosis from "../components/Diagnosis";
 import Management from "../components/Management";
-import CompleteConsultation from "../components/CompleteConsultation";
 import CaseManagementGuide from "../components/CaseManagementGuide";
-import Grading from "../components/Grading"; // ✅ NEW
 import BouncingBallsLoader from "../components/BouncingBallsLoader";
+
+// ✅ New flow components
+import Payment from "../components/Payment";
+import MedicationDispensing from "../components/MedicationDispensing";
+
+// ❌ Removed (no longer part of the flow)
+// import CompleteConsultation from "../components/CompleteConsultation";
+// import Grading from "../components/Grading";
 
 const Consultation = () => {
   const { appointmentId } = useParams();
@@ -30,11 +36,13 @@ const Consultation = () => {
   const [activeTab, _setActiveTab] = useState(() => {
     const stored = localStorage.getItem(LOCAL_TAB_KEY);
     return stored || "case history";
+    // Tabs: case history | oculo-medical history | personal history | visual acuity | externals | internals | refraction | extra tests | case management guide
   });
 
   const [flowStep, _setFlowStep] = useState(() => {
     const stored = localStorage.getItem(LOCAL_FLOW_KEY);
     return stored || "consultation";
+    // Flow: consultation | diagnosis | management | payment | dispensing
   });
 
   const [tabCompletionStatus, _setTabCompletionStatus] = useState(() => {
@@ -69,12 +77,13 @@ const Consultation = () => {
     isLoading,
   } = useGetAppointmentDetailsQuery(appointmentId);
 
+  // ✅ Align with the progress bar (5 visible steps)
   const stepMap = {
     consultation: 1,
     diagnosis: 2,
     management: 3,
-    grading: 4, // ✅ Added grading step
-    complete: 5,
+    payment: 4,
+    dispensing: 5, // final step
   };
 
   if (isLoading) {
@@ -184,7 +193,7 @@ const Consultation = () => {
           <Diagnosis
             setActiveTab={setActiveTab}
             appointmentId={appointmentId}
-            setFlowStep={setFlowStep}
+            setFlowStep={setFlowStep} // ➜ call setFlowStep("management") on continue
           />
         );
       case "management":
@@ -192,21 +201,21 @@ const Consultation = () => {
           <Management
             setActiveTab={setActiveTab}
             appointmentId={appointmentId}
-            setFlowStep={setFlowStep}
+            setFlowStep={setFlowStep} // ➜ call setFlowStep("payment") on proceed
           />
         );
-      case "grading":
+      case "payment":
         return (
-          <Grading
+          <Payment
             appointmentId={appointmentId}
-            setFlowStep={setFlowStep}
+            setFlowStep={setFlowStep} // ➜ call setFlowStep("dispensing") when confirmed
           />
         );
-      case "complete":
+      case "dispensing":
         return (
-          <CompleteConsultation
+          <MedicationDispensing
             appointmentId={appointmentId}
-            navigate={navigate}
+            setFlowStep={setFlowStep} // final step; do not advance further
           />
         );
       default:
@@ -220,7 +229,7 @@ const Consultation = () => {
         <h1 className="font-extrabold text-xl mb-2">Consultation</h1>
         <Header patient={selectedAppointment} appointmentId={appointmentId} />
         <div className="mt-4 mb-6">
-          <ProgressBar step={stepMap[flowStep] || 1} setStep={setFlowStep} />
+          <ProgressBar step={stepMap[flowStep] || 1} />
         </div>
         <div className="mb-10">{renderFlowStep()}</div>
       </div>
@@ -229,4 +238,4 @@ const Consultation = () => {
 };
 
 export default Consultation;
-// This file is the main Consultation page that orchestrates the flow of the consultation process.
+// This file orchestrates the consultation flow: Consultation → Diagnosis → Management → Payment → Medication Dispensing.
