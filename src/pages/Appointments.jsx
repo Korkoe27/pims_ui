@@ -31,6 +31,34 @@ const Appointments = () => {
     setCurrentPage(page);
   };
 
+  const transitionAppointment = async (appointment, to_status) => {
+    try {
+      const res = await fetch(
+        `/clients/api/appointments/${appointment.id}/transition/`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ to_status }),
+        }
+      );
+      if (!res.ok) throw new Error("Failed to transition");
+      const data = await res.json();
+      alert(`Moved to ${data.status}`); // or use showToast if you already have it
+      // TODO: refetch appointments if needed
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
+  const handleAddCost = (appointment) =>
+    transitionAppointment(appointment, "Cost Added");
+
+  const handlePaymentComplete = (appointment) =>
+    transitionAppointment(appointment, "Payment Completed");
+
+  const handleDispense = (appointment) =>
+    transitionAppointment(appointment, "Medications Disbursed");
+
   return (
     <PageContainer>
       {isLoading && <LoadingSpinner />}
@@ -57,7 +85,13 @@ const Appointments = () => {
                 <th scope="col" className="px-6 py-3">
                   Status
                 </th>
-                <CanAccess allowedRoles={[ROLES.STUDENT, ROLES.LECTURER, ROLES.SYSTEMS_ADMIN]}>
+                <CanAccess
+                  allowedRoles={[
+                    ROLES.STUDENT,
+                    ROLES.LECTURER,
+                    ROLES.SYSTEMS_ADMIN,
+                  ]}
+                >
                   <th scope="col" className="px-3 min-w-40 py-3">
                     Action
                   </th>
@@ -80,14 +114,70 @@ const Appointments = () => {
                       {appointment?.status}
                     </span>
                   </td>
-                  <td className="px-6 py-4 flex gap-10">
-                    <CanAccess allowedRoles={[ROLES.STUDENT, ROLES.LECTURER, ROLES.SYSTEMS_ADMIN]}>
+                  <td className="px-6 py-4 flex gap-4">
+                    {/** STUDENTS + LECTURERS */}
+                    <CanAccess allowedRoles={[ROLES.STUDENT, ROLES.LECTURER]}>
                       <button
                         onClick={() => handleConsult(appointment)}
-                        className="focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5"
+                        disabled={[
+                          "Management Created",
+                          "Case Management Guide Created",
+                          "Submitted For Review",
+                          "Under Review",
+                          "Scored",
+                          "Payment Completed",
+                          "Medications Disbursed",
+                          "Cancelled",
+                        ].includes(appointment.status)}
+                        className={`px-5 py-2.5 rounded-lg text-sm font-medium text-white ${
+                          [
+                            "Management Created",
+                            "Case Management Guide Created",
+                            "Submitted For Review",
+                            "Under Review",
+                            "Scored",
+                            "Payment Completed",
+                            "Medications Disbursed",
+                            "Cancelled",
+                          ].includes(appointment.status)
+                            ? "bg-gray-400 cursor-not-allowed"
+                            : "bg-green-700 hover:bg-green-800"
+                        }`}
                       >
                         Consult
                       </button>
+                    </CanAccess>
+
+                    {/** PHARMACY → Add Cost */}
+                    <CanAccess allowedRoles={[ROLES.PHARMACY]}>
+                      {appointment.status === "Management Created" && (
+                        <button
+                          onClick={() => handleAddCost(appointment)}
+                          className="px-5 py-2.5 rounded-lg text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
+                        >
+                          Add Cost
+                        </button>
+                      )}
+                      {appointment.status === "Payment Completed" && (
+                        <button
+                          onClick={() => handleDispense(appointment)}
+                          className="px-5 py-2.5 rounded-lg text-sm font-medium text-white bg-purple-600 hover:bg-purple-700"
+                        >
+                          Dispense Medication
+                        </button>
+                      )}
+                    </CanAccess>
+
+                    {/** FINANCE → Mark Payment Completed */}
+                    <CanAccess allowedRoles={[ROLES.FINANCE]}>
+                      {appointment.status === "Management Created" && (
+                        <button
+                          onClick={() => handlePaymentComplete(appointment)}
+                          className="px-5 py-2.5 rounded-lg text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
+                        >
+                          Mark Payment Completed
+                        </button>
+                      )}
                     </CanAccess>
                   </td>
                 </tr>
