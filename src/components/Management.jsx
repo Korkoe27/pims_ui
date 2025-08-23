@@ -10,33 +10,77 @@ import SupervisorGradingButton from "./SupervisorGradingButton";
 
 // RTK Query
 import useManagementData from "../hooks/useManagementData";
-// import useMarkAppointmentCompleted from "../hooks/useMarkAppointmentCompleted";
 
+// --- helper small components (placeholders you can replace later) ---
+const CaseManagementGuide = ({ appointmentId }) => (
+  <div className="rounded-md border bg-white p-4">
+    <h3 className="text-lg font-semibold mb-2">Case Management Guide</h3>
+    <p className="text-sm text-gray-600">
+      Checklist / tips for students (appointment: {appointmentId})
+    </p>
+  </div>
+);
+
+const LogsPanel = ({ appointmentId }) => (
+  <div className="rounded-md border bg-white p-4">
+    <h3 className="text-lg font-semibold mb-2">Logs</h3>
+    <p className="text-sm text-gray-600">
+      Audit trail & activity for this management plan (appointment: {appointmentId})
+    </p>
+  </div>
+);
+
+const Tab = ({ active, onClick, children }) => (
+  <button
+    type="button"
+    onClick={onClick}
+    className={[
+      "px-4 py-2 rounded-md text-sm font-medium border",
+      active
+        ? "bg-[#2f3192] text-white border-[#2f3192]"
+        : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50",
+    ].join(" ")}
+  >
+    {children}
+  </button>
+);
+
+// ---------------------------------------------------------------
+// Management Flow (mini-sub-steps just like Consultation tabs)
+// ---------------------------------------------------------------
 const Management = ({ setFlowStep, appointmentId }) => {
   const navigate = useNavigate();
 
+  // ---- role (swap with your real auth state) ----
+  // expected: "student" | "lecturer" | "admin"
+  const role = window?.__APP_ROLE__ || "student";
+
+  // ---- localStorage keys for this appointment ----
+  const LOCAL_TAB_KEY = `management-${appointmentId}-activeTab`;
+
+  const [activeTab, _setActiveTab] = useState(() => {
+    const stored = localStorage.getItem(LOCAL_TAB_KEY);
+    return stored || "management";
+  });
+  const setActiveTab = (tab) => {
+    localStorage.setItem(LOCAL_TAB_KEY, tab);
+    _setActiveTab(tab);
+  };
+
   // ---------------- RTK QUERY ----------------
   const [selectedTypeId, setSelectedTypeId] = useState(null);
-
   const {
-    // data
     medications,
     medicationTypes,
     filteredMedications,
     managementPlan,
-
-    // states
     isMedicationsLoading,
     isMedicationTypesLoading,
     isFilteringMedications,
     isManagementPlanLoading,
-
-    // mutation
     createManagementPlan,
     isCreatingManagementPlan,
   } = useManagementData(appointmentId, selectedTypeId);
-
-  // const { markCompleted, isMarkingCompleted } = useMarkAppointmentCompleted();
 
   // ---------------- UI STATE ----------------
   const [modal, setModal] = useState(false);
@@ -55,18 +99,9 @@ const Management = ({ setFlowStep, appointmentId }) => {
 
   const [prescription, setPrescription] = useState({
     type_of_refractive_correction: "",
-    od_sph: "",
-    od_cyl: "",
-    od_axis: "",
-    od_add: "",
-    os_sph: "",
-    os_cyl: "",
-    os_axis: "",
-    os_add: "",
-    type_of_lens: "",
-    pd: "",
-    segment_height: "",
-    fitting_cross_height: "",
+    od_sph: "", od_cyl: "", od_axis: "", od_add: "",
+    os_sph: "", os_cyl: "", os_axis: "", os_add: "",
+    type_of_lens: "", pd: "", segment_height: "", fitting_cross_height: "",
   });
 
   const [details, setDetails] = useState({
@@ -79,16 +114,14 @@ const Management = ({ setFlowStep, appointmentId }) => {
 
   const [selectedMedications, setSelectedMedications] = useState([]);
 
-  // Use filtered list if a type is selected; else all meds
   const medsList = useMemo(
     () => (selectedTypeId ? filteredMedications : medications) ?? [],
     [selectedTypeId, filteredMedications, medications]
   );
 
-  // ---------------- PREFILL FROM BACKEND (if exists) ----------------
+  // ---------------- PREFILL FROM BACKEND ----------------
   useEffect(() => {
     if (!managementPlan) return;
-    // Adjust mapping based on your API response
     const {
       options,
       refractive_prescription,
@@ -99,9 +132,7 @@ const Management = ({ setFlowStep, appointmentId }) => {
     if (options) {
       setCheckboxes((prev) => ({
         ...prev,
-        ...Object.fromEntries(
-          Object.entries(prev).map(([k]) => [k, Boolean(options[k])])
-        ),
+        ...Object.fromEntries(Object.keys(prev).map((k) => [k, Boolean(options[k])]))
       }));
     }
 
@@ -138,36 +169,20 @@ const Management = ({ setFlowStep, appointmentId }) => {
         frequency: m.frequency ?? "",
         duration: m.duration ?? "",
         notes: m.notes ?? "",
-        name: m.name, // if provided by API
+        name: m.name,
       }))
     );
   }, [managementPlan]);
 
-  // ---------------- HANDLERS ----------------
-  const handleCheckboxChange = (e) => {
-    const { name, checked } = e.target;
-    setCheckboxes((prev) => ({ ...prev, [name]: checked }));
-  };
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setPrescription((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleDetailsChange = (e) => {
-    const { name, value } = e.target;
-    setDetails((prev) => ({ ...prev, [name]: value }));
-  };
-
   // ---------------- VALIDATION ----------------
   const validateBeforeConfirm = () => {
-    const isValidSPH = (val) => /^[+-][0-9]+(\.25|\.50|\.75|\.00)?$/.test(val.trim());
-    const isValidCYL = (val) => /^-[0-9]+(\.25|\.50|\.75|\.00)?$/.test(val.trim());
-    const isValidAXIS = (val) => {
-      const num = Number(val.trim());
-      return Number.isInteger(num) && num >= 0 && num <= 180;
+    const isValidSPH = (v) => /^[+-][0-9]+(\.25|\.50|\.75|\.00)?$/.test((v || "").trim());
+    const isValidCYL = (v) => /^-[0-9]+(\.25|\.50|\.75|\.00)?$/.test((v || "").trim());
+    const isValidAXIS = (v) => {
+      const n = Number((v || "").trim());
+      return Number.isInteger(n) && n >= 0 && n <= 180;
     };
-    const isValidADD = (val) => /^\+[0-9]+(\.25|\.50|\.75|\.00)?$/.test(val.trim());
+    const isValidADD = (v) => /^\+[0-9]+(\.25|\.50|\.75|\.00)?$/.test((v || "").trim());
 
     const atLeastOneSelected = Object.values(checkboxes).some(Boolean);
     if (!atLeastOneSelected) {
@@ -184,53 +199,34 @@ const Management = ({ setFlowStep, appointmentId }) => {
         showToast("SPH is required and must be valid for both eyes.", "error");
         return false;
       }
-      if (
-        (prescription.od_cyl && !isValidCYL(prescription.od_cyl)) ||
-        (prescription.os_cyl && !isValidCYL(prescription.os_cyl))
-      ) {
+      if ((prescription.od_cyl && !isValidCYL(prescription.od_cyl)) ||
+          (prescription.os_cyl && !isValidCYL(prescription.os_cyl))) {
         showToast("CYL must be negative and valid (e.g., -0.75).", "error");
         return false;
       }
-      if (
-        (prescription.od_cyl && !isValidAXIS(prescription.od_axis)) ||
-        (prescription.os_cyl && !isValidAXIS(prescription.os_axis))
-      ) {
+      if ((prescription.od_cyl && !isValidAXIS(prescription.od_axis)) ||
+          (prescription.os_cyl && !isValidAXIS(prescription.os_axis))) {
         showToast("AXIS is required and must be 0–180 if CYL is provided.", "error");
         return false;
       }
-      if (
-        (prescription.od_add && !isValidADD(prescription.od_add)) ||
-        (prescription.os_add && !isValidADD(prescription.os_add))
-      ) {
+      if ((prescription.od_add && !isValidADD(prescription.od_add)) ||
+          (prescription.os_add && !isValidADD(prescription.os_add))) {
         showToast("ADD must start with '+' and be valid (e.g., +1.00).", "error");
         return false;
       }
     }
-
     return true;
   };
 
-  // ---------------- PAYLOAD BUILDER ----------------
+  // ---------------- PAYLOAD ----------------
   const buildPayload = () => {
-    const options = Object.fromEntries(
-      Object.entries(checkboxes).map(([k, v]) => [k, !!v])
-    );
+    const options = Object.fromEntries(Object.entries(checkboxes).map(([k, v]) => [k, !!v]));
 
     const refractive_prescription = checkboxes.refractiveCorrection
       ? {
           type_of_refractive_correction: prescription.type_of_refractive_correction || null,
-          od: {
-            sph: prescription.od_sph || null,
-            cyl: prescription.od_cyl || null,
-            axis: prescription.od_axis || null,
-            add: prescription.od_add || null,
-          },
-          os: {
-            sph: prescription.os_sph || null,
-            cyl: prescription.os_cyl || null,
-            axis: prescription.os_axis || null,
-            add: prescription.os_add || null,
-          },
+          od: { sph: prescription.od_sph || null, cyl: prescription.od_cyl || null, axis: prescription.od_axis || null, add: prescription.od_add || null },
+          os: { sph: prescription.os_sph || null, cyl: prescription.os_cyl || null, axis: prescription.os_axis || null, add: prescription.os_add || null },
           type_of_lens: prescription.type_of_lens || null,
           pd: prescription.pd || null,
           segment_height: prescription.segment_height || null,
@@ -256,57 +252,220 @@ const Management = ({ setFlowStep, appointmentId }) => {
       low_vision_aid_details: checkboxes.lowVisionAid ? details.low_vision_aid_details || null : null,
     };
 
-    return {
-      appointment: appointmentId,
-      options,
-      refractive_prescription,
-      medications: meds,
-      extra_details,
-      // status_override: "pending_pharmacy", // if your API needs it
-    };
+    return { appointment: appointmentId, options, refractive_prescription, medications: meds, extra_details };
   };
 
-  // ---------------- SUBMIT ----------------
-  const handleSubmit = async () => {
-    try {
-      if (!validateBeforeConfirm()) return;
-      setConfirmSave(false);
-
-      const payload = buildPayload();
-      showToast("Saving management plan...", "info");
-
-      // RTK Query mutation
-      await createManagementPlan({ appointmentId, data: payload }).unwrap();
-
-      // Optional: mark clinical side complete (if available)
-      // await markCompleted({ appointmentId }).unwrap();
-
-      showToast("Management saved. Consultation completed.", "success");
-      navigate("/"); // Dashboard
-    } catch (err) {
-      console.error(err);
-      const msg =
-        err?.data?.detail ||
-        err?.data?.message ||
-        err?.error ||
-        err?.message ||
-        "Failed to save management.";
-      showToast(msg, "error");
-    }
+  // ---------------- SAVE / SUBMIT ----------------
+  const saveManagement = async () => {
+    const payload = buildPayload();
+    showToast("Saving management plan...", "info");
+    await createManagementPlan({ appointmentId, data: payload }).unwrap();
+    showToast("Management saved.", "success");
   };
+
+  const onSaveDraftAndNext = async () => {
+    if (!validateBeforeConfirm()) return;
+    await saveManagement();
+    // next sensible tab based on role
+    if (role === "student") setActiveTab("case_guide");
+    else setActiveTab("logs");
+  };
+
+  const onSubmitForReview = async () => {
+    if (!validateBeforeConfirm()) return;
+    await saveManagement();
+    showToast("Submitted for supervisor review.", "success");
+    setActiveTab("logs");
+  };
+
+  const onComplete = async () => {
+    // optional final save
+    await saveManagement();
+    // move main flow forward like Consultation does
+    setFlowStep("payment");
+  };
+
+  // ---------------- TABS (role-based) ----------------
+  const TABS = [
+    { key: "management", label: "Management" },
+    ...(role === "student" ? [{ key: "case_guide", label: "Case Management Guide" }] : []),
+    ...(role === "student" ? [{ key: "submit", label: "Submit" }] : []),
+    { key: "logs", label: "Logs" },
+    ...(role !== "student" ? [{ key: "grading", label: "Grading" }] : []),
+    { key: "complete", label: "Complete" },
+  ];
 
   // ---------------- RENDER ----------------
   return (
-    <div className="ml-72 py-8 px-8 w-fit flex flex-col gap-12">
-      <SupervisorGradingButton
-        sectionLabel="Grading: Management"
-        onSubmit={(grading) => {
-          console.log("Management grading submitted:", grading);
-        }}
-      />
+    <div className="ml-72 py-8 px-8 w-fit flex flex-col gap-8">
+      {/* Tabs header */}
+      <div className="flex flex-wrap gap-2">
+        {TABS.map((t) => (
+          <Tab key={t.key} active={activeTab === t.key} onClick={() => setActiveTab(t.key)}>
+            {t.label}
+          </Tab>
+        ))}
+      </div>
 
-      {isModalOpen && <PatientModal setIsModalOpen={setIsModalOpen} />}
+      {/* Tab content */}
+      {activeTab === "management" && (
+        <form className="flex flex-col gap-5 w-fit">
+          <main className="flex gap-40">
+            <section className="flex flex-col gap-12 w-fit">
+              <div className="flex flex-col gap-2">
+                <label className="font-medium text-base">Treatment / Management Option(s)</label>
+                <div className="grid grid-cols-2 gap-5">
+                  {Object.keys(checkboxes).map((key) => (
+                    <label key={key} className="flex items-center gap-1 capitalize">
+                      <input
+                        type="checkbox"
+                        name={key}
+                        checked={checkboxes[key]}
+                        onChange={(e) =>
+                          setCheckboxes((prev) => ({ ...prev, [e.target.name]: e.target.checked }))
+                        }
+                        className="h-5 w-5"
+                      />
+                      {key.replace(/([A-Z])/g, " $1")}
+                    </label>
+                  ))}
+                </div>
+              </div>
 
+              {checkboxes.refractiveCorrection && (
+                <RefractiveCorrectionSection
+                  prescription={prescription}
+                  handleInputChange={(e) =>
+                    setPrescription((prev) => ({ ...prev, [e.target.name]: e.target.value }))
+                  }
+                />
+              )}
+
+              {checkboxes.medications && (
+                <MedicationForm
+                  selectedMedications={selectedMedications}
+                  setSelectedMedications={setSelectedMedications}
+                  medications={medsList}
+                  medicationTypes={medicationTypes}
+                  selectedTypeId={selectedTypeId}
+                  setSelectedTypeId={setSelectedTypeId}
+                  isLoadingMeds={
+                    isMedicationsLoading || isMedicationTypesLoading || isFilteringMedications
+                  }
+                />
+              )}
+
+              {["surgery", "referral", "counselling", "therapy", "lowVisionAid"].map((field) => {
+                if (!checkboxes[field]) return null;
+                const label = `${field.replace(/([A-Z])/g, " $1")} Details`.replace(
+                  /^./,
+                  (s) => s.toUpperCase()
+                );
+                const name = `${field}_details`;
+                return (
+                  <div key={field} className="flex flex-col gap-2">
+                    <label className="font-medium">{label}</label>
+                    <textarea
+                      name={name}
+                      value={details[name]}
+                      onChange={(e) =>
+                        setDetails((prev) => ({ ...prev, [e.target.name]: e.target.value }))
+                      }
+                      className="w-full p-2 border rounded-md"
+                      placeholder={field === "therapy" ? "Type of therapy or exercises..." : ""}
+                    />
+                  </div>
+                );
+              })}
+            </section>
+          </main>
+
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={() => setFlowStep("diagnosis")}
+              className="text-[#2f3192] border border-[#2f3192] hover:bg-[#2f3192] hover:text-white px-4 py-2 rounded-md transition font-medium"
+            >
+              ← Back to Diagnosis
+            </button>
+
+            <button
+              type="button"
+              onClick={onSaveDraftAndNext}
+              className="px-4 py-2 rounded-md bg-[#2f3192] text-white disabled:opacity-60"
+              disabled={isCreatingManagementPlan || isManagementPlanLoading}
+            >
+              Save Draft & Continue
+            </button>
+          </div>
+        </form>
+      )}
+
+      {activeTab === "case_guide" && role === "student" && (
+        <CaseManagementGuide appointmentId={appointmentId} />
+      )}
+
+      {activeTab === "submit" && role === "student" && (
+        <div className="rounded-md border bg-white p-6 w-full max-w-2xl">
+          <h3 className="text-lg font-semibold mb-2">Submit for Review</h3>
+          <p className="text-sm text-gray-600 mb-4">
+            Submitting will notify your supervisor that the Management section is ready for review.
+          </p>
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={onSubmitForReview}
+              className="px-4 py-2 rounded-md bg-[#2f3192] text-white disabled:opacity-60"
+              disabled={isCreatingManagementPlan || isManagementPlanLoading}
+            >
+              Submit
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab("management")}
+              className="px-4 py-2 rounded-md border"
+            >
+              Back to Management
+            </button>
+          </div>
+        </div>
+      )}
+
+      {activeTab === "logs" && <LogsPanel appointmentId={appointmentId} />}
+
+      {activeTab === "grading" && role !== "student" && (
+        <div className="rounded-md border bg-white p-6 w-full max-w-2xl">
+          <SupervisorGradingButton
+            sectionLabel="Grading: Management"
+            onSubmit={() => {
+              showToast("Grading submitted.", "success");
+              setActiveTab("complete");
+            }}
+          />
+        </div>
+      )}
+
+      {activeTab === "complete" && (
+        <div className="rounded-md border bg-white p-6 w-full max-w-xl">
+          <h3 className="text-lg font-semibold mb-2">Complete</h3>
+          <p className="text-sm text-gray-600 mb-4">
+            Proceed to Payment to continue the main flow.
+          </p>
+          <div className="flex gap-3">
+            <button
+              onClick={onComplete}
+              className="px-4 py-2 rounded-md bg-[#0F973D] text-white"
+            >
+              Continue to Payment
+            </button>
+            <button onClick={() => navigate("/")} className="px-4 py-2 rounded-md border">
+              Go to Dashboard
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Keep your old confirm modal if you still want it elsewhere */}
       {confirmSave && (
         <div
           role="dialog"
@@ -329,7 +488,11 @@ const Management = ({ setFlowStep, appointmentId }) => {
                 Cancel
               </button>
               <button
-                onClick={handleSubmit}
+                onClick={async () => {
+                  if (!validateBeforeConfirm()) return;
+                  setConfirmSave(false);
+                  await saveManagement();
+                }}
                 disabled={isCreatingManagementPlan}
                 className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-60"
               >
@@ -340,7 +503,7 @@ const Management = ({ setFlowStep, appointmentId }) => {
         </div>
       )}
 
-      {/* Optional success modal (not used since we redirect immediately) */}
+      {isModalOpen && <PatientModal setIsModalOpen={setIsModalOpen} />}
       {modal && (
         <div
           role="dialog"
@@ -364,7 +527,9 @@ const Management = ({ setFlowStep, appointmentId }) => {
               </span>
               <div className="flex flex-col items-start gap-2 pr-6 border-l border-gray-300 pl-4">
                 <h3 className="text-base font-bold">Success!</h3>
-                <p className="text-base font-medium">You have finished attending to your patient.</p>
+                <p className="text-base font-medium">
+                  You have finished attending to your patient.
+                </p>
                 <div className="flex justify-between gap-4 mt-4">
                   <button
                     onClick={() => {
@@ -390,93 +555,6 @@ const Management = ({ setFlowStep, appointmentId }) => {
           </div>
         </div>
       )}
-
-      <form className="flex flex-col gap-5 w-fit">
-        <main className="flex gap-40">
-          <section className="flex flex-col gap-12 w-fit">
-            <div className="flex flex-col gap-2">
-              <label className="font-medium text-base">Treatment / Management Option(s)</label>
-              <div className="grid grid-cols-2 gap-5">
-                {Object.keys(checkboxes).map((key) => (
-                  <label key={key} className="flex items-center gap-1 capitalize">
-                    <input
-                      type="checkbox"
-                      name={key}
-                      checked={checkboxes[key]}
-                      onChange={handleCheckboxChange}
-                      className="h-5 w-5"
-                    />
-                    {key.replace(/([A-Z])/g, " $1")}
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            {checkboxes.refractiveCorrection && (
-              <RefractiveCorrectionSection
-                prescription={prescription}
-                handleInputChange={handleInputChange}
-              />
-            )}
-
-            {checkboxes.medications && (
-              <MedicationForm
-                selectedMedications={selectedMedications}
-                setSelectedMedications={setSelectedMedications}
-                medications={medsList}
-                medicationTypes={medicationTypes}
-                selectedTypeId={selectedTypeId}
-                setSelectedTypeId={setSelectedTypeId}
-                isLoadingMeds={
-                  isMedicationsLoading || isMedicationTypesLoading || isFilteringMedications
-                }
-              />
-            )}
-
-            {["surgery", "referral", "counselling", "therapy", "lowVisionAid"].map((field) => {
-              if (!checkboxes[field]) return null;
-              const label = `${field.replace(/([A-Z])/g, " $1")} Details`.replace(
-                /^./,
-                (s) => s.toUpperCase()
-              );
-              const name = `${field}_details`;
-              return (
-                <div key={field} className="flex flex-col gap-2">
-                  <label className="font-medium">{label}</label>
-                  <textarea
-                    name={name}
-                    value={details[name]}
-                    onChange={handleDetailsChange}
-                    className="w-full p-2 border rounded-md"
-                    placeholder={field === "therapy" ? "Type of therapy or exercises..." : ""}
-                  />
-                </div>
-              );
-            })}
-          </section>
-        </main>
-
-        <div className="flex justify-start gap-4">
-          <button
-            type="button"
-            onClick={() => setFlowStep("diagnosis")}
-            className="text-[#2f3192] border border-[#2f3192] hover:bg-[#2f3192] hover:text-white px-4 py-2 rounded-md transition font-medium"
-          >
-            ← Back to Diagnosis
-          </button>
-
-          <button
-            type="button"
-            onClick={() => {
-              if (validateBeforeConfirm()) setConfirmSave(true);
-            }}
-            className="w-44 h-14 p-4 rounded-lg bg-[#2f3192] text-white disabled:opacity-60"
-            disabled={isCreatingManagementPlan || isManagementPlanLoading}
-          >
-            Save & Finish
-          </button>
-        </div>
-      </form>
     </div>
   );
 };
