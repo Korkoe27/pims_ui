@@ -25,7 +25,8 @@ const LogsPanel = ({ appointmentId }) => (
   <div className="rounded-md border bg-white p-4">
     <h3 className="text-lg font-semibold mb-2">Logs</h3>
     <p className="text-sm text-gray-600">
-      Audit trail & activity for this management plan (appointment: {appointmentId})
+      Audit trail & activity for this management plan (appointment:{" "}
+      {appointmentId})
     </p>
   </div>
 );
@@ -44,6 +45,19 @@ const Tab = ({ active, onClick, children }) => (
     {children}
   </button>
 );
+
+// ---------- helpers ----------
+const toMedArray = (raw) => {
+  if (!raw) return [];
+  if (Array.isArray(raw)) return raw;
+  if (typeof raw === "object") return Object.values(raw); // handle dict keyed by id
+  try {
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) return parsed;
+    if (parsed && typeof parsed === "object") return Object.values(parsed);
+  } catch {}
+  return [];
+};
 
 // ---------------------------------------------------------------
 // Management Flow (mini-sub-steps just like Consultation tabs)
@@ -99,9 +113,18 @@ const Management = ({ setFlowStep, appointmentId }) => {
 
   const [prescription, setPrescription] = useState({
     type_of_refractive_correction: "",
-    od_sph: "", od_cyl: "", od_axis: "", od_add: "",
-    os_sph: "", os_cyl: "", os_axis: "", os_add: "",
-    type_of_lens: "", pd: "", segment_height: "", fitting_cross_height: "",
+    od_sph: "",
+    od_cyl: "",
+    od_axis: "",
+    od_add: "",
+    os_sph: "",
+    os_cyl: "",
+    os_axis: "",
+    os_add: "",
+    type_of_lens: "",
+    pd: "",
+    segment_height: "",
+    fitting_cross_height: "",
   });
 
   const [details, setDetails] = useState({
@@ -119,70 +142,79 @@ const Management = ({ setFlowStep, appointmentId }) => {
     [selectedTypeId, filteredMedications, medications]
   );
 
-  // ---------------- PREFILL FROM BACKEND ----------------
+  // ---------------- PREFILL FROM BACKEND (robust) ----------------
   useEffect(() => {
     if (!managementPlan) return;
-    const {
-      options,
-      refractive_prescription,
-      medications: backendMeds = [],
-      extra_details = {},
-    } = managementPlan;
 
-    if (options) {
+    const optsRaw = managementPlan.options;
+    const rx = managementPlan.refractive_prescription;
+    const medsRaw = managementPlan.medications;
+    const extra = managementPlan.extra_details || {};
+
+    // options
+    if (optsRaw && typeof optsRaw === "object") {
       setCheckboxes((prev) => ({
         ...prev,
-        ...Object.fromEntries(Object.keys(prev).map((k) => [k, Boolean(options[k])]))
+        ...Object.fromEntries(
+          Object.keys(prev).map((k) => [k, Boolean(optsRaw[k])])
+        ),
       }));
     }
 
-    if (refractive_prescription) {
+    // refractive prescription
+    if (rx) {
       setPrescription({
-        type_of_refractive_correction: refractive_prescription.type_of_refractive_correction ?? "",
-        od_sph: refractive_prescription.od?.sph ?? "",
-        od_cyl: refractive_prescription.od?.cyl ?? "",
-        od_axis: refractive_prescription.od?.axis ?? "",
-        od_add: refractive_prescription.od?.add ?? "",
-        os_sph: refractive_prescription.os?.sph ?? "",
-        os_cyl: refractive_prescription.os?.cyl ?? "",
-        os_axis: refractive_prescription.os?.axis ?? "",
-        os_add: refractive_prescription.os?.add ?? "",
-        type_of_lens: refractive_prescription.type_of_lens ?? "",
-        pd: refractive_prescription.pd ?? "",
-        segment_height: refractive_prescription.segment_height ?? "",
-        fitting_cross_height: refractive_prescription.fitting_cross_height ?? "",
+        type_of_refractive_correction: rx.type_of_refractive_correction ?? "",
+        od_sph: rx.od?.sph ?? "",
+        od_cyl: rx.od?.cyl ?? "",
+        od_axis: rx.od?.axis ?? "",
+        od_add: rx.od?.add ?? "",
+        os_sph: rx.os?.sph ?? "",
+        os_cyl: rx.os?.cyl ?? "",
+        os_axis: rx.os?.axis ?? "",
+        os_add: rx.os?.add ?? "",
+        type_of_lens: rx.type_of_lens ?? "",
+        pd: rx.pd ?? "",
+        segment_height: rx.segment_height ?? "",
+        fitting_cross_height: rx.fitting_cross_height ?? "",
       });
     }
 
+    // extra details
     setDetails({
-      surgery_details: extra_details.surgery_details ?? "",
-      referral_details: extra_details.referral_details ?? "",
-      counselling_details: extra_details.counselling_details ?? "",
-      low_vision_aid_details: extra_details.low_vision_aid_details ?? "",
-      therapy_details: extra_details.therapy_details ?? "",
+      surgery_details: extra.surgery_details ?? "",
+      referral_details: extra.referral_details ?? "",
+      counselling_details: extra.counselling_details ?? "",
+      low_vision_aid_details: extra.low_vision_aid_details ?? "",
+      therapy_details: extra.therapy_details ?? "",
     });
 
+    // medications (normalize!)
+    const medsArr = toMedArray(medsRaw);
     setSelectedMedications(
-      backendMeds.map((m) => ({
-        medication_id: m.medication_id ?? m.id ?? m.value,
+      medsArr.map((m) => ({
+        medication_id: m.medication_id ?? m.id ?? m.value ?? m.medId ?? null,
         dosage: m.dosage ?? "",
         frequency: m.frequency ?? "",
         duration: m.duration ?? "",
         notes: m.notes ?? "",
-        name: m.name,
+        name: m.name ?? m.label ?? "",
       }))
     );
   }, [managementPlan]);
 
   // ---------------- VALIDATION ----------------
   const validateBeforeConfirm = () => {
-    const isValidSPH = (v) => /^[+-][0-9]+(\.25|\.50|\.75|\.00)?$/.test((v || "").trim());
-    const isValidCYL = (v) => /^-[0-9]+(\.25|\.50|\.75|\.00)?$/.test((v || "").trim());
+    const isValidSPH = (v) =>
+      /^[+-][0-9]+(\.25|\.50|\.75|\.00)?$/.test((v || "").trim());
+    const isValidCYL = (v) =>
+      /^-[0-9]+(\.25|\.50|\.75|\.00)?$/.test((v || "").trim());
     const isValidAXIS = (v) => {
       const n = Number((v || "").trim());
       return Number.isInteger(n) && n >= 0 && n <= 180;
     };
-    const isValidADD = (v) => /^\+[0-9]+(\.25|\.50|\.75|\.00)?$/.test((v || "").trim());
+    const isValidADD = (v) =>
+      /^\+[0-9]+(\.25|\.50|\.75|\.00)?$/.test((v || "").trim());
 
     const atLeastOneSelected = Object.values(checkboxes).some(Boolean);
     if (!atLeastOneSelected) {
@@ -195,23 +227,38 @@ const Management = ({ setFlowStep, appointmentId }) => {
         showToast("Please select a type of refractive correction.", "error");
         return false;
       }
-      if (!isValidSPH(prescription.od_sph) || !isValidSPH(prescription.os_sph)) {
+      if (
+        !isValidSPH(prescription.od_sph) ||
+        !isValidSPH(prescription.os_sph)
+      ) {
         showToast("SPH is required and must be valid for both eyes.", "error");
         return false;
       }
-      if ((prescription.od_cyl && !isValidCYL(prescription.od_cyl)) ||
-          (prescription.os_cyl && !isValidCYL(prescription.os_cyl))) {
+      if (
+        (prescription.od_cyl && !isValidCYL(prescription.od_cyl)) ||
+        (prescription.os_cyl && !isValidCYL(prescription.os_cyl))
+      ) {
         showToast("CYL must be negative and valid (e.g., -0.75).", "error");
         return false;
       }
-      if ((prescription.od_cyl && !isValidAXIS(prescription.od_axis)) ||
-          (prescription.os_cyl && !isValidAXIS(prescription.os_axis))) {
-        showToast("AXIS is required and must be 0–180 if CYL is provided.", "error");
+      if (
+        (prescription.od_cyl && !isValidAXIS(prescription.od_axis)) ||
+        (prescription.os_cyl && !isValidAXIS(prescription.os_axis))
+      ) {
+        showToast(
+          "AXIS is required and must be 0–180 if CYL is provided.",
+          "error"
+        );
         return false;
       }
-      if ((prescription.od_add && !isValidADD(prescription.od_add)) ||
-          (prescription.os_add && !isValidADD(prescription.os_add))) {
-        showToast("ADD must start with '+' and be valid (e.g., +1.00).", "error");
+      if (
+        (prescription.od_add && !isValidADD(prescription.od_add)) ||
+        (prescription.os_add && !isValidADD(prescription.os_add))
+      ) {
+        showToast(
+          "ADD must start with '+' and be valid (e.g., +1.00).",
+          "error"
+        );
         return false;
       }
     }
@@ -220,13 +267,26 @@ const Management = ({ setFlowStep, appointmentId }) => {
 
   // ---------------- PAYLOAD ----------------
   const buildPayload = () => {
-    const options = Object.fromEntries(Object.entries(checkboxes).map(([k, v]) => [k, !!v]));
+    const options = Object.fromEntries(
+      Object.entries(checkboxes).map(([k, v]) => [k, !!v])
+    );
 
     const refractive_prescription = checkboxes.refractiveCorrection
       ? {
-          type_of_refractive_correction: prescription.type_of_refractive_correction || null,
-          od: { sph: prescription.od_sph || null, cyl: prescription.od_cyl || null, axis: prescription.od_axis || null, add: prescription.od_add || null },
-          os: { sph: prescription.os_sph || null, cyl: prescription.os_cyl || null, axis: prescription.os_axis || null, add: prescription.os_add || null },
+          type_of_refractive_correction:
+            prescription.type_of_refractive_correction || null,
+          od: {
+            sph: prescription.od_sph || null,
+            cyl: prescription.od_cyl || null,
+            axis: prescription.od_axis || null,
+            add: prescription.od_add || null,
+          },
+          os: {
+            sph: prescription.os_sph || null,
+            cyl: prescription.os_cyl || null,
+            axis: prescription.os_axis || null,
+            add: prescription.os_add || null,
+          },
           type_of_lens: prescription.type_of_lens || null,
           pd: prescription.pd || null,
           segment_height: prescription.segment_height || null,
@@ -245,14 +305,30 @@ const Management = ({ setFlowStep, appointmentId }) => {
       : [];
 
     const extra_details = {
-      surgery_details: checkboxes.surgery ? details.surgery_details || null : null,
-      referral_details: checkboxes.referral ? details.referral_details || null : null,
-      counselling_details: checkboxes.counselling ? details.counselling_details || null : null,
-      therapy_details: checkboxes.therapy ? details.therapy_details || null : null,
-      low_vision_aid_details: checkboxes.lowVisionAid ? details.low_vision_aid_details || null : null,
+      surgery_details: checkboxes.surgery
+        ? details.surgery_details || null
+        : null,
+      referral_details: checkboxes.referral
+        ? details.referral_details || null
+        : null,
+      counselling_details: checkboxes.counselling
+        ? details.counselling_details || null
+        : null,
+      therapy_details: checkboxes.therapy
+        ? details.therapy_details || null
+        : null,
+      low_vision_aid_details: checkboxes.lowVisionAid
+        ? details.low_vision_aid_details || null
+        : null,
     };
 
-    return { appointment: appointmentId, options, refractive_prescription, medications: meds, extra_details };
+    return {
+      appointment: appointmentId,
+      options,
+      refractive_prescription,
+      medications: meds,
+      extra_details,
+    };
   };
 
   // ---------------- SAVE / SUBMIT ----------------
@@ -286,14 +362,17 @@ const Management = ({ setFlowStep, appointmentId }) => {
   };
 
   // ---------------- TABS (role-based) ----------------
-  const TABS = [
+  const baseTabs = [
     { key: "management", label: "Management" },
-    ...(role === "student" ? [{ key: "case_guide", label: "Case Management Guide" }] : []),
-    ...(role === "student" ? [{ key: "submit", label: "Submit" }] : []),
+    ...(role === "student"
+      ? [{ key: "case_guide", label: "Case Management Guide" }]
+      : []),
     { key: "logs", label: "Logs" },
+    ...(role === "student" ? [{ key: "submit", label: "Submit" }] : []), // 👈 moved here
     ...(role !== "student" ? [{ key: "grading", label: "Grading" }] : []),
-    { key: "complete", label: "Complete" },
   ];
+
+  const TABS = [...baseTabs, { key: "complete", label: "Complete" }]; // always last
 
   // ---------------- RENDER ----------------
   return (
@@ -301,7 +380,11 @@ const Management = ({ setFlowStep, appointmentId }) => {
       {/* Tabs header */}
       <div className="flex flex-wrap gap-2">
         {TABS.map((t) => (
-          <Tab key={t.key} active={activeTab === t.key} onClick={() => setActiveTab(t.key)}>
+          <Tab
+            key={t.key}
+            active={activeTab === t.key}
+            onClick={() => setActiveTab(t.key)}
+          >
             {t.label}
           </Tab>
         ))}
@@ -313,16 +396,24 @@ const Management = ({ setFlowStep, appointmentId }) => {
           <main className="flex gap-40">
             <section className="flex flex-col gap-12 w-fit">
               <div className="flex flex-col gap-2">
-                <label className="font-medium text-base">Treatment / Management Option(s)</label>
+                <label className="font-medium text-base">
+                  Treatment / Management Option(s)
+                </label>
                 <div className="grid grid-cols-2 gap-5">
                   {Object.keys(checkboxes).map((key) => (
-                    <label key={key} className="flex items-center gap-1 capitalize">
+                    <label
+                      key={key}
+                      className="flex items-center gap-1 capitalize"
+                    >
                       <input
                         type="checkbox"
                         name={key}
                         checked={checkboxes[key]}
                         onChange={(e) =>
-                          setCheckboxes((prev) => ({ ...prev, [e.target.name]: e.target.checked }))
+                          setCheckboxes((prev) => ({
+                            ...prev,
+                            [e.target.name]: e.target.checked,
+                          }))
                         }
                         className="h-5 w-5"
                       />
@@ -336,7 +427,10 @@ const Management = ({ setFlowStep, appointmentId }) => {
                 <RefractiveCorrectionSection
                   prescription={prescription}
                   handleInputChange={(e) =>
-                    setPrescription((prev) => ({ ...prev, [e.target.name]: e.target.value }))
+                    setPrescription((prev) => ({
+                      ...prev,
+                      [e.target.name]: e.target.value,
+                    }))
                   }
                 />
               )}
@@ -350,17 +444,25 @@ const Management = ({ setFlowStep, appointmentId }) => {
                   selectedTypeId={selectedTypeId}
                   setSelectedTypeId={setSelectedTypeId}
                   isLoadingMeds={
-                    isMedicationsLoading || isMedicationTypesLoading || isFilteringMedications
+                    isMedicationsLoading ||
+                    isMedicationTypesLoading ||
+                    isFilteringMedications
                   }
                 />
               )}
 
-              {["surgery", "referral", "counselling", "therapy", "lowVisionAid"].map((field) => {
+              {[
+                "surgery",
+                "referral",
+                "counselling",
+                "therapy",
+                "lowVisionAid",
+              ].map((field) => {
                 if (!checkboxes[field]) return null;
-                const label = `${field.replace(/([A-Z])/g, " $1")} Details`.replace(
-                  /^./,
-                  (s) => s.toUpperCase()
-                );
+                const label = `${field.replace(
+                  /([A-Z])/g,
+                  " $1"
+                )} Details`.replace(/^./, (s) => s.toUpperCase());
                 const name = `${field}_details`;
                 return (
                   <div key={field} className="flex flex-col gap-2">
@@ -369,10 +471,17 @@ const Management = ({ setFlowStep, appointmentId }) => {
                       name={name}
                       value={details[name]}
                       onChange={(e) =>
-                        setDetails((prev) => ({ ...prev, [e.target.name]: e.target.value }))
+                        setDetails((prev) => ({
+                          ...prev,
+                          [e.target.name]: e.target.value,
+                        }))
                       }
                       className="w-full p-2 border rounded-md"
-                      placeholder={field === "therapy" ? "Type of therapy or exercises..." : ""}
+                      placeholder={
+                        field === "therapy"
+                          ? "Type of therapy or exercises..."
+                          : ""
+                      }
                     />
                   </div>
                 );
@@ -409,7 +518,8 @@ const Management = ({ setFlowStep, appointmentId }) => {
         <div className="rounded-md border bg-white p-6 w-full max-w-2xl">
           <h3 className="text-lg font-semibold mb-2">Submit for Review</h3>
           <p className="text-sm text-gray-600 mb-4">
-            Submitting will notify your supervisor that the Management section is ready for review.
+            Submitting will notify your supervisor that the Management section
+            is ready for review.
           </p>
           <div className="flex gap-3">
             <button
@@ -458,7 +568,10 @@ const Management = ({ setFlowStep, appointmentId }) => {
             >
               Continue to Payment
             </button>
-            <button onClick={() => navigate("/")} className="px-4 py-2 rounded-md border">
+            <button
+              onClick={() => navigate("/")}
+              className="px-4 py-2 rounded-md border"
+            >
               Go to Dashboard
             </button>
           </div>
@@ -478,7 +591,8 @@ const Management = ({ setFlowStep, appointmentId }) => {
           <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md border border-gray-300">
             <h2 className="text-lg font-bold mb-2">Confirm Save</h2>
             <p className="mb-4">
-              Are you sure you want to save this treatment record? This action cannot be undone.
+              Are you sure you want to save this treatment record? This action
+              cannot be undone.
             </p>
             <div className="flex justify-end gap-4">
               <button
