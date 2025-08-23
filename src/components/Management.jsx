@@ -9,12 +9,11 @@ import { showToast } from "../components/ToasterHelper";
 import RefractiveCorrectionSection from "./RefractiveCorrectionSection";
 import MedicationForm from "./MedicationForm";
 import SupervisorGradingButton from "./SupervisorGradingButton";
-// import { toMessageList } from "../utils/errors"; // not needed now
 
 const Management = ({ setFlowStep, appointmentId }) => {
   const navigate = useNavigate();
 
-  const [modal, setModal] = useState(false);
+  const [modal, setModal] = useState(false);         // currently unused after redirect
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [confirmSave, setConfirmSave] = useState(false);
   const [selectedTypeId] = useState(null);
@@ -123,11 +122,13 @@ const Management = ({ setFlowStep, appointmentId }) => {
   };
 
   const handleSubmit = async () => {
-    // UI-only: fake save with delay
-    showToast("Saving management plan (UI mock)...", "info");
+    // UI-only mock: save, toast, then redirect to Dashboard
+    showToast("Saving management plan...", "info");
     setTimeout(() => {
-      showToast("Management plan saved!", "success");
-      setFlowStep("payment"); // advance to Payment
+      showToast("Management plan saved. Consultation completed.", "success");
+      navigate("/"); // ← redirect to Dashboard
+      // If you ever want the success modal instead of instant redirect:
+      // setModal(true);
     }, 600);
   };
 
@@ -177,6 +178,7 @@ const Management = ({ setFlowStep, appointmentId }) => {
         </div>
       )}
 
+      {/* Success modal (currently unused due to direct redirect) */}
       {modal && (
         <div
           role="dialog"
@@ -289,7 +291,7 @@ const Management = ({ setFlowStep, appointmentId }) => {
             </section>
           </main>
 
-          <div className="flex justify-start">
+          <div className="flex justify-start gap-4">
             <button
               type="button"
               onClick={() => setFlowStep("diagnosis")}
@@ -312,9 +314,9 @@ const Management = ({ setFlowStep, appointmentId }) => {
                 }
                 if (validateBeforeConfirm()) setConfirmSave(true);
               }}
-              className="w-40 h-14 mx-auto mr-0 p-4 rounded-lg bg-[#2f3192] text-white"
+              className="w-44 h-14 p-4 rounded-lg bg-[#2f3192] text-white"
             >
-              Proceed to Payment
+              Save & Finish
             </button>
           </div>
         </form>

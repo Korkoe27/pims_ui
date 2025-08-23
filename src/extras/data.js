@@ -94,7 +94,7 @@ export const Sidebar_links = [
     name: "billing",
     icon: <MdOutlinePayment className="text-xl font-bold" />,
     path: "/billing",
-    roles: [ROLES.FINANCE, ROLES.ADMINISTRATOR],
+    roles: [ROLES.FINANCE, ROLES.ADMINISTRATOR, ROLES.STUDENT],
   },
 ];
 
