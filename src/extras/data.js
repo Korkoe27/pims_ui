@@ -10,7 +10,7 @@ import {
   MdLeaderboard,
 } from "react-icons/md";
 import { BsBoxSeam } from "react-icons/bs";
-import { MdOutlineRestorePage } from "react-icons/md";
+import { GiPill } from "react-icons/gi";
 import { HiOutlineClipboardList } from "react-icons/hi";
 import { BiUserCircle } from "react-icons/bi";
 import { HiOutlineDocumentReport } from "react-icons/hi";
@@ -85,10 +85,10 @@ export const Sidebar_links = [
     roles: "all",
   },
   {
-    name: "dispensary",
-    icon: <MdOutlineRestorePage className="text-xl font-bold" />,
-    path: "/dispensary",
-    roles: [ROLES.ADMINISTRATOR, ROLES.PHARMACY],
+    name: "pharmacy",
+    icon: <GiPill className="text-xl font-bold" />,
+    path: "/pharmacy",
+    roles: [ROLES.ADMINISTRATOR, ROLES.PHARMACY, ROLES.STUDENT],
   },
   {
     name: "billing",

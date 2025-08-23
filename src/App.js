@@ -19,7 +19,7 @@ import {
   Consultation,
   Dashboard,
   Appointments,
-  Dispensary,
+  Pharmacy,
   Inventory,
   Patients,
   PatientDetails,
@@ -70,7 +70,7 @@ const App = () => {
             <Route path="/register-patient" element={<PersonalInfo />} />
             <Route path="/appointments" element={<Appointments />} />
             <Route path="/inventory" element={<Inventory />} />
-            <Route path="/dispensary" element={<Dispensary />} />
+            <Route path="/pharmacy" element={<Pharmacy />} />
             <Route
               path="/case-history/:appointmentId"
               element={<CaseHistory />}
