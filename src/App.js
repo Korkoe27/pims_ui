@@ -32,7 +32,8 @@ import {
   PendingReviews,
   Reports,
   MyCases,
-  MyScores
+  MyScores,
+  PharmacyOrder,
 } from "./pages";
 import Layout from "./pages/Layout";
 import ProtectedRoute from "./hooks/ProtectedRoute";
@@ -70,7 +71,10 @@ const App = () => {
             <Route path="/register-patient" element={<PersonalInfo />} />
             <Route path="/appointments" element={<Appointments />} />
             <Route path="/inventory" element={<Inventory />} />
-            <Route path="/pharmacy" element={<Pharmacy />} />
+            <Route path="/pharmacy" element={<Pharmacy />}>
+              <Route path="order/:orderId" element={<PharmacyOrder />} />
+            </Route>
+
             <Route
               path="/case-history/:appointmentId"
               element={<CaseHistory />}
@@ -102,7 +106,6 @@ const App = () => {
             <Route path="/reports" element={<Reports />} />
             <Route path="/my-cases" element={<MyCases />} />
             <Route path="/my-scores" element={<MyScores />} />
-
           </Route>
         </Routes>
       </BrowserRouter>

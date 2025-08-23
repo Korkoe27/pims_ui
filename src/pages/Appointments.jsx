@@ -6,6 +6,7 @@ import PageContainer from "../components/PageContainer";
 import CanAccess from "../components/auth/CanAccess";
 import { ROLES } from "../constants/roles";
 import { useGetTodaysAppointmentsQuery } from "../redux/api/features/appointmentsApi";
+import { useNavigate } from "react-router-dom";
 
 const Appointments = () => {
   const { handleConsult } = useHandleConsult();
@@ -50,8 +51,10 @@ const Appointments = () => {
     }
   };
 
-  const handleAddCost = (appointment) =>
-    transitionAppointment(appointment, "Cost Added");
+  const navigate = useNavigate();
+  const handleAddCost = (appointment) => {
+    navigate(`/pharmacy/order/${appointment.id}`);
+  };
 
   const handlePaymentComplete = (appointment) =>
     transitionAppointment(appointment, "Payment Completed");

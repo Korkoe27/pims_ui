@@ -5,7 +5,7 @@ export { default as Patients } from "./Patients";
 export { default as PatientDetails } from "./PatientDetails";
 export { default as Appointments } from "./Appointments";
 export { default as Inventory } from "./Inventory";
-export { default as Pharmacy } from "./Dispensary";
+export { default as Pharmacy } from "./Pharmacy";
 export { default as Login } from "./Login";
 export { default as PatientSearchResults } from "./PatientSearchResults";
 export { default as MyPortal } from "./MyPortal";
@@ -15,3 +15,5 @@ export { default as PendingReviews } from "./PendingReviews";
 export { default as Reports } from "./Reports";
 export { default as MyCases } from "./MyCases";
 export { default as MyScores } from "./MyScores";
+export { default as PharmacyOrder } from "./PharmacyOrder";
+

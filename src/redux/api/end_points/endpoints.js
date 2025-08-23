@@ -216,6 +216,20 @@ export const fetchClinicScheduleByDateUrl = (date) =>
 // Get all staff that can be scheduled
 export const listScheduleStaffUrl = "/clinic-schedule/staff/";
 
+/////////////////////////
+// Pharmacy
+/////////////////////////
+
+// List or create pharmacy orders
+// Pharmacy Order
+export const getPharmacyOrderUrl = (appointmentId) =>
+  `/pharmacy/api/orders/${appointmentId}/`;
+export const upsertPharmacyOrderUrl = (appointmentId) =>
+  `/pharmacy/api/orders/${appointmentId}/`;
+
+// Reuse your existing FSM transition:
+export const transitionAppointmentUrl = (appointmentId) =>
+  `/clients/api/appointments/${appointmentId}/transition/`;
 
 /////////////////////////
 // WebSocket
