@@ -1,27 +1,58 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 
-const STORAGE_KEY = (id) => `cmg-reviewed-${id}`;
+const storageKeyFor = (id) => `cmg-reviewed-${id}`;
 
-const CaseManagementGuide = ({ appointmentId, setActiveTab, setTabCompletionStatus, role = "student" }) => {
+const CaseManagementGuide = ({
+  appointmentId,
+  setActiveTab,
+  setTabCompletionStatus,
+  role = "student",
+}) => {
   const [reviewed, setReviewed] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const nextBtnRef = useRef(null);
 
+  const KEY = useMemo(() => storageKeyFor(appointmentId), [appointmentId]);
+
+  // Load saved state for this appointment
   useEffect(() => {
-    const saved = localStorage.getItem(STORAGE_KEY(appointmentId));
-    if (saved === "1") setReviewed(true);
-  }, [appointmentId]);
+    try {
+      if (typeof window !== "undefined") {
+        const saved = window.localStorage.getItem(KEY);
+        setReviewed(saved === "1");
+      }
+    } catch { /* noop */ }
+  }, [KEY]);
 
-  const handleToggle = (e) => {
-    const v = e.target.checked;
-    setReviewed(v);
-    localStorage.setItem(STORAGE_KEY(appointmentId), v ? "1" : "0");
+  // Whenever reviewed changes, persist + notify parent (mark tab complete)
+  useEffect(() => {
+    try {
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem(KEY, reviewed ? "1" : "0");
+      }
+    } catch { /* noop */ }
+    if (reviewed) setTabCompletionStatus?.("case_guide", true);
+  }, [KEY, reviewed, setTabCompletionStatus]);
+
+  const handleToggle = (e) => setReviewed(e.target.checked);
+
+  const handleNext = async () => {
+    if (!reviewed || saving) return;
+    setSaving(true);
+    try {
+      // Already set as complete in the effect above; this is just navigation.
+      setActiveTab?.("logs");
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const handleNext = () => {
-    setTabCompletionStatus?.("case_guide", true);
-
-    // NEW: students now go to "logs" (since Submit comes after Logs)
-    const nextTab = role === "student" ? "logs" : "logs";
-    setActiveTab?.(nextTab);
+  // Keyboard: Enter advances when checkbox focused & checked
+  const onKeyDown = (e) => {
+    if (e.key === "Enter" && reviewed) {
+      e.preventDefault();
+      nextBtnRef.current?.click();
+    }
   };
 
   return (
@@ -45,18 +76,21 @@ const CaseManagementGuide = ({ appointmentId, setActiveTab, setTabCompletionStat
             <li>Verify refractive prescription values (SPH/CYL/AXIS/ADD) and lens details.</li>
             <li>Ensure medication dosage/frequency/duration are complete.</li>
             <li>Add necessary counselling/referral/surgery/therapy notes.</li>
-            <li>Cross‑check documentation for accuracy and completeness.</li>
+            <li>Cross-check documentation for accuracy and completeness.</li>
           </ul>
         </div>
 
-        <label className="flex items-start gap-3 mt-4">
+        <label className="flex items-start gap-3 mt-4 cursor-pointer">
           <input
+            id="cmg-reviewed"
             type="checkbox"
             className="mt-1 h-5 w-5"
             checked={reviewed}
             onChange={handleToggle}
+            onKeyDown={onKeyDown}
+            aria-describedby="cmg-reviewed-help"
           />
-          <span className="text-sm text-gray-800">
+          <span className="text-sm text-gray-800" id="cmg-reviewed-help">
             I have reviewed the Case Management Guide and completed the checklist above.
           </span>
         </label>
@@ -73,14 +107,15 @@ const CaseManagementGuide = ({ appointmentId, setActiveTab, setTabCompletionStat
 
         <button
           type="button"
+          ref={nextBtnRef}
           onClick={handleNext}
-          disabled={!reviewed}
+          disabled={!reviewed || saving}
           className={[
             "px-4 py-2 rounded-md text-white",
-            reviewed ? "bg-[#2f3192] hover:opacity-90" : "bg-[#2f3192]/60 cursor-not-allowed",
+            reviewed && !saving ? "bg-[#2f3192] hover:opacity-90" : "bg-[#2f3192]/60 cursor-not-allowed",
           ].join(" ")}
+          aria-disabled={!reviewed || saving}
         >
-          {/* NEW: label goes to Logs */}
           Next: Logs →
         </button>
       </footer>
