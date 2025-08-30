@@ -35,16 +35,9 @@ const Dashboard = () => {
 
   const scheduledAppointments =
     dashboardData?.scheduled_appointments?.data || [];
-  const pendingReviews = dashboardData?.pending_reviews?.data || [];
   const totalAppointments = dashboardData?.total_appointments || 0;
   const completedAppointments = dashboardData?.completed_appointments || 0;
   const pendingAppointments = dashboardData?.pending_appointments || 0;
-
-  // 🔍 Debug logs
-  useEffect(() => {
-    console.log("🔍 Dashboard Data:", dashboardData);
-    console.log("🔍 Current Role:", currentUserRole);
-  }, [dashboardData, currentUserRole]);
 
   return (
     <PageContainer>
@@ -106,10 +99,6 @@ const Dashboard = () => {
             </thead>
             <tbody>
               {scheduledAppointments.slice(0, 5).map((appointment) => {
-                console.log("🔍 Passing to ConsultButton (Upcoming):", {
-                  appointment,
-                  role: currentUserRole,
-                });
 
                 return (
                   <tr key={appointment.id} className="bg-white border-b">
