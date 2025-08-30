@@ -141,64 +141,6 @@ const Dashboard = () => {
           </p>
         )}
       </div>
-
-      {/* Pending Reviews */}
-      <div className="mt-10">
-        <h2 className="font-bold text-xl mb-4">Pending Review</h2>
-        {dashboardLoading ? (
-          <div className="flex justify-center items-center">
-            <LoadingSpinner />
-          </div>
-        ) : pendingReviews.length > 0 ? (
-          <table className="w-full">
-            <thead className="text-black uppercase text-left h-16 bg-[#f0f2f5]">
-              <tr>
-                <th className="px-3 py-3">Date</th>
-                <th className="px-3 py-3">Patient’s ID</th>
-                <th className="px-3 py-3">Name</th>
-                <th className="px-3 py-3">Appointment Type</th>
-                <CanAccess allowedRoles={[ROLES.LECTURER, ROLES.STUDENT]}>
-                  <th className="px-3 py-3 text-center">Action</th>
-                </CanAccess>
-              </tr>
-            </thead>
-            <tbody>
-              {pendingReviews.map((appointment) => {
-                console.log("🔍 Passing to ConsultButton (Pending):", {
-                  appointment,
-                  role: currentUserRole,
-                });
-
-                return (
-                  <tr key={appointment.id} className="bg-white border-b">
-                    <td className="px-3 py-3">
-                      {appointment.appointment_date}
-                    </td>
-                    <td className="px-3 py-3">{appointment.patient_id}</td>
-                    <td className="px-3 py-3">{appointment.patient_name}</td>
-                    <td className="px-3 py-3">
-                      {appointment.appointment_type}
-                    </td>
-                    <CanAccess allowedRoles={[ROLES.LECTURER, ROLES.STUDENT]}>
-                      <td className="py-3 flex justify-center">
-                        <ConsultButton
-                          appointment={appointment}
-                          role={currentUserRole}
-                          onClick={handleConsult}
-                        />
-                      </td>
-                    </CanAccess>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        ) : (
-          <p className="text-gray-500 text-center">
-            No pending reviews available.
-          </p>
-        )}
-      </div>
     </PageContainer>
   );
 };
