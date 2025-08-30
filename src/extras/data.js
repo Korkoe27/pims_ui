@@ -78,24 +78,24 @@ export const Sidebar_links = [
   //   path: "/reports",
   //   roles: [ROLES.STUDENT, ROLES.LECTURER, ROLES.COORDINATOR],
   // },
-  {
-    name: "inventory",
-    icon: <BsBoxSeam className="text-xl font-bold" />,
-    path: "/inventory",
-    roles: "all",
-  },
+  // {
+  //   name: "inventory",
+  //   icon: <BsBoxSeam className="text-xl font-bold" />,
+  //   path: "/inventory",
+  //   roles: "all",
+  // },
   // {
   //   name: "pharmacy",
   //   icon: <GiPill className="text-xl font-bold" />,
   //   path: "/pharmacy",
   //   roles: [ROLES.ADMINISTRATOR, ROLES.PHARMACY, ROLES.STUDENT],
   // },
-  {
-    name: "billing",
-    icon: <MdOutlinePayment className="text-xl font-bold" />,
-    path: "/billing",
-    roles: [ROLES.FINANCE, ROLES.ADMINISTRATOR, ROLES.STUDENT],
-  },
+  // {
+  //   name: "billing",
+  //   icon: <MdOutlinePayment className="text-xl font-bold" />,
+  //   path: "/billing",
+  //   roles: [ROLES.FINANCE, ROLES.ADMINISTRATOR, ROLES.STUDENT],
+  // },
 ];
 
 

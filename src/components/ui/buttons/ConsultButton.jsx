@@ -1,23 +1,46 @@
 const ConsultButton = ({ appointment, role, onClick }) => {
-  const status = appointment.status?.toLowerCase();
-  console.log("🔍 status:", status);
+  // guard: if appointment is missing, don't render
+  if (!appointment || !appointment.status) return null;
+
+  const status = appointment.status.toLowerCase();
   let label = null;
 
   if (role === "student") {
-    if (status === "scheduled") label = "Consult";
-    else if (status === "consultation in progress")
+    if (status === "scheduled") {
+      label = "Consult";
+    } else if (
+      [
+        "consultation in progress",
+        "examinations recorded",
+        "diagnosis added",
+      ].includes(status)
+    ) {
       label = "Continue Consultation";
-    else if (["management_created", "case_mgmt_guide_created"].includes(status))
+    } else if (
+      ["management created", "case management guide created"].includes(status)
+    ) {
       label = "Submit for Review";
+    }
   }
 
   if (role === "lecturer") {
-    if (status === "submitted_for_review") label = "Review Case";
-    else if (status === "under_review") label = "Continue Review";
-    else if (status === "scheduled")
-      label = "Consult"; // 👈 allow lecturers too
-    else if (status === "consultation in progress")
+    if (status === "submitted for review") {
+      label = "Review Case";
+    } else if (status === "under review") {
+      label = "Continue Review";
+    } else if (status === "scheduled") {
+      label = "Consult";
+    } else if (
+      [
+        "consultation in progress",
+        "examinations recorded",
+        "diagnosis added",
+      ].includes(status)
+    ) {
       label = "Continue Consultation";
+    } else if (status === "management created") {
+      label = null; // lecturers shouldn't act here
+    }
   }
 
   if (!label) return null;

@@ -8,12 +8,11 @@ import CanAccess from "../components/auth/CanAccess";
 import { ROLES } from "../constants/roles";
 import { useGetTodaysAppointmentsQuery } from "../redux/api/features/appointmentsApi";
 import { useNavigate } from "react-router-dom";
+import ConsultButton from "../components/ui/buttons/ConsultButton";
+import { canShowConsultButton } from "../utils/canShowConsultButton"; // ✅ new helper
 
 const Appointments = () => {
-  // ✅ get logged in user role from redux state
   const userRole = useSelector((state) => state.auth?.user?.role);
-  console.log("🔎 Logged-in user role:", userRole);
-
   const { handleConsult } = useHandleConsult();
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
@@ -37,35 +36,12 @@ const Appointments = () => {
     setCurrentPage(page);
   };
 
-  const transitionAppointment = async (appointment, to_status) => {
-    try {
-      const res = await fetch(
-        `/clients/api/appointments/${appointment.id}/transition/`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ to_status }),
-        }
-      );
-      if (!res.ok) throw new Error("Failed to transition");
-      const data = await res.json();
-      alert(`Moved to ${data.status}`); // or use showToast if you already have it
-      // TODO: refetch appointments if needed
-    } catch (err) {
-      alert(err.message);
-    }
-  };
-
   const navigate = useNavigate();
-  const handleAddCost = (appointment) => {
-    navigate(`/pharmacy/order/${appointment.id}`);
-  };
 
-  const handlePaymentComplete = (appointment) =>
-    transitionAppointment(appointment, "Payment Completed");
-
-  const handleDispense = (appointment) =>
-    transitionAppointment(appointment, "Medications Disbursed");
+  // ✅ check if at least one row has a valid consult action
+  const hasAnyConsultAction = paginatedAppointments.some((appt) =>
+    canShowConsultButton(appt, userRole)
+  );
 
   return (
     <PageContainer>
@@ -93,119 +69,44 @@ const Appointments = () => {
                 <th scope="col" className="px-6 py-3">
                   Status
                 </th>
-                <CanAccess
-                  allowedRoles={[
-                    ROLES.STUDENT,
-                    ROLES.LECTURER,
-                    ROLES.SYSTEMS_ADMIN,
-                  ]}
-                >
-                  <th scope="col" className="px-3 min-w-40 py-3">
-                    Action
-                  </th>
-                </CanAccess>
+                {hasAnyConsultAction && (
+                  <CanAccess allowedRoles={[ROLES.STUDENT, ROLES.LECTURER]}>
+                    <th scope="col" className="px-3 min-w-40 py-3">
+                      Action
+                    </th>
+                  </CanAccess>
+                )}
               </tr>
             </thead>
             <tbody>
-              {paginatedAppointments.map((appointment) => {
-                // ✅ Debug log per appointment
-                console.log("📌 Appointment:", {
-                  id: appointment.id,
-                  flow: appointment.flow,
-                  status: appointment.status,
-                });
-
-                return (
-                  <tr key={appointment.id} className="bg-white border-b">
-                    <td className="px-6 py-4">
-                      {appointment?.appointment_date}
-                    </td>
-                    <td className="px-6 py-4">{appointment?.patient_id}</td>
-                    <td className="px-6 py-4">{appointment?.patient_name}</td>
-                    <td className="px-6 py-4">
-                      {appointment?.appointment_type}
-                    </td>
-                    <td className="w-fit mx-auto">
-                      <span
-                        className={`px-6 rounded-full py-2 text-base font-medium text-white w-5 ${checkStatus(
-                          appointment?.status
-                        )}`}
-                      >
-                        {appointment?.status}
-                      </span>
-                    </td>
+              {paginatedAppointments.map((appointment) => (
+                <tr key={appointment.id} className="bg-white border-b">
+                  <td className="px-6 py-4">{appointment?.appointment_date}</td>
+                  <td className="px-6 py-4">{appointment?.patient_id}</td>
+                  <td className="px-6 py-4">{appointment?.patient_name}</td>
+                  <td className="px-6 py-4">{appointment?.appointment_type}</td>
+                  <td className="w-fit mx-auto">
+                    <span
+                      className={`px-6 rounded-full py-2 text-base font-medium text-white w-5 ${checkStatus(
+                        appointment?.status
+                      )}`}
+                    >
+                      {appointment?.status}
+                    </span>
+                  </td>
+                  {hasAnyConsultAction && (
                     <td className="px-6 py-4 flex gap-4">
-                      {/** STUDENTS + LECTURERS */}
                       <CanAccess allowedRoles={[ROLES.STUDENT, ROLES.LECTURER]}>
-                        <button
-                          onClick={() => handleConsult(appointment)}
-                          disabled={[
-                            "Management Created",
-                            "Case Management Guide Created",
-                            "Submitted For Review",
-                            "Under Review",
-                            "Scored",
-                            "Payment Completed",
-                            "Medications Disbursed",
-                            "Cancelled",
-                          ].includes(appointment.status)}
-                          className={`px-5 py-2.5 rounded-lg text-sm font-medium text-white ${
-                            [
-                              "Management Created",
-                              "Case Management Guide Created",
-                              "Submitted For Review",
-                              "Under Review",
-                              "Scored",
-                              "Payment Completed",
-                              "Medications Disbursed",
-                              "Cancelled",
-                            ].includes(appointment.status)
-                              ? "bg-gray-400 cursor-not-allowed"
-                              : "bg-green-700 hover:bg-green-800"
-                          }`}
-                        >
-                          {appointment.flow?.toLowerCase() ===
-                            "lecturer_reviewing" && userRole === ROLES.LECTURER
-                            ? "Review"
-                            : "Consult"}
-                        </button>
-                      </CanAccess>
-
-                      {/** PHARMACY → Add Cost */}
-                      <CanAccess allowedRoles={[ROLES.PHARMACY]}>
-                        {appointment.status === "Management Created" && (
-                          <button
-                            onClick={() => handleAddCost(appointment)}
-                            className="px-5 py-2.5 rounded-lg text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
-                          >
-                            Add Cost
-                          </button>
-                        )}
-                        {appointment.status === "Payment Completed" && (
-                          <button
-                            onClick={() => handleDispense(appointment)}
-                            className="px-5 py-2.5 rounded-lg text-sm font-medium text-white bg-purple-600 hover:bg-purple-700"
-                          >
-                            Dispense Medication
-                          </button>
-                        )}
-                      </CanAccess>
-
-                      {/** FINANCE → Mark Payment Completed */}
-                      <CanAccess allowedRoles={[ROLES.FINANCE]}>
-                        {appointment.status === "Management Created" && (
-                          <button
-                            onClick={() => handlePaymentComplete(appointment)}
-                            className="px-5 py-2.5 rounded-lg text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
-                          >
-                            Mark Payment Completed
-                          </button>
-                        )}
+                        <ConsultButton
+                          appointment={appointment}
+                          role={userRole}
+                          onClick={handleConsult}
+                        />
                       </CanAccess>
                     </td>
-                  </tr>
-                );
-              })}
+                  )}
+                </tr>
+              ))}
             </tbody>
           </table>
 

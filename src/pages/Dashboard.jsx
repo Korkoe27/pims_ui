@@ -12,6 +12,7 @@ import PageContainer from "../components/PageContainer";
 import CanAccess from "../components/auth/CanAccess";
 import { ROLES } from "../constants/roles";
 import ConsultButton from "../components/ui/buttons/ConsultButton";
+import { canShowConsultButton } from "../utils/canShowConsultButton"; // ✅ helper
 
 const Dashboard = () => {
   const { handleConsult } = useHandleConsult();
@@ -38,6 +39,11 @@ const Dashboard = () => {
   const totalAppointments = dashboardData?.total_appointments || 0;
   const completedAppointments = dashboardData?.completed_appointments || 0;
   const pendingAppointments = dashboardData?.pending_appointments || 0;
+
+  // ✅ check if at least one consult action should render
+  const hasAnyConsultAction = scheduledAppointments.some((appt) =>
+    canShowConsultButton(appt, currentUserRole)
+  );
 
   return (
     <PageContainer>
@@ -92,24 +98,21 @@ const Dashboard = () => {
                 <th className="px-3 py-3">Patient’s ID</th>
                 <th className="px-3 py-3">Name</th>
                 <th className="px-3 py-3">Appointment Type</th>
-                <CanAccess allowedRoles={[ROLES.STUDENT, ROLES.LECTURER]}>
-                  <th className="px-3 py-3 text-center">Action</th>
-                </CanAccess>
+                {hasAnyConsultAction && (
+                  <CanAccess allowedRoles={[ROLES.STUDENT, ROLES.LECTURER]}>
+                    <th className="px-3 py-3 text-center">Action</th>
+                  </CanAccess>
+                )}
               </tr>
             </thead>
             <tbody>
-              {scheduledAppointments.slice(0, 5).map((appointment) => {
-
-                return (
-                  <tr key={appointment.id} className="bg-white border-b">
-                    <td className="px-3 py-3">
-                      {appointment.appointment_date}
-                    </td>
-                    <td className="px-3 py-3">{appointment.patient_id}</td>
-                    <td className="px-3 py-3">{appointment.patient_name}</td>
-                    <td className="px-3 py-3">
-                      {appointment.appointment_type}
-                    </td>
+              {scheduledAppointments.slice(0, 5).map((appointment) => (
+                <tr key={appointment.id} className="bg-white border-b">
+                  <td className="px-3 py-3">{appointment.appointment_date}</td>
+                  <td className="px-3 py-3">{appointment.patient_id}</td>
+                  <td className="px-3 py-3">{appointment.patient_name}</td>
+                  <td className="px-3 py-3">{appointment.appointment_type}</td>
+                  {hasAnyConsultAction && (
                     <CanAccess allowedRoles={[ROLES.STUDENT, ROLES.LECTURER]}>
                       <td className="py-3 flex justify-center">
                         <ConsultButton
@@ -119,9 +122,9 @@ const Dashboard = () => {
                         />
                       </td>
                     </CanAccess>
-                  </tr>
-                );
-              })}
+                  )}
+                </tr>
+              ))}
             </tbody>
           </table>
         ) : (
