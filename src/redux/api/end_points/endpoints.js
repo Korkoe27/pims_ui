@@ -39,10 +39,10 @@ export const updatePatientDetailsUrl = (patientId) =>
   `/clients/update-patient/${patientId}/`;
 
 // List all patients
-export const listAllPatientsUrl = `/clients/patients/`;
+export const listAllPatientsUrl = `/clients/`;
 
 // Create a new patient
-export const createNewPatientUrl = "/clients/patients/";
+export const createNewPatientUrl = "/clients/";
 // Fetch patient appointments
 export const fetchPatientAppointmentsUrl = (patientId) =>
   `/clients/${patientId}/appointments/`;
@@ -67,10 +67,6 @@ export const getTodaysAppointmentUrl = "/clients/appointments/today/";
 // Reuse your existing FSM transition:
 export const transitionAppointmentUrl = (appointmentId) =>
   `/clients/appointments/${appointmentId}/transition/`;
-
-// // Handoff
-// export const handoffAppointmentUrl = (appointmentId) =>
-//   `/clients/appointments/${appointmentId}/handoff/`;
 
 // Submit for review
 export const submitAppointmentForReviewUrl = (appointmentId) =>

@@ -29,9 +29,10 @@ const Dashboard = () => {
     }
   }, [dashboardError, dispatch]);
 
-  const scheduledAppointments = dashboardData?.scheduled_appointments?.data || [];
+  const scheduledAppointments =
+    dashboardData?.scheduled_appointments?.data || [];
   const pendingReviews = dashboardData?.pending_reviews?.data || [];
-  const totalPatients = dashboardData?.total_patients || 0;
+  // const totalPatients = dashboardData?.total_patients || 0;
   const totalAppointments = dashboardData?.total_appointments || 0;
   const completedAppointments = dashboardData?.completed_appointments || 0;
   const pendingAppointments = dashboardData?.pending_appointments || 0;
@@ -103,7 +104,9 @@ const Dashboard = () => {
                   <td className="px-3 py-3">{appointment.appointment_type}</td>
                   <CanAccess allowedRoles={[ROLES.STUDENT, ROLES.LECTURER]}>
                     <td className="py-3 flex justify-center">
-                       <ConsultButton onClick={() => handleConsult(appointment)} />
+                      <ConsultButton
+                        onClick={() => handleConsult(appointment)}
+                      />
                     </td>
                   </CanAccess>
                 </tr>
@@ -111,7 +114,9 @@ const Dashboard = () => {
             </tbody>
           </table>
         ) : (
-          <p className="text-gray-500 text-center">No scheduled appointments available.</p>
+          <p className="text-gray-500 text-center">
+            No scheduled appointments available.
+          </p>
         )}
       </div>
 
@@ -157,7 +162,9 @@ const Dashboard = () => {
             </tbody>
           </table>
         ) : (
-          <p className="text-gray-500 text-center">No pending reviews available.</p>
+          <p className="text-gray-500 text-center">
+            No pending reviews available.
+          </p>
         )}
       </div>
     </PageContainer>
