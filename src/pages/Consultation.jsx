@@ -1,9 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import {
-  useGetAppointmentDetailsQuery,
-  useGetAppointmentFlowContextQuery,
-} from "../redux/api/features/appointmentsApi";
+import { useGetAppointmentDetailsQuery } from "../redux/api/features/appointmentsApi";
 
 import Header from "../components/Header";
 import ProgressBar from "../components/ProgressBar";
@@ -79,22 +76,6 @@ const Consultation = () => {
     isLoading,
   } = useGetAppointmentDetailsQuery(appointmentId);
 
-  const {
-    data: flowContext,
-    isLoading: loadingFlow,
-    error: flowError,
-  } = useGetAppointmentFlowContextQuery(appointmentId, {
-    skip: !appointmentId,
-  });
-
-  // Keep backend flow in sync with local state
-  useEffect(() => {
-    if (flowContext?.current_step) {
-      _setFlowStep(flowContext.current_step);
-      localStorage.setItem(LOCAL_FLOW_KEY, flowContext.current_step);
-    }
-  }, [flowContext]);
-
   // ✅ Align with the progress bar (5 visible steps)
   const stepMap = {
     consultation: 1,
@@ -104,24 +85,35 @@ const Consultation = () => {
     dispensing: 5,
   };
 
-  // Normalize backend flow kinds into our UI step keys
-  const normalizeStep = (flowContext, fallback = "consultation") => {
-    if (!flowContext) return fallback;
+  // ✅ Map appointment.status to flowStep
+  useEffect(() => {
+    if (!selectedAppointment) return;
 
-    switch (flowContext.flow) {
-      case "STUDENT_CONSULTING":
-      case "LECTURER_CONSULTING":
-      case "LECTURER_REVIEWING":
-        return "consultation";
-      default:
-        // allow backend to override if it sends current_step
-        return flowContext.current_step || fallback;
+    const status = selectedAppointment.status;
+
+    if (
+      [
+        "Scheduled",
+        "Consultation In Progress",
+        "Examinations Recorded",
+        "Diagnosis Added",
+        "Management Created",
+        "Case Management Guide Created",
+      ].includes(status)
+    ) {
+      setFlowStep("consultation");
+    } else if (["Submitted For Review", "Under Review"].includes(status)) {
+      setFlowStep("diagnosis");
+    } else if (status === "Scored") {
+      setFlowStep("management");
+    } else if (status === "Payment Completed") {
+      setFlowStep("payment");
+    } else if (status === "Medications Disbursed") {
+      setFlowStep("dispensing");
     }
-  };
+  }, [selectedAppointment]);
 
-  const currentStep = normalizeStep(flowContext, flowStep);
-
-  if (isLoading || loadingFlow) {
+  if (isLoading) {
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-white z-50">
         <BouncingBallsLoader />
@@ -129,8 +121,8 @@ const Consultation = () => {
     );
   }
 
-  if (error || flowError || !selectedAppointment) {
-    console.error("❌ Error fetching appointment details/flow. Redirecting...");
+  if (error || !selectedAppointment) {
+    console.error("❌ Error fetching appointment details. Redirecting...");
     navigate("/");
     return <p>Redirecting to Dashboard...</p>;
   }
@@ -217,7 +209,7 @@ const Consultation = () => {
   // Render flow-level content
   // -------------------------
   const renderFlowStep = () => {
-    switch (currentStep) {
+    switch (flowStep) {
       case "consultation":
         return (
           <>
@@ -267,29 +259,8 @@ const Consultation = () => {
         <h1 className="font-extrabold text-xl mb-2">Consultation</h1>
         <Header patient={selectedAppointment} appointmentId={appointmentId} />
 
-        {/* Debug / status panel */}
-        {flowContext && (
-          <div className="p-3 bg-blue-50 rounded mb-4 text-sm">
-            <p>
-              <strong>Status:</strong> {flowContext.status}
-            </p>
-            <p>
-              <strong>Flow:</strong> {flowContext.flow}
-            </p>
-            <p>
-              <strong>Role:</strong> {flowContext.role}
-            </p>
-            <p>
-              <strong>Permissions:</strong>{" "}
-              {Object.entries(flowContext.permissions || {})
-                .map(([k, v]) => `${k}: ${v}`)
-                .join(", ")}
-            </p>
-          </div>
-        )}
-
         <div className="mt-4 mb-6">
-          <ProgressBar step={stepMap[currentStep] || 1} />
+          <ProgressBar step={stepMap[flowStep] || 1} />
         </div>
 
         <div className="mb-10">{renderFlowStep()}</div>
