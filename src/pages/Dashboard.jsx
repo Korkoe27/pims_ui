@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { HiOutlineUser } from "react-icons/hi2";
 import { LuClock3 } from "react-icons/lu";
 import { FiUserCheck } from "react-icons/fi";
@@ -11,11 +11,15 @@ import useHandleConsult from "../hooks/useHandleConsult";
 import PageContainer from "../components/PageContainer";
 import CanAccess from "../components/auth/CanAccess";
 import { ROLES } from "../constants/roles";
-import ConsultButton from "../components/ui/buttons";
+import ConsultButton from "../components/ui/buttons/ConsultButton";
 
 const Dashboard = () => {
   const { handleConsult } = useHandleConsult();
   const dispatch = useDispatch();
+
+  // 🔑 get current user role from auth slice
+  const currentUserRole = useSelector((state) => state.auth.user?.role);
+
   const {
     data: dashboardData,
     isLoading: dashboardLoading,
@@ -32,10 +36,15 @@ const Dashboard = () => {
   const scheduledAppointments =
     dashboardData?.scheduled_appointments?.data || [];
   const pendingReviews = dashboardData?.pending_reviews?.data || [];
-  // const totalPatients = dashboardData?.total_patients || 0;
   const totalAppointments = dashboardData?.total_appointments || 0;
   const completedAppointments = dashboardData?.completed_appointments || 0;
   const pendingAppointments = dashboardData?.pending_appointments || 0;
+
+  // 🔍 Debug logs
+  useEffect(() => {
+    console.log("🔍 Dashboard Data:", dashboardData);
+    console.log("🔍 Current Role:", currentUserRole);
+  }, [dashboardData, currentUserRole]);
 
   return (
     <PageContainer>
@@ -96,21 +105,34 @@ const Dashboard = () => {
               </tr>
             </thead>
             <tbody>
-              {scheduledAppointments.slice(0, 5).map((appointment) => (
-                <tr key={appointment.id} className="bg-white border-b">
-                  <td className="px-3 py-3">{appointment.appointment_date}</td>
-                  <td className="px-3 py-3">{appointment.patient_id}</td>
-                  <td className="px-3 py-3">{appointment.patient_name}</td>
-                  <td className="px-3 py-3">{appointment.appointment_type}</td>
-                  <CanAccess allowedRoles={[ROLES.STUDENT, ROLES.LECTURER]}>
-                    <td className="py-3 flex justify-center">
-                      <ConsultButton
-                        onClick={() => handleConsult(appointment)}
-                      />
+              {scheduledAppointments.slice(0, 5).map((appointment) => {
+                console.log("🔍 Passing to ConsultButton (Upcoming):", {
+                  appointment,
+                  role: currentUserRole,
+                });
+
+                return (
+                  <tr key={appointment.id} className="bg-white border-b">
+                    <td className="px-3 py-3">
+                      {appointment.appointment_date}
                     </td>
-                  </CanAccess>
-                </tr>
-              ))}
+                    <td className="px-3 py-3">{appointment.patient_id}</td>
+                    <td className="px-3 py-3">{appointment.patient_name}</td>
+                    <td className="px-3 py-3">
+                      {appointment.appointment_type}
+                    </td>
+                    <CanAccess allowedRoles={[ROLES.STUDENT, ROLES.LECTURER]}>
+                      <td className="py-3 flex justify-center">
+                        <ConsultButton
+                          appointment={appointment}
+                          role={currentUserRole}
+                          onClick={handleConsult}
+                        />
+                      </td>
+                    </CanAccess>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         ) : (
@@ -141,24 +163,34 @@ const Dashboard = () => {
               </tr>
             </thead>
             <tbody>
-              {pendingReviews.map((appointment) => (
-                <tr key={appointment.id} className="bg-white border-b">
-                  <td className="px-3 py-3">{appointment.appointment_date}</td>
-                  <td className="px-3 py-3">{appointment.patient_id}</td>
-                  <td className="px-3 py-3">{appointment.patient_name}</td>
-                  <td className="px-3 py-3">{appointment.appointment_type}</td>
-                  <CanAccess allowedRoles={[ROLES.LECTURER, ROLES.STUDENT]}>
-                    <td className="py-3 flex justify-center">
-                      <button
-                        className="text-white bg-[#2f3192] px-4 py-2 rounded-lg"
-                        onClick={() => handleConsult(appointment)}
-                      >
-                        Review Case
-                      </button>
+              {pendingReviews.map((appointment) => {
+                console.log("🔍 Passing to ConsultButton (Pending):", {
+                  appointment,
+                  role: currentUserRole,
+                });
+
+                return (
+                  <tr key={appointment.id} className="bg-white border-b">
+                    <td className="px-3 py-3">
+                      {appointment.appointment_date}
                     </td>
-                  </CanAccess>
-                </tr>
-              ))}
+                    <td className="px-3 py-3">{appointment.patient_id}</td>
+                    <td className="px-3 py-3">{appointment.patient_name}</td>
+                    <td className="px-3 py-3">
+                      {appointment.appointment_type}
+                    </td>
+                    <CanAccess allowedRoles={[ROLES.LECTURER, ROLES.STUDENT]}>
+                      <td className="py-3 flex justify-center">
+                        <ConsultButton
+                          appointment={appointment}
+                          role={currentUserRole}
+                          onClick={handleConsult}
+                        />
+                      </td>
+                    </CanAccess>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         ) : (
