@@ -28,41 +28,59 @@ export const getDashboardDataUrl = "summary/api/dashboard/";
 
 // Fetch single patient details
 export const fetchSinglePatientDetailsUrl = (patientId) =>
-  `/clients/api/patient-detail/${patientId}/`;
+  `/clients/patient-detail/${patientId}/`;
 
 // Search for patients
 export const searchPatientsUrl = (searchQuery) =>
-  `/clients/api/search/?search=${searchQuery}`;
+  `/clients/search/?search=${searchQuery}`;
 
 // Update patient details
 export const updatePatientDetailsUrl = (patientId) =>
-  `/clients/api/update-patient/${patientId}/`;
+  `/clients/update-patient/${patientId}/`;
 
 // List all patients
-export const listAllPatientsUrl = `/clients/api/patients/`;
+export const listAllPatientsUrl = `/clients/patients/`;
 
 // Create a new patient
-export const createNewPatientUrl = "/clients/api/patients/";
-
+export const createNewPatientUrl = "/clients/patients/";
 // Fetch patient appointments
 export const fetchPatientAppointmentsUrl = (patientId) =>
-  `/clients/api/${patientId}/appointments/`;
+  `/clients/${patientId}/appointments/`;
 
 /////////////////////////
 // Appointments
 /////////////////////////
 
-export const createNewAppointmentUrl = "/clients/api/appointments/";
-export const fetchAppointmentsUrl = "clients/api/appointments/";
+export const createNewAppointmentUrl = "/clients/appointments/";
+export const fetchAppointmentsUrl = "/clients/appointments/";
 export const getAppointmentsDetailsUrl = (appointmentId) =>
-  `/clients/api/appointments/${appointmentId}/`;
+  `/clients/appointments/${appointmentId}/`;
 
 // ✅ Mark appointment as completed
 export const markAppointmentCompletedUrl = (appointmentId) =>
-  `/clients/api/${appointmentId}/complete/`;
+  `/clients/${appointmentId}/complete/`;
 
 // ✅ Get today's appointments
-export const getTodaysAppointmentUrl = "/clients/api/appointments/today/";
+export const getTodaysAppointmentUrl = "/clients/appointments/today/";
+
+
+// Reuse your existing FSM transition:
+export const transitionAppointmentUrl = (appointmentId) =>
+  `/clients/appointments/${appointmentId}/transition/`;
+
+// // Handoff
+// export const handoffAppointmentUrl = (appointmentId) =>
+//   `/clients/appointments/${appointmentId}/handoff/`;
+
+// Submit for review
+export const submitAppointmentForReviewUrl = (appointmentId) =>
+  `/clients/appointments/${appointmentId}/submit_for_review/`;
+
+// Flow context
+export const flowContextAppointmentUrl = (appointmentId) =>
+  `/clients/appointments/${appointmentId}/flow-context/`;
+
+
 
 /////////////////////////
 // Case History
@@ -227,9 +245,6 @@ export const getPharmacyOrderUrl = (appointmentId) =>
 export const upsertPharmacyOrderUrl = (appointmentId) =>
   `/pharmacy/api/orders/${appointmentId}/`;
 
-// Reuse your existing FSM transition:
-export const transitionAppointmentUrl = (appointmentId) =>
-  `/clients/api/appointments/${appointmentId}/transition/`;
 
 /////////////////////////
 // WebSocket

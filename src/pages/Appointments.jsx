@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useSelector } from "react-redux";
 import LoadingSpinner from "../components/LoadingSpinner";
 import Pagination from "../components/Pagination";
 import useHandleConsult from "../hooks/useHandleConsult";
@@ -9,6 +10,10 @@ import { useGetTodaysAppointmentsQuery } from "../redux/api/features/appointment
 import { useNavigate } from "react-router-dom";
 
 const Appointments = () => {
+  // ✅ get logged in user role from redux state
+  const userRole = useSelector((state) => state.auth?.user?.role);
+  console.log("🔎 Logged-in user role:", userRole);
+
   const { handleConsult } = useHandleConsult();
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
@@ -102,38 +107,39 @@ const Appointments = () => {
               </tr>
             </thead>
             <tbody>
-              {paginatedAppointments.map((appointment) => (
-                <tr key={appointment.id} className="bg-white border-b">
-                  <td className="px-6 py-4">{appointment?.appointment_date}</td>
-                  <td className="px-6 py-4">{appointment?.patient_id}</td>
-                  <td className="px-6 py-4">{appointment?.patient_name}</td>
-                  <td className="px-6 py-4">{appointment?.appointment_type}</td>
-                  <td className="w-fit mx-auto">
-                    <span
-                      className={`px-6 rounded-full py-2 text-base font-medium text-white w-5 ${checkStatus(
-                        appointment?.status
-                      )}`}
-                    >
-                      {appointment?.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 flex gap-4">
-                    {/** STUDENTS + LECTURERS */}
-                    <CanAccess allowedRoles={[ROLES.STUDENT, ROLES.LECTURER]}>
-                      <button
-                        onClick={() => handleConsult(appointment)}
-                        disabled={[
-                          "Management Created",
-                          "Case Management Guide Created",
-                          "Submitted For Review",
-                          "Under Review",
-                          "Scored",
-                          "Payment Completed",
-                          "Medications Disbursed",
-                          "Cancelled",
-                        ].includes(appointment.status)}
-                        className={`px-5 py-2.5 rounded-lg text-sm font-medium text-white ${
-                          [
+              {paginatedAppointments.map((appointment) => {
+                // ✅ Debug log per appointment
+                console.log("📌 Appointment:", {
+                  id: appointment.id,
+                  flow: appointment.flow,
+                  status: appointment.status,
+                });
+
+                return (
+                  <tr key={appointment.id} className="bg-white border-b">
+                    <td className="px-6 py-4">
+                      {appointment?.appointment_date}
+                    </td>
+                    <td className="px-6 py-4">{appointment?.patient_id}</td>
+                    <td className="px-6 py-4">{appointment?.patient_name}</td>
+                    <td className="px-6 py-4">
+                      {appointment?.appointment_type}
+                    </td>
+                    <td className="w-fit mx-auto">
+                      <span
+                        className={`px-6 rounded-full py-2 text-base font-medium text-white w-5 ${checkStatus(
+                          appointment?.status
+                        )}`}
+                      >
+                        {appointment?.status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 flex gap-4">
+                      {/** STUDENTS + LECTURERS */}
+                      <CanAccess allowedRoles={[ROLES.STUDENT, ROLES.LECTURER]}>
+                        <button
+                          onClick={() => handleConsult(appointment)}
+                          disabled={[
                             "Management Created",
                             "Case Management Guide Created",
                             "Submitted For Review",
@@ -142,49 +148,64 @@ const Appointments = () => {
                             "Payment Completed",
                             "Medications Disbursed",
                             "Cancelled",
-                          ].includes(appointment.status)
-                            ? "bg-gray-400 cursor-not-allowed"
-                            : "bg-green-700 hover:bg-green-800"
-                        }`}
-                      >
-                        Consult
-                      </button>
-                    </CanAccess>
+                          ].includes(appointment.status)}
+                          className={`px-5 py-2.5 rounded-lg text-sm font-medium text-white ${
+                            [
+                              "Management Created",
+                              "Case Management Guide Created",
+                              "Submitted For Review",
+                              "Under Review",
+                              "Scored",
+                              "Payment Completed",
+                              "Medications Disbursed",
+                              "Cancelled",
+                            ].includes(appointment.status)
+                              ? "bg-gray-400 cursor-not-allowed"
+                              : "bg-green-700 hover:bg-green-800"
+                          }`}
+                        >
+                          {appointment.flow?.toLowerCase() ===
+                            "lecturer_reviewing" && userRole === ROLES.LECTURER
+                            ? "Review"
+                            : "Consult"}
+                        </button>
+                      </CanAccess>
 
-                    {/** PHARMACY → Add Cost */}
-                    <CanAccess allowedRoles={[ROLES.PHARMACY]}>
-                      {appointment.status === "Management Created" && (
-                        <button
-                          onClick={() => handleAddCost(appointment)}
-                          className="px-5 py-2.5 rounded-lg text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
-                        >
-                          Add Cost
-                        </button>
-                      )}
-                      {appointment.status === "Payment Completed" && (
-                        <button
-                          onClick={() => handleDispense(appointment)}
-                          className="px-5 py-2.5 rounded-lg text-sm font-medium text-white bg-purple-600 hover:bg-purple-700"
-                        >
-                          Dispense Medication
-                        </button>
-                      )}
-                    </CanAccess>
+                      {/** PHARMACY → Add Cost */}
+                      <CanAccess allowedRoles={[ROLES.PHARMACY]}>
+                        {appointment.status === "Management Created" && (
+                          <button
+                            onClick={() => handleAddCost(appointment)}
+                            className="px-5 py-2.5 rounded-lg text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
+                          >
+                            Add Cost
+                          </button>
+                        )}
+                        {appointment.status === "Payment Completed" && (
+                          <button
+                            onClick={() => handleDispense(appointment)}
+                            className="px-5 py-2.5 rounded-lg text-sm font-medium text-white bg-purple-600 hover:bg-purple-700"
+                          >
+                            Dispense Medication
+                          </button>
+                        )}
+                      </CanAccess>
 
-                    {/** FINANCE → Mark Payment Completed */}
-                    <CanAccess allowedRoles={[ROLES.FINANCE]}>
-                      {appointment.status === "Management Created" && (
-                        <button
-                          onClick={() => handlePaymentComplete(appointment)}
-                          className="px-5 py-2.5 rounded-lg text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
-                        >
-                          Mark Payment Completed
-                        </button>
-                      )}
-                    </CanAccess>
-                  </td>
-                </tr>
-              ))}
+                      {/** FINANCE → Mark Payment Completed */}
+                      <CanAccess allowedRoles={[ROLES.FINANCE]}>
+                        {appointment.status === "Management Created" && (
+                          <button
+                            onClick={() => handlePaymentComplete(appointment)}
+                            className="px-5 py-2.5 rounded-lg text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
+                          >
+                            Mark Payment Completed
+                          </button>
+                        )}
+                      </CanAccess>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
 

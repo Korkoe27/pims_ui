@@ -1,6 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useGetAppointmentDetailsQuery } from "../redux/api/features/appointmentsApi";
+import {
+  useGetAppointmentDetailsQuery,
+  useGetAppointmentFlowContextQuery,
+} from "../redux/api/features/appointmentsApi";
 
 import Header from "../components/Header";
 import ProgressBar from "../components/ProgressBar";
@@ -21,10 +24,6 @@ import BouncingBallsLoader from "../components/BouncingBallsLoader";
 import Payment from "../components/Payment";
 import MedicationDispensing from "../components/MedicationDispensing";
 
-// ❌ Removed (no longer part of the flow)
-// import CompleteConsultation from "../components/CompleteConsultation";
-// import Grading from "../components/Grading";
-
 const Consultation = () => {
   const { appointmentId } = useParams();
   const navigate = useNavigate();
@@ -33,16 +32,16 @@ const Consultation = () => {
   const LOCAL_FLOW_KEY = `consultation-${appointmentId}-flowStep`;
   const LOCAL_STATUS_KEY = `consultation-${appointmentId}-tabCompletionStatus`;
 
+  // Local tab state (case history, VA, externals, etc.)
   const [activeTab, _setActiveTab] = useState(() => {
     const stored = localStorage.getItem(LOCAL_TAB_KEY);
     return stored || "case history";
-    // Tabs: case history | oculo-medical history | personal history | visual acuity | externals | internals | refraction | extra tests | case management guide
   });
 
+  // Local fallback for flow step
   const [flowStep, _setFlowStep] = useState(() => {
     const stored = localStorage.getItem(LOCAL_FLOW_KEY);
     return stored || "consultation";
-    // Flow: consultation | diagnosis | management | payment | dispensing
   });
 
   const [tabCompletionStatus, _setTabCompletionStatus] = useState(() => {
@@ -71,11 +70,30 @@ const Consultation = () => {
     });
   };
 
+  // ================================
+  // Backend Data
+  // ================================
   const {
     data: selectedAppointment,
     error,
     isLoading,
   } = useGetAppointmentDetailsQuery(appointmentId);
+
+  const {
+    data: flowContext,
+    isLoading: loadingFlow,
+    error: flowError,
+  } = useGetAppointmentFlowContextQuery(appointmentId, {
+    skip: !appointmentId,
+  });
+
+  // Keep backend flow in sync with local state
+  useEffect(() => {
+    if (flowContext?.current_step) {
+      _setFlowStep(flowContext.current_step);
+      localStorage.setItem(LOCAL_FLOW_KEY, flowContext.current_step);
+    }
+  }, [flowContext]);
 
   // ✅ Align with the progress bar (5 visible steps)
   const stepMap = {
@@ -83,10 +101,27 @@ const Consultation = () => {
     diagnosis: 2,
     management: 3,
     payment: 4,
-    dispensing: 5, // final step
+    dispensing: 5,
   };
 
-  if (isLoading) {
+  // Normalize backend flow kinds into our UI step keys
+  const normalizeStep = (flowContext, fallback = "consultation") => {
+    if (!flowContext) return fallback;
+
+    switch (flowContext.flow) {
+      case "STUDENT_CONSULTING":
+      case "LECTURER_CONSULTING":
+      case "LECTURER_REVIEWING":
+        return "consultation";
+      default:
+        // allow backend to override if it sends current_step
+        return flowContext.current_step || fallback;
+    }
+  };
+
+  const currentStep = normalizeStep(flowContext, flowStep);
+
+  if (isLoading || loadingFlow) {
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-white z-50">
         <BouncingBallsLoader />
@@ -94,12 +129,15 @@ const Consultation = () => {
     );
   }
 
-  if (error || !selectedAppointment) {
-    console.error("❌ Error fetching appointment details. Redirecting...");
+  if (error || flowError || !selectedAppointment) {
+    console.error("❌ Error fetching appointment details/flow. Redirecting...");
     navigate("/");
     return <p>Redirecting to Dashboard...</p>;
   }
 
+  // --------------------------------
+  // Tab Content (inside consultation)
+  // --------------------------------
   const renderTabContent = () => {
     const tab = activeTab.toLowerCase();
     switch (tab) {
@@ -175,8 +213,11 @@ const Consultation = () => {
     }
   };
 
+  // -------------------------
+  // Render flow-level content
+  // -------------------------
   const renderFlowStep = () => {
-    switch (flowStep) {
+    switch (currentStep) {
       case "consultation":
         return (
           <>
@@ -193,7 +234,7 @@ const Consultation = () => {
           <Diagnosis
             setActiveTab={setActiveTab}
             appointmentId={appointmentId}
-            setFlowStep={setFlowStep} // ➜ call setFlowStep("management") on continue
+            setFlowStep={setFlowStep}
           />
         );
       case "management":
@@ -201,21 +242,18 @@ const Consultation = () => {
           <Management
             setActiveTab={setActiveTab}
             appointmentId={appointmentId}
-            setFlowStep={setFlowStep} // ➜ call setFlowStep("payment") on proceed
+            setFlowStep={setFlowStep}
           />
         );
       case "payment":
         return (
-          <Payment
-            appointmentId={appointmentId}
-            setFlowStep={setFlowStep} // ➜ call setFlowStep("dispensing") when confirmed
-          />
+          <Payment appointmentId={appointmentId} setFlowStep={setFlowStep} />
         );
       case "dispensing":
         return (
           <MedicationDispensing
             appointmentId={appointmentId}
-            setFlowStep={setFlowStep} // final step; do not advance further
+            setFlowStep={setFlowStep}
           />
         );
       default:
@@ -228,9 +266,32 @@ const Consultation = () => {
       <div className="max-w-6xl mx-auto">
         <h1 className="font-extrabold text-xl mb-2">Consultation</h1>
         <Header patient={selectedAppointment} appointmentId={appointmentId} />
+
+        {/* Debug / status panel */}
+        {flowContext && (
+          <div className="p-3 bg-blue-50 rounded mb-4 text-sm">
+            <p>
+              <strong>Status:</strong> {flowContext.status}
+            </p>
+            <p>
+              <strong>Flow:</strong> {flowContext.flow}
+            </p>
+            <p>
+              <strong>Role:</strong> {flowContext.role}
+            </p>
+            <p>
+              <strong>Permissions:</strong>{" "}
+              {Object.entries(flowContext.permissions || {})
+                .map(([k, v]) => `${k}: ${v}`)
+                .join(", ")}
+            </p>
+          </div>
+        )}
+
         <div className="mt-4 mb-6">
-          <ProgressBar step={stepMap[flowStep] || 1} />
+          <ProgressBar step={stepMap[currentStep] || 1} />
         </div>
+
         <div className="mb-10">{renderFlowStep()}</div>
       </div>
     </div>
@@ -238,4 +299,3 @@ const Consultation = () => {
 };
 
 export default Consultation;
-// This file orchestrates the consultation flow: Consultation → Diagnosis → Management → Payment → Medication Dispensing.
