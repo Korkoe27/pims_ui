@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import useFetchConditionsData from "../hooks/useFetchConditionsData";
+import { useSelector } from "react-redux";
+import { useGetAppointmentDetailsQuery } from "../redux/api/features/appointmentsApi";
 import {
   useCreateCaseHistoryMutation,
   useFetchCaseHistoryQuery,
@@ -40,6 +42,11 @@ const CaseHistory = ({
   const [initialPayload, setInitialPayload] = useState(null);
 
   const isLoading = loadingCaseHistory || loadingConditions;
+  const role = useSelector((state) => state.auth.user?.role);
+  // fetch appointment details (which includes is_student_case)
+  const { data: appointment } = useGetAppointmentDetailsQuery(appointmentId, {
+    skip: !appointmentId,
+  });
 
   useEffect(() => {
     if (caseHistory) {
@@ -221,12 +228,12 @@ const CaseHistory = ({
       <div className="bg-white rounded-md shadow p-4">
         <div className="flex justify-between items-center mb-4">
           <h1 className="text-2xl font-bold">Case History</h1>
-          {caseHistory && (
+          {appointment?.is_student_case && role === "lecturer" && (
             <SupervisorGradingButton
               sectionLabel="Grading: Case History"
               averageMarks={76.8}
               // onSubmit={({ marks, remarks }) => {
-              //   submitDiagnosisGrading({ appointmentId, marks, remarks });
+              //   submitCaseHistoryGrading({ appointmentId, marks, remarks });
               // }}
             />
           )}
