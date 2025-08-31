@@ -6,6 +6,10 @@ import {
   useCreateCaseHistoryMutation,
   useFetchCaseHistoryQuery,
 } from "../redux/api/features/caseHistoryApi";
+import {
+  useCreateGradingMutation,
+  useGetGradingQuery,
+} from "../redux/api/features/gradingApi";
 import ConditionPicker from "./ConditionPicker";
 import { showToast } from "../components/ToasterHelper";
 import DeleteButton from "./DeleteButton";
@@ -40,6 +44,12 @@ const CaseHistory = ({
   const [chiefComplaint, setChiefComplaint] = useState("");
   const [selectedConditions, setSelectedConditions] = useState([]);
   const [initialPayload, setInitialPayload] = useState(null);
+
+  // Grading functionality
+  const [createGrading] = useCreateGradingMutation();
+  const { data: existingGrading } = useGetGradingQuery(appointmentId, {
+    skip: !appointmentId,
+  });
 
   const isLoading = loadingCaseHistory || loadingConditions;
   const role = useSelector((state) => state.auth.user?.role);
@@ -150,6 +160,23 @@ const CaseHistory = ({
     setSelectedConditions((prev) => prev.filter((c) => c.id !== id));
   };
 
+  const handleSubmitGrading = async ({ marks, remarks }) => {
+    try {
+      await createGrading({
+        appointmentId,
+        body: {
+          marks,
+          remarks,
+          section_type: "case_history",
+        },
+      }).unwrap();
+      showToast("Grading submitted successfully!", "success");
+    } catch (error) {
+      console.error("❌ Error submitting grading:", error);
+      showToast("Failed to submit grading.", "error");
+    }
+  };
+
   const handleSaveAndProceed = async () => {
     if (!chiefComplaint.trim()) {
       showToast("Chief complaint cannot be empty. 👍", "error");
@@ -231,10 +258,9 @@ const CaseHistory = ({
           {appointment?.is_student_case && role === "lecturer" && (
             <SupervisorGradingButton
               sectionLabel="Grading: Case History"
-              averageMarks={76.8}
-              // onSubmit={({ marks, remarks }) => {
-              //   submitCaseHistoryGrading({ appointmentId, marks, remarks });
-              // }}
+              averageMarks={existingGrading?.marks || 0}
+              existingRemarks={existingGrading?.remarks}
+              onSubmit={handleSubmitGrading}
             />
           )}
         </div>

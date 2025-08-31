@@ -63,7 +63,6 @@ export const markAppointmentCompletedUrl = (appointmentId) =>
 // ✅ Get today's appointments
 export const getTodaysAppointmentUrl = "/clients/appointments/today/";
 
-
 // Reuse your existing FSM transition:
 export const transitionAppointmentUrl = (appointmentId) =>
   `/clients/appointments/${appointmentId}/transition/`;
@@ -75,8 +74,6 @@ export const submitAppointmentForReviewUrl = (appointmentId) =>
 // Flow context
 export const flowContextAppointmentUrl = (appointmentId) =>
   `/clients/appointments/${appointmentId}/flow-context/`;
-
-
 
 /////////////////////////
 // Case History
@@ -213,8 +210,8 @@ export const managementPlanUrl = (appointmentId) =>
 export const absentRequestsUrl = "/absences/absent-requests/";
 
 // Update absent request by ID
-export const updateAbsentRequestUrl = (id) => `/absences/absent-requests/${id}/`;
-
+export const updateAbsentRequestUrl = (id) =>
+  `/absences/absent-requests/${id}/`;
 
 /////////////////////////
 // Clinic Schedule
@@ -241,6 +238,21 @@ export const getPharmacyOrderUrl = (appointmentId) =>
 export const upsertPharmacyOrderUrl = (appointmentId) =>
   `/pharmacy/api/orders/${appointmentId}/`;
 
+/////////////////////////
+// Grading
+/////////////////////////
+
+// Get all grades for an appointment
+export const gradingUrl = (appointmentId) =>
+  `/grading/api/appointments/${appointmentId}/grades/`;
+
+// Grade a specific section
+export const sectionGradingUrl = (appointmentId, section) =>
+  `/grading/api/appointments/${appointmentId}/sections/${section}/`;
+
+// Final grading
+export const finalGradingUrl = (appointmentId) =>
+  `/grading/api/appointments/${appointmentId}/final/`;
 
 /////////////////////////
 // WebSocket
