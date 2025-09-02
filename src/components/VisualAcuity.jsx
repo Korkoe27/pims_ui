@@ -11,10 +11,6 @@ import { hasFormChanged } from "../utils/deepCompare";
 import NavigationButtons from "../components/NavigationButtons";
 import SupervisorGradingButton from "./SupervisorGradingButton";
 import { useGetAppointmentDetailsQuery } from "../redux/api/features/appointmentsApi";
-import {
-  useCreateGradingMutation,
-  useGetGradingQuery,
-} from "../redux/api/features/gradingApi";
 
 const CHART_OPTIONS = [
   { value: "SNELLEN", label: "Snellen" },
@@ -35,39 +31,13 @@ export default function VisualAcuityForm({
     createVASubmissionStatus,
   } = useVisualAcuityData(appointmentId);
 
-  // Grading functionality
-  const [createGrading] = useCreateGradingMutation();
   const { data: appointmentDetails } = useGetAppointmentDetailsQuery(
     appointmentId,
     {
       skip: !appointmentId,
     }
   );
-  const { data: existingGrading } = useGetGradingQuery(
-    { appointment: appointmentId, section: "VISUAL_ACUITY" },
-    { skip: !appointmentId }
-  );
   const { role } = useSelector((state) => state.auth);
-
-  const handleSubmitGrading = async ({ marks, remarks }) => {
-    try {
-      await createGrading({
-        appointmentId,
-        body: {
-          marks,
-          remarks,
-          section_type: "visual_acuity",
-        },
-      }).unwrap();
-      showToast("Grading submitted successfully!", "success");
-    } catch (error) {
-      console.error("❌ Error submitting grading:", error);
-      showToast(
-        error.data?.detail || "Failed to submit grading. Please try again.",
-        "error"
-      );
-    }
-  };
 
   const [vaChart, setVaChart] = useState("");
   const [distanceVA, setDistanceVA] = useState({
@@ -403,10 +373,9 @@ export default function VisualAcuityForm({
       {role === "SUPERVISOR" && appointmentDetails?.status === "COMPLETED" && (
         <div className="flex justify-end mb-4">
           <SupervisorGradingButton
+            appointmentId={appointmentId}
+            section="VISUAL_ACUITY"
             sectionLabel="Grading: Visual Acuity"
-            existingGrade={existingGrading?.marks}
-            existingRemarks={existingGrading?.remarks}
-            onSubmit={handleSubmitGrading}
           />
         </div>
       )}

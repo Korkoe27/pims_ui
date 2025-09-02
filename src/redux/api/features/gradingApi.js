@@ -1,3 +1,4 @@
+// gradingApi.js
 import { apiClient } from "../api_client/apiClient";
 import {
   gradingUrl,
@@ -8,6 +9,7 @@ import {
 export const gradingApi = apiClient.injectEndpoints({
   tagTypes: ["Grading"],
   endpoints: (builder) => ({
+    // Get all section gradings for an appointment
     getGrading: builder.query({
       query: (appointmentId) => ({
         url: gradingUrl(appointmentId),
@@ -16,6 +18,7 @@ export const gradingApi = apiClient.injectEndpoints({
       providesTags: ["Grading"],
     }),
 
+    // Create a new section grading
     createGrading: builder.mutation({
       query: ({ appointmentId, body }) => ({
         url: sectionGradingUrl(appointmentId, body.section_type),
@@ -23,18 +26,35 @@ export const gradingApi = apiClient.injectEndpoints({
         body: {
           appointment: appointmentId,
           section: body.section_type,
-          score: body.marks,
+          score: body.score,     // ✅ now consistent
           remarks: body.remarks,
         },
       }),
       invalidatesTags: ["Grading"],
     }),
 
-    updateGrading: builder.mutation({
-      query: ({ appointmentId, ...data }) => ({
-        url: gradingUrl(appointmentId),
+    // Update an existing section grading
+    updateSectionGrading: builder.mutation({
+      query: ({ appointmentId, section, score, remarks }) => ({
+        url: sectionGradingUrl(appointmentId, section),
         method: "PATCH",
-        body: data,
+        body: {
+          score,                // ✅ backend field name
+          remarks,
+        },
+      }),
+      invalidatesTags: ["Grading"],
+    }),
+
+    // Update the final grading for an appointment
+    updateFinalGrading: builder.mutation({
+      query: ({ appointmentId, score, remarks }) => ({
+        url: finalGradingUrl(appointmentId),
+        method: "PATCH",
+        body: {
+          score,                // ✅ backend field name
+          remarks,
+        },
       }),
       invalidatesTags: ["Grading"],
     }),
@@ -44,5 +64,6 @@ export const gradingApi = apiClient.injectEndpoints({
 export const {
   useGetGradingQuery,
   useCreateGradingMutation,
-  useUpdateGradingMutation,
+  useUpdateSectionGradingMutation,
+  useUpdateFinalGradingMutation,
 } = gradingApi;

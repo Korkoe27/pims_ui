@@ -6,10 +6,6 @@ import {
   useCreateCaseHistoryMutation,
   useFetchCaseHistoryQuery,
 } from "../redux/api/features/caseHistoryApi";
-import {
-  useCreateGradingMutation,
-  useGetGradingQuery,
-} from "../redux/api/features/gradingApi";
 import ConditionPicker from "./ConditionPicker";
 import { showToast } from "../components/ToasterHelper";
 import DeleteButton from "./DeleteButton";
@@ -45,15 +41,9 @@ const CaseHistory = ({
   const [selectedConditions, setSelectedConditions] = useState([]);
   const [initialPayload, setInitialPayload] = useState(null);
 
-  // Grading functionality
-  const [createGrading] = useCreateGradingMutation();
-  const { data: existingGrading } = useGetGradingQuery(appointmentId, {
-    skip: !appointmentId,
-  });
-
   const isLoading = loadingCaseHistory || loadingConditions;
   const role = useSelector((state) => state.auth.user?.role);
-  // fetch appointment details (which includes is_student_case)
+
   const { data: appointment } = useGetAppointmentDetailsQuery(appointmentId, {
     skip: !appointmentId,
   });
@@ -63,7 +53,6 @@ const CaseHistory = ({
       setChiefComplaint(caseHistory?.chief_complaint || "");
 
       const grouped = {};
-
       (caseHistory?.condition_details || []).forEach((item) => {
         const matchedCondition = directQuestioningConditions?.find(
           (c) => c.id === item.condition
@@ -100,7 +89,6 @@ const CaseHistory = ({
       });
 
       const mapped = Object.values(grouped);
-
       setSelectedConditions(mapped);
 
       setInitialPayload({
@@ -122,7 +110,6 @@ const CaseHistory = ({
       showToast("This condition is already selected.", "error");
       return;
     }
-
     setSelectedConditions((prev) => [
       ...prev,
       {
@@ -160,23 +147,6 @@ const CaseHistory = ({
     setSelectedConditions((prev) => prev.filter((c) => c.id !== id));
   };
 
-  const handleSubmitGrading = async ({ marks, remarks }) => {
-    try {
-      await createGrading({
-        appointmentId,
-        body: {
-          marks,
-          remarks,
-          section_type: "case_history",
-        },
-      }).unwrap();
-      showToast("Grading submitted successfully!", "success");
-    } catch (error) {
-      console.error("❌ Error submitting grading:", error);
-      showToast("Failed to submit grading.", "error");
-    }
-  };
-
   const handleSaveAndProceed = async () => {
     if (!chiefComplaint.trim()) {
       showToast("Chief complaint cannot be empty. 👍", "error");
@@ -184,7 +154,6 @@ const CaseHistory = ({
     }
 
     const observations = [];
-
     selectedConditions.forEach((entry) => {
       ["OD", "OS"].forEach((eye) => {
         const data = entry[eye] || {};
@@ -255,15 +224,16 @@ const CaseHistory = ({
       <div className="bg-white rounded-md shadow p-4">
         <div className="flex justify-between items-center mb-4">
           <h1 className="text-2xl font-bold">Case History</h1>
-          {appointment?.is_student_case && role === "lecturer" && (
-            <SupervisorGradingButton
-              sectionLabel="Grading: Case History"
-              averageMarks={existingGrading?.marks || 0}
-              existingRemarks={existingGrading?.remarks}
-              onSubmit={handleSubmitGrading}
-            />
-          )}
+          {appointment?.is_student_case &&
+            role === "lecturer" &&(
+              <SupervisorGradingButton
+                appointmentId={appointmentId}
+                section="CASE_HISTORY"
+                sectionLabel="Grading: Case History"
+              />
+            )}
         </div>
+
         {isLoading ? (
           <p>Loading patient case history...</p>
         ) : (
