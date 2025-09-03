@@ -12,7 +12,7 @@ import VAValidator from "./validators/VAValidator";
 import ADDValidator from "./validators/ADDValidator";
 import NavigationButtons from "../components/NavigationButtons";
 import SupervisorGradingButton from "./SupervisorGradingButton";
-
+import useComponentGrading from "../hooks/useComponentGrading";
 
 const OBJECTIVE_METHOD_OPTIONS = [
   { value: "Retinoscopy", label: "Retinoscopy" },
@@ -31,6 +31,11 @@ const FIELDS = {
 const Refraction = ({ setActiveTab, setTabCompletionStatus }) => {
   const { appointmentId } = useParams();
   const { refraction, createRefraction } = useRefractionData(appointmentId);
+
+  const { shouldShowGrading, section, sectionLabel } = useComponentGrading(
+    "REFRACTION",
+    appointmentId
+  );
 
   const [formData, setFormData] = useState({
     objective_method: "",
@@ -251,11 +256,13 @@ const Refraction = ({ setActiveTab, setTabCompletionStatus }) => {
       <form className="flex flex-col gap-20">
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-2xl font-bold text-[#101928]">Refraction</h1>
-          <SupervisorGradingButton
-            sectionLabel="Grading: Refraction"
-            averageMarks={refraction?.average_marks ?? null}
-            // onSubmit={handleSubmitGrading(submitRefractionGrading, appointmentId)}
-          />
+          {shouldShowGrading && (
+            <SupervisorGradingButton
+              appointmentId={appointmentId}
+              section={section}
+              sectionLabel={sectionLabel}
+            />
+          )}
         </div>
         <div className="flex flex-col gap-1 h-24 w-[375px]">
           <label className="text-base text-[#101928] font-medium">
