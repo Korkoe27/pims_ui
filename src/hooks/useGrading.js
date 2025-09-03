@@ -7,15 +7,20 @@ import {
 } from "../redux/api/features/gradingApi";
 import { showToast } from "../components/ToasterHelper";
 
-export default function useGrading(appointmentId, section = null, isFinal = false) {
+export default function useGrading(
+  appointmentId,
+  section = null,
+  isFinal = false
+) {
   const [createGrading] = useCreateGradingMutation();
   const [updateSectionGrading] = useUpdateSectionGradingMutation();
   const [updateFinalGrading] = useUpdateFinalGradingMutation();
 
   // fetch all grading for the appointment
-  const { data: gradingData, isLoading } = useGetGradingQuery(appointmentId, {
-    skip: !appointmentId,
-  });
+  const { data: gradingData, isLoading } = useGetGradingQuery(
+    appointmentId, // Just the ID, not wrapped in an object
+    { skip: !appointmentId }
+  );
 
   // filter down to section-specific grading if section is given
   const existingGrading = isFinal
@@ -29,7 +34,12 @@ export default function useGrading(appointmentId, section = null, isFinal = fals
         if (isFinal) {
           await updateFinalGrading({ appointmentId, score, remarks }).unwrap();
         } else {
-          await updateSectionGrading({ appointmentId, section, score, remarks }).unwrap();
+          await updateSectionGrading({
+            appointmentId,
+            section,
+            score,
+            remarks,
+          }).unwrap();
         }
         showToast("Grading updated successfully!", "success");
       } else {

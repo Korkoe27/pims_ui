@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { useSelector } from "react-redux";
 import useVisualAcuityData from "../hooks/useVisualAcuityData";
 import VisualAcuitySection, { validateVASection } from "./VisualAcuitySection";
 import NearVisualAcuitySection from "./NearVisualAcuitySection";
@@ -11,6 +10,7 @@ import { hasFormChanged } from "../utils/deepCompare";
 import NavigationButtons from "../components/NavigationButtons";
 import SupervisorGradingButton from "./SupervisorGradingButton";
 import { useGetAppointmentDetailsQuery } from "../redux/api/features/appointmentsApi";
+import useComponentGrading from "../hooks/useComponentGrading";
 
 const CHART_OPTIONS = [
   { value: "SNELLEN", label: "Snellen" },
@@ -37,7 +37,12 @@ export default function VisualAcuityForm({
       skip: !appointmentId,
     }
   );
-  const { role } = useSelector((state) => state.auth);
+
+  // Use component grading hook
+  const { shouldShowGrading, section, sectionLabel } = useComponentGrading(
+    "VISUAL_ACUITY",
+    appointmentId
+  );
 
   const [vaChart, setVaChart] = useState("");
   const [distanceVA, setDistanceVA] = useState({
@@ -370,12 +375,12 @@ export default function VisualAcuityForm({
   return (
     <div className="space-y-8 pb-12">
       <h1 className="text-2xl font-bold mb-6">Visual Acuity</h1>
-      {role === "SUPERVISOR" && appointmentDetails?.status === "COMPLETED" && (
+      {shouldShowGrading && (
         <div className="flex justify-end mb-4">
           <SupervisorGradingButton
             appointmentId={appointmentId}
-            section="VISUAL_ACUITY"
-            sectionLabel="Grading: Visual Acuity"
+            section={section}
+            sectionLabel={sectionLabel}
           />
         </div>
       )}

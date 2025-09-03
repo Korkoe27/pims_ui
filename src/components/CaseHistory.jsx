@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import useFetchConditionsData from "../hooks/useFetchConditionsData";
-import { useSelector } from "react-redux";
 import { useGetAppointmentDetailsQuery } from "../redux/api/features/appointmentsApi";
 import {
   useCreateCaseHistoryMutation,
@@ -18,6 +17,7 @@ import NavigationButtons from "../components/NavigationButtons";
 import CheckboxInput from "./CheckboxInput";
 import PageContainer from "./PageContainer";
 import SupervisorGradingButton from "./SupervisorGradingButton";
+import useComponentGrading from "../hooks/useComponentGrading";
 
 const CaseHistory = ({
   patientId,
@@ -41,8 +41,13 @@ const CaseHistory = ({
   const [selectedConditions, setSelectedConditions] = useState([]);
   const [initialPayload, setInitialPayload] = useState(null);
 
+  // Use component grading hook
+  const { shouldShowGrading, section, sectionLabel } = useComponentGrading(
+    "CASE_HISTORY",
+    appointmentId
+  );
+
   const isLoading = loadingCaseHistory || loadingConditions;
-  const role = useSelector((state) => state.auth.user?.role);
 
   const { data: appointment } = useGetAppointmentDetailsQuery(appointmentId, {
     skip: !appointmentId,
@@ -224,14 +229,13 @@ const CaseHistory = ({
       <div className="bg-white rounded-md shadow p-4">
         <div className="flex justify-between items-center mb-4">
           <h1 className="text-2xl font-bold">Case History</h1>
-          {appointment?.is_student_case &&
-            role === "lecturer" &&(
-              <SupervisorGradingButton
-                appointmentId={appointmentId}
-                section="CASE_HISTORY"
-                sectionLabel="Grading: Case History"
-              />
-            )}
+          {shouldShowGrading && (
+            <SupervisorGradingButton
+              appointmentId={appointmentId}
+              section={section}
+              sectionLabel={sectionLabel}
+            />
+          )}
         </div>
 
         {isLoading ? (
