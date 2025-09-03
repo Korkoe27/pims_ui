@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
 import { showToast } from "../components/ToasterHelper";
 import SearchableSelect from "./SearchableSelect";
 import AffectedEyeSelect from "./AffectedEyeSelect";
@@ -7,14 +8,29 @@ import DiagnosisQuerySection from "./DiagnosisQuerySection";
 import ManagementPlanSection from "./ManagementPlanSection";
 import useDiagnosisData from "../hooks/useDiagnosisData";
 import SupervisorGradingButton from "./SupervisorGradingButton";
+import useComponentGrading from "../hooks/useComponentGrading";
+import { useGetAppointmentDetailsQuery } from "../redux/api/features/appointmentsApi";
 
 const Diagnosis = ({ appointmentId, setFlowStep, setActiveTab }) => {
+  const role = useSelector((state) => state.auth.user?.role);
+
   const {
     appointmentDiagnosis,
     createDiagnosis,
     isCreatingDiagnosis,
     isAppointmentDiagnosisLoading,
   } = useDiagnosisData(appointmentId);
+
+  // Get appointment details to check if it's a student case
+  const { data: appointment } = useGetAppointmentDetailsQuery(appointmentId, {
+    skip: !appointmentId,
+  });
+
+  // Use the component grading hook
+  const { shouldShowGrading, section, sectionLabel } = useComponentGrading(
+    "DIAGNOSIS",
+    appointmentId
+  );
 
   const [differentialDiagnosis, setDifferentialDiagnosis] = useState("");
   const [finalDiagnosisEntries, setFinalDiagnosisEntries] = useState([]);
@@ -146,14 +162,17 @@ const Diagnosis = ({ appointmentId, setFlowStep, setActiveTab }) => {
 
   return (
     <div className="p-6 bg-white rounded-md shadow-md max-w-3xl mx-auto">
-      <h1 className="text-2xl font-bold text-[#101928]">Diagnosis</h1>
-      <SupervisorGradingButton
-        sectionLabel="Grading: Diagnosis"
-        // averageMarks={appointmentDiagnosis?.average_marks}
-        onSubmit={(grading) => {
-          console.log("Diagnosis grading submitted:", grading);
-        }}
-      />
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-2xl font-bold text-[#101928]">Diagnosis</h1>
+        {shouldShowGrading && appointmentId && section && (
+          <SupervisorGradingButton
+            appointmentId={appointmentId}
+            section={section}
+            sectionLabel={sectionLabel || "Grading: Diagnosis"}
+          />
+        )}
+      </div>
+
       {isAppointmentDiagnosisLoading ? (
         <p className="text-gray-500">Loading diagnosis data...</p>
       ) : (
@@ -234,10 +253,6 @@ const Diagnosis = ({ appointmentId, setFlowStep, setActiveTab }) => {
               </div>
             )}
           </div>
-
-          {/* <pre className="bg-gray-100 text-sm p-2 rounded text-gray-600 mb-4 overflow-x-auto">
-            {JSON.stringify(appointmentDiagnosis, null, 2)}
-          </pre> */}
 
           <div className="flex justify-end pt-4 gap-4">
             <button

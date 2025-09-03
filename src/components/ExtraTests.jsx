@@ -7,6 +7,8 @@ import {
   useGetAppointmentFlowContextQuery,
 } from "../redux/api/features/appointmentsApi";
 import SupervisorGradingButton from "./SupervisorGradingButton";
+import useComponentGrading from "../hooks/useComponentGrading";
+import { useSelector } from "react-redux";
 
 const ExtraTests = ({
   appointmentId,
@@ -15,6 +17,13 @@ const ExtraTests = ({
   setTabCompletionStatus,
 }) => {
   const [modalOpen, setModalOpen] = useState(false);
+  const role = useSelector((state) => state.auth.user?.role);
+
+  // Use the component grading hook
+  const { shouldShowGrading, section, sectionLabel } = useComponentGrading(
+    "EXTRA_TEST",
+    appointmentId
+  );
 
   // Fetch uploaded tests
   const { data: uploadedTests = [], refetch } =
@@ -58,13 +67,16 @@ const ExtraTests = ({
 
   return (
     <div className="py-10 px-6 flex flex-col items-center max-w-5xl mx-auto">
-      <h2 className="text-2xl font-bold">Extra Tests</h2>
-      <SupervisorGradingButton
-        sectionLabel="Grading: Extra Tests"
-        onSubmit={(grading) => {
-          console.log("Grading submitted for Extra Tests:", grading);
-        }}
-      />
+      <div className="flex items-center justify-between w-full mb-6">
+        <h2 className="text-2xl font-bold">Extra Tests</h2>
+        {shouldShowGrading && (
+          <SupervisorGradingButton
+            appointmentId={appointmentId}
+            section={section}
+            sectionLabel={sectionLabel}
+          />
+        )}
+      </div>
 
       {/* Upload Modal Trigger */}
       <div className="flex justify-center mb-8">
