@@ -11,6 +11,7 @@ import GradingSelect from "./GradingSelect";
 import NotesTextArea from "./NotesTextArea";
 import NavigationButtons from "../components/NavigationButtons";
 import SupervisorGradingButton from "./SupervisorGradingButton";
+import useComponentGrading from "../hooks/useComponentGrading";
 
 const Internals = ({ setActiveTab, setTabCompletionStatus }) => {
   const { appointmentId } = useParams();
@@ -25,6 +26,11 @@ const Internals = ({ setActiveTab, setTabCompletionStatus }) => {
     existingObservations,
     createInternalObservation,
   } = useInternalObservationData(appointmentId);
+
+  const { shouldShowGrading, section, sectionLabel } = useComponentGrading(
+    "INTERNAL_OBSERVATION",
+    appointmentId
+  );
 
   // 1. Group conditions
   const groupedConditions = (rawConditions || []).reduce((acc, main) => {
@@ -243,11 +249,13 @@ const Internals = ({ setActiveTab, setTabCompletionStatus }) => {
     <div className="p-6 max-w-6xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">Internal Observations</h1>
-        <SupervisorGradingButton
-          sectionLabel="Grading: Internals"
-          averageMarks={existingObservations?.average_marks ?? null}
-          // onSubmit={handleSubmitGrading(submitInternalGrading, appointmentId)}
-        />
+        {shouldShowGrading && (
+          <SupervisorGradingButton
+            appointmentId={appointmentId}
+            section={section}
+            sectionLabel={sectionLabel}
+          />
+        )}
       </div>
 
       {Object.entries(groupedConditions).map(([main, subGroups]) => (
