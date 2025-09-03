@@ -104,6 +104,37 @@ const Refraction = ({ setActiveTab, setTabCompletionStatus }) => {
     }));
   };
 
+  // Helper function to clean refraction data before sending to API
+  const cleanRefractionData = (data) => {
+    const cleaned = { ...data };
+    
+    // Remove axis if it's empty or if there's no cyl value
+    if (!cleaned.cyl || cleaned.cyl === "" || cleaned.cyl.trim() === "") {
+      delete cleaned.axis;
+    } else if (cleaned.axis === "" || cleaned.axis === undefined || cleaned.axis === null) {
+      delete cleaned.axis;
+    }
+    
+    // Clean other empty string fields that should be null
+    if (cleaned.add === "" || cleaned.add === undefined) {
+      delete cleaned.add;
+    }
+    
+    if (cleaned.va_6m === "" || cleaned.va_6m === undefined) {
+      delete cleaned.va_6m;
+    }
+    
+    if (cleaned.va_0_4m === "" || cleaned.va_0_4m === undefined) {
+      delete cleaned.va_0_4m;
+    }
+    
+    if (cleaned.cyl === "" || cleaned.cyl === undefined) {
+      delete cleaned.cyl;
+    }
+    
+    return cleaned;
+  };
+
   const handleSave = async () => {
     const errors = {};
 
@@ -116,36 +147,25 @@ const Refraction = ({ setActiveTab, setTabCompletionStatus }) => {
       if (!obj.sph) {
         errors[`objective-${eye}-sph`] = "SPH is required";
       }
-      if (
-        obj.cyl &&
-        (obj.axis === undefined || obj.axis === null || obj.axis === "")
-      ) {
-        errors[`objective-${eye}-axis`] =
-          "Axis is required when CYL is entered";
+      // Only require axis if cyl has an actual value (not empty string)
+      if (obj.cyl && obj.cyl.trim() !== "" && (!obj.axis || obj.axis === "")) {
+        errors[`objective-${eye}-axis`] = "Axis is required when CYL is entered";
       }
 
       const sub = formData.subjective[eye];
-
       if (!sub.sph || (typeof sub.sph === "string" && sub.sph.trim() === "")) {
         errors[`subjective-${eye}-sph`] = "Subjective SPH is required";
       }
-
-      if (
-        sub.cyl &&
-        (sub.axis === undefined || sub.axis === null || sub.axis === "")
-      ) {
-        errors[`subjective-${eye}-axis`] =
-          "Axis is required when CYL is entered";
+      // Only require axis if cyl has an actual value (not empty string)
+      if (sub.cyl && sub.cyl.trim() !== "" && (!sub.axis || sub.axis === "")) {
+        errors[`subjective-${eye}-axis`] = "Axis is required when CYL is entered";
       }
 
       if (showCycloplegic) {
         const cyc = formData.cycloplegic[eye];
-        if (
-          cyc.cyl &&
-          (cyc.axis === undefined || cyc.axis === null || cyc.axis === "")
-        ) {
-          errors[`cycloplegic-${eye}-axis`] =
-            "Axis is required when CYL is entered";
+        // Only require axis if cyl has an actual value (not empty string)
+        if (cyc.cyl && cyc.cyl.trim() !== "" && (!cyc.axis || cyc.axis === "")) {
+          errors[`cycloplegic-${eye}-axis`] = "Axis is required when CYL is entered";
         }
       }
     });
@@ -158,19 +178,29 @@ const Refraction = ({ setActiveTab, setTabCompletionStatus }) => {
 
     setFieldErrors({});
 
+    // Clean the data before sending to API
     const payload = {
       appointment: appointmentId,
       objective_method: formData.objective_method,
-      objective: ["OD", "OS"].map((eye) => ({
-        eye,
-        ...formData.objective[eye],
-      })),
-      subjective: ["OD", "OS"].map((eye) => ({
-        eye,
-        ...formData.subjective[eye],
-      })),
+      objective: ["OD", "OS"].map((eye) => 
+        cleanRefractionData({
+          eye,
+          ...formData.objective[eye],
+        })
+      ),
+      subjective: ["OD", "OS"].map((eye) => 
+        cleanRefractionData({
+          eye,
+          ...formData.subjective[eye],
+        })
+      ),
       cycloplegic: showCycloplegic
-        ? ["OD", "OS"].map((eye) => ({ eye, ...formData.cycloplegic[eye] }))
+        ? ["OD", "OS"].map((eye) => 
+            cleanRefractionData({
+              eye,
+              ...formData.cycloplegic[eye],
+            })
+          )
         : [],
     };
 
@@ -187,8 +217,9 @@ const Refraction = ({ setActiveTab, setTabCompletionStatus }) => {
       setTabCompletionStatus?.((prev) => ({ ...prev, refraction: true }));
       setActiveTab("extra tests");
     } catch (error) {
+      console.error("Refraction save error:", error);
       showToast(
-        "Failed to save refraction results. Please try again.",
+        error?.data?.message || "Failed to save refraction results. Please try again.",
         "error"
       );
     }
