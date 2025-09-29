@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useSelector } from "react-redux";
 import { Tabs, Tab } from "../components/ui/tabs";
 import Card from "../components/ui/card";
 import PageContainer from "../components/PageContainer";
@@ -21,9 +22,22 @@ const AbsentRequest = () => {
     action: "",
   });
 
-  const { data: requests = [] } = useGetAbsentRequestsQuery();
+  // Get current user info
+  const { user } = useSelector((state) => state.auth);
+  const currentUserId = user?.id;
+  const userRole = user?.role;
+
+  const { data: allRequests = [] } = useGetAbsentRequestsQuery();
   const [createAbsentRequest] = useCreateAbsentRequestMutation();
   const [updateAbsentRequest] = useUpdateAbsentRequestMutation();
+
+  // Filter requests based on user role
+  const requests =
+    userRole === ROLES.COORDINATOR
+      ? allRequests // Coordinators see all requests
+      : allRequests.filter(
+          (req) => req.user === currentUserId || req.user_id === currentUserId
+        ); // Users see only their own requests
 
   const handleCreateRequest = async (data) => {
     try {
