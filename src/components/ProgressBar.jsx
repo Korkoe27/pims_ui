@@ -15,9 +15,13 @@ const steps = [
  */
 const ProgressBar = ({ step = 1 }) => {
   // Allow passing a label instead of an index
-  const stepIndexFromLabel = typeof step === "string"
-    ? Math.max(1, steps.findIndex(s => s.label.toLowerCase() === step.toLowerCase()) + 1)
-    : step;
+  const stepIndexFromLabel =
+    typeof step === "string"
+      ? Math.max(
+          1,
+          steps.findIndex((s) => s.label.toLowerCase() === step.toLowerCase()) + 1
+        )
+      : step;
 
   const current = Math.min(Math.max(stepIndexFromLabel, 1), steps.length);
 
@@ -29,9 +33,9 @@ const ProgressBar = ({ step = 1 }) => {
         aria-label="Consultation progress"
       >
         {steps.map((s, i) => {
-          const isReached = i + 1 <= current;     // this node reached/active
-          const leftActive = i > 0 && i + 1 <= current;        // connector to previous
-          const rightActive = i + 1 < current;                  // connector to next
+          const isReached = i + 1 <= current; // this node reached/active
+          const leftActive = i > 0 && i + 1 <= current; // connector to previous
+          const rightActive = i + 1 < current; // connector to next
 
           return (
             <div key={s.label} className="relative flex flex-col items-center">
@@ -56,9 +60,11 @@ const ProgressBar = ({ step = 1 }) => {
 
               {/* Circle with icon */}
               <span
-                className={`z-10 flex items-center justify-center w-8 h-8 rounded-full border text-lg transition-colors
-                  ${isReached ? "bg-[#2f3192] text-white border-[#2f3192]" : "bg-white text-[#2f3192] border-[#2f3192]"}
-                `}
+                className={`z-10 flex items-center justify-center w-8 h-8 rounded-full border text-lg transition-colors ${
+                  isReached
+                    ? "bg-[#2f3192] text-white border-[#2f3192]"
+                    : "bg-white text-[#2f3192] border-[#2f3192]"
+                }`}
                 aria-current={isReached && i + 1 === current ? "step" : undefined}
                 title={s.label}
               >
@@ -66,21 +72,13 @@ const ProgressBar = ({ step = 1 }) => {
               </span>
 
               {/* Label */}
-              <span
-                className="mt-2 text-center font-medium text-sm leading-tight max-w-[140px] whitespace-normal"
-                style={{ textWrap: "balance" }}
-              >
+              <span className="mt-2 text-center font-medium text-sm leading-tight max-w-[140px] whitespace-normal">
                 {s.label}
               </span>
             </div>
           );
         })}
       </div>
-
-      {/* Optional percent / counter */}
-      {/* <div className="mt-2 text-xs text-gray-600 text-center">
-        Step {current} of {steps.length} · {Math.round(((current - 1) / (steps.length - 1)) * 100)}%
-      </div> */}
     </div>
   );
 };
