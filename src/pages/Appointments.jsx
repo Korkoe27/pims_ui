@@ -9,7 +9,7 @@ import { ROLES } from "../constants/roles";
 import { useGetTodaysAppointmentsQuery } from "../redux/api/features/appointmentsApi";
 import { useNavigate } from "react-router-dom";
 import ConsultButton from "../components/ui/buttons/ConsultButton";
-import { canShowConsultButton } from "../utils/canShowConsultButton"; // ✅ new helper
+import { canShowConsultButton } from "../utils/canShowConsultButton";
 
 const Appointments = () => {
   const userRole = useSelector((state) => state.auth?.user?.role);
@@ -47,7 +47,16 @@ const Appointments = () => {
     <PageContainer>
       {isLoading && <LoadingSpinner />}
       <h1 className="font-extrabold text-xl">Today's Appointments</h1>
-      {error && <p className="text-red-500">Error: {error}</p>}
+
+      {/* ✅ Fixed error handling - extract message from error object */}
+      {error && (
+        <p className="text-red-500 bg-red-50 border border-red-200 rounded-lg p-4 my-4">
+          <span className="font-semibold">Error:</span>{" "}
+          {error?.data?.message ||
+            error?.message ||
+            "Failed to load appointments. Please try again."}
+        </p>
+      )}
 
       {!isLoading && paginatedAppointments?.length > 0 ? (
         <>
