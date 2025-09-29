@@ -11,10 +11,10 @@
 // Authentication
 /////////////////////////
 
-export const loginUrl = "auth/auth/jwt/create/";
-export const logoutUrl = "/auth/api/logout/";
-export const checkSessionUrl = "auth/api/check-session/";
-export const getUserUrl = "auth/auth/users/me/";
+export const loginUrl = "auth/api/auth/jwt/create/";
+export const logoutUrl = "auth/api/auth/logout/";
+export const checkSessionUrl = "auth/api/auth/check-session/";
+export const getUserUrl = "auth/api/auth/users/me/";
 
 /////////////////////////
 // Dashboard
@@ -28,51 +28,63 @@ export const getDashboardDataUrl = "summary/api/dashboard/";
 
 // Fetch single patient details
 export const fetchSinglePatientDetailsUrl = (patientId) =>
-  `/clients/api/patient-detail/${patientId}/`;
+  `/clients/patient-detail/${patientId}/`;
 
 // Search for patients
 export const searchPatientsUrl = (searchQuery) =>
-  `/clients/api/search/?search=${searchQuery}`;
+  `/clients/search/?search=${searchQuery}`;
 
 // Update patient details
 export const updatePatientDetailsUrl = (patientId) =>
-  `/clients/api/update-patient/${patientId}/`;
+  `/clients/update-patient/${patientId}/`;
 
 // List all patients
-export const listAllPatientsUrl = `/clients/api/patients/`;
+export const listAllPatientsUrl = `/clients/`;
 
 // Create a new patient
-export const createNewPatientUrl = "/clients/api/patients/";
-
+export const createNewPatientUrl = "/clients/";
 // Fetch patient appointments
 export const fetchPatientAppointmentsUrl = (patientId) =>
-  `/clients/api/${patientId}/appointments/`;
+  `/clients/${patientId}/appointments/`;
 
 /////////////////////////
 // Appointments
 /////////////////////////
 
-export const createNewAppointmentUrl = "/clients/api/appointments/";
-export const fetchAppointmentsUrl = "clients/api/appointments/";
+export const createNewAppointmentUrl = "/clients/appointments/";
+export const fetchAppointmentsUrl = "/clients/appointments/";
 export const getAppointmentsDetailsUrl = (appointmentId) =>
-  `/clients/api/appointments/${appointmentId}/`;
+  `/clients/appointments/${appointmentId}/`;
 
 // ✅ Mark appointment as completed
 export const markAppointmentCompletedUrl = (appointmentId) =>
-  `/clients/api/${appointmentId}/complete/`;
+  `/clients/${appointmentId}/complete/`;
 
 // ✅ Get today's appointments
-export const getTodaysAppointmentUrl = "/clients/api/appointments/today/";
+export const getTodaysAppointmentUrl = "/clients/appointments/today/";
+
+// Reuse your existing FSM transition:
+export const transitionAppointmentUrl = (appointmentId) =>
+  `/clients/appointments/${appointmentId}/transition/`;
+
+// Submit for review
+export const submitAppointmentForReviewUrl = (appointmentId) =>
+  `/clients/appointments/${appointmentId}/submit_for_review/`;
+
+// Flow context
+export const flowContextAppointmentUrl = (appointmentId) =>
+  `/clients/appointments/${appointmentId}/flow-context/`;
 
 /////////////////////////
 // Case History
 /////////////////////////
 
-export const createCaseHistoryUrl = "/tests/api/case-history/";
-export const updateCaseHistoryUrl = (appointmentId) =>
-  `/tests/api/case-history/${appointmentId}/`;
+// POST here to create/update by appointment (payload must include `appointment`)
+export const createOrUpdateCaseHistoryUrl = "/tests/case-history/";
+
+// GET with query param to fetch latest by appointment
 export const fetchCaseHistoryUrl = (appointmentId) =>
-  `/tests/api/case-history/${appointmentId}/`;
+  `/tests/case-history/?appointment=${appointmentId}`;
 
 /////////////////////////
 // Patient History
@@ -89,11 +101,11 @@ export const createPatientHistoryUrl = "/tests/api/patient-history/";
 /////////////////////////
 
 export const fetchMedicalConditionsUrl =
-  "/tests/conditions?category=medical_history";
+  "/tests/case-history/conditions?category=medical_history";
 export const fetchOcularConditionsUrl =
-  "/tests/conditions?category=ocular_history";
+  "/tests/case-history/conditions?category=ocular_history";
 export const fetchDirectQuestioningConditionsUrl =
-  "/tests/conditions?category=on_direct_questioning";
+  "/tests/case-history/conditions?category=on_direct_questioning";
 
 /////////////////////////
 // Visual Acuity
@@ -198,8 +210,8 @@ export const managementPlanUrl = (appointmentId) =>
 export const absentRequestsUrl = "/absences/absent-requests/";
 
 // Update absent request by ID
-export const updateAbsentRequestUrl = (id) => `/absences/absent-requests/${id}/`;
-
+export const updateAbsentRequestUrl = (id) =>
+  `/absences/absent-requests/${id}/`;
 
 /////////////////////////
 // Clinic Schedule
@@ -215,6 +227,32 @@ export const fetchClinicScheduleByDateUrl = (date) =>
 // Get all staff that can be scheduled
 export const listScheduleStaffUrl = "/clinic-schedule/staff/";
 
+/////////////////////////
+// Pharmacy
+/////////////////////////
+
+// List or create pharmacy orders
+// Pharmacy Order
+export const getPharmacyOrderUrl = (appointmentId) =>
+  `/pharmacy/api/orders/${appointmentId}/`;
+export const upsertPharmacyOrderUrl = (appointmentId) =>
+  `/pharmacy/api/orders/${appointmentId}/`;
+
+/////////////////////////
+// Grading
+/////////////////////////
+
+// Get all grades for an appointment
+export const gradingUrl = (appointmentId) =>
+  `/grading/api/appointments/${appointmentId}/grades/`;
+
+// Grade a specific section
+export const sectionGradingUrl = (appointmentId, section) =>
+  `/grading/api/appointments/${appointmentId}/sections/${section}/`;
+
+// Final grading
+export const finalGradingUrl = (appointmentId) =>
+  `/grading/api/appointments/${appointmentId}/final/`;
 
 /////////////////////////
 // WebSocket

@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useSelector } from "react-redux";
 import LoadingSpinner from "../components/LoadingSpinner";
 import Pagination from "../components/Pagination";
 import useHandleConsult from "../hooks/useHandleConsult";
@@ -6,8 +7,12 @@ import PageContainer from "../components/PageContainer";
 import CanAccess from "../components/auth/CanAccess";
 import { ROLES } from "../constants/roles";
 import { useGetTodaysAppointmentsQuery } from "../redux/api/features/appointmentsApi";
+import { useNavigate } from "react-router-dom";
+import ConsultButton from "../components/ui/buttons/ConsultButton";
+import { canShowConsultButton } from "../utils/canShowConsultButton"; // ✅ new helper
 
 const Appointments = () => {
+  const userRole = useSelector((state) => state.auth?.user?.role);
   const { handleConsult } = useHandleConsult();
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
@@ -30,6 +35,13 @@ const Appointments = () => {
   const handlePageChange = (page) => {
     setCurrentPage(page);
   };
+
+  const navigate = useNavigate();
+
+  // ✅ check if at least one row has a valid consult action
+  const hasAnyConsultAction = paginatedAppointments.some((appt) =>
+    canShowConsultButton(appt, userRole)
+  );
 
   return (
     <PageContainer>
@@ -57,11 +69,13 @@ const Appointments = () => {
                 <th scope="col" className="px-6 py-3">
                   Status
                 </th>
-                <CanAccess allowedRoles={[ROLES.STUDENT, ROLES.LECTURER, ROLES.SYSTEMS_ADMIN]}>
-                  <th scope="col" className="px-3 min-w-40 py-3">
-                    Action
-                  </th>
-                </CanAccess>
+                {hasAnyConsultAction && (
+                  <CanAccess allowedRoles={[ROLES.STUDENT, ROLES.LECTURER]}>
+                    <th scope="col" className="px-3 min-w-40 py-3">
+                      Action
+                    </th>
+                  </CanAccess>
+                )}
               </tr>
             </thead>
             <tbody>
@@ -80,16 +94,17 @@ const Appointments = () => {
                       {appointment?.status}
                     </span>
                   </td>
-                  <td className="px-6 py-4 flex gap-10">
-                    <CanAccess allowedRoles={[ROLES.STUDENT, ROLES.LECTURER, ROLES.SYSTEMS_ADMIN]}>
-                      <button
-                        onClick={() => handleConsult(appointment)}
-                        className="focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5"
-                      >
-                        Consult
-                      </button>
-                    </CanAccess>
-                  </td>
+                  {hasAnyConsultAction && (
+                    <td className="px-6 py-4 flex gap-4">
+                      <CanAccess allowedRoles={[ROLES.STUDENT, ROLES.LECTURER]}>
+                        <ConsultButton
+                          appointment={appointment}
+                          role={userRole}
+                          onClick={handleConsult}
+                        />
+                      </CanAccess>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>

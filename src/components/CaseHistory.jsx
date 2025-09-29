@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import useFetchConditionsData from "../hooks/useFetchConditionsData";
+import { useGetAppointmentDetailsQuery } from "../redux/api/features/appointmentsApi";
 import {
   useCreateCaseHistoryMutation,
   useFetchCaseHistoryQuery,
@@ -16,6 +17,7 @@ import NavigationButtons from "../components/NavigationButtons";
 import CheckboxInput from "./CheckboxInput";
 import PageContainer from "./PageContainer";
 import SupervisorGradingButton from "./SupervisorGradingButton";
+import useComponentGrading from "../hooks/useComponentGrading";
 
 const CaseHistory = ({
   patientId,
@@ -39,14 +41,23 @@ const CaseHistory = ({
   const [selectedConditions, setSelectedConditions] = useState([]);
   const [initialPayload, setInitialPayload] = useState(null);
 
+  // Use component grading hook
+  const { shouldShowGrading, section, sectionLabel } = useComponentGrading(
+    "CASE_HISTORY",
+    appointmentId
+  );
+
   const isLoading = loadingCaseHistory || loadingConditions;
+
+  const { data: appointment } = useGetAppointmentDetailsQuery(appointmentId, {
+    skip: !appointmentId,
+  });
 
   useEffect(() => {
     if (caseHistory) {
       setChiefComplaint(caseHistory?.chief_complaint || "");
 
       const grouped = {};
-
       (caseHistory?.condition_details || []).forEach((item) => {
         const matchedCondition = directQuestioningConditions?.find(
           (c) => c.id === item.condition
@@ -83,7 +94,6 @@ const CaseHistory = ({
       });
 
       const mapped = Object.values(grouped);
-
       setSelectedConditions(mapped);
 
       setInitialPayload({
@@ -105,7 +115,6 @@ const CaseHistory = ({
       showToast("This condition is already selected.", "error");
       return;
     }
-
     setSelectedConditions((prev) => [
       ...prev,
       {
@@ -150,7 +159,6 @@ const CaseHistory = ({
     }
 
     const observations = [];
-
     selectedConditions.forEach((entry) => {
       ["OD", "OS"].forEach((eye) => {
         const data = entry[eye] || {};
@@ -221,16 +229,15 @@ const CaseHistory = ({
       <div className="bg-white rounded-md shadow p-4">
         <div className="flex justify-between items-center mb-4">
           <h1 className="text-2xl font-bold">Case History</h1>
-          {caseHistory && (
+          {shouldShowGrading && (
             <SupervisorGradingButton
-              sectionLabel="Grading: Case History"
-              averageMarks={76.8}
-              // onSubmit={({ marks, remarks }) => {
-              //   submitDiagnosisGrading({ appointmentId, marks, remarks });
-              // }}
+              appointmentId={appointmentId}
+              section={section}
+              sectionLabel={sectionLabel}
             />
           )}
         </div>
+
         {isLoading ? (
           <p>Loading patient case history...</p>
         ) : (
