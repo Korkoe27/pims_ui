@@ -79,7 +79,12 @@ const AbsentRequest = () => {
                       <th className="px-6 py-3 font-bold">From</th>
                       <th className="px-6 py-3 font-bold">To</th>
                       <th className="px-6 py-3 font-bold">Reason</th>
-                      <th className="px-6 py-3 font-bold">Actions</th>
+                      <CanAccess roles={[ROLES.COORDINATOR]}>
+                        <th className="px-6 py-3 font-bold">Actions</th>
+                      </CanAccess>
+                      <CanAccess roles={[ROLES.STUDENT, ROLES.LECTURER]} fallback>
+                        <th className="px-6 py-3 font-bold">Status</th>
+                      </CanAccess>
                     </tr>
                   </thead>
                   <tbody>
@@ -88,24 +93,31 @@ const AbsentRequest = () => {
                         <td className="px-6 py-4">{req.from_date}</td>
                         <td className="px-6 py-4">{req.to_date}</td>
                         <td className="px-6 py-4">{req.reason}</td>
-                        <td className="px-6 py-4 flex gap-2">
+                        <td className="px-6 py-4">
                           <CanAccess roles={[ROLES.COORDINATOR]}>
-                            <button
-                              onClick={() =>
-                                handleStatusChange(req.id, "approved")
-                              }
-                              className="bg-green-600 text-white hover:bg-green-700 px-4 py-2 rounded-md text-sm font-semibold shadow transition cursor-pointer"
-                            >
-                              Approve
-                            </button>
-                            <button
-                              onClick={() =>
-                                handleStatusChange(req.id, "rejected")
-                              }
-                              className="bg-red-600 text-white hover:bg-red-700 px-4 py-2 rounded-md text-sm font-semibold shadow transition cursor-pointer"
-                            >
-                              Decline
-                            </button>
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() =>
+                                  handleStatusChange(req.id, "approved")
+                                }
+                                className="bg-green-600 text-white hover:bg-green-700 px-4 py-2 rounded-md text-sm font-semibold shadow transition cursor-pointer"
+                              >
+                                Approve
+                              </button>
+                              <button
+                                onClick={() =>
+                                  handleStatusChange(req.id, "rejected")
+                                }
+                                className="bg-red-600 text-white hover:bg-red-700 px-4 py-2 rounded-md text-sm font-semibold shadow transition cursor-pointer"
+                              >
+                                Decline
+                              </button>
+                            </div>
+                          </CanAccess>
+                          <CanAccess roles={[ROLES.STUDENT, ROLES.LECTURER]} fallback>
+                            <span className="px-3 py-1 text-sm font-medium bg-yellow-100 text-yellow-800 rounded-full capitalize">
+                              {req.status}
+                            </span>
                           </CanAccess>
                         </td>
                       </tr>
