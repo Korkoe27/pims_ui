@@ -7,7 +7,6 @@ import PageContainer from "../components/PageContainer";
 import CanAccess from "../components/auth/CanAccess";
 import { ROLES } from "../constants/roles";
 import { useGetTodaysAppointmentsQuery } from "../redux/api/features/appointmentsApi";
-import { useNavigate } from "react-router-dom";
 import ConsultButton from "../components/ui/buttons/ConsultButton";
 import { canShowConsultButton } from "../utils/canShowConsultButton";
 
@@ -35,8 +34,6 @@ const Appointments = () => {
   const handlePageChange = (page) => {
     setCurrentPage(page);
   };
-
-  const navigate = useNavigate();
 
   // ✅ check if at least one row has a valid consult action
   const hasAnyConsultAction = paginatedAppointments.some((appt) =>

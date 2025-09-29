@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useGetAppointmentDetailsQuery } from "../redux/api/features/appointmentsApi";
 import { useSelector } from "react-redux";
@@ -25,9 +25,6 @@ import MedicationDispensing from "../components/MedicationDispensing";
 const Consultation = () => {
   const { appointmentId } = useParams();
   const navigate = useNavigate();
-
-  const { user } = useSelector((state) => state.auth);
-  const userRole = user?.role?.toLowerCase();
 
   const LOCAL_TAB_KEY = `consultation-${appointmentId}-activeTab`;
   const LOCAL_FLOW_KEY = `consultation-${appointmentId}-flowStep`;
@@ -59,10 +56,13 @@ const Consultation = () => {
     _setActiveTab(tab);
   };
 
-  const setFlowStep = (step) => {
-    localStorage.setItem(LOCAL_FLOW_KEY, step);
-    _setFlowStep(step);
-  };
+  const setFlowStep = useCallback(
+    (step) => {
+      localStorage.setItem(LOCAL_FLOW_KEY, step);
+      _setFlowStep(step);
+    },
+    [LOCAL_FLOW_KEY]
+  );
 
   const setTabCompletionStatus = (updateFnOrObject) => {
     _setTabCompletionStatus((prev) => {
@@ -119,7 +119,7 @@ const Consultation = () => {
     } else if (status === "Medications Disbursed") {
       setFlowStep("dispensing");
     }
-  }, [selectedAppointment]);
+  }, [selectedAppointment, setFlowStep]);
 
   // Loading gate
   if (isLoading) {
@@ -255,7 +255,12 @@ const Consultation = () => {
       case "payment":
         return <Payment appointmentId={idStr} setFlowStep={setFlowStep} />;
       case "dispensing":
-        return <MedicationDispensing appointmentId={idStr} setFlowStep={setFlowStep} />;
+        return (
+          <MedicationDispensing
+            appointmentId={idStr}
+            setFlowStep={setFlowStep}
+          />
+        );
       default:
         return null;
     }
@@ -265,7 +270,10 @@ const Consultation = () => {
     <div className="min-h-screen bg-[#f9fafb] pt-6 px-4 md:px-12 lg:px-24">
       <div className="max-w-6xl mx-auto">
         <h1 className="font-extrabold text-xl mb-2">Consultation</h1>
-        <Header patient={selectedAppointment} appointmentId={String(appointmentId)} />
+        <Header
+          patient={selectedAppointment}
+          appointmentId={String(appointmentId)}
+        />
 
         <div className="mt-4 mb-6">
           {/* ProgressBar ends at Management (3 steps). stepMap values > 3 are clamped */}

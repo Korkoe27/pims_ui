@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
 import { showToast } from "../components/ToasterHelper";
 import SearchableSelect from "./SearchableSelect";
 import AffectedEyeSelect from "./AffectedEyeSelect";
@@ -9,22 +8,14 @@ import ManagementPlanSection from "./ManagementPlanSection";
 import useDiagnosisData from "../hooks/useDiagnosisData";
 import SupervisorGradingButton from "./SupervisorGradingButton";
 import useComponentGrading from "../hooks/useComponentGrading";
-import { useGetAppointmentDetailsQuery } from "../redux/api/features/appointmentsApi";
 
 const Diagnosis = ({ appointmentId, setFlowStep, setActiveTab }) => {
-  const role = useSelector((state) => state.auth.user?.role);
-
   const {
     appointmentDiagnosis,
     createDiagnosis,
     isCreatingDiagnosis,
     isAppointmentDiagnosisLoading,
   } = useDiagnosisData(appointmentId);
-
-  // Get appointment details to check if it's a student case
-  const { data: appointment } = useGetAppointmentDetailsQuery(appointmentId, {
-    skip: !appointmentId,
-  });
 
   // Use the component grading hook
   const { shouldShowGrading, section, sectionLabel } = useComponentGrading(
