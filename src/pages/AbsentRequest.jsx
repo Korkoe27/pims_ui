@@ -3,13 +3,14 @@ import { Tabs, Tab } from "../components/ui/tabs";
 import Card from "../components/ui/card";
 import PageContainer from "../components/PageContainer";
 import ConfirmationModal from "../components/ConfirmationModal";
+import CanAccess from "../components/auth/CanAccess";
+import { ROLES } from "../constants/roles";
 import {
   useGetAbsentRequestsQuery,
   useCreateAbsentRequestMutation,
   useUpdateAbsentRequestMutation,
 } from "../redux/api/features/absentRequestApi";
 import { toast } from "react-hot-toast";
-
 
 const AbsentRequest = () => {
   const [showModal, setShowModal] = useState(false);
@@ -88,22 +89,24 @@ const AbsentRequest = () => {
                         <td className="px-6 py-4">{req.to_date}</td>
                         <td className="px-6 py-4">{req.reason}</td>
                         <td className="px-6 py-4 flex gap-2">
-                          <button
-                            onClick={() =>
-                              handleStatusChange(req.id, "approved")
-                            }
-                            className="bg-green-600 text-white hover:bg-green-700 px-4 py-2 rounded-md text-sm font-semibold shadow transition cursor-pointer"
-                          >
-                            Approve
-                          </button>
-                          <button
-                            onClick={() =>
-                              handleStatusChange(req.id, "rejected")
-                            }
-                            className="bg-red-600 text-white hover:bg-red-700 px-4 py-2 rounded-md text-sm font-semibold shadow transition cursor-pointer"
-                          >
-                            Decline
-                          </button>
+                          <CanAccess roles={[ROLES.COORDINATOR]}>
+                            <button
+                              onClick={() =>
+                                handleStatusChange(req.id, "approved")
+                              }
+                              className="bg-green-600 text-white hover:bg-green-700 px-4 py-2 rounded-md text-sm font-semibold shadow transition cursor-pointer"
+                            >
+                              Approve
+                            </button>
+                            <button
+                              onClick={() =>
+                                handleStatusChange(req.id, "rejected")
+                              }
+                              className="bg-red-600 text-white hover:bg-red-700 px-4 py-2 rounded-md text-sm font-semibold shadow transition cursor-pointer"
+                            >
+                              Decline
+                            </button>
+                          </CanAccess>
                         </td>
                       </tr>
                     ))}
