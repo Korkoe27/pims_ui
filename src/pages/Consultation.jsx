@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useGetAppointmentDetailsQuery } from "../redux/api/features/appointmentsApi";
-import { useSelector } from "react-redux";
 
 import Header from "../components/Header";
 import ProgressBar from "../components/ProgressBar";
