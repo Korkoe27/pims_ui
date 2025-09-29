@@ -82,7 +82,10 @@ const AbsentRequest = () => {
                       <CanAccess roles={[ROLES.COORDINATOR]}>
                         <th className="px-6 py-3 font-bold">Actions</th>
                       </CanAccess>
-                      <CanAccess roles={[ROLES.STUDENT, ROLES.LECTURER]} fallback>
+                      <CanAccess
+                        roles={[ROLES.STUDENT, ROLES.LECTURER]}
+                        fallback
+                      >
                         <th className="px-6 py-3 font-bold">Status</th>
                       </CanAccess>
                     </tr>
@@ -114,7 +117,10 @@ const AbsentRequest = () => {
                               </button>
                             </div>
                           </CanAccess>
-                          <CanAccess roles={[ROLES.STUDENT, ROLES.LECTURER]} fallback>
+                          <CanAccess
+                            roles={[ROLES.STUDENT, ROLES.LECTURER]}
+                            fallback
+                          >
                             <span className="px-3 py-1 text-sm font-medium bg-yellow-100 text-yellow-800 rounded-full capitalize">
                               {req.status}
                             </span>
