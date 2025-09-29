@@ -9,6 +9,10 @@ import RefractiveCorrectionSection from "./RefractiveCorrectionSection";
 import MedicationForm from "./MedicationForm";
 import SupervisorGradingButton from "./SupervisorGradingButton";
 import useManagementData from "../hooks/useManagementData";
+import {
+  useGetCaseManagementGuideQuery,
+  useUpdateCaseManagementGuideMutation,
+} from "../redux/api/features/managementApi";
 
 /* =========================================================================
    Inline Case Management Guide (kept inside this file; no router navigation)
@@ -23,32 +27,175 @@ const CaseManagementGuide = ({
 }) => {
   const [reviewed, setReviewed] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [guideData, setGuideData] = useState({
+    table_rows: [{ id: 1, diagnosis: "", management_plan: "", notes: "" }],
+    completed: false,
+  });
   const nextBtnRef = useRef(null);
-  const KEY = useMemo(() => storageKeyFor(appointmentId), [appointmentId]);
 
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem(KEY);
-      setReviewed(saved === "1");
-    } catch {}
-  }, [KEY]);
+  // API hooks
+  const {
+    data: caseGuide,
+    isLoading: isLoadingGuide,
+    error: guideError,
+  } = useGetCaseManagementGuideQuery(appointmentId);
 
+  const [updateCaseGuide] = useUpdateCaseManagementGuideMutation();
+
+  // Initialize data when API response is received
   useEffect(() => {
+    if (caseGuide) {
+      setGuideData({
+        table_rows: caseGuide.table_rows || [
+          { id: 1, diagnosis: "", management_plan: "", notes: "" },
+        ],
+        completed: caseGuide.completed || false,
+      });
+      setReviewed(caseGuide.completed || false);
+    }
+  }, [caseGuide]);
+
+  // Auto-save functionality with debounce
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (
+        appointmentId &&
+        guideData.table_rows.some(
+          (row) => row.diagnosis || row.management_plan || row.notes
+        )
+      ) {
+        handleAutoSave();
+      }
+    }, 2000); // Auto-save after 2 seconds of inactivity
+
+    return () => clearTimeout(timer);
+  }, [guideData, appointmentId]);
+
+  const handleAutoSave = async () => {
     try {
-      localStorage.setItem(KEY, reviewed ? "1" : "0");
-    } catch {}
-    if (reviewed) setTabCompletionStatus?.("case_guide", true);
-  }, [KEY, reviewed, setTabCompletionStatus]);
+      await updateCaseGuide({
+        appointmentId,
+        payload: {
+          ...guideData,
+          completed: reviewed,
+        },
+      }).unwrap();
+    } catch (error) {
+      console.error("Auto-save failed:", error);
+    }
+  };
+
+  const handleReviewedChange = async (checked) => {
+    setReviewed(checked);
+    setGuideData((prev) => ({ ...prev, completed: checked }));
+
+    if (checked) {
+      setTabCompletionStatus?.("case_guide", true);
+    }
+
+    // Save immediately when review status changes
+    try {
+      await updateCaseGuide({
+        appointmentId,
+        payload: {
+          ...guideData,
+          completed: checked,
+        },
+      }).unwrap();
+    } catch (error) {
+      showToast("Failed to save review status", "error");
+    }
+  };
 
   const handleNext = async () => {
     if (!reviewed || saving) return;
     setSaving(true);
     try {
+      // Final save before proceeding
+      await updateCaseGuide({
+        appointmentId,
+        payload: {
+          ...guideData,
+          completed: true,
+        },
+      }).unwrap();
+
+      showToast("Case management guide completed successfully", "success");
       setActiveTab?.("logs");
+    } catch (error) {
+      showToast("Failed to save case management guide", "error");
     } finally {
       setSaving(false);
     }
   };
+
+  const handleNotesChange = (value) => {
+    setGuideData((prev) => ({ ...prev, notes: value }));
+  };
+
+  const handleRowChange = (rowId, field, value) => {
+    setGuideData((prev) => ({
+      ...prev,
+      table_rows: prev.table_rows.map((row) =>
+        row.id === rowId ? { ...row, [field]: value } : row
+      ),
+    }));
+  };
+
+  const addNewRow = () => {
+    const newId = Math.max(...guideData.table_rows.map((row) => row.id)) + 1;
+    setGuideData((prev) => ({
+      ...prev,
+      table_rows: [
+        ...prev.table_rows,
+        { id: newId, diagnosis: "", management_plan: "", notes: "" },
+      ],
+    }));
+  };
+
+  const removeRow = (rowId) => {
+    if (guideData.table_rows.length > 1) {
+      setGuideData((prev) => ({
+        ...prev,
+        table_rows: prev.table_rows.filter((row) => row.id !== rowId),
+      }));
+    }
+  };
+
+  const hasContent = guideData.table_rows.some(
+    (row) => row.diagnosis || row.management_plan || row.notes
+  );
+
+  if (isLoadingGuide) {
+    return (
+      <div className="max-w-4xl mx-auto p-6 bg-white rounded-md shadow border">
+        <div className="animate-pulse">
+          <div className="h-8 bg-gray-200 rounded w-1/3 mb-4"></div>
+          <div className="h-4 bg-gray-200 rounded w-1/2 mb-6"></div>
+          <div className="space-y-3">
+            <div className="h-4 bg-gray-200 rounded"></div>
+            <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (guideError) {
+    return (
+      <div className="max-w-4xl mx-auto p-6 bg-white rounded-md shadow border">
+        <div className="text-center text-red-600">
+          <p>Failed to load case management guide</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-2 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto p-6 bg-white rounded-md shadow border">
@@ -63,43 +210,137 @@ const CaseManagementGuide = ({
 
       <section className="space-y-4">
         <p className="text-gray-700 leading-relaxed">
-          Use this guide to review protocols and decision points before
-          finalizing your Management plan.
+          Document diagnosis and corresponding management plans for this case.
         </p>
 
-        <div className="rounded-lg border bg-gray-50 p-4">
-          <h2 className="font-semibold mb-2">Quick checklist</h2>
-          <ul className="list-disc pl-6 space-y-1 text-gray-800">
-            <li>
-              Confirm selected management options are clinically justified.
-            </li>
-            <li>
-              Verify refractive prescription values (SPH/CYL/AXIS/ADD) and lens
-              details.
-            </li>
-            <li>Ensure medication dosage/frequency/duration are complete.</li>
-            <li>Add necessary counselling/referral/surgery/therapy notes.</li>
-            <li>Cross-check documentation for accuracy and completeness.</li>
-          </ul>
+        <div className="rounded-lg border bg-white p-4">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="font-semibold">Management Guide</h2>
+            <button
+              onClick={addNewRow}
+              className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
+            >
+              + Add Row
+            </button>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="border-b-2 border-gray-200">
+                  <th className="text-left py-2 px-3 font-semibold text-gray-700 w-1/3">
+                    Diagnosis
+                  </th>
+                  <th className="text-left py-2 px-3 font-semibold text-gray-700 w-1/3">
+                    Management Plan
+                  </th>
+                  <th className="text-left py-2 px-3 font-semibold text-gray-700 w-1/3">
+                    Notes
+                  </th>
+                  <th className="w-16"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {guideData.table_rows.map((row) => (
+                  <tr key={row.id} className="border-b border-gray-100">
+                    <td className="py-2 px-3">
+                      <textarea
+                        value={row.diagnosis}
+                        onChange={(e) =>
+                          handleRowChange(row.id, "diagnosis", e.target.value)
+                        }
+                        placeholder="Enter diagnosis..."
+                        className="w-full p-2 border border-gray-300 rounded-md resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        rows="3"
+                      />
+                    </td>
+                    <td className="py-2 px-3">
+                      <textarea
+                        value={row.management_plan}
+                        onChange={(e) =>
+                          handleRowChange(
+                            row.id,
+                            "management_plan",
+                            e.target.value
+                          )
+                        }
+                        placeholder="Enter management plan..."
+                        className="w-full p-2 border border-gray-300 rounded-md resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        rows="3"
+                      />
+                    </td>
+                    <td className="py-2 px-3">
+                      <textarea
+                        value={row.notes}
+                        onChange={(e) =>
+                          handleRowChange(row.id, "notes", e.target.value)
+                        }
+                        placeholder="Enter notes..."
+                        className="w-full p-2 border border-gray-300 rounded-md resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        rows="3"
+                      />
+                    </td>
+                    <td className="py-2 px-3">
+                      {guideData.table_rows.length > 1 && (
+                        <button
+                          onClick={() => removeRow(row.id)}
+                          className="text-red-600 hover:text-red-800 p-1"
+                          title="Remove row"
+                        >
+                          <svg
+                            className="w-4 h-4"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <p className="text-xs text-gray-500 mt-3">
+            Data is automatically saved as you type
+          </p>
         </div>
 
-        <label className="flex items-start gap-3 mt-4 cursor-pointer">
-          <input
-            id="cmg-reviewed"
-            type="checkbox"
-            className="mt-1 h-5 w-5"
-            checked={reviewed}
-            onChange={(e) => setReviewed(e.target.checked)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && reviewed) nextBtnRef.current?.click();
-            }}
-            aria-describedby="cmg-reviewed-help"
-          />
-          <span className="text-sm text-gray-800" id="cmg-reviewed-help">
-            I have reviewed the Case Management Guide and completed the
-            checklist above.
-          </span>
-        </label>
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <label className="flex items-start gap-3 cursor-pointer">
+            <input
+              id="cmg-reviewed"
+              type="checkbox"
+              className="mt-1 h-5 w-5 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+              checked={reviewed}
+              onChange={(e) => handleReviewedChange(e.target.checked)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && reviewed) nextBtnRef.current?.click();
+              }}
+              aria-describedby="cmg-reviewed-help"
+            />
+            <div>
+              <span
+                className="text-sm font-medium text-gray-800"
+                id="cmg-reviewed-help"
+              >
+                I have completed the Case Management Guide
+              </span>
+              {!hasContent && (
+                <p className="text-xs text-amber-600 mt-1">
+                  ⚠ Please add at least one diagnosis with management plan
+                  before marking as reviewed
+                </p>
+              )}
+            </div>
+          </label>
+        </div>
       </section>
 
       <footer className="mt-6 flex flex-wrap gap-3">
@@ -115,16 +356,30 @@ const CaseManagementGuide = ({
           type="button"
           ref={nextBtnRef}
           onClick={handleNext}
-          disabled={!reviewed || saving}
+          disabled={!reviewed || saving || !hasContent}
           className={[
-            "px-4 py-2 rounded-md text-white",
-            reviewed && !saving
+            "px-4 py-2 rounded-md text-white flex items-center gap-2",
+            reviewed && !saving && hasContent
               ? "bg-[#2f3192] hover:opacity-90"
               : "bg-[#2f3192]/60 cursor-not-allowed",
           ].join(" ")}
-          aria-disabled={!reviewed || saving}
+          aria-disabled={!reviewed || saving || !hasContent}
         >
-          Next: Logs →
+          {saving ? (
+            <>
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+              Saving...
+            </>
+          ) : (
+            <>
+              Next: Logs →
+              {!hasContent && (
+                <span className="text-xs bg-white/20 px-1 rounded">
+                  Add content
+                </span>
+              )}
+            </>
+          )}
         </button>
       </footer>
     </div>

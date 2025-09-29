@@ -203,6 +203,22 @@ export const managementPlanUrl = (appointmentId) =>
   `/management/${appointmentId}/`;
 
 /////////////////////////
+// Case Management Guide
+/////////////////////////
+
+// Get/Create Case Management Guide
+export const caseManagementGuideUrl = (appointmentId) =>
+  `/management/case-guide/create/${appointmentId}/`;
+
+// Update Case Management Guide
+export const updateCaseManagementGuideUrl = (appointmentId) =>
+  `/management/case-guide/${appointmentId}/`;
+
+// Delete Case Management Guide
+export const deleteCaseManagementGuideUrl = (appointmentId) =>
+  `/management/case-guide/${appointmentId}/`;
+
+/////////////////////////
 // Absent Requests
 /////////////////////////
 
