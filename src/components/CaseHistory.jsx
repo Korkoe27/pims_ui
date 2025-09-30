@@ -43,6 +43,9 @@ const CaseHistory = ({
   const [selectedConditions, setSelectedConditions] = useState([]);
   const [initialPayload, setInitialPayload] = useState(null);
 
+  // Debug toggle to show raw endpoint response
+  const [showDebug, setShowDebug] = useState(false);
+
   // Use component grading hook
   const { shouldShowGrading, section, sectionLabel } = useComponentGrading(
     "CASE_HISTORY",
@@ -54,6 +57,13 @@ const CaseHistory = ({
   const { data: appointment } = useGetAppointmentDetailsQuery(appointmentId, {
     skip: !appointmentId,
   });
+
+  // Console print of endpoint response when it arrives
+  useEffect(() => {
+    if (!loadingConditions) {
+      console.log("▶️ ODQ endpoint response:", directQuestioningConditions);
+    }
+  }, [directQuestioningConditions, loadingConditions]);
 
   useEffect(() => {
     if (caseHistory) {
@@ -69,10 +79,10 @@ const CaseHistory = ({
           grouped[item.condition] = {
             id: item.condition,
             name: item.condition_name || "",
-            has_text: matchedCondition?.has_text || false,
+            has_text_per_eye: matchedCondition?.has_text_per_eye || false,
             has_dropdown: matchedCondition?.has_dropdown || false,
             has_grading: matchedCondition?.has_grading || false,
-            has_notes: matchedCondition?.has_notes || false,
+            has_general_notes: matchedCondition?.has_general_notes || false,
             has_checkbox: matchedCondition?.has_checkbox || false,
             dropdown_options: matchedCondition?.dropdown_options || [],
             OD: {},
@@ -122,10 +132,10 @@ const CaseHistory = ({
       {
         id: option.id,
         name: option.name,
-        has_text: option.has_text || false,
+        has_text_per_eye: option.has_text_per_eye || false,
         has_dropdown: option.has_dropdown || false,
         has_grading: option.has_grading || false,
-        has_notes: option.has_notes || false,
+        has_general_notes: option.has_general_notes || false,
         has_checkbox: option.has_checkbox || false,
         dropdown_options: option.dropdown_options || [],
         OD: {},
@@ -227,7 +237,7 @@ const CaseHistory = ({
   };
 
   return (
-    <CanAccess roles={[ROLES.STUDENT, ROLES.LECTURER]}>
+    <CanAccess allowedRoles={[ROLES.STUDENT, ROLES.LECTURER]}>
       <PageContainer>
         <div className="bg-white rounded-md shadow p-4">
           <div className="flex justify-between items-center mb-4">
@@ -245,6 +255,30 @@ const CaseHistory = ({
             <p>Loading patient case history...</p>
           ) : (
             <>
+              {/* Debug tools */}
+              <div className="mb-3 flex items-center justify-between">
+                <button
+                  type="button"
+                  onClick={() => setShowDebug((s) => !s)}
+                  className="text-sm px-3 py-1 border rounded"
+                >
+                  {showDebug ? "Hide" : "Show"} ODQ API Response
+                </button>
+                {!loadingConditions && (
+                  <span className="text-xs text-gray-500">
+                    {Array.isArray(directQuestioningConditions)
+                      ? `${directQuestioningConditions.length} conditions loaded`
+                      : "No data"}
+                  </span>
+                )}
+              </div>
+              {showDebug && (
+                <pre className="text-xs bg-gray-900 text-green-200 p-3 rounded overflow-auto max-h-64 mb-4">
+                  {JSON.stringify(directQuestioningConditions, null, 2)}
+                </pre>
+              )}
+
+              {/* Chief Complaint */}
               <div className="mb-4">
                 <label className="block font-semibold mb-1">
                   Chief Complaint <span className="text-red-500">*</span>
@@ -257,6 +291,7 @@ const CaseHistory = ({
                 />
               </div>
 
+              {/* Conditions */}
               <div className="mb-6">
                 <ConditionPicker
                   label={
@@ -277,11 +312,13 @@ const CaseHistory = ({
 
                 {selectedConditions.length > 0 && (
                   <div className="mt-4 space-y-4">
+                    {console.log("🔍 Selected Conditions:", selectedConditions)}
                     {selectedConditions.map((item) => (
                       <div
                         key={item.id}
                         className="p-4 bg-gray-50 border rounded space-y-4"
                       >
+                        {console.log("🔍 Rendering condition:", item.name, item)}
                         <div className="flex items-center justify-between">
                           <h4 className="font-semibold">{item.name}</h4>
                           <DeleteButton
@@ -316,19 +353,28 @@ const CaseHistory = ({
                           />
                         )}
 
-                        {item.has_text && (
-                          <TextInput
-                            valueOD={item.OD?.text || ""}
-                            valueOS={item.OS?.text || ""}
-                            onChangeOD={(val) =>
-                              handleFieldChange(item.id, "OD", "text", val)
-                            }
-                            onChangeOS={(val) =>
-                              handleFieldChange(item.id, "OS", "text", val)
-                            }
-                            placeholderOD="Enter text for OD"
-                            placeholderOS="Enter text for OS"
-                          />
+                        {item.has_text_per_eye && (
+                          <>
+                            {console.log("🔍 TextInput Debug:", {
+                              conditionName: item.name,
+                              has_text_per_eye: item.has_text_per_eye,
+                              OD_text: item.OD?.text,
+                              OS_text: item.OS?.text,
+                              fullItem: item,
+                            })}
+                            <TextInput
+                              valueOD={item.OD?.text || ""}
+                              valueOS={item.OS?.text || ""}
+                              onChangeOD={(val) =>
+                                handleFieldChange(item.id, "OD", "text", val)
+                              }
+                              onChangeOS={(val) =>
+                                handleFieldChange(item.id, "OS", "text", val)
+                              }
+                              placeholderOD="Enter text for OD"
+                              placeholderOS="Enter text for OS"
+                            />
+                          </>
                         )}
 
                         {item.has_checkbox && (
@@ -344,7 +390,7 @@ const CaseHistory = ({
                           />
                         )}
 
-                        {item.has_notes && (
+                        {item.has_general_notes && (
                           <NotesTextArea
                             value={item.notes || ""}
                             onChange={(val) =>
