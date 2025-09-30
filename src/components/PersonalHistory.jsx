@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState, Fragment } from "react";
 import usePersonalHistoryData from "../hooks/usePersonalHistoryData";
 import useFetchConditionsData from "../hooks/useFetchConditionsData";
 import GradingSelect from "./GradingSelect";
-import NotesTextArea from "./NotesTextArea";
+import NotesTextArea from "./NotesTextArea"; // kept (used before; not used now for general notes)
 import DeleteButton from "./DeleteButton";
 import { showToast } from "../components/ToasterHelper";
 import { hasFormChanged } from "../utils/deepCompare";
@@ -15,22 +15,10 @@ import NavigationButtons from "../components/NavigationButtons";
 // Toggle debug logs in console
 const DEBUG_HISTORY = false;
 
-// -----------------------------------------------------------------------------
-// Constants
-// -----------------------------------------------------------------------------
-const lastEyeExamOptions = [
-  { value: "Never", label: "Never" },
-  { value: "<1 week", label: "Less than 1 week" },
-  { value: "<3 months", label: "Less than 3 months" },
-  { value: "6 months - 1 year", label: "6 months - 1 year" },
-  { value: "1 - 3 years", label: "1 - 3 years" },
-  { value: ">3 years", label: "More than 3 years" },
-  { value: "Cannot remember", label: "Cannot remember" },
-];
+/* -------------------------------------------------------------------------- */
+/* Helpers / Small Components                                                 */
+/* -------------------------------------------------------------------------- */
 
-// -----------------------------------------------------------------------------
-// Small building blocks
-// -----------------------------------------------------------------------------
 function RequiredAsterisk({ show }) {
   if (!show) return null;
   return <span className="text-red-500">*</span>;
@@ -47,6 +35,50 @@ function SectionCard({ title, required, children }) {
   );
 }
 
+/** NEW: per-eye notes input (two textareas) */
+function PerEyeNotesTextArea({ valueOD, valueOS, onChangeOD, onChangeOS }) {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+      <div>
+        <label className="block text-sm font-medium mb-1">OD Notes</label>
+        <textarea
+          value={valueOD || ""}
+          onChange={(e) => onChangeOD(e.target.value)}
+          className="w-full border p-2 rounded min-h-[80px]"
+          placeholder="Enter OD notes..."
+        />
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-1">OS Notes</label>
+        <textarea
+          value={valueOS || ""}
+          onChange={(e) => onChangeOS(e.target.value)}
+          className="w-full border p-2 rounded min-h-[80px]"
+          placeholder="Enter OS notes..."
+        />
+      </div>
+    </div>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/* Constants                                                                  */
+/* -------------------------------------------------------------------------- */
+
+const lastEyeExamOptions = [
+  { value: "Never", label: "Never" },
+  { value: "<1 week", label: "Less than 1 week" },
+  { value: "<3 months", label: "Less than 3 months" },
+  { value: "6 months - 1 year", label: "6 months - 1 year" },
+  { value: "1 - 3 years", label: "1 - 3 years" },
+  { value: ">3 years", label: "More than 3 years" },
+  { value: "Cannot remember", label: "Cannot remember" },
+];
+
+/* -------------------------------------------------------------------------- */
+/* Condition Card                                                             */
+/* -------------------------------------------------------------------------- */
+
 function ConditionCard({
   item,
   invalid,
@@ -54,8 +86,13 @@ function ConditionCard({
   onChangeText,
   onChangeDropdown,
   onChangeGrading,
-  onChangeNotes,
+  onChangeGeneralNotes, // (neutral notes)
+  onChangeEyeNotes, // (per-eye notes)
 }) {
+  const showGeneralNotes =
+    !!item.has_general_notes || !!item.has_notes; // backward compat
+  const showPerEyeNotes = !!item.has_text_per_eye;
+
   return (
     <div
       className={`p-4 bg-gray-50 border rounded space-y-4 ${
@@ -95,20 +132,32 @@ function ConditionCard({
         />
       )}
 
-      {/* Notes are OPTIONAL */}
-      {item.has_notes && (
-        <NotesTextArea
+      {/* NEW: Per-eye notes */}
+      {showPerEyeNotes && (
+        <PerEyeNotesTextArea
+          valueOD={item?.OD?.notes || ""}
+          valueOS={item?.OS?.notes || ""}
+          onChangeOD={(val) => onChangeEyeNotes(item.id, "OD", val)}
+          onChangeOS={(val) => onChangeEyeNotes(item.id, "OS", val)}
+        />
+      )}
+
+      {/* NEW: General (neutral) notes */}
+      {showGeneralNotes && (
+        <GeneralNotesTextArea
           value={item?.notes || ""}
-          onChange={(val) => onChangeNotes(item.id, val)}
+          onChange={(val) => onChangeGeneralNotes(item.id, val)}
+          placeholder="Enter general notes (optional)..."
         />
       )}
     </div>
   );
 }
 
-// -----------------------------------------------------------------------------
-// Reusable list-state hook for conditions (same for all 4 buckets)
-// -----------------------------------------------------------------------------
+/* -------------------------------------------------------------------------- */
+/* Reusable list-state hook for conditions                                    */
+/* -------------------------------------------------------------------------- */
+
 function useConditionList() {
   const [list, setList] = useState([]);
 
@@ -122,18 +171,21 @@ function useConditionList() {
       showToast("This condition is already selected.", "error");
       return;
     }
+    // Normalize/accept both naming styles from backend
     const newItem = {
       id,
       name: option.name ?? option.label,
       has_text: !!option.has_text,
       has_dropdown: !!option.has_dropdown,
       has_grading: !!option.has_grading,
-      has_notes: !!option.has_notes,
+      has_notes: !!(option.has_notes || option.has_general_notes), // compat
+      has_general_notes: !!option.has_general_notes,
+      has_text_per_eye: !!option.has_text_per_eye,
       has_checkbox: !!option.has_checkbox,
       dropdown_options: option.dropdown_options || [],
-      OD: {},
+      OD: {}, // per-eye fields live here (text, dropdown, grading, checkbox, notes)
       OS: {},
-      notes: "",
+      notes: "", // neutral notes
     };
     if (DEBUG_HISTORY) console.log("[COND:add]", newItem);
     setList((prev) => [...prev, newItem]);
@@ -145,8 +197,18 @@ function useConditionList() {
   };
 
   const setNotes = (id, val) => {
-    if (DEBUG_HISTORY) console.log("[COND:notes]", { id, val });
+    // neutral (general) notes
+    if (DEBUG_HISTORY) console.log("[COND:notes:general]", { id, val });
     setList((prev) => prev.map((x) => (x.id === id ? { ...x, notes: val } : x)));
+  };
+
+  const setEyeNotes = (id, eye, val) => {
+    if (DEBUG_HISTORY) console.log("[COND:notes:eye]", { id, eye, val });
+    setList((prev) =>
+      prev.map((x) =>
+        x.id === id ? { ...x, [eye]: { ...(x[eye] || {}), notes: val } } : x
+      )
+    );
   };
 
   const setField = (id, eye, fieldType, val) => {
@@ -158,7 +220,7 @@ function useConditionList() {
     );
   };
 
-  // Hydrate from server entries
+  // Hydrate from server entries (including per-eye notes and general notes)
   const hydrate = (entries = [], allConditions = []) => {
     const byId = {};
     const metaById = Object.fromEntries((allConditions || []).map((c) => [c.id, c]));
@@ -174,7 +236,9 @@ function useConditionList() {
           has_text: !!meta.has_text,
           has_dropdown: !!meta.has_dropdown,
           has_grading: !!meta.has_grading,
-          has_notes: !!meta.has_notes,
+          has_notes: !!(meta.has_notes || meta.has_general_notes), // compat
+          has_general_notes: !!meta.has_general_notes,
+          has_text_per_eye: !!meta.has_text_per_eye,
           has_checkbox: !!meta.has_checkbox,
           dropdown_options: meta.dropdown_options || [],
           OD: {},
@@ -184,13 +248,14 @@ function useConditionList() {
       }
 
       if (entry.affected_eye === "OD" || entry.affected_eye === "OS") {
+        // per-eye fields (including per-eye 'notes')
         byId[cId][entry.affected_eye] = {
           ...(byId[cId][entry.affected_eye] || {}),
           ...(entry.field_type ? { [entry.field_type]: entry.value } : {}),
           ...(entry.value && !entry.field_type ? { value: entry.value } : {}), // legacy fallback
         };
       } else {
-        // neutral row (notes or other neutral fields if you add them later)
+        // neutral row (e.g., general notes)
         if (!entry.field_type || entry.field_type === "notes") {
           byId[cId].notes = entry.value ?? "";
         }
@@ -202,7 +267,7 @@ function useConditionList() {
     setList(hydrated);
   };
 
-  // Build outgoing entries
+  // Build outgoing entries (including per-eye notes + general notes)
   const buildDetails = () => {
     const out = [];
     const deduceFieldType = (item) => {
@@ -210,14 +275,14 @@ function useConditionList() {
       if (item.has_dropdown) return "dropdown";
       if (item.has_grading) return "grading";
       if (item.has_checkbox) return "checkbox";
-      if (item.has_notes) return "notes";
+      if (item.has_notes || item.has_general_notes) return "notes";
       return "text";
     };
 
     if (DEBUG_HISTORY) console.log("[COND:buildDetails:list]", list);
 
     list.forEach((item) => {
-      // neutral notes (optional)
+      // General (neutral) notes
       if (item.notes?.toString().trim()) {
         out.push({
           condition: item.id,
@@ -227,16 +292,21 @@ function useConditionList() {
         });
       }
 
-      // per-eye values
+      // Per-eye values (including per-eye notes)
       ["OD", "OS"].forEach((eye) => {
         const data = item[eye] || {};
-        ["text", "dropdown", "grading", "checkbox", "value"].forEach((ft) => {
+        // Include 'notes' explicitly for per-eye notes if present
+        ["text", "dropdown", "grading", "checkbox", "notes", "value"].forEach((ft) => {
           const v = data[ft];
-          const hasValue =
-            typeof v === "boolean" ? true : v?.toString?.().trim?.();
+          const hasValue = typeof v === "boolean" ? true : v?.toString?.().trim?.();
           if (hasValue) {
             const field_type = ft === "value" ? deduceFieldType(item) : ft;
-            out.push({ condition: item.id, affected_eye: eye, field_type, value: v });
+            out.push({
+              condition: item.id,
+              affected_eye: eye,
+              field_type,
+              value: v,
+            });
           }
         });
       });
@@ -252,16 +322,18 @@ function useConditionList() {
     formatOptions,
     add,
     remove,
-    setNotes,
+    setNotes, // general
+    setEyeNotes, // per-eye
     setField,
     hydrate,
     buildDetails,
   };
 }
 
-// -----------------------------------------------------------------------------
-// Section: selector + rendered list (same for all 4 groups)
-// -----------------------------------------------------------------------------
+/* -------------------------------------------------------------------------- */
+/* ConditionSection: selector + rendered list                                 */
+/* -------------------------------------------------------------------------- */
+
 function ConditionSection({
   title,
   required = false,
@@ -272,8 +344,9 @@ function ConditionSection({
   onChangeText,
   onChangeDropdown,
   onChangeGrading,
-  onChangeNotes,
-  invalidSet, // Set of invalid condition IDs (from parent)
+  onChangeGeneralNotes,
+  onChangeEyeNotes,
+  invalidSet,
 }) {
   return (
     <div>
@@ -301,7 +374,8 @@ function ConditionSection({
               onChangeText={(id, eye, val) => onChangeText(id, eye, val)}
               onChangeDropdown={(id, eye, val) => onChangeDropdown(id, eye, val)}
               onChangeGrading={(id, eye, val) => onChangeGrading(id, eye, val)}
-              onChangeNotes={(id, val) => onChangeNotes(id, val)}
+              onChangeGeneralNotes={(id, val) => onChangeGeneralNotes(id, val)}
+              onChangeEyeNotes={(id, eye, val) => onChangeEyeNotes(id, eye, val)}
             />
           ))}
         </div>
@@ -310,60 +384,21 @@ function ConditionSection({
   );
 }
 
-// -----------------------------------------------------------------------------
-// Utility: error formatting
-// -----------------------------------------------------------------------------
-function formatErrorMessage(data) {
-  if (!data) return "An unexpected error occurred.";
-  if (typeof data.detail === "string") return data.detail;
-  if (Array.isArray(data)) return data.join("\n");
-  if (typeof data === "object") {
-    const messages = [];
-    for (const [key, value] of Object.entries(data)) {
-      const label = key.replace(/_/g, " ").toUpperCase();
-      if (Array.isArray(value)) {
-        const formattedArray = value.map((item) => {
-          if (typeof item === "string") return item;
-          if (typeof item === "object") {
-            return Object.entries(item)
-              .map(
-                ([subKey, subValue]) =>
-                  `${subKey}: ${
-                    Array.isArray(subValue) ? subValue.join(", ") : subValue
-                  }`
-              )
-              .join("; ");
-          }
-          return item;
-        });
-        messages.push(`${label}: ${formattedArray.join("; ")}`);
-      } else {
-        messages.push(`${label}: ${value}`);
-      }
-    }
-    return messages.join("\n");
-  }
-  return "An unexpected error occurred.";
-}
+/* -------------------------------------------------------------------------- */
+/* Validation Utilities                                                       */
+/* -------------------------------------------------------------------------- */
 
-// -----------------------------------------------------------------------------
-// NEW: Condition field checks (notes are optional)
-// -----------------------------------------------------------------------------
 const _hasUserValue = (v) =>
   typeof v === "boolean" || typeof v === "number" || v?.toString?.().trim?.();
 
 const _hasAnyPerEyeInput = (cond) => {
   const checkEye = (eye) =>
-    ["text", "dropdown", "grading", "checkbox", "value"].some(
+    ["text", "dropdown", "grading", "checkbox", "value", "notes"].some(
       (ft) => _hasUserValue(cond?.[eye]?.[ft])
     );
   return checkEye("OD") || checkEye("OS");
 };
 
-/**
- * Notes are optional. If a condition is selected but has no OD/OS input at all,
- * we flag it so the user can fill *something* (text/dropdown/grading/checkbox) in either eye.
- */
 function useSelectedConditionsValidator() {
   const [invalidConditionIds, setInvalidConditionIds] = useState(new Set());
 
@@ -392,7 +427,6 @@ function useSelectedConditionsValidator() {
     return true;
   };
 
-  // clear an item’s invalid state once user starts filling it
   const clearInvalidIfFilled = (list, id) => {
     const cond = list.find((c) => c.id === id);
     if (cond && _hasAnyPerEyeInput(cond)) {
@@ -405,10 +439,17 @@ function useSelectedConditionsValidator() {
     }
   };
 
-  return { invalidConditionIds, validateSelectedConditions, setInvalidConditionIds, clearInvalidIfFilled };
+  return {
+    invalidConditionIds,
+    validateSelectedConditions,
+    clearInvalidIfFilled,
+  };
 }
 
-// Compact field-with-notes (Drug/Allergy/Social)
+/* -------------------------------------------------------------------------- */
+/* Compact field-with-notes (Drug/Allergy/Social)                             */
+/* -------------------------------------------------------------------------- */
+
 function FieldWithNotes({
   label,
   required,
@@ -436,9 +477,10 @@ function FieldWithNotes({
   );
 }
 
-// -----------------------------------------------------------------------------
-// Main Component
-// -----------------------------------------------------------------------------
+/* -------------------------------------------------------------------------- */
+/* Main Component                                                             */
+/* -------------------------------------------------------------------------- */
+
 export default function PersonalHistory({
   patientId,
   appointmentId,
@@ -451,8 +493,8 @@ export default function PersonalHistory({
     createPatientHistory,
     createPatientHistoryStatus,
   } = usePersonalHistoryData(patientId, appointmentId);
-  const { medicalConditions, ocularConditions } = useFetchConditionsData();
 
+  const { medicalConditions, ocularConditions } = useFetchConditionsData();
   const isSaving = createPatientHistoryStatus.isLoading;
   const isFirstVisit = !personalHistory;
 
@@ -473,7 +515,7 @@ export default function PersonalHistory({
 
   const [initialPayload, setInitialPayload] = useState(null);
 
-  // NEW: validator & invalid-id set for red borders
+  // Validator & invalid-id set for red borders
   const {
     invalidConditionIds,
     validateSelectedConditions,
@@ -487,7 +529,9 @@ export default function PersonalHistory({
     !Array.isArray(ocularConditions) ||
     medicalConditions.length === 0 ||
     ocularConditions.length === 0;
-  const isLoading = (!isFirstVisit && !personalHistory) || isLoadingOptions;
+
+  const isLoading =
+    (!isFirstVisit && !personalHistory) || isLoadingOptions;
 
   // Hydrate from server once available
   useEffect(() => {
@@ -503,36 +547,21 @@ export default function PersonalHistory({
 
     med.hydrate(personalHistory.medical_history, medicalConditions);
     ocu.hydrate(personalHistory.ocular_history, ocularConditions);
-    famMed.hydrate(
-      personalHistory.family_medical_history,
-      medicalConditions
-    );
-    famOcu.hydrate(
-      personalHistory.family_ocular_history,
-      ocularConditions
-    );
+    famMed.hydrate(personalHistory.family_medical_history, medicalConditions);
+    famOcu.hydrate(personalHistory.family_ocular_history, ocularConditions);
 
     const snapshot = {
       patient: patientId,
       appointment: appointmentId,
       last_eye_examination: personalHistory.last_eye_examination || "",
       drug_entries: [
-        {
-          name: personalHistory.drug_history || "",
-          notes: personalHistory.drug_notes || "",
-        },
+        { name: personalHistory.drug_history || "", notes: personalHistory.drug_notes || "" },
       ],
       allergy_entries: [
-        {
-          name: personalHistory.allergies || "",
-          notes: personalHistory.allergy_notes || "",
-        },
+        { name: personalHistory.allergies || "", notes: personalHistory.allergy_notes || "" },
       ],
       social_entries: [
-        {
-          name: personalHistory.social_history || "",
-          notes: personalHistory.social_notes || "",
-        },
+        { name: personalHistory.social_history || "", notes: personalHistory.social_notes || "" },
       ],
       medical_history: (personalHistory.medical_history || []).map((e) => ({
         condition: e.condition,
@@ -546,17 +575,13 @@ export default function PersonalHistory({
         field_type: e.field_type,
         value: e.value,
       })),
-      family_medical_history: (
-        personalHistory.family_medical_history || []
-      ).map((e) => ({
+      family_medical_history: (personalHistory.family_medical_history || []).map((e) => ({
         condition: e.condition,
         affected_eye: e.affected_eye,
         field_type: e.field_type,
         value: e.value,
       })),
-      family_ocular_history: (
-        personalHistory.family_ocular_history || []
-      ).map((e) => ({
+      family_ocular_history: (personalHistory.family_ocular_history || []).map((e) => ({
         condition: e.condition,
         affected_eye: e.affected_eye,
         field_type: e.field_type,
@@ -568,7 +593,7 @@ export default function PersonalHistory({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [personalHistory, patientId, appointmentId, medicalConditions, ocularConditions]);
 
-  // Validation for first-time visits only (notes optional)
+  // Required fields for first-time visits (notes remain optional)
   const validateRequiredFields = () => {
     if (!isFirstVisit) return true;
     const errors = [];
@@ -576,15 +601,10 @@ export default function PersonalHistory({
     if (!drugHistory) errors.push("Drug history is required.");
     if (!allergyHistory) errors.push("Allergy history is required.");
     if (!socialHistory) errors.push("Social history is required.");
-    if (med.list.length === 0)
-      errors.push("At least one medical condition is required.");
-    if (ocu.list.length === 0)
-      errors.push("At least one ocular condition is required.");
-    if (famMed.list.length === 0)
-      errors.push("Family medical history is required.");
-    if (famOcu.list.length === 0)
-      errors.push("Family ocular history is required.");
-
+    if (med.list.length === 0) errors.push("At least one medical condition is required.");
+    if (ocu.list.length === 0) errors.push("At least one ocular condition is required.");
+    if (famMed.list.length === 0) errors.push("Family medical history is required.");
+    if (famOcu.list.length === 0) errors.push("Family ocular history is required.");
     if (errors.length) {
       showToast(errors.join(" "), "error");
       return false;
@@ -608,7 +628,7 @@ export default function PersonalHistory({
   const handleSave = async () => {
     if (!validateRequiredFields()) return;
 
-    // NEW: ensure each selected condition has at least one OD/OS input (notes may be empty)
+    // Ensure each selected condition has at least one OD/OS input (notes may be empty)
     const ok = validateSelectedConditions([
       { name: "Medical History", list: med.list },
       { name: "Ocular History", list: ocu.list },
@@ -626,15 +646,9 @@ export default function PersonalHistory({
 
     if (DEBUG_HISTORY) {
       console.log("[PAYLOAD] medical_history", payload.medical_history);
-      console.log(
-        "[PAYLOAD] family_medical_history",
-        payload.family_medical_history
-      );
+      console.log("[PAYLOAD] family_medical_history", payload.family_medical_history);
       console.log("[PAYLOAD] ocular_history", payload.ocular_history);
-      console.log(
-        "[PAYLOAD] family_ocular_history",
-        payload.family_ocular_history
-      );
+      console.log("[PAYLOAD] family_ocular_history", payload.family_ocular_history);
     }
 
     if (initialPayload && !hasFormChanged(initialPayload, payload)) {
@@ -681,15 +695,13 @@ export default function PersonalHistory({
     clearInvalidIfFilled(famOcu.list, id);
   };
 
+  // NEW: handlers for notes (general + per-eye)
+  const onChangeGeneralNotes = (listHook) => (id, val) => listHook.setNotes(id, val);
+  const onChangeEyeNotes = (listHook) => (id, eye, val) => listHook.setEyeNotes(id, eye, val);
+
   // Memoized options
-  const medicalOptions = useMemo(
-    () => med.formatOptions(medicalConditions),
-    [medicalConditions]
-  );
-  const ocularOptions = useMemo(
-    () => ocu.formatOptions(ocularConditions),
-    [ocularConditions]
-  );
+  const medicalOptions = useMemo(() => med.formatOptions(medicalConditions), [medicalConditions]);
+  const ocularOptions = useMemo(() => ocu.formatOptions(ocularConditions), [ocularConditions]);
 
   return (
     <div className="p-6 max-w-6xl mx-auto">
@@ -763,13 +775,10 @@ export default function PersonalHistory({
                 onSelect={med.add}
                 onDelete={med.remove}
                 onChangeText={(id, eye, val) => onMedChangeField(id, eye, "text", val)}
-                onChangeDropdown={(id, eye, val) =>
-                  onMedChangeField(id, eye, "dropdown", val)
-                }
-                onChangeGrading={(id, eye, val) =>
-                  onMedChangeField(id, eye, "grading", val)
-                }
-                onChangeNotes={(id, val) => med.setNotes(id, val)}
+                onChangeDropdown={(id, eye, val) => onMedChangeField(id, eye, "dropdown", val)}
+                onChangeGrading={(id, eye, val) => onMedChangeField(id, eye, "grading", val)}
+                onChangeGeneralNotes={onChangeGeneralNotes(med)}
+                onChangeEyeNotes={onChangeEyeNotes(med)}
                 invalidSet={invalidConditionIds}
               />
             </div>
@@ -785,13 +794,10 @@ export default function PersonalHistory({
                 onSelect={ocu.add}
                 onDelete={ocu.remove}
                 onChangeText={(id, eye, val) => onOcuChangeField(id, eye, "text", val)}
-                onChangeDropdown={(id, eye, val) =>
-                  onOcuChangeField(id, eye, "dropdown", val)
-                }
-                onChangeGrading={(id, eye, val) =>
-                  onOcuChangeField(id, eye, "grading", val)
-                }
-                onChangeNotes={(id, val) => ocu.setNotes(id, val)}
+                onChangeDropdown={(id, eye, val) => onOcuChangeField(id, eye, "dropdown", val)}
+                onChangeGrading={(id, eye, val) => onOcuChangeField(id, eye, "grading", val)}
+                onChangeGeneralNotes={onChangeGeneralNotes(ocu)}
+                onChangeEyeNotes={onChangeEyeNotes(ocu)}
                 invalidSet={invalidConditionIds}
               />
 
@@ -803,16 +809,11 @@ export default function PersonalHistory({
                 values={famMed.list}
                 onSelect={famMed.add}
                 onDelete={famMed.remove}
-                onChangeText={(id, eye, val) =>
-                  onFamMedChangeField(id, eye, "text", val)
-                }
-                onChangeDropdown={(id, eye, val) =>
-                  onFamMedChangeField(id, eye, "dropdown", val)
-                }
-                onChangeGrading={(id, eye, val) =>
-                  onFamMedChangeField(id, eye, "grading", val)
-                }
-                onChangeNotes={(id, val) => famMed.setNotes(id, val)}
+                onChangeText={(id, eye, val) => onFamMedChangeField(id, eye, "text", val)}
+                onChangeDropdown={(id, eye, val) => onFamMedChangeField(id, eye, "dropdown", val)}
+                onChangeGrading={(id, eye, val) => onFamMedChangeField(id, eye, "grading", val)}
+                onChangeGeneralNotes={onChangeGeneralNotes(famMed)}
+                onChangeEyeNotes={onChangeEyeNotes(famMed)}
                 invalidSet={invalidConditionIds}
               />
 
@@ -824,16 +825,11 @@ export default function PersonalHistory({
                 values={famOcu.list}
                 onSelect={famOcu.add}
                 onDelete={famOcu.remove}
-                onChangeText={(id, eye, val) =>
-                  onFamOcuChangeField(id, eye, "text", val)
-                }
-                onChangeDropdown={(id, eye, val) =>
-                  onFamOcuChangeField(id, eye, "dropdown", val)
-                }
-                onChangeGrading={(id, eye, val) =>
-                  onFamOcuChangeField(id, eye, "grading", val)
-                }
-                onChangeNotes={(id, val) => famOcu.setNotes(id, val)}
+                onChangeText={(id, eye, val) => onFamOcuChangeField(id, eye, "text", val)}
+                onChangeDropdown={(id, eye, val) => onFamOcuChangeField(id, eye, "dropdown", val)}
+                onChangeGrading={(id, eye, val) => onFamOcuChangeField(id, eye, "grading", val)}
+                onChangeGeneralNotes={onChangeGeneralNotes(famOcu)}
+                onChangeEyeNotes={onChangeEyeNotes(famOcu)}
                 invalidSet={invalidConditionIds}
               />
             </div>
@@ -853,4 +849,41 @@ export default function PersonalHistory({
       </div>
     </div>
   );
+}
+
+/* -------------------------------------------------------------------------- */
+/* Error formatting (unchanged)                                               */
+/* -------------------------------------------------------------------------- */
+
+function formatErrorMessage(data) {
+  if (!data) return "An unexpected error occurred.";
+  if (typeof data.detail === "string") return data.detail;
+  if (Array.isArray(data)) return data.join("\n");
+  if (typeof data === "object") {
+    const messages = [];
+    for (const [key, value] of Object.entries(data)) {
+      const label = key.replace(/_/g, " ").toUpperCase();
+      if (Array.isArray(value)) {
+        const formattedArray = value.map((item) => {
+          if (typeof item === "string") return item;
+          if (typeof item === "object") {
+            return Object.entries(item)
+              .map(
+                ([subKey, subValue]) =>
+                  `${subKey}: ${
+                    Array.isArray(subValue) ? subValue.join(", ") : subValue
+                  }`
+              )
+              .join("; ");
+          }
+          return item;
+        });
+        messages.push(`${label}: ${formattedArray.join("; ")}`);
+      } else {
+        messages.push(`${label}: ${value}`);
+      }
+    }
+    return messages.join("\n");
+  }
+  return "An unexpected error occurred.";
 }

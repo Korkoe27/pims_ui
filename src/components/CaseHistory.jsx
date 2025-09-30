@@ -355,13 +355,6 @@ const CaseHistory = ({
 
                         {item.has_text_per_eye && (
                           <>
-                            {console.log("🔍 TextInput Debug:", {
-                              conditionName: item.name,
-                              has_text_per_eye: item.has_text_per_eye,
-                              OD_text: item.OD?.text,
-                              OS_text: item.OS?.text,
-                              fullItem: item,
-                            })}
                             <TextInput
                               valueOD={item.OD?.text || ""}
                               valueOS={item.OS?.text || ""}
