@@ -15,9 +15,8 @@ import {
 } from "../redux/api/features/managementApi";
 
 /* =========================================================================
-   Inline Case Management Guide (kept inside this file; no router navigation)
+   Inline Case Management Guide (no auto-save; manual save on actions only)
    ========================================================================= */
-const storageKeyFor = (id) => `cmg-reviewed-${id}`;
 
 const CaseManagementGuide = ({
   appointmentId,
@@ -25,7 +24,6 @@ const CaseManagementGuide = ({
   setTabCompletionStatus,
   role = "student",
 }) => {
-  const [reviewed, setReviewed] = useState(false);
   const [saving, setSaving] = useState(false);
   const [guideData, setGuideData] = useState({
     table_rows: [{ id: 1, diagnosis: "", management_plan: "", notes: "" }],
@@ -51,64 +49,11 @@ const CaseManagementGuide = ({
         ],
         completed: caseGuide.completed || false,
       });
-      setReviewed(caseGuide.completed || false);
     }
-  }, [caseGuide]);
-
-  // Auto-save functionality with debounce
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (
-        appointmentId &&
-        guideData.table_rows.some(
-          (row) => row.diagnosis || row.management_plan || row.notes
-        )
-      ) {
-        handleAutoSave();
-      }
-    }, 2000); // Auto-save after 2 seconds of inactivity
-
-    return () => clearTimeout(timer);
-  }, [guideData, appointmentId]);
-
-  const handleAutoSave = async () => {
-    try {
-      await updateCaseGuide({
-        appointmentId,
-        payload: {
-          ...guideData,
-          completed: reviewed,
-        },
-      }).unwrap();
-    } catch (error) {
-      console.error("Auto-save failed:", error);
-    }
-  };
-
-  const handleReviewedChange = async (checked) => {
-    setReviewed(checked);
-    setGuideData((prev) => ({ ...prev, completed: checked }));
-
-    if (checked) {
-      setTabCompletionStatus?.("case_guide", true);
-    }
-
-    // Save immediately when review status changes
-    try {
-      await updateCaseGuide({
-        appointmentId,
-        payload: {
-          ...guideData,
-          completed: checked,
-        },
-      }).unwrap();
-    } catch (error) {
-      showToast("Failed to save review status", "error");
-    }
-  };
+  }, [caseGuide, appointmentId]);
 
   const handleNext = async () => {
-    if (!reviewed || saving) return;
+    if (saving || !hasContent) return;
     setSaving(true);
     try {
       // Final save before proceeding
@@ -120,6 +65,9 @@ const CaseManagementGuide = ({
         },
       }).unwrap();
 
+      // Mark as completed when user proceeds
+      setTabCompletionStatus?.("case_guide", true);
+
       showToast("Case management guide completed successfully", "success");
       setActiveTab?.("logs");
     } catch (error) {
@@ -127,10 +75,6 @@ const CaseManagementGuide = ({
     } finally {
       setSaving(false);
     }
-  };
-
-  const handleNotesChange = (value) => {
-    setGuideData((prev) => ({ ...prev, notes: value }));
   };
 
   const handleRowChange = (rowId, field, value) => {
@@ -306,40 +250,6 @@ const CaseManagementGuide = ({
               </tbody>
             </table>
           </div>
-
-          <p className="text-xs text-gray-500 mt-3">
-            Data is automatically saved as you type
-          </p>
-        </div>
-
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <label className="flex items-start gap-3 cursor-pointer">
-            <input
-              id="cmg-reviewed"
-              type="checkbox"
-              className="mt-1 h-5 w-5 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-              checked={reviewed}
-              onChange={(e) => handleReviewedChange(e.target.checked)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && reviewed) nextBtnRef.current?.click();
-              }}
-              aria-describedby="cmg-reviewed-help"
-            />
-            <div>
-              <span
-                className="text-sm font-medium text-gray-800"
-                id="cmg-reviewed-help"
-              >
-                I have completed the Case Management Guide
-              </span>
-              {!hasContent && (
-                <p className="text-xs text-amber-600 mt-1">
-                  ⚠ Please add at least one diagnosis with management plan
-                  before marking as reviewed
-                </p>
-              )}
-            </div>
-          </label>
         </div>
       </section>
 
@@ -356,14 +266,14 @@ const CaseManagementGuide = ({
           type="button"
           ref={nextBtnRef}
           onClick={handleNext}
-          disabled={!reviewed || saving || !hasContent}
+          disabled={saving || !hasContent}
           className={[
             "px-4 py-2 rounded-md text-white flex items-center gap-2",
-            reviewed && !saving && hasContent
+            !saving && hasContent
               ? "bg-[#2f3192] hover:opacity-90"
               : "bg-[#2f3192]/60 cursor-not-allowed",
           ].join(" ")}
-          aria-disabled={!reviewed || saving || !hasContent}
+          aria-disabled={saving || !hasContent}
         >
           {saving ? (
             <>
@@ -542,6 +452,8 @@ const Management = ({ setFlowStep, appointmentId }) => {
     if (rx) {
       setPrescription({
         type_of_refractive_correction: rx.type_of_refractive_correction ?? "",
+        od: undefined, // avoid storing nested obj in state shape
+        os: undefined,
         od_sph: rx.od?.sph ?? "",
         od_cyl: rx.od?.cyl ?? "",
         od_axis: rx.od?.axis ?? "",
@@ -770,7 +682,12 @@ const Management = ({ setFlowStep, appointmentId }) => {
     ...(role === "student" ? [{ key: "submit", label: "Submit" }] : []),
     ...(role !== "student" ? [{ key: "grading", label: "Grading" }] : []),
   ];
-  const TABS = [...baseTabs, { key: "complete", label: "Complete" }];
+
+  // Hide Complete tab for students
+  const TABS = [
+    ...baseTabs,
+    ...(role !== "student" ? [{ key: "complete", label: "Complete" }] : []),
+  ];
 
   return (
     <div className="ml-72 py-8 px-8 w-fit flex flex-col gap-8">
@@ -907,14 +824,15 @@ const Management = ({ setFlowStep, appointmentId }) => {
         </form>
       )}
 
-      {activeTab === "case_guide" && role === "student" && (
-        <CaseManagementGuide
-          appointmentId={apptId}
-          setActiveTab={setActiveTab}
-          setTabCompletionStatus={setTabCompletionStatus}
-          role={role}
-        />
-      )}
+      {activeTab === "case_guide" &&
+        (role === "student" || role === "lecturer") && (
+          <CaseManagementGuide
+            appointmentId={apptId}
+            setActiveTab={setActiveTab}
+            setTabCompletionStatus={setTabCompletionStatus}
+            role={role}
+          />
+        )}
 
       {activeTab === "submit" && role === "student" && (
         <div className="rounded-md border bg-white p-6 w-full max-w-2xl">
@@ -958,7 +876,7 @@ const Management = ({ setFlowStep, appointmentId }) => {
         </div>
       )}
 
-      {activeTab === "complete" && (
+      {activeTab === "complete" && role !== "student" && (
         <div className="rounded-md border bg-white p-6 w-full max-w-xl">
           <h3 className="text-lg font-semibold mb-2">Complete</h3>
           <p className="text-sm text-gray-600 mb-4">
