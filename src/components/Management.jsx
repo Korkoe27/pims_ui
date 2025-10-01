@@ -75,13 +75,13 @@ const CaseManagementGuide = ({
     if (saving || !hasContent) return;
     setSaving(true);
     try {
-      // Get the first row data (since backend expects single record format)
-      const firstRow = guideData.table_rows[0] || {};
-
+      // Send table_rows data - backend should handle multiple rows
       const payload = {
-        diagnosis: firstRow.diagnosis || "",
-        management_plan: firstRow.management_plan || "",
-        comments: firstRow.notes || "", // Map 'notes' to 'comments'
+        table_rows: guideData.table_rows.map((row) => ({
+          diagnosis: row.diagnosis || "",
+          management_plan: row.management_plan || "",
+          comments: row.notes || "", // Map 'notes' to 'comments'
+        })),
         completed: true,
       };
 
@@ -134,11 +134,9 @@ const CaseManagementGuide = ({
     }
   };
 
-  const hasContent =
-    guideData.table_rows.length > 0 &&
-    (guideData.table_rows[0].diagnosis ||
-      guideData.table_rows[0].management_plan ||
-      guideData.table_rows[0].notes);
+  const hasContent = guideData.table_rows.some(
+    (row) => row.diagnosis || row.management_plan || row.notes
+  );
 
   if (isLoadingGuide) {
     return (
@@ -188,8 +186,14 @@ const CaseManagementGuide = ({
         </p>
 
         <div className="rounded-lg border bg-white p-4">
-          <div className="mb-4">
+          <div className="flex justify-between items-center mb-4">
             <h2 className="font-semibold">Management Guide</h2>
+            <button
+              onClick={addNewRow}
+              className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
+            >
+              + Add Row
+            </button>
           </div>
 
           <div className="overflow-x-auto">
@@ -205,6 +209,7 @@ const CaseManagementGuide = ({
                   <th className="text-left py-2 px-3 font-semibold text-gray-700 w-1/3">
                     Notes
                   </th>
+                  <th className="w-16"></th>
                 </tr>
               </thead>
               <tbody>
@@ -246,6 +251,27 @@ const CaseManagementGuide = ({
                         className="w-full p-2 border border-gray-300 rounded-md resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         rows="3"
                       />
+                    </td>
+                    <td className="py-2 px-3">
+                      {guideData.table_rows.length > 1 && (
+                        <button
+                          onClick={() => removeRow(row.id)}
+                          className="text-red-600 hover:text-red-800 p-1"
+                          title="Remove row"
+                        >
+                          <svg
+                            className="w-4 h-4"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))}
