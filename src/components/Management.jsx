@@ -1008,10 +1008,10 @@ const Management = ({ setFlowStep, appointmentId }) => {
             </button>
             <button
               type="button"
-              onClick={() => setActiveTab("management")}
+              onClick={() => setActiveTab("logs")}
               className="px-4 py-2 rounded-md border"
             >
-              Back to Management
+              Back to Logs
             </button>
           </div>
         </div>
