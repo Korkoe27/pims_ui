@@ -330,15 +330,111 @@ const CaseManagementGuide = ({
   );
 };
 
-const LogsPanel = ({ appointmentId }) => (
-  <div className="rounded-md border bg-white p-4">
-    <h3 className="text-lg font-semibold mb-2">Logs</h3>
-    <p className="text-sm text-gray-600">
-      Audit trail & activity for this management plan (appointment:{" "}
-      {appointmentId})
-    </p>
-  </div>
-);
+const LogsPanel = ({ appointmentId, setActiveTab, role }) => {
+  const [logEntry, setLogEntry] = useState("");
+  const [logs, setLogs] = useState([]);
+
+  const handleAddLog = () => {
+    if (logEntry.trim()) {
+      const newLog = {
+        id: Date.now(),
+        entry: logEntry,
+        timestamp: new Date().toLocaleString(),
+        user: "Current User", // You can get this from Redux state if needed
+      };
+      setLogs([...logs, newLog]);
+      setLogEntry("");
+    }
+  };
+
+  // Determine the previous tab based on role
+  const getPreviousTab = () => {
+    return role === "student" ? "case_guide" : "management";
+  };
+
+  const getNextTab = () => {
+    if (role === "student") {
+      return "submit";
+    } else {
+      return "grading";
+    }
+  };
+
+  return (
+    <div className="rounded-md border bg-white p-4">
+      <h3 className="text-lg font-semibold mb-2">Logs</h3>
+      <p className="text-sm text-gray-600 mb-4">
+        Audit trail & activity for this management plan (appointment:{" "}
+        {appointmentId})
+      </p>
+
+      {/* Log Entry Input */}
+      <div className="mb-4">
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Add Log Entry
+        </label>
+        <div className="flex gap-2">
+          <textarea
+            value={logEntry}
+            onChange={(e) => setLogEntry(e.target.value)}
+            placeholder="Enter log entry..."
+            className="flex-1 p-2 border border-gray-300 rounded-md resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            rows="3"
+          />
+          <button
+            onClick={handleAddLog}
+            disabled={!logEntry.trim()}
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed h-fit"
+          >
+            Add Log
+          </button>
+        </div>
+      </div>
+
+      {/* Log Entries Display */}
+      <div className="space-y-2 mb-6">
+        <h4 className="text-sm font-medium text-gray-700">Log Entries</h4>
+        {logs.length === 0 ? (
+          <p className="text-sm text-gray-500 italic">No log entries yet.</p>
+        ) : (
+          <div className="max-h-60 overflow-y-auto space-y-2">
+            {logs.map((log) => (
+              <div
+                key={log.id}
+                className="bg-gray-50 p-3 rounded border-l-4 border-blue-500"
+              >
+                <div className="flex justify-between items-start mb-1">
+                  <span className="text-xs text-gray-500">{log.timestamp}</span>
+                  <span className="text-xs text-gray-500">{log.user}</span>
+                </div>
+                <p className="text-sm text-gray-700">{log.entry}</p>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Navigation Buttons */}
+      <div className="flex gap-3 pt-4 border-t border-gray-200">
+        <button
+          type="button"
+          onClick={() => setActiveTab?.(getPreviousTab())}
+          className="px-4 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50"
+        >
+          ← Back to {role === "student" ? "Case Guide" : "Management"}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab?.(getNextTab())}
+          className="px-4 py-2 rounded-md bg-[#2f3192] text-white hover:opacity-90"
+        >
+          Next: {role === "student" ? "Submit" : "Grading"} →
+        </button>
+      </div>
+    </div>
+  );
+};
 
 const Tab = ({ active, onClick, children }) => (
   <button
@@ -895,7 +991,13 @@ const Management = ({ setFlowStep, appointmentId }) => {
         </div>
       )}
 
-      {activeTab === "logs" && <LogsPanel appointmentId={apptId} />}
+      {activeTab === "logs" && (
+        <LogsPanel
+          appointmentId={apptId}
+          setActiveTab={setActiveTab}
+          role={role}
+        />
+      )}
 
       {activeTab === "grading" && role !== "student" && (
         <div className="rounded-md border bg-white p-6 w-full max-w-2xl">
