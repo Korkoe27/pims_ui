@@ -19,6 +19,7 @@ import {
   useGetCaseManagementGuideQuery,
   useUpdateCaseManagementGuideMutation,
 } from "../redux/api/features/managementApi";
+import { useSubmitAppointmentForReviewMutation } from "../redux/api/features/appointmentsApi";
 
 /* =========================================================================
    Case Management Guide - Manual save on Next button click only
@@ -515,6 +516,10 @@ const Management = ({ setFlowStep, appointmentId }) => {
     isCreatingManagementPlan,
   } = useManagementData(apptId, selectedTypeId);
 
+  // Appointment submission mutation
+  const [submitAppointmentForReview, { isLoading: isSubmittingForReview }] =
+    useSubmitAppointmentForReviewMutation();
+
   // ---------------- UI STATE ----------------
   const [modal, setModal] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -789,10 +794,24 @@ const Management = ({ setFlowStep, appointmentId }) => {
   const onSubmitForReview = async () => {
     if (!validateBeforeConfirm()) return;
     try {
+      // First save the management plan
       await saveManagement();
-      showToast("Submitted for supervisor review.", "success");
-      setActiveTab("logs");
-    } catch {}
+
+      // Then submit the appointment for review
+      await submitAppointmentForReview(apptId).unwrap();
+
+      showToast("Successfully submitted for supervisor review!", "success");
+
+      // Redirect to dashboard after successful submission
+      setTimeout(() => {
+        navigate("/");
+      }, 1000); // Small delay to show the success message
+    } catch (error) {
+      console.error("Submit for review failed:", error);
+      const errorMessage =
+        error?.data?.message || error?.message || "Failed to submit for review";
+      showToast(errorMessage, "error");
+    }
   };
 
   const onComplete = async () => {
@@ -975,10 +994,17 @@ const Management = ({ setFlowStep, appointmentId }) => {
             <button
               type="button"
               onClick={onSubmitForReview}
-              className="px-4 py-2 rounded-md bg-[#2f3192] text-white disabled:opacity-60"
-              disabled={isCreatingManagementPlan}
+              className="px-4 py-2 rounded-md bg-[#2f3192] text-white disabled:opacity-60 flex items-center gap-2"
+              disabled={isCreatingManagementPlan || isSubmittingForReview}
             >
-              Submit
+              {isSubmittingForReview ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  Submitting...
+                </>
+              ) : (
+                "Submit for Review"
+              )}
             </button>
             <button
               type="button"
