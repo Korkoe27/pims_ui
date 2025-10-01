@@ -180,9 +180,6 @@ const CaseManagementGuide = ({
         <h1 className="text-2xl font-bold text-[#101928]">
           Case Management Guide
         </h1>
-        <p className="text-gray-600 mt-1">
-          Appointment: <span className="font-mono">{appointmentId}</span>
-        </p>
       </header>
 
       <section className="space-y-4">
