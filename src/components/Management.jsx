@@ -3,7 +3,6 @@ import React, {
   useMemo,
   useState,
   useRef,
-  useCallback,
 } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
@@ -11,15 +10,18 @@ import { IoClose } from "react-icons/io5";
 import { IoIosCheckmarkCircle } from "react-icons/io";
 import PatientModal from "./SelectClinicModal";
 import { showToast } from "../components/ToasterHelper";
-import RefractiveCorrectionSection from "./RefractiveCorrectionSection";
-import MedicationForm from "./MedicationForm";
-import SupervisorGradingButton from "./SupervisorGradingButton";
 import useManagementData from "../hooks/useManagementData";
 import {
   useGetCaseManagementGuideQuery,
   useUpdateCaseManagementGuideMutation,
 } from "../redux/api/features/managementApi";
 import { useSubmitAppointmentForReviewMutation } from "../redux/api/features/appointmentsApi";
+import {
+  ManagementForm,
+  SubmitTab,
+  GradingTab,
+  CompleteTab,
+} from "./Management/";
 
 /* =========================================================================
    Case Management Guide - Manual save on Next button click only
@@ -511,7 +513,6 @@ const Management = ({ setFlowStep, appointmentId }) => {
     isMedicationsLoading,
     isMedicationTypesLoading,
     isFilteringMedications,
-    isManagementPlanLoading,
     createManagementPlan,
     isCreatingManagementPlan,
   } = useManagementData(apptId, selectedTypeId);
@@ -855,122 +856,28 @@ const Management = ({ setFlowStep, appointmentId }) => {
 
       {/* Tab content */}
       {activeTab === "management" && (
-        <form className="flex flex-col gap-5 w-fit">
-          <main className="flex gap-40">
-            <section className="flex flex-col gap-12 w-fit">
-              <div className="flex flex-col gap-2">
-                <label className="font-medium text-base">
-                  Treatment / Management Option(s)
-                </label>
-                <div className="grid grid-cols-2 gap-5">
-                  {Object.keys(checkboxes).map((key) => (
-                    <label
-                      key={key}
-                      className="flex items-center gap-1 capitalize"
-                    >
-                      <input
-                        type="checkbox"
-                        name={key}
-                        checked={checkboxes[key]}
-                        onChange={(e) =>
-                          setCheckboxes((prev) => ({
-                            ...prev,
-                            [e.target.name]: e.target.checked,
-                          }))
-                        }
-                        className="h-5 w-5"
-                      />
-                      {key.replace(/([A-Z])/g, " $1")}
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              {checkboxes.refractiveCorrection && (
-                <RefractiveCorrectionSection
-                  prescription={prescription}
-                  handleInputChange={(e) =>
-                    setPrescription((prev) => ({
-                      ...prev,
-                      [e.target.name]: e.target.value,
-                    }))
-                  }
-                />
-              )}
-
-              {checkboxes.medications && (
-                <MedicationForm
-                  selectedMedications={selectedMedications}
-                  setSelectedMedications={setSelectedMedications}
-                  medications={medsList}
-                  medicationTypes={medicationTypes}
-                  selectedTypeId={selectedTypeId}
-                  setSelectedTypeId={setSelectedTypeId}
-                  isLoadingMeds={
-                    isMedicationsLoading ||
-                    isMedicationTypesLoading ||
-                    isFilteringMedications
-                  }
-                />
-              )}
-
-              {[
-                "surgery",
-                "referral",
-                "counselling",
-                "therapy",
-                "lowVisionAid",
-              ].map((field) => {
-                if (!checkboxes[field]) return null;
-                const label = `${field.replace(
-                  /([A-Z])/g,
-                  " $1"
-                )} Details`.replace(/^./, (s) => s.toUpperCase());
-                const name = `${field}_details`;
-                return (
-                  <div key={field} className="flex flex-col gap-2">
-                    <label className="font-medium">{label}</label>
-                    <textarea
-                      name={name}
-                      value={details[name]}
-                      onChange={(e) =>
-                        setDetails((prev) => ({
-                          ...prev,
-                          [e.target.name]: e.target.value,
-                        }))
-                      }
-                      className="w-full p-2 border rounded-md"
-                      placeholder={
-                        field === "therapy"
-                          ? "Type of therapy or exercises..."
-                          : ""
-                      }
-                    />
-                  </div>
-                );
-              })}
-            </section>
-          </main>
-
-          <div className="flex gap-3">
-            <button
-              type="button"
-              onClick={() => setFlowStep?.("diagnosis")}
-              className="text-[#2f3192] border border-[#2f3192] hover:bg-[#2f3192] hover:text-white px-4 py-2 rounded-md transition font-medium"
-            >
-              ← Back to Diagnosis
-            </button>
-
-            <button
-              type="button"
-              onClick={onSaveDraftAndNext}
-              className="px-4 py-2 rounded-md bg-[#2f3192] text-white disabled:opacity-60"
-              disabled={isCreatingManagementPlan}
-            >
-              Save Draft & Continue
-            </button>
-          </div>
-        </form>
+        <ManagementForm
+          checkboxes={checkboxes}
+          setCheckboxes={setCheckboxes}
+          prescription={prescription}
+          setPrescription={setPrescription}
+          details={details}
+          setDetails={setDetails}
+          selectedMedications={selectedMedications}
+          setSelectedMedications={setSelectedMedications}
+          medsList={medsList}
+          medicationTypes={medicationTypes}
+          selectedTypeId={selectedTypeId}
+          setSelectedTypeId={setSelectedTypeId}
+          isLoadingMeds={
+            isMedicationsLoading ||
+            isMedicationTypesLoading ||
+            isFilteringMedications
+          }
+          isCreatingManagementPlan={isCreatingManagementPlan}
+          onSaveDraftAndNext={onSaveDraftAndNext}
+          setFlowStep={setFlowStep}
+        />
       )}
 
       {activeTab === "case_guide" &&
@@ -984,37 +891,12 @@ const Management = ({ setFlowStep, appointmentId }) => {
         )}
 
       {activeTab === "submit" && role === "student" && (
-        <div className="rounded-md border bg-white p-6 w-full max-w-2xl">
-          <h3 className="text-lg font-semibold mb-2">Submit for Review</h3>
-          <p className="text-sm text-gray-600 mb-4">
-            Submitting will notify your supervisor that the Management section
-            is ready for review.
-          </p>
-          <div className="flex gap-3">
-            <button
-              type="button"
-              onClick={onSubmitForReview}
-              className="px-4 py-2 rounded-md bg-[#2f3192] text-white disabled:opacity-60 flex items-center gap-2"
-              disabled={isCreatingManagementPlan || isSubmittingForReview}
-            >
-              {isSubmittingForReview ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  Submitting...
-                </>
-              ) : (
-                "Submit for Review"
-              )}
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab("logs")}
-              className="px-4 py-2 rounded-md border"
-            >
-              Back to Logs
-            </button>
-          </div>
-        </div>
+        <SubmitTab
+          onSubmitForReview={onSubmitForReview}
+          isCreatingManagementPlan={isCreatingManagementPlan}
+          isSubmittingForReview={isSubmittingForReview}
+          setActiveTab={setActiveTab}
+        />
       )}
 
       {activeTab === "logs" && (
@@ -1026,39 +908,11 @@ const Management = ({ setFlowStep, appointmentId }) => {
       )}
 
       {activeTab === "grading" && role !== "student" && (
-        <div className="rounded-md border bg-white p-6 w-full max-w-2xl">
-          <SupervisorGradingButton
-            sectionLabel="Grading: Management"
-            appointmentId={apptId}
-            onSubmit={() => {
-              showToast("Grading submitted.", "success");
-              setActiveTab("complete");
-            }}
-          />
-        </div>
+        <GradingTab appointmentId={apptId} setActiveTab={setActiveTab} />
       )}
 
       {activeTab === "complete" && role !== "student" && (
-        <div className="rounded-md border bg-white p-6 w-full max-w-xl">
-          <h3 className="text-lg font-semibold mb-2">Complete</h3>
-          <p className="text-sm text-gray-600 mb-4">
-            Proceed to Payment to continue the main flow.
-          </p>
-          <div className="flex gap-3">
-            <button
-              onClick={onComplete}
-              className="px-4 py-2 rounded-md bg-[#0F973D] text-white"
-            >
-              Continue to Payment
-            </button>
-            <button
-              onClick={() => navigate("/")}
-              className="px-4 py-2 rounded-md border"
-            >
-              Go to Dashboard
-            </button>
-          </div>
-        </div>
+        <CompleteTab onComplete={onComplete} />
       )}
 
       {/* Confirm modal (optional) */}
