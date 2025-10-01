@@ -1,4 +1,10 @@
-import React, { useEffect, useMemo, useState, useRef } from "react";
+import React, {
+  useEffect,
+  useMemo,
+  useState,
+  useRef,
+  useCallback,
+} from "react";
 import { useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import { IoClose } from "react-icons/io5";
@@ -15,7 +21,7 @@ import {
 } from "../redux/api/features/managementApi";
 
 /* =========================================================================
-   Inline Case Management Guide (no auto-save; manual save on actions only)
+   Case Management Guide - Manual save on Next button click only
    ========================================================================= */
 
 const CaseManagementGuide = ({
@@ -43,10 +49,23 @@ const CaseManagementGuide = ({
   // Initialize data when API response is received
   useEffect(() => {
     if (caseGuide) {
+      // Handle backend response format - convert single record to table_rows format
+      const tableRows = caseGuide.table_rows
+        ? caseGuide.table_rows
+        : [
+            {
+              id: 1,
+              diagnosis: caseGuide.diagnosis || "",
+              management_plan: caseGuide.management_plan || "",
+              notes: caseGuide.comments || "", // Map 'comments' to 'notes'
+            },
+          ];
+
       setGuideData({
-        table_rows: caseGuide.table_rows || [
-          { id: 1, diagnosis: "", management_plan: "", notes: "" },
-        ],
+        table_rows:
+          tableRows.length > 0
+            ? tableRows
+            : [{ id: 1, diagnosis: "", management_plan: "", notes: "" }],
         completed: caseGuide.completed || false,
       });
     }
@@ -56,13 +75,22 @@ const CaseManagementGuide = ({
     if (saving || !hasContent) return;
     setSaving(true);
     try {
+      // Get the first row data (since backend expects single record format)
+      const firstRow = guideData.table_rows[0] || {};
+
+      const payload = {
+        diagnosis: firstRow.diagnosis || "",
+        management_plan: firstRow.management_plan || "",
+        comments: firstRow.notes || "", // Map 'notes' to 'comments'
+        completed: true,
+      };
+
+      console.log("🚀 Sending Case Management Guide payload:", payload);
+
       // Final save before proceeding
       await updateCaseGuide({
         appointmentId,
-        payload: {
-          ...guideData,
-          completed: true,
-        },
+        payload,
       }).unwrap();
 
       // Mark as completed when user proceeds
@@ -106,9 +134,11 @@ const CaseManagementGuide = ({
     }
   };
 
-  const hasContent = guideData.table_rows.some(
-    (row) => row.diagnosis || row.management_plan || row.notes
-  );
+  const hasContent =
+    guideData.table_rows.length > 0 &&
+    (guideData.table_rows[0].diagnosis ||
+      guideData.table_rows[0].management_plan ||
+      guideData.table_rows[0].notes);
 
   if (isLoadingGuide) {
     return (
@@ -158,14 +188,8 @@ const CaseManagementGuide = ({
         </p>
 
         <div className="rounded-lg border bg-white p-4">
-          <div className="flex justify-between items-center mb-4">
+          <div className="mb-4">
             <h2 className="font-semibold">Management Guide</h2>
-            <button
-              onClick={addNewRow}
-              className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
-            >
-              + Add Row
-            </button>
           </div>
 
           <div className="overflow-x-auto">
@@ -181,7 +205,6 @@ const CaseManagementGuide = ({
                   <th className="text-left py-2 px-3 font-semibold text-gray-700 w-1/3">
                     Notes
                   </th>
-                  <th className="w-16"></th>
                 </tr>
               </thead>
               <tbody>
@@ -224,32 +247,15 @@ const CaseManagementGuide = ({
                         rows="3"
                       />
                     </td>
-                    <td className="py-2 px-3">
-                      {guideData.table_rows.length > 1 && (
-                        <button
-                          onClick={() => removeRow(row.id)}
-                          className="text-red-600 hover:text-red-800 p-1"
-                          title="Remove row"
-                        >
-                          <svg
-                            className="w-4 h-4"
-                            fill="currentColor"
-                            viewBox="0 0 20 20"
-                          >
-                            <path
-                              fillRule="evenodd"
-                              d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                              clipRule="evenodd"
-                            />
-                          </svg>
-                        </button>
-                      )}
-                    </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
+
+          <p className="text-xs text-gray-500 mt-3">
+            Data will be saved when you click "Next"
+          </p>
         </div>
       </section>
 
