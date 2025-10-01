@@ -49,9 +49,14 @@ const CaseManagementGuide = ({
   // Initialize data when API response is received
   useEffect(() => {
     if (caseGuide) {
-      // Handle backend response format - convert single record to table_rows format
+      // Handle backend response format - map comments to notes for frontend
       const tableRows = caseGuide.table_rows
-        ? caseGuide.table_rows
+        ? caseGuide.table_rows.map((row) => ({
+            id: row.id,
+            diagnosis: row.diagnosis || "",
+            management_plan: row.management_plan || "",
+            notes: row.comments || "", // Map 'comments' to 'notes'
+          }))
         : [
             {
               id: 1,
