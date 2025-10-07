@@ -6,9 +6,9 @@ import { showToast } from "../ToasterHelper";
 
 const CompleteTab = ({ appointmentId }) => {
   const navigate = useNavigate();
-  const consultationState = useSelector((state) => state.consultation);
+  const consultationState = useSelector((state) => state.consultation || {});
   const consultationId = consultationState.consultationId;
-  const canComplete = consultationState.permissions.can_complete;
+  const canComplete = consultationState.permissions?.can_complete;
 
   const [completeConsultation, { isLoading }] =
     useCompleteConsultationMutation();

@@ -4,9 +4,9 @@ import SupervisorGradingButton from "../SupervisorGradingButton";
 import { showToast } from "../ToasterHelper";
 
 const GradingTab = ({ appointmentId, setActiveTab }) => {
-  const consultationState = useSelector((state) => state.consultation);
+  const consultationState = useSelector((state) => state.consultation || {});
   const consultationId = consultationState.consultationId;
-  const requiresGrading = consultationState.permissions.requires_grading;
+  const requiresGrading = consultationState.permissions?.requires_grading;
 
   if (!requiresGrading) {
     return (

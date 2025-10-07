@@ -4,9 +4,9 @@ import { useSubmitConsultationMutation } from "../../redux/api/features/consulta
 import { showToast } from "../ToasterHelper";
 
 const SubmitTab = ({ appointmentId, setActiveTab }) => {
-  const consultationState = useSelector((state) => state.consultation);
+  const consultationState = useSelector((state) => state.consultation || {});
   const consultationId = consultationState.consultationId;
-  const canSubmit = consultationState.permissions.can_submit_for_review;
+  const canSubmit = consultationState.permissions?.can_submit_for_review;
 
   const [submitConsultation, { isLoading }] = useSubmitConsultationMutation();
 

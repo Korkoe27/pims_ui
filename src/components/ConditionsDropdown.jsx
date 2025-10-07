@@ -1,6 +1,6 @@
 import React from "react";
 
-const ConditionsDropdown = ({ valueOD, valueOS, onChangeOD, onChangeOS, options = [], placeholder }) => {
+const ConditionsDropdown = ({ valueOD, valueOS, onChangeOD, onChangeOS, options = [], placeholder, disabled = false }) => {
   return (
     <div className="grid grid-cols-2 gap-4">
       {/* OD */}
@@ -10,6 +10,7 @@ const ConditionsDropdown = ({ valueOD, valueOS, onChangeOD, onChangeOS, options 
           className="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
           value={valueOD}
           onChange={(e) => onChangeOD(e.target.value)}
+          disabled={disabled}
         >
           <option value="">{placeholder || "Select an option"}</option>
           {options.map((opt, idx) => {
@@ -36,6 +37,7 @@ const ConditionsDropdown = ({ valueOD, valueOS, onChangeOD, onChangeOS, options 
           className="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
           value={valueOS}
           onChange={(e) => onChangeOS(e.target.value)}
+          disabled={disabled}
         >
           <option value="">{placeholder || "Select an option"}</option>
           {options.map((opt, idx) => {

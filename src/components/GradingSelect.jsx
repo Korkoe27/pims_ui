@@ -15,6 +15,7 @@ const GradingSelect = ({
   onChangeOD,
   onChangeOS,
   placeholder,
+  disabled = false,
 }) => {
   return (
     <div className="grid grid-cols-2 gap-4">
@@ -27,6 +28,7 @@ const GradingSelect = ({
           value={valueOD}
           onChange={(e) => onChangeOD(e.target.value)}
           className="w-full border rounded p-2"
+          disabled={disabled}
         >
           <option value="">{placeholder || "Select grading"}</option>
           {gradingOptions.map((g) => (
@@ -46,6 +48,7 @@ const GradingSelect = ({
           value={valueOS}
           onChange={(e) => onChangeOS(e.target.value)}
           className="w-full border rounded p-2"
+          disabled={disabled}
         >
           <option value="">{placeholder || "Select grading"}</option>
           {gradingOptions.map((g) => (

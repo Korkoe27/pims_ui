@@ -8,6 +8,7 @@ const TextInput = ({
   onChangeOS,
   placeholderOD = "Enter value for OD",
   placeholderOS = "Enter value for OS",
+  disabled = false,
 }) => {
   return (
     <div className="grid grid-cols-2 gap-4">
@@ -19,6 +20,7 @@ const TextInput = ({
           value={valueOD}
           placeholder={placeholderOD}
           onChange={(e) => onChangeOD(e.target.value)}
+          disabled={disabled}
         />
       </div>
       <div>
@@ -29,6 +31,7 @@ const TextInput = ({
           value={valueOS}
           placeholder={placeholderOS}
           onChange={(e) => onChangeOS(e.target.value)}
+          disabled={disabled}
         />
       </div>
     </div>

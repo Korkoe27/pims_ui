@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
 import useFetchConditionsData from "../hooks/useFetchConditionsData";
 import { useGetAppointmentDetailsQuery } from "../redux/api/features/appointmentsApi";
 import {
@@ -28,6 +29,8 @@ const CaseHistory = ({
   setActiveTab,
   setTabCompletionStatus,
 }) => {
+  const consultationState = useSelector((state) => state.consultation || {});
+  const canEdit = consultationState.permissions?.can_edit_exams;
   const { data: caseHistory, isLoading: loadingCaseHistory } =
     useFetchCaseHistoryQuery(appointmentId, {
       skip: !appointmentId,
@@ -288,6 +291,7 @@ const CaseHistory = ({
                   onChange={(e) => setChiefComplaint(e.target.value)}
                   className="w-full border p-3 rounded-md"
                   placeholder="Enter chief complaint..."
+                  disabled={!canEdit}
                 />
               </div>
 
@@ -308,6 +312,7 @@ const CaseHistory = ({
                   onSelect={handleSelect}
                   conditionKey="id"
                   conditionNameKey="name"
+                  disabled={!canEdit}
                 />
 
                 {selectedConditions.length > 0 && (
@@ -336,6 +341,7 @@ const CaseHistory = ({
                             onChangeOS={(val) =>
                               handleFieldChange(item.id, "OS", "grading", val)
                             }
+                            disabled={!canEdit}
                           />
                         )}
 
@@ -350,6 +356,7 @@ const CaseHistory = ({
                             onChangeOS={(val) =>
                               handleFieldChange(item.id, "OS", "dropdown", val)
                             }
+                            disabled={!canEdit}
                           />
                         )}
 
@@ -366,6 +373,7 @@ const CaseHistory = ({
                               }
                               placeholderOD="Enter text for OD"
                               placeholderOS="Enter text for OS"
+                              disabled={!canEdit}
                             />
                           </>
                         )}
@@ -380,6 +388,7 @@ const CaseHistory = ({
                             onChangeOS={(val) =>
                               handleFieldChange(item.id, "OS", "checkbox", val)
                             }
+                            disabled={!canEdit}
                           />
                         )}
 
@@ -393,6 +402,7 @@ const CaseHistory = ({
                                 )
                               )
                             }
+                            disabled={!canEdit}
                           />
                         )}
                       </div>
@@ -408,6 +418,7 @@ const CaseHistory = ({
                     onSave={handleSaveAndProceed}
                     saving={isSaving}
                     saveLabel="Save and Proceed"
+                    disabled={!canEdit}
                   />
                 </div>
               )}

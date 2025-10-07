@@ -5,6 +5,7 @@ const NotesTextArea = ({
   value,
   onChange,
   placeholder = "Enter notes",
+  disabled = false,
 }) => {
   return (
     <div>
@@ -14,6 +15,7 @@ const NotesTextArea = ({
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         className="w-full border p-3 rounded-md min-h-[100px] focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        disabled={disabled}
       />
     </div>
   );

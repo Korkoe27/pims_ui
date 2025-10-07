@@ -8,6 +8,7 @@ const ConditionPicker = ({
   onSelect,
   conditionKey = "id",
   conditionNameKey = "name",
+  disabled = false,
 }) => {
   const [search, setSearch] = useState("");
   const [isOpen, setIsOpen] = useState(false);
@@ -35,8 +36,10 @@ const ConditionPicker = ({
     <div className="relative w-full" ref={dropdownRef}>
       <h1 className="text-base font-medium">{label}</h1>
       <div
-        className="flex items-center border p-3 rounded-md cursor-pointer bg-white relative"
-        onClick={() => setIsOpen(!isOpen)}
+        className={`flex items-center border p-3 rounded-md cursor-pointer bg-white relative ${
+          disabled ? "opacity-50 cursor-not-allowed" : ""
+        }`}
+        onClick={() => !disabled && setIsOpen(!isOpen)}
       >
         <span className="flex-1">
           {selected.length > 0
@@ -54,14 +57,17 @@ const ConditionPicker = ({
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full p-2 border-b"
+            disabled={disabled}
           />
           <div className="max-h-40 overflow-y-auto">
             {filteredOptions.length > 0 ? (
               filteredOptions.map((option) => (
                 <div
                   key={option.value}
-                  className="p-2 cursor-pointer hover:bg-gray-100"
-                  onClick={() => handleSelect(option)}
+                  className={`p-2 cursor-pointer hover:bg-gray-100 ${
+                    disabled ? "cursor-not-allowed opacity-50" : ""
+                  }`}
+                  onClick={() => !disabled && handleSelect(option)}
                 >
                   {option.label}
                 </div>

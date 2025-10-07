@@ -7,6 +7,7 @@ const CheckboxInput = ({
   onChangeOS = () => {},
   labelOD = "OD (Right Eye)",
   labelOS = "OS (Left Eye)",
+  disabled = false,
 }) => {
   return (
     <div className="grid grid-cols-2 gap-6">
@@ -21,6 +22,7 @@ const CheckboxInput = ({
               checked={checkedOD === true}
               onChange={() => onChangeOD(true)}
               className="text-indigo-600"
+              disabled={disabled}
             />
             <span>Yes</span>
           </label>
@@ -31,6 +33,7 @@ const CheckboxInput = ({
               checked={checkedOD === false}
               onChange={() => onChangeOD(false)}
               className="text-indigo-600"
+              disabled={disabled}
             />
             <span>No</span>
           </label>
@@ -48,6 +51,7 @@ const CheckboxInput = ({
               checked={checkedOS === true}
               onChange={() => onChangeOS(true)}
               className="text-indigo-600"
+              disabled={disabled}
             />
             <span>Yes</span>
           </label>
@@ -58,6 +62,7 @@ const CheckboxInput = ({
               checked={checkedOS === false}
               onChange={() => onChangeOS(false)}
               className="text-indigo-600"
+              disabled={disabled}
             />
             <span>No</span>
           </label>

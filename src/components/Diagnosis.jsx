@@ -11,8 +11,8 @@ import SupervisorGradingButton from "./SupervisorGradingButton";
 import useComponentGrading from "../hooks/useComponentGrading";
 
 const Diagnosis = ({ appointmentId, setFlowStep, setActiveTab }) => {
-  const consultationState = useSelector((state) => state.consultation);
-  const canEdit = consultationState.permissions.can_edit_diagnosis;
+  const consultationState = useSelector((state) => state.consultation || {});
+  const canEdit = consultationState.permissions?.can_edit_diagnosis;
   const {
     appointmentDiagnosis,
     createDiagnosis,

@@ -9,6 +9,7 @@ const NavigationButtons = ({
   saving = false,
   saveLabel = "Save and Proceed",
   hideBack = false, // 👈 new prop
+  disabled = false,
 }) => {
   return (
     <div className="mt-8 flex justify-between items-center">
@@ -27,9 +28,9 @@ const NavigationButtons = ({
       <button
         type="button"
         onClick={onSave}
-        disabled={saving}
+        disabled={saving || disabled}
         className={`px-6 py-2 font-semibold text-white rounded-full transition-colors duration-200 ${
-          saving
+          saving || disabled
             ? "bg-gray-400 cursor-not-allowed"
             : "bg-indigo-600 hover:bg-indigo-700"
         }`}

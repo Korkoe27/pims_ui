@@ -1,5 +1,20 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams,   // Start consultation on mount
+  useEffect(() => {
+    if (appointmentId && !consultationId && !starting && !consultationStartAttempted) {
+      setConsultationStartAttempted(true);
+      startConsultation(appointmentId)
+        .unwrap()
+        .then((data) => {
+          dispatch(setConsultationData(data));
+        })
+        .catch((error) => {
+          console.error("Failed to start consultation:", error);
+          // Reset the flag after a delay to allow retry on navigation
+          setTimeout(() => setConsultationStartAttempted(false), 5000);
+        });
+    }
+  }, [appointmentId, consultationId, startConsultation, dispatch, starting, consultationStartAttempted]); from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { useGetAppointmentDetailsQuery } from "../redux/api/features/appointmentsApi";
 import {
@@ -48,6 +63,9 @@ const Consultation = () => {
     return stored || "exams";
   });
 
+  // Prevent infinite retry loops
+  const [consultationStartAttempted, setConsultationStartAttempted] = useState(false);
+
   const setActiveTab = (tab) => {
     localStorage.setItem(LOCAL_TAB_KEY, tab);
     _setActiveTab(tab);
@@ -69,7 +87,7 @@ const Consultation = () => {
   const [submitConsultation] = useSubmitConsultationMutation();
   const [completeConsultation] = useCompleteConsultationMutation();
 
-  const consultationState = useSelector((state) => state.consultation);
+  const consultationState = useSelector((state) => state.consultation || {});
   const consultationId = consultationState.consultationId;
 
   const {
@@ -83,7 +101,8 @@ const Consultation = () => {
 
   // Start consultation on mount
   useEffect(() => {
-    if (appointmentId && !consultationId && !starting) {
+    if (appointmentId && !consultationId && !starting && !consultationStartAttempted) {
+      setConsultationStartAttempted(true);
       startConsultation(appointmentId)
         .unwrap()
         .then((data) => {
@@ -91,9 +110,11 @@ const Consultation = () => {
         })
         .catch((error) => {
           console.error("Failed to start consultation:", error);
+          // Reset the flag after a delay to allow retry on navigation
+          setTimeout(() => setConsultationStartAttempted(false), 5000);
         });
     }
-  }, [appointmentId, consultationId, startConsultation, dispatch, starting]);
+  }, [appointmentId, consultationId, startConsultation, dispatch, starting, consultationStartAttempted]);
 
   // Update consultation state when data is fetched
   useEffect(() => {
@@ -131,7 +152,7 @@ const Consultation = () => {
 
   // Determine visible tabs based on role and status
   const getVisibleTabs = () => {
-    const { role, status } = consultationState;
+    const { role, status } = consultationState || {};
 
     if (role === "student") {
       return [

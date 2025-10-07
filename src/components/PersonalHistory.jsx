@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, Fragment } from "react";
+import { useSelector } from "react-redux";
 import usePersonalHistoryData from "../hooks/usePersonalHistoryData";
 import useFetchConditionsData from "../hooks/useFetchConditionsData";
 import GradingSelect from "./GradingSelect";
@@ -36,7 +37,7 @@ function SectionCard({ title, required, children }) {
 }
 
 /** NEW: per-eye notes input (two textareas) */
-function PerEyeNotesTextArea({ valueOD, valueOS, onChangeOD, onChangeOS }) {
+function PerEyeNotesTextArea({ valueOD, valueOS, onChangeOD, onChangeOS, disabled = false }) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
       <div>
@@ -46,6 +47,7 @@ function PerEyeNotesTextArea({ valueOD, valueOS, onChangeOD, onChangeOS }) {
           onChange={(e) => onChangeOD(e.target.value)}
           className="w-full border p-2 rounded min-h-[80px]"
           placeholder="Enter OD notes..."
+          disabled={disabled}
         />
       </div>
       <div>
@@ -55,6 +57,7 @@ function PerEyeNotesTextArea({ valueOD, valueOS, onChangeOD, onChangeOS }) {
           onChange={(e) => onChangeOS(e.target.value)}
           className="w-full border p-2 rounded min-h-[80px]"
           placeholder="Enter OS notes..."
+          disabled={disabled}
         />
       </div>
     </div>
@@ -110,6 +113,7 @@ function ConditionCard({
           valueOS={item?.OS?.text || ""}
           onChangeOD={(val) => onChangeText(item.id, "OD", val)}
           onChangeOS={(val) => onChangeText(item.id, "OS", val)}
+          disabled={!canEdit}
         />
       )}
 
@@ -129,6 +133,7 @@ function ConditionCard({
           valueOS={item?.OS?.grading || ""}
           onChangeOD={(val) => onChangeGrading(item.id, "OD", val)}
           onChangeOS={(val) => onChangeGrading(item.id, "OS", val)}
+          disabled={!canEdit}
         />
       )}
 
@@ -139,6 +144,7 @@ function ConditionCard({
           valueOS={item?.OS?.notes || ""}
           onChangeOD={(val) => onChangeEyeNotes(item.id, "OD", val)}
           onChangeOS={(val) => onChangeEyeNotes(item.id, "OS", val)}
+          disabled={!canEdit}
         />
       )}
 
@@ -148,6 +154,7 @@ function ConditionCard({
           value={item?.notes || ""}
           onChange={(val) => onChangeGeneralNotes(item.id, val)}
           placeholder="Enter general notes (optional)..."
+          disabled={!canEdit}
         />
       )}
     </div>
@@ -459,6 +466,7 @@ function FieldWithNotes({
   onChangeNotes,
   placeholder,
   notesPlaceholder,
+  disabled = false,
 }) {
   return (
     <SectionCard title={label} required={required}>
@@ -467,11 +475,13 @@ function FieldWithNotes({
         onChange={(e) => onChange(e.target.value)}
         className="w-full border p-2 rounded"
         placeholder={placeholder}
+        disabled={disabled}
       />
       <GeneralNotesTextArea
         value={notes}
         onChange={onChangeNotes}
         placeholder={notesPlaceholder}
+        disabled={disabled}
       />
     </SectionCard>
   );
@@ -487,6 +497,8 @@ export default function PersonalHistory({
   setActiveTab,
   setTabCompletionStatus,
 }) {
+  const consultationState = useSelector((state) => state.consultation || {});
+  const canEdit = consultationState.permissions?.can_edit_exams;
   const {
     personalHistory,
     isLoading: loadingPersonalHistory,
@@ -720,6 +732,7 @@ export default function PersonalHistory({
                   value={lastEyeExam}
                   onChange={(e) => setLastEyeExam(e.target.value)}
                   className="w-full border p-2 rounded"
+                  disabled={!canEdit}
                 >
                   <option value="">-- Select --</option>
                   {lastEyeExamOptions.map((opt) => (
@@ -740,6 +753,7 @@ export default function PersonalHistory({
                 onChangeNotes={setDrugNotes}
                 placeholder="E.g., Paracetamol"
                 notesPlaceholder="Additional notes about the drug history..."
+                disabled={!canEdit}
               />
 
               {/* Allergy */}
@@ -752,6 +766,7 @@ export default function PersonalHistory({
                 onChangeNotes={setAllergyNotes}
                 placeholder="E.g., Penicillin"
                 notesPlaceholder="Enter notes about patient's allergies"
+                disabled={!canEdit}
               />
 
               {/* Social */}
@@ -764,6 +779,7 @@ export default function PersonalHistory({
                 onChangeNotes={setSocialNotes}
                 placeholder="E.g., Smoker, Driver"
                 notesPlaceholder="Enter notes about patient's social history"
+                disabled={!canEdit}
               />
 
               {/* Medical History */}
@@ -845,6 +861,7 @@ export default function PersonalHistory({
           onSave={handleSave}
           saving={isSaving}
           saveLabel="Save and Proceed"
+          disabled={!canEdit}
         />
       </div>
     </div>
