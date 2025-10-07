@@ -4,6 +4,7 @@ import {
   listAllDiagnosesUrl,
   fetchAppointmentDiagnosesUrl,
 } from "../end_points/endpoints";
+import { TAGS } from "../tags/tags";
 
 export const diagnosisApi = apiClient.injectEndpoints({
   endpoints: (builder) => ({
@@ -22,6 +23,7 @@ export const diagnosisApi = apiClient.injectEndpoints({
           body: data, // ✅ this should be the object with differential_diagnosis, etc.
         };
       },
+      invalidatesTags: [TAGS.APPOINTMENT_DIAGNOSIS],
     }),
 
     // List all diagnosis
@@ -47,6 +49,7 @@ export const diagnosisApi = apiClient.injectEndpoints({
           method: "GET",
         };
       },
+      providesTags: [TAGS.APPOINTMENT_DIAGNOSIS],
     }),
   }),
 });

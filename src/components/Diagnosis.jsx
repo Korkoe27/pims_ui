@@ -66,7 +66,7 @@ const Diagnosis = ({ appointmentId, setFlowStep, setActiveTab }) => {
       console.log("⚠️ No final_diagnoses array found, initializing empty");
       setFinalDiagnosisEntries([]);
     }
-  }, [appointmentDiagnosis]);
+  }, [appointmentDiagnosis, diagnosisList]);
 
   const handleSubmit = async () => {
     if (!differentialDiagnosis.trim()) {
@@ -88,6 +88,9 @@ const Diagnosis = ({ appointmentId, setFlowStep, setActiveTab }) => {
 
     try {
       await createDiagnosis({ appointmentId, data: payload }).unwrap();
+      console.log(
+        "✅ Diagnosis saved successfully, cache should be invalidated"
+      );
       showToast("Diagnosis saved successfully ✅", "success");
       setFlowStep("management");
     } catch (error) {
