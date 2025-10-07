@@ -1,5 +1,7 @@
+import { useEffect } from "react";
 import {
   useCreateDiagnosisMutation,
+  useUpdateDiagnosisMutation,
   useGetAllDiagnosisQuery,
   useGetAppointmentDiagnosisQuery,
 } from "../redux/api/features/diagnosisApi";
@@ -29,9 +31,35 @@ const useDiagnosisData = (appointmentId = null) => {
     appointmentDiagnosis
   );
   console.log("🔍 useDiagnosisData - Diagnosis list:", diagnosisList);
+  console.log(
+    "🔍 useDiagnosisData - First few diagnosis items:",
+    diagnosisList?.slice(0, 3)
+  );
+
+  // If diagnosis list failed to load but appointment diagnosis has data, try to refetch
+  useEffect(() => {
+    if (
+      appointmentDiagnosis &&
+      (!diagnosisList || diagnosisList.length === 0) &&
+      !isDiagnosisLoading
+    ) {
+      console.log(
+        "🔄 Diagnosis list is empty but appointment has data, refetching diagnosis list..."
+      );
+      refetchDiagnosis();
+    }
+  }, [
+    appointmentDiagnosis,
+    diagnosisList,
+    isDiagnosisLoading,
+    refetchDiagnosis,
+  ]);
 
   const [createDiagnosis, { isLoading: isCreatingDiagnosis }] =
     useCreateDiagnosisMutation();
+
+  const [updateDiagnosis, { isLoading: isUpdatingDiagnosis }] =
+    useUpdateDiagnosisMutation();
 
   return {
     diagnosisList,
@@ -45,7 +73,9 @@ const useDiagnosisData = (appointmentId = null) => {
     refetchDiagnosis,
     refetchAppointmentDiagnosis,
     createDiagnosis,
+    updateDiagnosis,
     isCreatingDiagnosis,
+    isUpdatingDiagnosis,
   };
 };
 

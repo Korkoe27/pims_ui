@@ -1,6 +1,7 @@
 import { apiClient } from "../api_client/apiClient";
 import {
   createDiagnosisUrl,
+  updateDiagnosisUrl,
   listAllDiagnosesUrl,
   fetchAppointmentDiagnosesUrl,
 } from "../end_points/endpoints";
@@ -20,6 +21,24 @@ export const diagnosisApi = apiClient.injectEndpoints({
         return {
           url: createDiagnosisUrl(appointmentId), // uses the appointmentId in the URL
           method: "POST",
+          body: data, // ✅ this should be the object with differential_diagnosis, etc.
+        };
+      },
+      invalidatesTags: [TAGS.APPOINTMENT_DIAGNOSIS],
+    }),
+
+    // Update existing diagnosis for appointment
+    updateDiagnosis: builder.mutation({
+      query: ({ appointmentId, data }) => {
+        console.log(
+          "🔍 API Call - updateDiagnosis for appointmentId:",
+          appointmentId,
+          "with data:",
+          data
+        );
+        return {
+          url: updateDiagnosisUrl(appointmentId), // uses the appointmentId in the URL
+          method: "POST", // Use POST for updates since backend expects it on /create/
           body: data, // ✅ this should be the object with differential_diagnosis, etc.
         };
       },
@@ -56,6 +75,7 @@ export const diagnosisApi = apiClient.injectEndpoints({
 
 export const {
   useCreateDiagnosisMutation,
+  useUpdateDiagnosisMutation,
   useGetAllDiagnosisQuery,
   useGetAppointmentDiagnosisQuery,
 } = diagnosisApi;
