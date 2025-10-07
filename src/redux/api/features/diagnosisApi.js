@@ -9,27 +9,44 @@ export const diagnosisApi = apiClient.injectEndpoints({
   endpoints: (builder) => ({
     // Create new diagnosis for appointment
     createDiagnosis: builder.mutation({
-      query: ({ appointmentId, data }) => ({
-        url: createDiagnosisUrl(appointmentId), // uses the appointmentId in the URL
-        method: "POST",
-        body: data, // ✅ this should be the object with differential_diagnosis, etc.
-      }),
+      query: ({ appointmentId, data }) => {
+        console.log(
+          "🔍 API Call - createDiagnosis for appointmentId:",
+          appointmentId,
+          "with data:",
+          data
+        );
+        return {
+          url: createDiagnosisUrl(appointmentId), // uses the appointmentId in the URL
+          method: "POST",
+          body: data, // ✅ this should be the object with differential_diagnosis, etc.
+        };
+      },
     }),
-    
+
     // List all diagnosis
     getAllDiagnosis: builder.query({
-      query: () => ({
-        url: listAllDiagnosesUrl,
-        method: "GET",
-      }),
+      query: () => {
+        console.log("🔍 API Call - getAllDiagnosis");
+        return {
+          url: listAllDiagnosesUrl,
+          method: "GET",
+        };
+      },
     }),
 
     // Get all diagnoses linked to an appointment
     getAppointmentDiagnosis: builder.query({
-      query: (appointmentId) => ({
-        url: fetchAppointmentDiagnosesUrl(appointmentId),
-        method: "GET",
-      }),
+      query: (appointmentId) => {
+        console.log(
+          "🔍 API Call - getAppointmentDiagnosis for appointmentId:",
+          appointmentId
+        );
+        return {
+          url: fetchAppointmentDiagnosesUrl(appointmentId),
+          method: "GET",
+        };
+      },
     }),
   }),
 });

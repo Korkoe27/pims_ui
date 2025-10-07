@@ -12,6 +12,7 @@ import useComponentGrading from "../hooks/useComponentGrading";
 const Diagnosis = ({ appointmentId, setFlowStep, setActiveTab }) => {
   const {
     appointmentDiagnosis,
+    diagnosisList,
     createDiagnosis,
     isCreatingDiagnosis,
     isAppointmentDiagnosisLoading,
@@ -27,21 +28,43 @@ const Diagnosis = ({ appointmentId, setFlowStep, setActiveTab }) => {
   const [finalDiagnosisEntries, setFinalDiagnosisEntries] = useState([]);
 
   useEffect(() => {
+    console.log("🔍 Diagnosis data received:", appointmentDiagnosis);
+    console.log("🔍 Diagnosis data type:", typeof appointmentDiagnosis);
+    console.log(
+      "🔍 Diagnosis data keys:",
+      appointmentDiagnosis
+        ? Object.keys(appointmentDiagnosis)
+        : "null/undefined"
+    );
     if (!appointmentDiagnosis) return;
 
     setDifferentialDiagnosis(appointmentDiagnosis.differential_diagnosis || "");
 
-    if (Array.isArray(appointmentDiagnosis.final_diagnoses_info)) {
-      setFinalDiagnosisEntries(
-        appointmentDiagnosis.final_diagnoses_info.map((d) => ({
-          id: d.code?.id,
-          name: d.code?.diagnosis || "Unnamed diagnosis",
-          affected_eye: d.affected_eye || "",
-          notes: d.notes || "",
-          queries: d.queries?.map((q) => ({ query: q })) || [{ query: "" }],
-          management_plan: d.management_plan || "",
-        }))
+    if (Array.isArray(appointmentDiagnosis.final_diagnoses)) {
+      console.log(
+        "📋 Final diagnoses info:",
+        appointmentDiagnosis.final_diagnoses
       );
+      setFinalDiagnosisEntries(
+        appointmentDiagnosis.final_diagnoses.map((d) => {
+          // Look up the diagnosis name from diagnosisList using the code ID
+          const diagnosisInfo = diagnosisList?.find(
+            (diag) => diag.id === d.code
+          );
+          console.log(`🔍 Looking up diagnosis ${d.code}:`, diagnosisInfo);
+          return {
+            id: d.code,
+            name: diagnosisInfo?.diagnosis || d.code || "Unnamed diagnosis",
+            affected_eye: d.affected_eye || "",
+            notes: d.notes || "",
+            queries: d.queries?.map((q) => ({ query: q })) || [{ query: "" }],
+            management_plan: d.management_plan || "",
+          };
+        })
+      );
+    } else {
+      console.log("⚠️ No final_diagnoses array found, initializing empty");
+      setFinalDiagnosisEntries([]);
     }
   }, [appointmentDiagnosis]);
 
@@ -144,12 +167,18 @@ const Diagnosis = ({ appointmentId, setFlowStep, setActiveTab }) => {
     setFinalDiagnosisEntries((prev) => prev.filter((d) => d.id !== id));
   };
 
-  const diagnosisOptions = (
-    appointmentDiagnosis?.all_diagnosis_codes || []
-  ).map((d) => ({
-    value: d.id,
-    label: `${d.diagnosis} ${d.icd_code ? `(${d.icd_code})` : ""}`,
-  }));
+  const diagnosisOptions = (diagnosisList || []).map((d) => {
+    console.log("🔍 Processing diagnosis item:", d);
+    return {
+      value: d.id,
+      label: `${d.diagnosis} ${d.icd_code ? `(${d.icd_code})` : ""}`,
+    };
+  });
+
+  console.log(
+    "📋 Diagnosis options generated from diagnosisList:",
+    diagnosisOptions
+  );
 
   return (
     <div className="p-6 bg-white rounded-md shadow-md max-w-3xl mx-auto">

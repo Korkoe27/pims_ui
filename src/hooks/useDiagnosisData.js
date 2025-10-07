@@ -23,6 +23,13 @@ const useDiagnosisData = (appointmentId = null) => {
     skip: !appointmentId,
   });
 
+  // Log the fetched appointment diagnosis data
+  console.log(
+    "🔍 useDiagnosisData - Appointment diagnosis data:",
+    appointmentDiagnosis
+  );
+  console.log("🔍 useDiagnosisData - Diagnosis list:", diagnosisList);
+
   const [createDiagnosis, { isLoading: isCreatingDiagnosis }] =
     useCreateDiagnosisMutation();
 
