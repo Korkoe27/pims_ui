@@ -1,20 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { useParams,   // Start consultation on mount
-  useEffect(() => {
-    if (appointmentId && !consultationId && !starting && !consultationStartAttempted) {
-      setConsultationStartAttempted(true);
-      startConsultation(appointmentId)
-        .unwrap()
-        .then((data) => {
-          dispatch(setConsultationData(data));
-        })
-        .catch((error) => {
-          console.error("Failed to start consultation:", error);
-          // Reset the flag after a delay to allow retry on navigation
-          setTimeout(() => setConsultationStartAttempted(false), 5000);
-        });
-    }
-  }, [appointmentId, consultationId, startConsultation, dispatch, starting, consultationStartAttempted]); from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { useGetAppointmentDetailsQuery } from "../redux/api/features/appointmentsApi";
 import {
@@ -64,7 +49,8 @@ const Consultation = () => {
   });
 
   // Prevent infinite retry loops
-  const [consultationStartAttempted, setConsultationStartAttempted] = useState(false);
+  const [consultationStartAttempted, setConsultationStartAttempted] =
+    useState(false);
 
   const setActiveTab = (tab) => {
     localStorage.setItem(LOCAL_TAB_KEY, tab);
@@ -101,7 +87,12 @@ const Consultation = () => {
 
   // Start consultation on mount
   useEffect(() => {
-    if (appointmentId && !consultationId && !starting && !consultationStartAttempted) {
+    if (
+      appointmentId &&
+      !consultationId &&
+      !starting &&
+      !consultationStartAttempted
+    ) {
       setConsultationStartAttempted(true);
       startConsultation(appointmentId)
         .unwrap()
@@ -114,7 +105,14 @@ const Consultation = () => {
           setTimeout(() => setConsultationStartAttempted(false), 5000);
         });
     }
-  }, [appointmentId, consultationId, startConsultation, dispatch, starting, consultationStartAttempted]);
+  }, [
+    appointmentId,
+    consultationId,
+    startConsultation,
+    dispatch,
+    starting,
+    consultationStartAttempted,
+  ]);
 
   // Update consultation state when data is fetched
   useEffect(() => {

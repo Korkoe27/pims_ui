@@ -323,7 +323,11 @@ const CaseHistory = ({
                         key={item.id}
                         className="p-4 bg-gray-50 border rounded space-y-4"
                       >
-                        {console.log("🔍 Rendering condition:", item.name, item)}
+                        {console.log(
+                          "🔍 Rendering condition:",
+                          item.name,
+                          item
+                        )}
                         <div className="flex items-center justify-between">
                           <h4 className="font-semibold">{item.name}</h4>
                           <DeleteButton

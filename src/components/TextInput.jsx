@@ -13,7 +13,9 @@ const TextInput = ({
   return (
     <div className="grid grid-cols-2 gap-4">
       <div>
-        <label className="block text-sm font-medium mb-1">OD (Right Eye) - Notes</label>
+        <label className="block text-sm font-medium mb-1">
+          OD (Right Eye) - Notes
+        </label>
         <input
           type="text"
           className="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
@@ -24,7 +26,9 @@ const TextInput = ({
         />
       </div>
       <div>
-        <label className="block text-sm font-medium mb-1">OS (Left Eye) - Notes</label>
+        <label className="block text-sm font-medium mb-1">
+          OS (Left Eye) - Notes
+        </label>
         <input
           type="text"
           className="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"

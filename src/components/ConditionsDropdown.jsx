@@ -1,6 +1,14 @@
 import React from "react";
 
-const ConditionsDropdown = ({ valueOD, valueOS, onChangeOD, onChangeOS, options = [], placeholder, disabled = false }) => {
+const ConditionsDropdown = ({
+  valueOD,
+  valueOS,
+  onChangeOD,
+  onChangeOS,
+  options = [],
+  placeholder,
+  disabled = false,
+}) => {
   return (
     <div className="grid grid-cols-2 gap-4">
       {/* OD */}
