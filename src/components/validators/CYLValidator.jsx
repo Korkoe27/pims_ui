@@ -1,10 +1,18 @@
 import React, { useState, useEffect } from "react";
 
-const CYLValidator = ({ value, onChange, required = false, label, placeholder = "-0.50" }) => {
+const CYLValidator = ({
+  value,
+  onChange,
+  required = false,
+  label,
+  placeholder = "-0.50",
+  disabled = false,
+}) => {
   const [touched, setTouched] = useState(false);
   const [isValid, setIsValid] = useState(true);
 
-  const isValidCYL = (val) => /^-[0-9]+(\.25|\.50|\.75|\.00)?$/.test(val.trim());
+  const isValidCYL = (val) =>
+    /^-[0-9]+(\.25|\.50|\.75|\.00)?$/.test(val.trim());
 
   useEffect(() => {
     if (!touched) return;
@@ -21,9 +29,16 @@ const CYLValidator = ({ value, onChange, required = false, label, placeholder = 
         placeholder={placeholder}
         onChange={(e) => onChange(e.target.value)}
         onBlur={() => setTouched(true)}
-        className={`w-full border px-3 py-2 rounded ${!isValid ? "border-red-500" : "border-gray-300"} focus:outline-none focus:ring-1 focus:ring-indigo-500`}
+        className={`w-full border px-3 py-2 rounded ${
+          !isValid ? "border-red-500" : "border-gray-300"
+        } focus:outline-none focus:ring-1 focus:ring-indigo-500`}
+        disabled={disabled}
       />
-      {!isValid && <p className="text-sm text-red-600">CYL must be negative (e.g., -0.75)</p>}
+      {!isValid && (
+        <p className="text-sm text-red-600">
+          CYL must be negative (e.g., -0.75)
+        </p>
+      )}
     </div>
   );
 };

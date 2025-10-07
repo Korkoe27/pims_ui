@@ -4,9 +4,14 @@ import CYLValidator from "./validators/CYLValidator";
 import AXISValidator from "./validators/AXISValidator";
 import ADDValidator from "./validators/ADDValidator";
 
-const RefractiveCorrectionSection = ({ prescription, handleInputChange }) => {
+const RefractiveCorrectionSection = ({
+  prescription,
+  handleInputChange,
+  canEdit = true,
+}) => {
   const [typeTouched, setTypeTouched] = useState(false);
-  const isTypeInvalid = typeTouched && !prescription.type_of_refractive_correction;
+  const isTypeInvalid =
+    typeTouched && !prescription.type_of_refractive_correction;
 
   return (
     <div className="flex flex-col gap-6">
@@ -27,6 +32,7 @@ const RefractiveCorrectionSection = ({ prescription, handleInputChange }) => {
           className={`h-14 border ${
             isTypeInvalid ? "border-red-500" : "border-[#d0d5dd]"
           } w-[375px] rounded-md text-gray-600`}
+          disabled={!canEdit}
         >
           <option value="">Select an option</option>
           <option value="Spectacles">Spectacles</option>
@@ -44,7 +50,8 @@ const RefractiveCorrectionSection = ({ prescription, handleInputChange }) => {
       {/* --- Final Prescription --- */}
       <div className="flex flex-col gap-2">
         <label className="text-base font-medium flex items-center">
-          Final Prescription <span className="text-red-600 font-bold ml-1">*</span>
+          Final Prescription{" "}
+          <span className="text-red-600 font-bold ml-1">*</span>
         </label>
 
         <aside className="flex gap-4">
@@ -66,21 +73,29 @@ const RefractiveCorrectionSection = ({ prescription, handleInputChange }) => {
               <div className="flex flex-col w-28" key={field}>
                 <label className="px-4 text-center font-normal text-base uppercase">
                   {label}
-                  {field === "sph" && <span className="text-red-600 font-bold ml-1">*</span>}
+                  {field === "sph" && (
+                    <span className="text-red-600 font-bold ml-1">*</span>
+                  )}
                 </label>
                 <ValidatorComponent
                   value={prescription[`od_${field}`]}
                   onChange={(value) =>
-                    handleInputChange({ target: { name: `od_${field}`, value } })
+                    handleInputChange({
+                      target: { name: `od_${field}`, value },
+                    })
                   }
                   required={field === "sph"}
+                  disabled={!canEdit}
                 />
                 <ValidatorComponent
                   value={prescription[`os_${field}`]}
                   onChange={(value) =>
-                    handleInputChange({ target: { name: `os_${field}`, value } })
+                    handleInputChange({
+                      target: { name: `os_${field}`, value },
+                    })
                   }
                   required={field === "sph"}
+                  disabled={!canEdit}
                 />
               </div>
             );
@@ -96,6 +111,7 @@ const RefractiveCorrectionSection = ({ prescription, handleInputChange }) => {
           value={prescription.type_of_lens}
           onChange={handleInputChange}
           className="h-14 border border-[#d0d5dd] w-[375px] rounded-md text-gray-600"
+          disabled={!canEdit}
         >
           <option value="">Select an option</option>
           <option value="Single Vision">Single Vision</option>
@@ -121,6 +137,7 @@ const RefractiveCorrectionSection = ({ prescription, handleInputChange }) => {
               value={prescription[key]}
               onChange={handleInputChange}
               placeholder="in mm"
+              disabled={!canEdit}
             />
           </label>
         ))}

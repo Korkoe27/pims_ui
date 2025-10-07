@@ -271,6 +271,33 @@ export const finalGradingUrl = (appointmentId) =>
   `/grading/api/appointments/${appointmentId}/final/`;
 
 /////////////////////////
+// Consultations (New Flow)
+/////////////////////////
+
+// Start or fetch active consultation for an appointment
+export const startConsultationUrl = "/consultations/start/";
+
+// Get consultation details by ID
+export const getConsultationUrl = (consultationId) =>
+  `/consultations/${consultationId}/`;
+
+// Transition consultation to a target status
+export const transitionConsultationUrl = (consultationId) =>
+  `/consultations/${consultationId}/transition/`;
+
+// Submit consultation for review (student)
+export const submitConsultationUrl = (consultationId) =>
+  `/consultations/${consultationId}/submit/`;
+
+// Complete consultation (lecturer/admin)
+export const completeConsultationUrl = (consultationId) =>
+  `/consultations/${consultationId}/complete/`;
+
+// Admin override consultation state
+export const overrideConsultationUrl = (consultationId) =>
+  `/consultations/${consultationId}/override/`;
+
+/////////////////////////
 // WebSocket
 /////////////////////////
 

@@ -5,6 +5,7 @@ const MedicationForm = ({
   selectedMedications = [], // [{ id, name, dosage, eye }]
   setSelectedMedications,
   medications = [], // full list
+  canEdit = true,
 }) => {
   // When user selects meds from the dropdown
   const handleMedicationSelect = (selectedOption) => {
@@ -49,6 +50,7 @@ const MedicationForm = ({
           name: m.name,
         }))}
         onSelect={handleMedicationSelect}
+        disabled={!canEdit}
       />
 
       {/* Render fields for selected meds */}
@@ -70,6 +72,7 @@ const MedicationForm = ({
                     onChange={(e) =>
                       handleFieldChange(med.id, "eye", e.target.value)
                     }
+                    disabled={!canEdit}
                   />
                   {eye}
                 </label>
@@ -87,6 +90,7 @@ const MedicationForm = ({
                 handleFieldChange(med.id, "dosage", e.target.value)
               }
               className="border border-[#d0d5dd] h-24 rounded-md p-3 text-sm"
+              disabled={!canEdit}
             />
           </div>
         </div>

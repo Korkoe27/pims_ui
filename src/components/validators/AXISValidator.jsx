@@ -1,6 +1,13 @@
 import React, { useState, useEffect } from "react";
 
-const AXISValidator = ({ value, onChange, required = false, label, placeholder = "0 - 180" }) => {
+const AXISValidator = ({
+  value,
+  onChange,
+  required = false,
+  label,
+  placeholder = "0 - 180",
+  disabled = false,
+}) => {
   const [touched, setTouched] = useState(false);
   const [isValid, setIsValid] = useState(true);
 
@@ -10,7 +17,8 @@ const AXISValidator = ({ value, onChange, required = false, label, placeholder =
     const trimmed = value?.trim();
     const num = Number(trimmed);
 
-    const validAxis = !isNaN(num) && Number.isInteger(num) && num >= 0 && num <= 180;
+    const validAxis =
+      !isNaN(num) && Number.isInteger(num) && num >= 0 && num <= 180;
     const passesRequired = required ? !!trimmed : true;
 
     setIsValid(passesRequired && (!trimmed || validAxis));
@@ -28,12 +36,17 @@ const AXISValidator = ({ value, onChange, required = false, label, placeholder =
         className={`w-full border px-3 py-2 rounded ${
           !isValid ? "border-red-500" : "border-gray-300"
         } focus:outline-none focus:ring-1 focus:ring-indigo-500`}
+        disabled={disabled}
       />
       {!isValid && required && !value?.trim() && (
-        <p className="text-sm text-red-600">AXIS is required if CYL is entered</p>
+        <p className="text-sm text-red-600">
+          AXIS is required if CYL is entered
+        </p>
       )}
       {!isValid && value?.trim() && (
-        <p className="text-sm text-red-600">AXIS must be a number between 0 and 180</p>
+        <p className="text-sm text-red-600">
+          AXIS must be a number between 0 and 180
+        </p>
       )}
     </div>
   );

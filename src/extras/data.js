@@ -35,7 +35,7 @@ export const Sidebar_links = [
     path: "/clinic-schedule",
     roles: "all",
   },
-  
+
   {
     name: "patients",
     icon: <LuUsers2 className="text-xl font-bold" />,
@@ -98,13 +98,13 @@ export const Sidebar_links = [
   // },
 ];
 
-
 export const Consultation_nav = [
-  { name: "case history" },
-  { name: "Oculo-Medical History" },
-  { name: "visual acuity" },
-  { name: "externals" },
-  { name: "internals" },
-  { name: "refraction" },
-  { name: "extra tests" },
+  { name: "exams" },
+  { name: "diagnosis" },
+  { name: "management" },
+  { name: "case management guide" },
+  { name: "logs" },
+  { name: "grading" },
+  { name: "submit" },
+  { name: "complete" },
 ];

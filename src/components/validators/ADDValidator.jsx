@@ -6,12 +6,14 @@ const ADDValidator = ({
   required = false,
   label,
   placeholder = "+1.00",
+  disabled = false,
 }) => {
   const [touched, setTouched] = useState(false);
   const [isValid, setIsValid] = useState(true);
 
   // ✅ Enforce + sign
-  const isValidAdd = (val) => /^\+[0-9]+(\.25|\.50|\.75|\.00)?$/.test(val.trim());
+  const isValidAdd = (val) =>
+    /^\+[0-9]+(\.25|\.50|\.75|\.00)?$/.test(val.trim());
 
   useEffect(() => {
     if (!touched) return;
@@ -37,6 +39,7 @@ const ADDValidator = ({
         className={`w-full border px-3 py-2 rounded ${
           !isValid ? "border-red-500" : "border-gray-300"
         } focus:outline-none focus:ring-1 focus:ring-indigo-500`}
+        disabled={disabled}
       />
       {!isValid && (
         <p className="text-sm text-red-600">

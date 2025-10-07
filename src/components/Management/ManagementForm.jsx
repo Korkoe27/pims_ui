@@ -19,6 +19,7 @@ const ManagementForm = ({
   isCreatingManagementPlan,
   onSaveDraftAndNext,
   setFlowStep,
+  canEdit = true,
 }) => {
   return (
     <form className="flex flex-col gap-5 w-fit">
@@ -42,6 +43,7 @@ const ManagementForm = ({
                       }))
                     }
                     className="h-5 w-5"
+                    disabled={!canEdit}
                   />
                   {key.replace(/([A-Z])/g, " $1")}
                 </label>
@@ -58,6 +60,7 @@ const ManagementForm = ({
                   [e.target.name]: e.target.value,
                 }))
               }
+              canEdit={canEdit}
             />
           )}
 
@@ -70,6 +73,7 @@ const ManagementForm = ({
               selectedTypeId={selectedTypeId}
               setSelectedTypeId={setSelectedTypeId}
               isLoadingMeds={isLoadingMeds}
+              canEdit={canEdit}
             />
           )}
 
@@ -102,6 +106,7 @@ const ManagementForm = ({
                   placeholder={
                     field === "therapy" ? "Type of therapy or exercises..." : ""
                   }
+                  disabled={!canEdit}
                 />
               </div>
             );
@@ -122,7 +127,7 @@ const ManagementForm = ({
           type="button"
           onClick={onSaveDraftAndNext}
           className="px-4 py-2 rounded-md bg-[#2f3192] text-white disabled:opacity-60"
-          disabled={isCreatingManagementPlan}
+          disabled={isCreatingManagementPlan || !canEdit}
         >
           Save Draft & Continue
         </button>

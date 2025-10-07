@@ -6,6 +6,7 @@ const SPHValidator = ({
   required = false,
   label,
   placeholder = "+1.00 / -2.25",
+  disabled = false,
 }) => {
   const [touched, setTouched] = useState(false);
   const [isValid, setIsValid] = useState(true);
@@ -36,6 +37,7 @@ const SPHValidator = ({
         className={`w-full border px-3 py-2 rounded ${
           !isValid ? "border-red-500" : "border-gray-300"
         } focus:outline-none focus:ring-1 focus:ring-indigo-500`}
+        disabled={disabled}
       />
       {!isValid && (
         <p className="text-sm text-red-600">

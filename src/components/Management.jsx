@@ -20,6 +20,10 @@ import {
 
 /* =========================================================================
    Case Management Guide - Manual save on Next button click only
+} from "./Management/";
+
+/* =========================================================================
+   Case Management Guide - Manual save on Next button click only
    ========================================================================= */
 
 const CaseManagementGuide = ({
@@ -28,6 +32,8 @@ const CaseManagementGuide = ({
   setTabCompletionStatus,
   role = "student",
 }) => {
+  const consultationState = useSelector((state) => state.consultation);
+  const canEdit = consultationState.permissions.can_edit_cmg;
   const [saving, setSaving] = useState(false);
   const [guideData, setGuideData] = useState({
     table_rows: [{ id: 1, diagnosis: "", management_plan: "", notes: "" }],
@@ -473,6 +479,8 @@ const Management = ({ setFlowStep, appointmentId }) => {
   // ✅ Get role from Redux (student | lecturer | admin)
   const { user } = useSelector((s) => s.auth || {});
   const role = (user?.role || "student").toLowerCase();
+  const consultationState = useSelector((state) => state.consultation);
+  const canEdit = consultationState.permissions.can_edit_management;
 
   // ---- localStorage key for this appointment ----
   const LOCAL_TAB_KEY = `management-${apptId}-activeTab`;
@@ -872,6 +880,7 @@ const Management = ({ setFlowStep, appointmentId }) => {
           isCreatingManagementPlan={isCreatingManagementPlan}
           onSaveDraftAndNext={onSaveDraftAndNext}
           setFlowStep={setFlowStep}
+          canEdit={canEdit}
         />
       )}
 

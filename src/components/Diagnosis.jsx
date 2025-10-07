@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
 import { showToast } from "../components/ToasterHelper";
 import SearchableSelect from "./SearchableSelect";
 import AffectedEyeSelect from "./AffectedEyeSelect";
@@ -10,6 +11,8 @@ import SupervisorGradingButton from "./SupervisorGradingButton";
 import useComponentGrading from "../hooks/useComponentGrading";
 
 const Diagnosis = ({ appointmentId, setFlowStep, setActiveTab }) => {
+  const consultationState = useSelector((state) => state.consultation);
+  const canEdit = consultationState.permissions.can_edit_diagnosis;
   const {
     appointmentDiagnosis,
     createDiagnosis,
@@ -177,6 +180,7 @@ const Diagnosis = ({ appointmentId, setFlowStep, setActiveTab }) => {
               onChange={(e) => setDifferentialDiagnosis(e.target.value)}
               className="w-full border p-3 rounded-md"
               placeholder="Enter differential diagnosis..."
+              disabled={!canEdit}
             />
           </div>
 
@@ -194,6 +198,7 @@ const Diagnosis = ({ appointmentId, setFlowStep, setActiveTab }) => {
               onSelect={handleAddFinalDiagnosis}
               conditionKey="value"
               conditionNameKey="label"
+              disabled={!canEdit}
             />
 
             {finalDiagnosisEntries.length > 0 && (
@@ -257,7 +262,8 @@ const Diagnosis = ({ appointmentId, setFlowStep, setActiveTab }) => {
 
             <button
               onClick={handleSubmit}
-              className="px-6 py-2 text-white bg-indigo-700 hover:bg-indigo-800 rounded-lg"
+              disabled={!canEdit || isCreatingDiagnosis}
+              className="px-6 py-2 text-white bg-indigo-700 hover:bg-indigo-800 rounded-lg disabled:bg-gray-400 disabled:cursor-not-allowed"
             >
               {isCreatingDiagnosis ? "Saving..." : "Save and Proceed"}
             </button>
