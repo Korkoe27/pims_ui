@@ -241,7 +241,9 @@ const Consultation = () => {
             setActiveTab={setActiveTab}
             appointmentId={idStr}
             setFlowStep={setFlowStep}
-            canEdit={selectedAppointment?.consultation?.can_edit_diagnosis ?? true}
+            canEdit={
+              selectedAppointment?.consultation?.can_edit_diagnosis ?? true
+            }
           />
         );
       case "management":
@@ -250,7 +252,9 @@ const Consultation = () => {
             setActiveTab={setActiveTab}
             appointmentId={idStr}
             setFlowStep={setFlowStep}
-            canEdit={selectedAppointment?.consultation?.can_edit_management ?? true}
+            canEdit={
+              selectedAppointment?.consultation?.can_edit_management ?? true
+            }
           />
         );
       case "payment":
