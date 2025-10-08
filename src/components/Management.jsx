@@ -978,15 +978,17 @@ const Management = ({ setFlowStep, appointmentId }) => {
                   You have finished attending to your patient.
                 </p>
                 <div className="flex justify-between gap-4 mt-4">
-                  <button
-                    onClick={() => {
-                      setModal(false);
-                      navigate("/appointments");
-                    }}
-                    className="bg-[#0F973D] text-white px-4 py-2 rounded-lg"
-                  >
-                    Attend to next patient
-                  </button>
+                  {role !== "administrator" && role !== "admin" && (
+                    <button
+                      onClick={() => {
+                        setModal(false);
+                        navigate("/appointments");
+                      }}
+                      className="bg-[#0F973D] text-white px-4 py-2 rounded-lg"
+                    >
+                      Attend to next patient
+                    </button>
+                  )}
                   <button
                     onClick={() => {
                       setModal(false);
