@@ -302,7 +302,10 @@ const Consultation = () => {
       "Consultation In Progress": "consultation",
       "Exams Recorded": "consultation",
       "Diagnosis Added": "diagnosis",
-      "Management Created": "management",
+      // Keep the user in the consultation step even if management has been created;
+      // this prevents auto-switching away from exams/diagnosis when a management
+      // record exists but the clinician still needs to complete the consultation.
+      "Management Created": "consultation",
       "Case Management Guide Created": "management",
       "Logs Created": "management",
       "Submitted For Review": "diagnosis",

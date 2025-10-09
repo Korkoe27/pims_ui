@@ -1,7 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 
-const CompleteTab = ({ onComplete }) => {
+const CompleteTab = ({ onComplete, isCompleting = false }) => {
   const navigate = useNavigate();
 
   return (
@@ -13,9 +13,22 @@ const CompleteTab = ({ onComplete }) => {
       <div className="flex gap-3">
         <button
           onClick={onComplete}
-          className="px-4 py-2 rounded-md bg-[#0F973D] text-white"
+          disabled={isCompleting}
+          className={[
+            "px-4 py-2 rounded-md text-white",
+            isCompleting
+              ? "bg-[#0F973D]/60 cursor-not-allowed"
+              : "bg-[#0F973D]",
+          ].join(" ")}
         >
-          Continue to Payment
+          {isCompleting ? (
+            <>
+              <span className="animate-spin inline-block mr-2 h-4 w-4 rounded-full border-b-2 border-white"></span>
+              Completing...
+            </>
+          ) : (
+            "Continue to Payment"
+          )}
         </button>
         <button
           onClick={() => navigate("/")}

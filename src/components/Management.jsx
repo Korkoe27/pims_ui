@@ -6,6 +6,7 @@ import { IoIosCheckmarkCircle } from "react-icons/io";
 import PatientModal from "./SelectClinicModal";
 import { showToast } from "../components/ToasterHelper";
 import useManagementData from "../hooks/useManagementData";
+import useConsultationData from "../hooks/useConsultationData";
 import {
   useGetCaseManagementGuideQuery,
   useUpdateCaseManagementGuideMutation,
@@ -825,11 +826,32 @@ const Management = ({ setFlowStep, appointmentId }) => {
     }
   };
 
+  const { completeConsultationFlow, isCompleting } =
+    useConsultationData(apptId);
+
   const onComplete = async () => {
     try {
       await saveManagement(); // optional final save
+
+      // Attempt to mark consultation as completed on the backend
+      try {
+        await completeConsultationFlow(apptId);
+        showToast("Consultation completed.", "success");
+      } catch (err) {
+        // If backend completion fails, show an error but still allow navigation
+        const msg =
+          err?.data?.detail ||
+          err?.data?.message ||
+          err?.message ||
+          "Failed to complete consultation";
+        showToast(msg, "error");
+        // Do not return here; still proceed to payment to avoid blocking UX
+      }
+
       setFlowStep?.("payment");
-    } catch {}
+    } catch (err) {
+      // saveManagement already shows toast; ensure we don't proceed
+    }
   };
 
   // ---------------- TABS (role-based) ----------------
@@ -923,7 +945,7 @@ const Management = ({ setFlowStep, appointmentId }) => {
       )}
 
       {activeTab === "complete" && role !== "student" && (
-        <CompleteTab onComplete={onComplete} />
+        <CompleteTab onComplete={onComplete} isCompleting={isCompleting} />
       )}
 
       {/* Confirm modal (optional) */}
