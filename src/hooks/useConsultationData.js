@@ -122,6 +122,16 @@ const useConsultationData = (appointmentId) => {
       dispatch(clearTransitionMessages());
 
       const result = await completeConsultation(consultationId).unwrap();
+      // Refresh the consultation data so UI reflects the new state immediately
+      try {
+        await refetchConsultation?.();
+      } catch (e) {
+        // Non-fatal: if refetch fails, we'll still treat the complete as successful
+        // and surface the transition success message.
+        // eslint-disable-next-line no-console
+        console.warn("Refetch after complete failed:", e);
+      }
+
       dispatch(setTransitionSuccess("Consultation completed successfully"));
       return result;
     } catch (error) {

@@ -7,6 +7,7 @@ import PatientModal from "./SelectClinicModal";
 import { showToast } from "../components/ToasterHelper";
 import useManagementData from "../hooks/useManagementData";
 import useConsultationData from "../hooks/useConsultationData";
+import { useGetConsultationsQuery } from "../redux/api/features/consultationApi";
 import {
   useGetCaseManagementGuideQuery,
   useUpdateCaseManagementGuideMutation,
@@ -830,8 +831,22 @@ const Management = ({ setFlowStep, appointmentId }) => {
     }
   };
 
-  const { completeConsultationFlow, isCompleting } =
-    useConsultationData(apptId);
+  const {
+    consultation,
+    completeConsultationFlow,
+    isCompleting,
+    refetchConsultation,
+  } = useConsultationData(apptId);
+
+  // Try to resolve consultation id by appointment if hook.consultation is missing
+  const {
+    data: consultationsForAppointment,
+    isLoading: isLoadingConsultationList,
+  } = useGetConsultationsQuery(
+    // query params - backend may accept appointment filter
+    { appointment: apptId },
+    { skip: !apptId }
+  );
 
   const onComplete = async () => {
     try {
@@ -839,7 +854,28 @@ const Management = ({ setFlowStep, appointmentId }) => {
 
       // Attempt to mark consultation as completed on the backend
       try {
-        await completeConsultationFlow(apptId);
+        // Make sure we have the latest consultation record. If the hook's
+        // `consultation` is stale or missing, refetch (RTK Query) and use
+        // the returned consultation id. This ensures we send the backend a
+        // consultation UUID (not the appointment id).
+        let consultationId = consultation?.id;
+        try {
+          const ref = await refetchConsultation?.();
+          const returned = ref?.data || (ref && ref.payload) || null;
+          consultationId = returned?.id || consultationId;
+        } catch (e) {
+          // ignore refetch errors - we'll fall back to existing value
+        }
+
+        // final fallback: try list endpoint result, then appointment id (may produce backend 404)
+        if (!consultationId) {
+          const first =
+            consultationsForAppointment && consultationsForAppointment.length
+              ? consultationsForAppointment[0]
+              : null;
+          consultationId = first?.id ?? apptId;
+        }
+        await completeConsultationFlow(consultationId);
         showToast("Consultation completed.", "success");
       } catch (err) {
         // If backend completion fails, show an error but still allow navigation

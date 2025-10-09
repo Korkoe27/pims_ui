@@ -221,20 +221,20 @@ export const consultationApi = apiClient.injectEndpoints({
       ],
     }),
 
-    // Complete consultation
+    // Complete consultation - call real backend endpoint
     completeConsultation: builder.mutation({
-      queryFn: (consultationId) => {
-        // Mock successful completion
+      query: (consultationId) => {
+        // Allow callers to pass IDs that may have a local 'cons_' prefix
+        // (mock data). The backend expects the raw UUID (no prefix).
+        let raw = consultationId;
+        if (consultationId && typeof consultationId === "object") {
+          // support being passed an object like { consultationId: '...'}
+          raw = consultationId.consultationId || consultationId.id || raw;
+        }
+        const id = typeof raw === "string" ? raw.replace(/^cons_/, "") : raw;
         return {
-          data: {
-            success: true,
-            message: "Consultation completed successfully",
-            consultation: {
-              id: consultationId,
-              status: "Consultation Completed",
-              updated_at: new Date().toISOString(),
-            },
-          },
+          url: completeConsultationUrl(id),
+          method: "POST",
         };
       },
       invalidatesTags: (result, error, consultationId) => [
