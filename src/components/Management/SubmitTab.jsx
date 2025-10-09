@@ -5,6 +5,7 @@ const SubmitTab = ({
   isCreatingManagementPlan,
   isSubmittingForReview,
   setActiveTab,
+  permissions,
 }) => {
   return (
     <div className="rounded-md border bg-white p-6 w-full max-w-2xl">
@@ -31,10 +32,10 @@ const SubmitTab = ({
         </button>
         <button
           type="button"
-          onClick={() => setActiveTab("logs")}
+          onClick={() => setActiveTab("management")}
           className="px-4 py-2 rounded-md border"
         >
-          Back to Logs
+          Back to Management
         </button>
       </div>
     </div>

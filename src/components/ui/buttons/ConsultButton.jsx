@@ -17,6 +17,8 @@ const ConsultButton = ({ appointment, role, onClick }) => {
       [
         "consultation in progress",
         "examinations recorded",
+        "examination created",
+        "examinations created",
         "diagnosis added",
       ].includes(status)
     ) {
@@ -40,6 +42,8 @@ const ConsultButton = ({ appointment, role, onClick }) => {
       [
         "consultation in progress",
         "examinations recorded",
+        "examination created",
+        "examinations created",
         "diagnosis added",
       ].includes(status)
     ) {

@@ -1,7 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 
-const CompleteTab = ({ onComplete, isCompleting = false }) => {
+const CompleteTab = ({ onComplete, isCompleting = false, setActiveTab }) => {
   const navigate = useNavigate();
 
   return (
@@ -27,8 +27,14 @@ const CompleteTab = ({ onComplete, isCompleting = false }) => {
               Completing...
             </>
           ) : (
-            "Continue to Payment"
+            "Complete Consultation"
           )}
+        </button>
+        <button
+          onClick={() => setActiveTab?.("management")}
+          className="px-4 py-2 rounded-md border"
+        >
+          Back to Management
         </button>
         <button
           onClick={() => navigate("/")}

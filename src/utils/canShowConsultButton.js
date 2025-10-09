@@ -5,7 +5,11 @@ export const canShowConsultButton = (appointment, role) => {
   if (role === "student") {
     if (
       status === "scheduled" ||
-      ["consultation in progress", "examinations recorded", "diagnosis added"].includes(status) ||
+      [
+        "consultation in progress",
+        "examinations recorded",
+        "diagnosis added",
+      ].includes(status) ||
       ["management created", "case management guide created"].includes(status)
     ) {
       return true;
@@ -15,9 +19,14 @@ export const canShowConsultButton = (appointment, role) => {
   if (role === "lecturer") {
     if (
       status === "scheduled" ||
-      ["consultation in progress", "examinations recorded", "diagnosis added"].includes(status) ||
+      [
+        "consultation in progress",
+        "examinations recorded",
+        "diagnosis added",
+      ].includes(status) ||
       status === "submitted for review" ||
-      status === "under review"
+      status === "under review" ||
+      ["management created", "case management guide created"].includes(status)
     ) {
       return true;
     }

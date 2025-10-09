@@ -29,6 +29,9 @@ const CaseManagementGuide = ({
   setTabCompletionStatus,
   role = "student",
 }) => {
+  // Read consultation permissions from Redux so we can decide where to navigate next
+  const consultationState = useSelector((s) => s.consultation || {});
+  const permissions = consultationState.permissions || {};
   const [saving, setSaving] = useState(false);
   const [guideData, setGuideData] = useState({
     table_rows: [{ id: 1, diagnosis: "", management_plan: "", notes: "" }],
@@ -98,10 +101,11 @@ const CaseManagementGuide = ({
       }).unwrap();
 
       // Mark as completed when user proceeds
-      setTabCompletionStatus?.("case_guide", true);
+  setTabCompletionStatus?.("case_guide", true);
 
-      showToast("Case management guide completed successfully", "success");
-      setActiveTab?.("logs");
+  showToast("Case management guide completed successfully", "success");
+  // After completing case guide navigate to grading if allowed, else complete
+  setActiveTab?.(permissions?.can_grade ? "grading" : "complete");
     } catch (error) {
       showToast("Failed to save case management guide", "error");
     } finally {
@@ -798,7 +802,7 @@ const Management = ({ setFlowStep, appointmentId }) => {
       if (role === "student") {
         setActiveTab("case_guide");
       } else {
-        setActiveTab("logs");
+        setActiveTab(permissions?.can_grade ? "grading" : "complete");
       }
     } catch {}
   };
@@ -861,7 +865,7 @@ const Management = ({ setFlowStep, appointmentId }) => {
     ...(role === "student"
       ? [{ key: "case_guide", label: "Case Management Guide" }]
       : []),
-    { key: "logs", label: "Logs" },
+  // logs tab removed - we navigate straight to grading or complete
     ...(role === "student" ? [{ key: "submit", label: "Submit" }] : []),
     ...(permissions?.can_grade ? [{ key: "grading", label: "Grading" }] : []),
   ];
@@ -929,23 +933,22 @@ const Management = ({ setFlowStep, appointmentId }) => {
           isCreatingManagementPlan={isCreatingManagementPlan}
           isSubmittingForReview={isSubmittingForReview}
           setActiveTab={setActiveTab}
+          permissions={permissions}
         />
       )}
 
-      {activeTab === "logs" && (
-        <LogsPanel
-          appointmentId={apptId}
-          setActiveTab={setActiveTab}
-          role={role}
-        />
-      )}
+      {/* Logs tab removed - navigation flows to grading or complete instead */}
 
       {activeTab === "grading" && role !== "student" && (
         <GradingTab appointmentId={apptId} setActiveTab={setActiveTab} />
       )}
 
       {activeTab === "complete" && role !== "student" && (
-        <CompleteTab onComplete={onComplete} isCompleting={isCompleting} />
+        <CompleteTab
+          onComplete={onComplete}
+          isCompleting={isCompleting}
+          setActiveTab={setActiveTab}
+        />
       )}
 
       {/* Confirm modal (optional) */}
