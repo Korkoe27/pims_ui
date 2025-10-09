@@ -44,7 +44,10 @@ const ConsultButton = ({ appointment, role, onClick }) => {
       ].includes(status)
     ) {
       label = "Continue Consultation";
-    } else if (status === "management created" || status === "case management guide created") {
+    } else if (
+      status === "management created" ||
+      status === "case management guide created"
+    ) {
       // For lecturers allow continuing (to review/complete the consultation)
       label = "Continue Consultation";
     }
