@@ -283,6 +283,44 @@ export const finalGradingUrl = (appointmentId) =>
   `/grading/api/appointments/${appointmentId}/final/`;
 
 /////////////////////////
+// Consultation Management
+/////////////////////////
+
+// List consultations (with filters)
+export const listConsultationsUrl = "/consultations/";
+
+// Get consultation details
+export const getConsultationUrl = (consultationId) =>
+  `/consultations/${consultationId}/`;
+
+// Update consultation
+export const updateConsultationUrl = (consultationId) =>
+  `/consultations/${consultationId}/`;
+
+// Delete consultation (admin only)
+export const deleteConsultationUrl = (consultationId) =>
+  `/consultations/${consultationId}/`;
+
+// Start new consultation
+export const startConsultationUrl = "/consultations/start/";
+
+// Transition to new status
+export const transitionConsultationUrl = (consultationId) =>
+  `/consultations/${consultationId}/transition/`;
+
+// Student submits for review
+export const submitConsultationUrl = (consultationId) =>
+  `/consultations/${consultationId}/submit/`;
+
+// Complete consultation
+export const completeConsultationUrl = (consultationId) =>
+  `/consultations/${consultationId}/complete/`;
+
+// Admin status override
+export const overrideConsultationUrl = (consultationId) =>
+  `/consultations/${consultationId}/override/`;
+
+/////////////////////////
 // WebSocket
 /////////////////////////
 

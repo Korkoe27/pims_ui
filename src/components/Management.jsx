@@ -332,6 +332,10 @@ const LogsPanel = ({ appointmentId, setActiveTab, role }) => {
   const [logEntry, setLogEntry] = useState("");
   const [logs, setLogs] = useState([]);
 
+  // Read consultation permissions to decide next tab (grading vs complete)
+  const consultationState = useSelector((s) => s.consultation || {});
+  const permissions = consultationState.permissions || {};
+
   const handleAddLog = () => {
     if (logEntry.trim()) {
       const newLog = {
@@ -351,11 +355,11 @@ const LogsPanel = ({ appointmentId, setActiveTab, role }) => {
   };
 
   const getNextTab = () => {
-    if (role === "student") {
-      return "submit";
-    } else {
-      return "grading";
-    }
+    if (role === "student") return "submit";
+    // For non-students, navigate to grading only if permissions allow it;
+    // otherwise go to the final Complete tab.
+    if (permissions?.can_grade) return "grading";
+    return "complete";
   };
 
   return (
@@ -427,7 +431,13 @@ const LogsPanel = ({ appointmentId, setActiveTab, role }) => {
           onClick={() => setActiveTab?.(getNextTab())}
           className="px-4 py-2 rounded-md bg-[#2f3192] text-white hover:opacity-90"
         >
-          Next: {role === "student" ? "Submit" : "Grading"} →
+          Next:{" "}
+          {role === "student"
+            ? "Submit"
+            : permissions?.can_grade
+            ? "Grading"
+            : "Complete"}{" "}
+          →
         </button>
       </div>
     </div>
@@ -473,6 +483,11 @@ const Management = ({ setFlowStep, appointmentId }) => {
   // ✅ Get role from Redux (student | lecturer | admin)
   const { user } = useSelector((s) => s.auth || {});
   const role = (user?.role || "student").toLowerCase();
+
+  // Get consultation state (flowType, permissions) to control Management tabs
+  const consultationState = useSelector((s) => s.consultation || {});
+  const flowType = consultationState.flowType;
+  const permissions = consultationState.permissions || {};
 
   // ---- localStorage key for this appointment ----
   const LOCAL_TAB_KEY = `management-${apptId}-activeTab`;
@@ -818,6 +833,7 @@ const Management = ({ setFlowStep, appointmentId }) => {
   };
 
   // ---------------- TABS (role-based) ----------------
+  // Show grading tab only when permissions allow grading (e.g., lecturer reviewing flow)
   const baseTabs = [
     { key: "management", label: "Management" },
     ...(role === "student"
@@ -825,7 +841,7 @@ const Management = ({ setFlowStep, appointmentId }) => {
       : []),
     { key: "logs", label: "Logs" },
     ...(role === "student" ? [{ key: "submit", label: "Submit" }] : []),
-    ...(role !== "student" ? [{ key: "grading", label: "Grading" }] : []),
+    ...(permissions?.can_grade ? [{ key: "grading", label: "Grading" }] : []),
   ];
 
   // Hide Complete tab for students

@@ -13,6 +13,7 @@ import { dashboardApi } from "../api/features/dashboardApi";
 import { appointmentsApi } from "../api/features/appointmentsApi";
 import { absentRequestApi } from "../api/features/absentRequestApi";
 import { gradingApi } from "../api/features/gradingApi";
+import { consultationApi } from "../api/features/consultationApi";
 
 // State slices
 import authReducer from "../slices/authSlice";
@@ -20,7 +21,7 @@ import dashboardReducer from "../slices/dashboardSlice";
 import gradingReducer from "../slices/gradingSlice";
 import patientReducer from "../slices/patientSlice";
 import appointmentsReducer from "../slices/appointmentsSlice";
-import caseHistoryReducer from "../slices/consultationSlice";
+import consultationReducer from "../slices/consultationSlice";
 import clinicReducer from "../slices/clinicSlice";
 import diagnosisReducer from "../slices/diagnosisSlice";
 import managementReducer from "../slices/managementSlice";
@@ -40,7 +41,7 @@ export const store = configureStore({
     dashboard: dashboardReducer,
     patients: patientReducer,
     appointments: appointmentsReducer,
-    caseHistory: caseHistoryReducer,
+    consultation: consultationReducer,
     clinic: clinicReducer,
     diagnosis: diagnosisReducer,
     management: managementReducer,
@@ -57,6 +58,7 @@ export const store = configureStore({
     [appointmentsApi.reducerPath]: appointmentsApi.reducer,
     [absentRequestApi.reducerPath]: absentRequestApi.reducer,
     [gradingApi.reducerPath]: gradingApi.reducer,
+    [consultationApi.reducerPath]: consultationApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({ serializableCheck: false })
@@ -69,7 +71,8 @@ export const store = configureStore({
       .concat(dashboardApi.middleware)
       .concat(appointmentsApi.middleware)
       .concat(absentRequestApi.middleware)
-      .concat(gradingApi.middleware),
+      .concat(gradingApi.middleware)
+      .concat(consultationApi.middleware),
 });
 
 export const persistor = persistStore(store);

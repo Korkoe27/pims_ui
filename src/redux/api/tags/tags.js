@@ -4,5 +4,6 @@ export const TAGS = {
   APPOINTMENTS: "Appointments",
   PATIENTS: "Patients",
   APPOINTMENT_DIAGNOSIS: "AppointmentDiagnosis",
+  CONSULTATIONS: "Consultations",
   // Add more as needed
 };
