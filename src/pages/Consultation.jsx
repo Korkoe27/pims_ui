@@ -20,7 +20,7 @@ import CaseManagementGuide from "../components/CaseManagementGuide";
 import BouncingBallsLoader from "../components/BouncingBallsLoader";
 
 // ✅ New flow components (post-management ops)
-import Payment from "../components/Payment";
+// Payment step removed from flow
 import MedicationDispensing from "../components/MedicationDispensing";
 
 // Consultation flow transition controls
@@ -287,7 +287,6 @@ const Consultation = () => {
     consultation: 1,
     diagnosis: 2,
     management: 3,
-    payment: 4,
     dispensing: 5,
   };
 
@@ -506,8 +505,7 @@ const Consultation = () => {
             }
           />
         );
-      case "payment":
-        return <Payment appointmentId={idStr} setFlowStep={setFlowStep} />;
+      // payment step intentionally removed; proceed from management -> dispensing
       case "dispensing":
         return (
           <MedicationDispensing
