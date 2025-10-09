@@ -101,11 +101,11 @@ const CaseManagementGuide = ({
       }).unwrap();
 
       // Mark as completed when user proceeds
-  setTabCompletionStatus?.("case_guide", true);
+      setTabCompletionStatus?.("case_guide", true);
 
-  showToast("Case management guide completed successfully", "success");
-  // After completing case guide navigate to grading if allowed, else complete
-  setActiveTab?.(permissions?.can_grade ? "grading" : "complete");
+      showToast("Case management guide completed successfully", "success");
+      // After completing case guide navigate to grading if allowed, else complete
+      setActiveTab?.(permissions?.can_grade ? "grading" : "complete");
     } catch (error) {
       showToast("Failed to save case management guide", "error");
     } finally {
@@ -865,7 +865,7 @@ const Management = ({ setFlowStep, appointmentId }) => {
     ...(role === "student"
       ? [{ key: "case_guide", label: "Case Management Guide" }]
       : []),
-  // logs tab removed - we navigate straight to grading or complete
+    // logs tab removed - we navigate straight to grading or complete
     ...(role === "student" ? [{ key: "submit", label: "Submit" }] : []),
     ...(permissions?.can_grade ? [{ key: "grading", label: "Grading" }] : []),
   ];
