@@ -7,9 +7,7 @@ const CompleteTab = ({ onComplete, isCompleting = false, setActiveTab }) => {
   return (
     <div className="rounded-md border bg-white p-6 w-full max-w-xl">
       <h3 className="text-lg font-semibold mb-2">Complete</h3>
-      <p className="text-sm text-gray-600 mb-4">
-        Proceed to Payment to continue the main flow.
-      </p>
+      <p className="text-sm text-gray-600 mb-4">Complete the consultation.</p>
       <div className="flex gap-3">
         <button
           onClick={onComplete}
