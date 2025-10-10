@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { useGetAppointmentDetailsQuery } from "../redux/api/features/appointmentsApi";
@@ -231,6 +231,9 @@ const Consultation = () => {
   const LOCAL_FLOW_KEY = `consultation-${appointmentId}-flowStep`;
   const LOCAL_STATUS_KEY = `consultation-${appointmentId}-tabCompletionStatus`;
 
+  // Track if we've already initialized review mode to prevent repeated resets
+  const reviewInitialized = useRef(false);
+
   // Local tab state (case history, VA, externals, etc.)
   const [activeTab, _setActiveTab] = useState(() => {
     const stored = localStorage.getItem(LOCAL_TAB_KEY);
@@ -314,6 +317,7 @@ const Consultation = () => {
     if (!consultationState?.flowState) return;
 
     const consultationStatus = consultationState.flowState;
+    const flowType = consultationState.flowType;
 
     // Map consultation states to UI flow steps
     const stateToFlowStep = {
@@ -326,8 +330,11 @@ const Consultation = () => {
       "Management Created": "consultation",
       "Case Management Guide Created": "management",
       "Logs Created": "management",
-      "Submitted For Review": "diagnosis",
-      "Under Review": "diagnosis",
+      // For reviewing flow, start from case history regardless of status
+      "Submitted For Review":
+        flowType === "lecturer_reviewing" ? "consultation" : "diagnosis",
+      "Under Review":
+        flowType === "lecturer_reviewing" ? "consultation" : "diagnosis",
       Graded: "management",
       "Consultation Completed": "dispensing",
     };
@@ -335,7 +342,35 @@ const Consultation = () => {
     const mappedFlowStep =
       stateToFlowStep[consultationStatus] || "consultation";
     setFlowStep(mappedFlowStep);
-  }, [consultationState?.flowState, setFlowStep]);
+  }, [consultationState?.flowState, consultationState?.flowType, setFlowStep]);
+
+  // ✅ Reset activeTab to "case history" when lecturer starts reviewing (only once)
+  useEffect(() => {
+    const flowType = consultationState?.flowType;
+    const flowState = consultationState?.flowState;
+
+    // If lecturer is reviewing and we're in consultation step, start from case history
+    // But only do this once when first entering review mode
+    if (
+      flowType === "lecturer_reviewing" &&
+      (flowState === "Submitted For Review" || flowState === "Under Review") &&
+      flowStep === "consultation" &&
+      !reviewInitialized.current
+    ) {
+      setActiveTab("case history");
+      reviewInitialized.current = true;
+    }
+
+    // Reset the flag if we're no longer in reviewing mode
+    if (flowType !== "lecturer_reviewing") {
+      reviewInitialized.current = false;
+    }
+  }, [
+    consultationState?.flowType,
+    consultationState?.flowState,
+    flowStep,
+    setActiveTab,
+  ]);
 
   // Loading gate
   if (isLoading) {
@@ -490,6 +525,9 @@ const Consultation = () => {
               activeTab={activeTab}
               setActiveTab={setActiveTab}
               tabCompletionStatus={tabCompletionStatus}
+              allowTabNavigation={
+                consultationState?.flowType === "lecturer_reviewing"
+              }
             />
             <div className="mt-4">{renderTabContent()}</div>
           </>

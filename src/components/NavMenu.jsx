@@ -2,17 +2,28 @@ import React from "react";
 import { Consultation_nav } from "../extras/data";
 import { IoIosCheckmarkCircle, IoIosRadioButtonOff } from "react-icons/io";
 
-const NavMenu = ({ activeTab, setActiveTab, tabCompletionStatus }) => {
+const NavMenu = ({
+  activeTab,
+  setActiveTab,
+  tabCompletionStatus,
+  allowTabNavigation = false,
+}) => {
   return (
     <div className="flex items-center gap-16">
       {Consultation_nav.map((item) => (
         <button
           key={item.name}
-          // onClick={() => setActiveTab(item.name)}
+          onClick={
+            allowTabNavigation ? () => setActiveTab(item.name) : undefined
+          }
           className={`text-base ${
             item.name === activeTab
               ? "font-bold text-[#2f3192]"
               : "font-normal text-black"
+          } ${
+            allowTabNavigation
+              ? "cursor-pointer hover:text-[#2f3192]"
+              : "cursor-default"
           }`}
         >
           <span className="flex justify-center items-center">
