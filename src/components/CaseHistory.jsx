@@ -35,6 +35,13 @@ const CaseHistory = ({
   const { flowType } = consultationState;
   const isReviewing = flowType === "lecturer_reviewing";
 
+  // Debug logging
+  console.log("🔍 CaseHistory Debug:", {
+    flowType,
+    isReviewing,
+    consultationState,
+  });
+
   const { data: caseHistory, isLoading: loadingCaseHistory } =
     useFetchCaseHistoryQuery(appointmentId, {
       skip: !appointmentId,
@@ -231,8 +238,14 @@ const CaseHistory = ({
     try {
       showToast("Saving case history...", "loading");
 
+      console.log("💾 Save Debug:", {
+        isReviewing,
+        flowType: consultationState.flowType,
+      });
+
       // For lecturer reviewing, we'll save but handle potential state transition errors
       if (isReviewing) {
+        console.log("📚 Taking REVIEWING path");
         try {
           await createCaseHistory(payload).unwrap();
           showToast("Case history saved successfully!", "success");
@@ -266,6 +279,7 @@ const CaseHistory = ({
         }
       } else {
         // Normal consultation flow
+        console.log("🏥 Taking NORMAL CONSULTATION path");
         await createCaseHistory(payload).unwrap();
         showToast("Case history saved successfully!", "success");
         setTabCompletionStatus?.((prev) => ({
