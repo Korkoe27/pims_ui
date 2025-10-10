@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   useGetConsultationQuery,
@@ -28,6 +28,32 @@ const useConsultationData = (appointmentId) => {
     skip: true, // Skip consultation queries since backend uses appointment-based system
   });
 
+  // Provide fallback consultation state when queries are skipped
+  const fallbackConsultation = useMemo(() => {
+    if (consultation) return consultation;
+
+    const now = new Date().toISOString();
+    return {
+      id: `fallback_${appointmentId}`,
+      appointment_id: appointmentId,
+      status: "Consultation In Progress",
+      flowType: "lecturer_consulting", // Default to most permissive
+      flowState: "Consultation In Progress",
+      is_student_case: false,
+      permissions: {
+        can_edit_exams: true,
+        can_edit_diagnosis: true,
+        can_edit_management: true,
+        can_submit_for_review: true,
+        can_grade: false,
+        can_complete: true,
+        can_override: true,
+      },
+      created_at: now,
+      updated_at: now,
+    };
+  }, [consultation, appointmentId]);
+
   // Mutations
   const [startConsultation, { isLoading: isStarting }] =
     useStartConsultationMutation();
@@ -38,15 +64,18 @@ const useConsultationData = (appointmentId) => {
   const [completeConsultation, { isLoading: isCompleting }] =
     useCompleteConsultationMutation();
 
-  // Update consultation state when data changes
-  useEffect(() => {
-    if (consultation) {
-      dispatch(setCurrentConsultation(consultation));
-    }
-  }, [consultation, dispatch]);
-
   // Get current consultation state from Redux
   const consultationState = useSelector((state) => state.consultation);
+
+  // Update consultation state when data changes (use fallback if no real data)
+  useEffect(() => {
+    if (
+      fallbackConsultation &&
+      consultationState?.id !== fallbackConsultation.id
+    ) {
+      dispatch(setCurrentConsultation(fallbackConsultation));
+    }
+  }, [fallbackConsultation, dispatch, consultationState?.id]);
 
   // Helper functions
   const startConsultationFlow = async (data) => {
@@ -148,7 +177,7 @@ const useConsultationData = (appointmentId) => {
 
   return {
     // Data
-    consultation,
+    consultation: fallbackConsultation,
     consultationState,
 
     // Loading states
