@@ -115,6 +115,7 @@ const CaseManagementGuide = ({
   };
 
   const handleRowChange = (rowId, field, value) => {
+    console.log("Row change:", { rowId, field, value });
     setGuideData((prev) => ({
       ...prev,
       table_rows: prev.table_rows.map((row) =>
@@ -124,13 +125,20 @@ const CaseManagementGuide = ({
   };
 
   const addNewRow = () => {
-    const newId = Math.max(...guideData.table_rows.map((row) => row.id)) + 1;
+    const existingIds = guideData.table_rows.map((row) => row.id);
+    const newId = existingIds.length > 0 ? Math.max(...existingIds) + 1 : 1;
+    const newRow = { 
+      id: newId, 
+      diagnosis: "", 
+      management_plan: "", 
+      notes: "" 
+    };
+    
+    console.log("Adding new row:", newRow);
+    
     setGuideData((prev) => ({
       ...prev,
-      table_rows: [
-        ...prev.table_rows,
-        { id: newId, diagnosis: "", management_plan: "", notes: "" },
-      ],
+      table_rows: [...prev.table_rows, newRow],
     }));
   };
 
@@ -223,39 +231,51 @@ const CaseManagementGuide = ({
                   <tr key={row.id} className="border-b border-gray-100">
                     <td className="py-2 px-3">
                       <textarea
-                        value={row.diagnosis}
-                        onChange={(e) =>
-                          handleRowChange(row.id, "diagnosis", e.target.value)
-                        }
+                        key={`diagnosis-${row.id}`}
+                        value={row.diagnosis || ""}
+                        onChange={(e) => {
+                          console.log(`Diagnosis change for row ${row.id}:`, e.target.value);
+                          handleRowChange(row.id, "diagnosis", e.target.value);
+                        }}
                         placeholder="Enter diagnosis..."
                         className="w-full p-2 border border-gray-300 rounded-md resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         rows="3"
+                        data-row-id={row.id}
+                        disabled={false}
                       />
                     </td>
                     <td className="py-2 px-3">
                       <textarea
-                        value={row.management_plan}
-                        onChange={(e) =>
+                        key={`management-${row.id}`}
+                        value={row.management_plan || ""}
+                        onChange={(e) => {
+                          console.log(`Management plan change for row ${row.id}:`, e.target.value);
                           handleRowChange(
                             row.id,
                             "management_plan",
                             e.target.value
-                          )
-                        }
+                          );
+                        }}
                         placeholder="Enter management plan..."
                         className="w-full p-2 border border-gray-300 rounded-md resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         rows="3"
+                        data-row-id={row.id}
+                        disabled={false}
                       />
                     </td>
                     <td className="py-2 px-3">
                       <textarea
-                        value={row.notes}
-                        onChange={(e) =>
-                          handleRowChange(row.id, "notes", e.target.value)
-                        }
+                        key={`notes-${row.id}`}
+                        value={row.notes || ""}
+                        onChange={(e) => {
+                          console.log(`Notes change for row ${row.id}:`, e.target.value);
+                          handleRowChange(row.id, "notes", e.target.value);
+                        }}
                         placeholder="Enter notes..."
                         className="w-full p-2 border border-gray-300 rounded-md resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         rows="3"
+                        data-row-id={row.id}
+                        disabled={false}
                       />
                     </td>
                     <td className="py-2 px-3">
