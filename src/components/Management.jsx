@@ -17,6 +17,7 @@ import {
   SubmitTab,
   GradingTab,
   CompleteTab,
+  LogsTab,
 } from "./Management/";
 
 /* =========================================================================
@@ -871,7 +872,7 @@ const Management = ({ setFlowStep, appointmentId }) => {
     ...(role === "student"
       ? [{ key: "case_guide", label: "Case Management Guide" }]
       : []),
-    // logs tab removed - we navigate straight to grading or complete
+    { key: "logs", label: "Logs" }, // Re-added logs tab
     ...(role === "student" ? [{ key: "submit", label: "Submit" }] : []),
     ...(permissions?.can_grade ? [{ key: "grading", label: "Grading" }] : []),
   ];
@@ -943,7 +944,13 @@ const Management = ({ setFlowStep, appointmentId }) => {
         />
       )}
 
-      {/* Logs tab removed - navigation flows to grading or complete instead */}
+      {activeTab === "logs" && (
+        <LogsTab
+          appointmentId={apptId}
+          setActiveTab={setActiveTab}
+          role={role}
+        />
+      )}
 
       {activeTab === "grading" && role !== "student" && (
         <GradingTab appointmentId={apptId} setActiveTab={setActiveTab} />
