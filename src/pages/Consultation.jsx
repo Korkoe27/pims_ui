@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 import { useGetAppointmentDetailsQuery } from "../redux/api/features/appointmentsApi";
 import useConsultationData from "../hooks/useConsultationData";
 
@@ -276,13 +277,16 @@ const Consultation = () => {
   // ================================
   // Backend Data
   // ================================
+  // Get current user role from Redux
+  const currentUserRole = useSelector((state) => state.auth.user?.role);
+
   const {
     data: selectedAppointment,
     error,
     isLoading,
   } = useGetAppointmentDetailsQuery(appointmentId);
 
-  // Consultation flow data
+  // Consultation flow data - pass appointment data and user role for proper flow type determination
   const {
     consultation,
     consultationState,
@@ -293,7 +297,7 @@ const Consultation = () => {
     submitForReview,
     completeConsultationFlow,
     clearTransitionMessages,
-  } = useConsultationData(appointmentId);
+  } = useConsultationData(appointmentId, selectedAppointment, currentUserRole);
 
   // ✅ Align with the progress bar (5 local steps; bar shows 3 and clamps)
   const stepMap = {
