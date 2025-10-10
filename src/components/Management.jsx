@@ -127,15 +127,15 @@ const CaseManagementGuide = ({
   const addNewRow = () => {
     const existingIds = guideData.table_rows.map((row) => row.id);
     const newId = existingIds.length > 0 ? Math.max(...existingIds) + 1 : 1;
-    const newRow = { 
-      id: newId, 
-      diagnosis: "", 
-      management_plan: "", 
-      notes: "" 
+    const newRow = {
+      id: newId,
+      diagnosis: "",
+      management_plan: "",
+      notes: "",
     };
-    
+
     console.log("Adding new row:", newRow);
-    
+
     setGuideData((prev) => ({
       ...prev,
       table_rows: [...prev.table_rows, newRow],
@@ -234,7 +234,10 @@ const CaseManagementGuide = ({
                         key={`diagnosis-${row.id}`}
                         value={row.diagnosis || ""}
                         onChange={(e) => {
-                          console.log(`Diagnosis change for row ${row.id}:`, e.target.value);
+                          console.log(
+                            `Diagnosis change for row ${row.id}:`,
+                            e.target.value
+                          );
                           handleRowChange(row.id, "diagnosis", e.target.value);
                         }}
                         placeholder="Enter diagnosis..."
@@ -249,7 +252,10 @@ const CaseManagementGuide = ({
                         key={`management-${row.id}`}
                         value={row.management_plan || ""}
                         onChange={(e) => {
-                          console.log(`Management plan change for row ${row.id}:`, e.target.value);
+                          console.log(
+                            `Management plan change for row ${row.id}:`,
+                            e.target.value
+                          );
                           handleRowChange(
                             row.id,
                             "management_plan",
@@ -268,7 +274,10 @@ const CaseManagementGuide = ({
                         key={`notes-${row.id}`}
                         value={row.notes || ""}
                         onChange={(e) => {
-                          console.log(`Notes change for row ${row.id}:`, e.target.value);
+                          console.log(
+                            `Notes change for row ${row.id}:`,
+                            e.target.value
+                          );
                           handleRowChange(row.id, "notes", e.target.value);
                         }}
                         placeholder="Enter notes..."
