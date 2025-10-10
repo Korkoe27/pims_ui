@@ -105,8 +105,8 @@ const CaseManagementGuide = ({
       setTabCompletionStatus?.("case_guide", true);
 
       showToast("Case management guide completed successfully", "success");
-      // After completing case guide navigate to grading if allowed, else complete
-      setActiveTab?.(permissions?.can_grade ? "grading" : "complete");
+      // After completing case guide, navigate to logs
+      setActiveTab?.("logs");
     } catch (error) {
       showToast("Failed to save case management guide", "error");
     } finally {
@@ -803,7 +803,8 @@ const Management = ({ setFlowStep, appointmentId }) => {
       if (role === "student") {
         setActiveTab("case_guide");
       } else {
-        setActiveTab(permissions?.can_grade ? "grading" : "complete");
+        // For lecturers, go to logs first, then they can navigate to grading/complete
+        setActiveTab("logs");
       }
     } catch {}
   };
@@ -949,6 +950,7 @@ const Management = ({ setFlowStep, appointmentId }) => {
           appointmentId={apptId}
           setActiveTab={setActiveTab}
           role={role}
+          permissions={permissions}
         />
       )}
 

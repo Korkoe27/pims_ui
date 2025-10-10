@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-const LogsTab = ({ appointmentId, setActiveTab, role }) => {
+const LogsTab = ({ appointmentId, setActiveTab, role, permissions = {} }) => {
   const [logEntry, setLogEntry] = useState("");
   const [logs, setLogs] = useState([]);
 
@@ -104,10 +104,12 @@ const LogsTab = ({ appointmentId, setActiveTab, role }) => {
             {role !== "student" && (
               <button
                 type="button"
-                onClick={() => setActiveTab("complete")}
+                onClick={() =>
+                  setActiveTab(permissions?.can_grade ? "grading" : "complete")
+                }
                 className="px-4 py-2 rounded-md bg-green-600 text-white hover:bg-green-700"
               >
-                Next: Complete →
+                Next: {permissions?.can_grade ? "Grading" : "Complete"} →
               </button>
             )}
           </div>
