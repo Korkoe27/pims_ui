@@ -5,6 +5,11 @@ const ConsultButton = ({ appointment, role, onClick }) => {
   const status = appointment.status.toLowerCase();
   let label = null;
 
+  // If the consultation is already completed, we'll render a disabled
+  // Continue Consultation button so users can see the action but not perform it.
+  const isConsultationCompleted =
+    status === "Consultation Completed" || status === "consultation completed";
+
   if (role === "student") {
     if (status === "scheduled") {
       label = "Consult";
@@ -12,6 +17,8 @@ const ConsultButton = ({ appointment, role, onClick }) => {
       [
         "consultation in progress",
         "examinations recorded",
+        "examination created",
+        "examinations created",
         "diagnosis added",
       ].includes(status)
     ) {
@@ -19,7 +26,8 @@ const ConsultButton = ({ appointment, role, onClick }) => {
     } else if (
       ["management created", "case management guide created"].includes(status)
     ) {
-      label = "Submit for Review";
+      // Management exists but consultation is not finished — continue the consultation
+      label = "Continue Consultation";
     }
   }
 
@@ -34,23 +42,40 @@ const ConsultButton = ({ appointment, role, onClick }) => {
       [
         "consultation in progress",
         "examinations recorded",
+        "examination created",
+        "examinations created",
         "diagnosis added",
       ].includes(status)
     ) {
       label = "Continue Consultation";
-    } else if (status === "management created") {
-      label = null; // lecturers shouldn't act here
+    } else if (
+      status === "management created" ||
+      status === "case management guide created"
+    ) {
+      // For lecturers allow continuing (to review/complete the consultation)
+      label = "Continue Consultation";
     }
   }
 
-  if (!label) return null;
+  // If there's no label for this status, only render a disabled
+  // Continue Consultation button when consultation is completed.
+  if (!label && !isConsultationCompleted) return null;
+
+  const finalLabel = label || "Continue Consultation";
 
   return (
     <button
-      className="text-white bg-[#2f3192] px-4 py-2 rounded-lg"
-      onClick={() => onClick(appointment)}
+      className={[
+        "text-white px-4 py-2 rounded-lg",
+        isConsultationCompleted
+          ? "bg-gray-400 cursor-not-allowed"
+          : "bg-[#2f3192]",
+      ].join(" ")}
+      onClick={() => !isConsultationCompleted && onClick(appointment)}
+      disabled={isConsultationCompleted}
+      aria-disabled={isConsultationCompleted}
     >
-      {label}
+      {finalLabel}
     </button>
   );
 };

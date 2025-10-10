@@ -12,6 +12,32 @@ import { TAGS } from "../tags/tags";
 export const apiClient = createApi({
   reducerPath: "apiClient",
   baseQuery: async (args, api, extraOptions) => {
+    // Debug: log consultation-related outgoing requests (method, url, body)
+    const debugLogIfConsultation = (request) => {
+      try {
+        const url = typeof request === "string" ? request : request.url;
+        if (typeof url === "string" && url.startsWith("/consultations")) {
+          // Avoid printing auth tokens/headers — only log method/url/body
+          // If body is a FormData, we avoid reading it to prevent consumption.
+          const body = request.body;
+          const safeBody =
+            body && typeof body === "object" && !(body instanceof FormData)
+              ? JSON.stringify(body)
+              : String(body || "");
+          // eslint-disable-next-line no-console
+          console.debug("[API DEBUG] Consultation request ->", {
+            method: request.method || "GET",
+            url,
+            body: safeBody,
+          });
+        }
+      } catch (e) {
+        // swallow debug errors
+      }
+    };
+
+    debugLogIfConsultation(args);
+
     let result = await fetchBaseQuery({
       baseUrl: baseURL, // Use the imported baseURL here
       credentials: "include",

@@ -2,8 +2,16 @@
  * API Endpoints
  *
  * This file contains all API endpoint URLs for Authentication, Dashboard,
- * Patients, Appointments, and Examinations. Each section is modularized
- * for better maintainability and scalability.
+ * Patients, Appointments, and Examinations. Each section is modular// Create a new diagnosis for an appointment
+export const createDiagnosisUrl = (appointmentId) =>
+  `/diagnosis/${appointmentId}/create/`;
+
+// Update an existing diagnosis for an appointment (same endpoint, different method)
+export const updateDiagnosisUrl = (appointmentId) =>
+  `/diagnosis/${appointmentId}/create/`;
+
+// List all diagnoses (master list)
+export const listAllDiagnosesUrl = "/diagnosis/codes/";or better maintainability and scalability.
  *
  */
 
@@ -173,6 +181,10 @@ export const fetchExtraTestsUrl = (appointmentId) =>
 export const createDiagnosisUrl = (appointmentId) =>
   `/diagnosis/${appointmentId}/create/`;
 
+// Update an existing diagnosis for an appointment (same endpoint, different method)
+export const updateDiagnosisUrl = (appointmentId) =>
+  `/diagnosis/${appointmentId}/create/`;
+
 // List all diagnoses (master list)
 export const listAllDiagnosesUrl = "/diagnosis/codes/";
 
@@ -269,6 +281,44 @@ export const sectionGradingUrl = (appointmentId, section) =>
 // Final grading
 export const finalGradingUrl = (appointmentId) =>
   `/grading/api/appointments/${appointmentId}/final/`;
+
+/////////////////////////
+// Consultation Management
+/////////////////////////
+
+// List consultations (with filters)
+export const listConsultationsUrl = "/consultations/";
+
+// Get consultation details
+export const getConsultationUrl = (consultationId) =>
+  `/consultations/${consultationId}/`;
+
+// Update consultation
+export const updateConsultationUrl = (consultationId) =>
+  `/consultations/${consultationId}/`;
+
+// Delete consultation (admin only)
+export const deleteConsultationUrl = (consultationId) =>
+  `/consultations/${consultationId}/`;
+
+// Start new consultation
+export const startConsultationUrl = "/consultations/start/";
+
+// Transition to new status
+export const transitionConsultationUrl = (consultationId) =>
+  `/consultations/${consultationId}/transition/`;
+
+// Student submits for review
+export const submitConsultationUrl = (consultationId) =>
+  `/consultations/${consultationId}/submit/`;
+
+// Complete consultation (appointment-based)
+export const completeConsultationUrl = (appointmentId) =>
+  `/clients/appointments/${appointmentId}/complete/`;
+
+// Admin status override
+export const overrideConsultationUrl = (consultationId) =>
+  `/consultations/${consultationId}/override/`;
 
 /////////////////////////
 // WebSocket

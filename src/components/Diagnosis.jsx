@@ -9,12 +9,22 @@ import useDiagnosisData from "../hooks/useDiagnosisData";
 import SupervisorGradingButton from "./SupervisorGradingButton";
 import useComponentGrading from "../hooks/useComponentGrading";
 
-const Diagnosis = ({ appointmentId, setFlowStep, setActiveTab }) => {
+const Diagnosis = ({
+  appointmentId,
+  setFlowStep,
+  setActiveTab,
+  canEdit = true,
+}) => {
   const {
     appointmentDiagnosis,
+    diagnosisList,
     createDiagnosis,
+    updateDiagnosis,
     isCreatingDiagnosis,
+    isUpdatingDiagnosis,
     isAppointmentDiagnosisLoading,
+    isDiagnosisLoading,
+    refetchDiagnosis,
   } = useDiagnosisData(appointmentId);
 
   // Use the component grading hook
@@ -33,17 +43,28 @@ const Diagnosis = ({ appointmentId, setFlowStep, setActiveTab }) => {
 
     if (Array.isArray(appointmentDiagnosis.final_diagnoses_info)) {
       setFinalDiagnosisEntries(
-        appointmentDiagnosis.final_diagnoses_info.map((d) => ({
-          id: d.code?.id,
-          name: d.code?.diagnosis || "Unnamed diagnosis",
-          affected_eye: d.affected_eye || "",
-          notes: d.notes || "",
-          queries: d.queries?.map((q) => ({ query: q })) || [{ query: "" }],
-          management_plan: d.management_plan || "",
-        }))
+        appointmentDiagnosis.final_diagnoses_info.map((d) => {
+          // Look up the diagnosis name from diagnosisList using the code ID
+          const diagnosisInfo = diagnosisList?.find(
+            (diag) => diag.id === d.code?.id
+          );
+          return {
+            id: d.code?.id,
+            name:
+              diagnosisInfo?.diagnosis ||
+              `Code: ${d.code?.id}` ||
+              "Unnamed diagnosis",
+            affected_eye: d.affected_eye || "",
+            notes: d.notes || "",
+            queries: d.queries?.map((q) => ({ query: q })) || [{ query: "" }],
+            management_plan: d.management_plan || "",
+          };
+        })
       );
+    } else {
+      setFinalDiagnosisEntries([]);
     }
-  }, [appointmentDiagnosis]);
+  }, [appointmentDiagnosis, diagnosisList]);
 
   const handleSubmit = async () => {
     if (!differentialDiagnosis.trim()) {
@@ -64,8 +85,18 @@ const Diagnosis = ({ appointmentId, setFlowStep, setActiveTab }) => {
     };
 
     try {
-      await createDiagnosis({ appointmentId, data: payload }).unwrap();
-      showToast("Diagnosis saved successfully ✅", "success");
+      // Check if diagnosis already exists (has an id)
+      const hasExistingDiagnosis =
+        appointmentDiagnosis && appointmentDiagnosis.id;
+
+      if (hasExistingDiagnosis) {
+        await updateDiagnosis({ appointmentId, data: payload }).unwrap();
+        showToast("Diagnosis updated successfully ✅", "success");
+      } else {
+        await createDiagnosis({ appointmentId, data: payload }).unwrap();
+        showToast("Diagnosis saved successfully ✅", "success");
+      }
+
       setFlowStep("management");
     } catch (error) {
       console.error("❌ Raw error:", error);
@@ -144,12 +175,12 @@ const Diagnosis = ({ appointmentId, setFlowStep, setActiveTab }) => {
     setFinalDiagnosisEntries((prev) => prev.filter((d) => d.id !== id));
   };
 
-  const diagnosisOptions = (
-    appointmentDiagnosis?.all_diagnosis_codes || []
-  ).map((d) => ({
-    value: d.id,
-    label: `${d.diagnosis} ${d.icd_code ? `(${d.icd_code})` : ""}`,
-  }));
+  const diagnosisOptions = (diagnosisList || []).map((d) => {
+    return {
+      value: d.id,
+      label: `${d.diagnosis} ${d.icd_code ? `(${d.icd_code})` : ""}`,
+    };
+  });
 
   return (
     <div className="p-6 bg-white rounded-md shadow-md max-w-3xl mx-auto">
@@ -164,7 +195,7 @@ const Diagnosis = ({ appointmentId, setFlowStep, setActiveTab }) => {
         )}
       </div>
 
-      {isAppointmentDiagnosisLoading ? (
+      {isAppointmentDiagnosisLoading || isDiagnosisLoading ? (
         <p className="text-gray-500">Loading diagnosis data...</p>
       ) : (
         <>
@@ -177,13 +208,27 @@ const Diagnosis = ({ appointmentId, setFlowStep, setActiveTab }) => {
               onChange={(e) => setDifferentialDiagnosis(e.target.value)}
               className="w-full border p-3 rounded-md"
               placeholder="Enter differential diagnosis..."
+              disabled={!canEdit}
             />
           </div>
 
           <div className="mb-6">
-            <label className="block font-semibold mb-1">
-              Final Diagnosis <span className="text-red-500">*</span>
-            </label>
+            <div className="flex justify-between items-center mb-1">
+              <label className="block font-semibold">
+                Final Diagnosis <span className="text-red-500">*</span>
+              </label>
+              {(!diagnosisList || diagnosisList.length === 0) && (
+                <button
+                  onClick={() => {
+                    refetchDiagnosis();
+                  }}
+                  className="text-sm text-blue-600 hover:text-blue-800 underline"
+                  disabled={isDiagnosisLoading}
+                >
+                  {isDiagnosisLoading ? "Loading..." : "Refresh Codes"}
+                </button>
+              )}
+            </div>
 
             <SearchableSelect
               options={diagnosisOptions}
@@ -194,6 +239,7 @@ const Diagnosis = ({ appointmentId, setFlowStep, setActiveTab }) => {
               onSelect={handleAddFinalDiagnosis}
               conditionKey="value"
               conditionNameKey="label"
+              disabled={!canEdit}
             />
 
             {finalDiagnosisEntries.length > 0 && (
@@ -205,6 +251,7 @@ const Diagnosis = ({ appointmentId, setFlowStep, setActiveTab }) => {
                       <button
                         onClick={() => handleRemoveDiagnosis(d.id)}
                         className="text-sm text-red-600 hover:underline"
+                        disabled={!canEdit}
                       >
                         Remove
                       </button>
@@ -217,6 +264,7 @@ const Diagnosis = ({ appointmentId, setFlowStep, setActiveTab }) => {
                       onChange={(index, value) =>
                         updateDiagnosisQuery(d.id, index, value)
                       }
+                      disabled={!canEdit}
                     />
 
                     <ManagementPlanSection
@@ -224,6 +272,7 @@ const Diagnosis = ({ appointmentId, setFlowStep, setActiveTab }) => {
                       onChange={(val) =>
                         updateDiagnosisField(d.id, "management_plan", val)
                       }
+                      disabled={!canEdit}
                     />
 
                     <AffectedEyeSelect
@@ -231,6 +280,7 @@ const Diagnosis = ({ appointmentId, setFlowStep, setActiveTab }) => {
                       onChange={(val) =>
                         updateDiagnosisField(d.id, "affected_eye", val)
                       }
+                      disabled={!canEdit}
                     />
 
                     <NotesTextArea
@@ -238,6 +288,7 @@ const Diagnosis = ({ appointmentId, setFlowStep, setActiveTab }) => {
                       onChange={(val) =>
                         updateDiagnosisField(d.id, "notes", val)
                       }
+                      disabled={!canEdit}
                     />
                   </div>
                 ))}
@@ -258,8 +309,13 @@ const Diagnosis = ({ appointmentId, setFlowStep, setActiveTab }) => {
             <button
               onClick={handleSubmit}
               className="px-6 py-2 text-white bg-indigo-700 hover:bg-indigo-800 rounded-lg"
+              disabled={!canEdit || isCreatingDiagnosis || isUpdatingDiagnosis}
             >
-              {isCreatingDiagnosis ? "Saving..." : "Save and Proceed"}
+              {isCreatingDiagnosis || isUpdatingDiagnosis
+                ? "Saving..."
+                : appointmentDiagnosis?.id
+                ? "Update and Proceed"
+                : "Save and Proceed"}
             </button>
           </div>
         </>

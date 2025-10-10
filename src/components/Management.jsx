@@ -6,6 +6,7 @@ import { IoIosCheckmarkCircle } from "react-icons/io";
 import PatientModal from "./SelectClinicModal";
 import { showToast } from "../components/ToasterHelper";
 import useManagementData from "../hooks/useManagementData";
+import useConsultationData from "../hooks/useConsultationData";
 import {
   useGetCaseManagementGuideQuery,
   useUpdateCaseManagementGuideMutation,
@@ -16,6 +17,7 @@ import {
   SubmitTab,
   GradingTab,
   CompleteTab,
+  LogsTab,
 } from "./Management/";
 
 /* =========================================================================
@@ -28,6 +30,9 @@ const CaseManagementGuide = ({
   setTabCompletionStatus,
   role = "student",
 }) => {
+  // Read consultation permissions from Redux so we can decide where to navigate next
+  const consultationState = useSelector((s) => s.consultation || {});
+  const permissions = consultationState.permissions || {};
   const [saving, setSaving] = useState(false);
   const [guideData, setGuideData] = useState({
     table_rows: [{ id: 1, diagnosis: "", management_plan: "", notes: "" }],
@@ -100,7 +105,8 @@ const CaseManagementGuide = ({
       setTabCompletionStatus?.("case_guide", true);
 
       showToast("Case management guide completed successfully", "success");
-      setActiveTab?.("logs");
+      // After completing case guide navigate to grading if allowed, else complete
+      setActiveTab?.(permissions?.can_grade ? "grading" : "complete");
     } catch (error) {
       showToast("Failed to save case management guide", "error");
     } finally {
@@ -332,6 +338,10 @@ const LogsPanel = ({ appointmentId, setActiveTab, role }) => {
   const [logEntry, setLogEntry] = useState("");
   const [logs, setLogs] = useState([]);
 
+  // Read consultation permissions to decide next tab (grading vs complete)
+  const consultationState = useSelector((s) => s.consultation || {});
+  const permissions = consultationState.permissions || {};
+
   const handleAddLog = () => {
     if (logEntry.trim()) {
       const newLog = {
@@ -351,11 +361,11 @@ const LogsPanel = ({ appointmentId, setActiveTab, role }) => {
   };
 
   const getNextTab = () => {
-    if (role === "student") {
-      return "submit";
-    } else {
-      return "grading";
-    }
+    if (role === "student") return "submit";
+    // For non-students, navigate to grading only if permissions allow it;
+    // otherwise go to the final Complete tab.
+    if (permissions?.can_grade) return "grading";
+    return "complete";
   };
 
   return (
@@ -427,7 +437,13 @@ const LogsPanel = ({ appointmentId, setActiveTab, role }) => {
           onClick={() => setActiveTab?.(getNextTab())}
           className="px-4 py-2 rounded-md bg-[#2f3192] text-white hover:opacity-90"
         >
-          Next: {role === "student" ? "Submit" : "Grading"} →
+          Next:{" "}
+          {role === "student"
+            ? "Submit"
+            : permissions?.can_grade
+            ? "Grading"
+            : "Complete"}{" "}
+          →
         </button>
       </div>
     </div>
@@ -473,6 +489,11 @@ const Management = ({ setFlowStep, appointmentId }) => {
   // ✅ Get role from Redux (student | lecturer | admin)
   const { user } = useSelector((s) => s.auth || {});
   const role = (user?.role || "student").toLowerCase();
+
+  // Get consultation state (flowType, permissions) to control Management tabs
+  const consultationState = useSelector((s) => s.consultation || {});
+  const flowType = consultationState.flowType;
+  const permissions = consultationState.permissions || {};
 
   // ---- localStorage key for this appointment ----
   const LOCAL_TAB_KEY = `management-${apptId}-activeTab`;
@@ -782,7 +803,7 @@ const Management = ({ setFlowStep, appointmentId }) => {
       if (role === "student") {
         setActiveTab("case_guide");
       } else {
-        setActiveTab("logs");
+        setActiveTab(permissions?.can_grade ? "grading" : "complete");
       }
     } catch {}
   };
@@ -810,22 +831,50 @@ const Management = ({ setFlowStep, appointmentId }) => {
     }
   };
 
+  const {
+    consultation,
+    completeConsultationFlow,
+    isCompleting,
+    refetchConsultation,
+  } = useConsultationData(apptId);
+
   const onComplete = async () => {
     try {
       await saveManagement(); // optional final save
-      setFlowStep?.("payment");
-    } catch {}
+
+      // Use appointment-based completion (simplified approach)
+      try {
+        await completeConsultationFlow(apptId);
+        showToast("Consultation completed.", "success");
+
+        // Navigate to dashboard after successful completion
+        setTimeout(() => {
+          navigate("/");
+        }, 1500); // Small delay to show the success message
+      } catch (err) {
+        // If backend completion fails, show an error
+        const msg =
+          err?.data?.detail ||
+          err?.data?.message ||
+          err?.message ||
+          "Failed to complete consultation";
+        showToast(msg, "error");
+      }
+    } catch (err) {
+      // saveManagement already shows toast; ensure we don't proceed
+    }
   };
 
   // ---------------- TABS (role-based) ----------------
+  // Show grading tab only when permissions allow grading (e.g., lecturer reviewing flow)
   const baseTabs = [
     { key: "management", label: "Management" },
     ...(role === "student"
       ? [{ key: "case_guide", label: "Case Management Guide" }]
       : []),
-    { key: "logs", label: "Logs" },
+    { key: "logs", label: "Logs" }, // Re-added logs tab
     ...(role === "student" ? [{ key: "submit", label: "Submit" }] : []),
-    ...(role !== "student" ? [{ key: "grading", label: "Grading" }] : []),
+    ...(permissions?.can_grade ? [{ key: "grading", label: "Grading" }] : []),
   ];
 
   // Hide Complete tab for students
@@ -891,11 +940,12 @@ const Management = ({ setFlowStep, appointmentId }) => {
           isCreatingManagementPlan={isCreatingManagementPlan}
           isSubmittingForReview={isSubmittingForReview}
           setActiveTab={setActiveTab}
+          permissions={permissions}
         />
       )}
 
       {activeTab === "logs" && (
-        <LogsPanel
+        <LogsTab
           appointmentId={apptId}
           setActiveTab={setActiveTab}
           role={role}
@@ -907,7 +957,11 @@ const Management = ({ setFlowStep, appointmentId }) => {
       )}
 
       {activeTab === "complete" && role !== "student" && (
-        <CompleteTab onComplete={onComplete} />
+        <CompleteTab
+          onComplete={onComplete}
+          isCompleting={isCompleting}
+          setActiveTab={setActiveTab}
+        />
       )}
 
       {/* Confirm modal (optional) */}
@@ -978,15 +1032,17 @@ const Management = ({ setFlowStep, appointmentId }) => {
                   You have finished attending to your patient.
                 </p>
                 <div className="flex justify-between gap-4 mt-4">
-                  <button
-                    onClick={() => {
-                      setModal(false);
-                      navigate("/appointments");
-                    }}
-                    className="bg-[#0F973D] text-white px-4 py-2 rounded-lg"
-                  >
-                    Attend to next patient
-                  </button>
+                  {role !== "administrator" && role !== "admin" && (
+                    <button
+                      onClick={() => {
+                        setModal(false);
+                        navigate("/appointments");
+                      }}
+                      className="bg-[#0F973D] text-white px-4 py-2 rounded-lg"
+                    >
+                      Attend to next patient
+                    </button>
+                  )}
                   <button
                     onClick={() => {
                       setModal(false);
