@@ -47,7 +47,7 @@ const dashboardSlice = createSlice({
           state.pendingAppointments += 1;
         }
 
-        if (newAppt.status === "Completed") {
+        if (newAppt.status === "Consultation Completed") {
           state.completedAppointments += 1;
         }
       }

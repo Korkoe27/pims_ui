@@ -137,7 +137,7 @@ export default Appointments;
 
 const checkStatus = (status) => {
   switch (status) {
-    case "Completed":
+    case "Consultation Completed":
       return "bg-green-600";
     case "Cancelled":
       return "bg-red-600";

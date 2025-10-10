@@ -37,7 +37,8 @@ const Dashboard = () => {
   const scheduledAppointments =
     dashboardData?.scheduled_appointments?.data || [];
   const totalAppointments = dashboardData?.total_appointments || 0;
-  const completedAppointments = dashboardData?.completed_appointments || 0;
+  const completedAppointments =
+    dashboardData?.completed_appointments?.count || 0;
   const pendingAppointments = dashboardData?.pending_appointments || 0;
 
   // ✅ check if at least one consult action should render

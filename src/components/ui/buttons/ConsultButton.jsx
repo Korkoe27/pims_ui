@@ -8,7 +8,7 @@ const ConsultButton = ({ appointment, role, onClick }) => {
   // If the consultation is already completed, we'll render a disabled
   // Continue Consultation button so users can see the action but not perform it.
   const isConsultationCompleted =
-    status === "consultation completed" || status === "completed";
+    status === "Consultation Completed" || status === "consultation completed";
 
   if (role === "student") {
     if (status === "scheduled") {
