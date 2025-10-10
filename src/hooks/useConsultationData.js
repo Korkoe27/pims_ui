@@ -15,7 +15,11 @@ import {
   clearTransitionMessages,
 } from "../redux/slices/consultationSlice";
 
-const useConsultationData = (appointmentId) => {
+const useConsultationData = (
+  appointmentId,
+  appointmentData = null,
+  userRole = null
+) => {
   const dispatch = useDispatch();
 
   // Get consultation data (optional - may not exist with new appointment-based system)
@@ -28,31 +32,124 @@ const useConsultationData = (appointmentId) => {
     skip: true, // Skip consultation queries since backend uses appointment-based system
   });
 
+  // Determine flow type based on appointment status and user role
+  const determineFlowType = (appointmentStatus, role, isStudentCase) => {
+    const status = appointmentStatus?.toLowerCase() || "";
+
+    console.log("🔍 Flow Type Debug:", {
+      appointmentStatus,
+      status,
+      role,
+      isStudentCase,
+    });
+
+    // If user is a student, it's always student consulting
+    if (role === "student") {
+      console.log("✅ Flow Type: student_consulting");
+      return "student_consulting";
+    }
+
+    // For lecturers, determine based on appointment status
+    if (role === "lecturer") {
+      // If appointment is submitted for review, under review, or graded - lecturer is reviewing
+      if (
+        status.includes("submitted for review") ||
+        status.includes("under review") ||
+        status.includes("graded") ||
+        status.includes("scored")
+      ) {
+        console.log("✅ Flow Type: lecturer_reviewing");
+        return "lecturer_reviewing";
+      }
+      // Otherwise, lecturer is consulting
+      console.log("✅ Flow Type: lecturer_consulting");
+      return "lecturer_consulting";
+    }
+
+    // Default fallback
+    console.log("✅ Flow Type: lecturer_consulting (fallback)");
+    return "lecturer_consulting";
+  };
+
+  // Determine permissions based on flow type and appointment status
+  const determinePermissions = (flowType, appointmentStatus) => {
+    const status = appointmentStatus?.toLowerCase() || "";
+
+    switch (flowType) {
+      case "student_consulting":
+        return {
+          can_edit_exams:
+            !status.includes("submitted") && !status.includes("completed"),
+          can_edit_diagnosis:
+            !status.includes("submitted") && !status.includes("completed"),
+          can_edit_management:
+            !status.includes("submitted") && !status.includes("completed"),
+          can_submit_for_review: true,
+          can_grade: false,
+          can_complete: false,
+          can_override: false,
+        };
+      case "lecturer_reviewing":
+        return {
+          can_edit_exams: true,
+          can_edit_diagnosis: true,
+          can_edit_management: true,
+          can_submit_for_review: false,
+          can_grade: true,
+          can_complete: true,
+          can_override: true,
+        };
+      case "lecturer_consulting":
+      default:
+        return {
+          can_edit_exams: true,
+          can_edit_diagnosis: true,
+          can_edit_management: true,
+          can_submit_for_review: true,
+          can_grade: false,
+          can_complete: true,
+          can_override: true,
+        };
+    }
+  };
+
   // Provide fallback consultation state when queries are skipped
   const fallbackConsultation = useMemo(() => {
     if (consultation) return consultation;
+
+    const appointmentStatus =
+      appointmentData?.status || "Consultation In Progress";
+    const isStudentCase = appointmentData?.is_student_case || false;
+
+    console.log("🔍 Fallback Consultation Debug:", {
+      appointmentData,
+      appointmentStatus,
+      userRole,
+      isStudentCase,
+    });
+
+    const flowType = determineFlowType(
+      appointmentStatus,
+      userRole,
+      isStudentCase
+    );
+    const permissions = determinePermissions(flowType, appointmentStatus);
+
+    console.log("✅ Final Flow Type:", flowType);
 
     const now = new Date().toISOString();
     return {
       id: `fallback_${appointmentId}`,
       appointment_id: appointmentId,
-      status: "Consultation In Progress",
-      flowType: "lecturer_consulting", // Default to most permissive
-      flowState: "Consultation In Progress",
-      is_student_case: false,
-      permissions: {
-        can_edit_exams: true,
-        can_edit_diagnosis: true,
-        can_edit_management: true,
-        can_submit_for_review: true,
-        can_grade: false,
-        can_complete: true,
-        can_override: true,
-      },
+      status: appointmentStatus,
+      flowType: flowType,
+      flowState: appointmentStatus,
+      is_student_case: isStudentCase,
+      permissions: permissions,
       created_at: now,
       updated_at: now,
     };
-  }, [consultation, appointmentId]);
+  }, [consultation, appointmentId, appointmentData, userRole]);
 
   // Mutations
   const [startConsultation, { isLoading: isStarting }] =

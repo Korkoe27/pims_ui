@@ -27,6 +27,7 @@ const CaseHistory = ({
   nextTab,
   setActiveTab,
   setTabCompletionStatus,
+  canEdit = true, // Add canEdit prop with default value
 }) => {
   const { data: caseHistory, isLoading: loadingCaseHistory } =
     useFetchCaseHistoryQuery(appointmentId, {
@@ -286,7 +287,10 @@ const CaseHistory = ({
                 <textarea
                   value={chiefComplaint}
                   onChange={(e) => setChiefComplaint(e.target.value)}
-                  className="w-full border p-3 rounded-md"
+                  disabled={!canEdit}
+                  className={`w-full border p-3 rounded-md ${
+                    !canEdit ? "bg-gray-100 cursor-not-allowed opacity-60" : ""
+                  }`}
                   placeholder="Enter chief complaint..."
                 />
               </div>
@@ -308,6 +312,7 @@ const CaseHistory = ({
                   onSelect={handleSelect}
                   conditionKey="id"
                   conditionNameKey="name"
+                  disabled={!canEdit}
                 />
 
                 {selectedConditions.length > 0 && (
@@ -318,11 +323,16 @@ const CaseHistory = ({
                         key={item.id}
                         className="p-4 bg-gray-50 border rounded space-y-4"
                       >
-                        {console.log("🔍 Rendering condition:", item.name, item)}
+                        {console.log(
+                          "🔍 Rendering condition:",
+                          item.name,
+                          item
+                        )}
                         <div className="flex items-center justify-between">
                           <h4 className="font-semibold">{item.name}</h4>
                           <DeleteButton
                             onClick={() => handleDeleteCondition(item.id)}
+                            disabled={!canEdit}
                           />
                         </div>
 
@@ -408,6 +418,7 @@ const CaseHistory = ({
                     onSave={handleSaveAndProceed}
                     saving={isSaving}
                     saveLabel="Save and Proceed"
+                    canEdit={canEdit}
                   />
                 </div>
               )}

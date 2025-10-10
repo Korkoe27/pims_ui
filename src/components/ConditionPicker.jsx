@@ -8,6 +8,7 @@ const ConditionPicker = ({
   onSelect,
   conditionKey = "id",
   conditionNameKey = "name",
+  disabled = false, // Add disabled prop
 }) => {
   const [search, setSearch] = useState("");
   const [isOpen, setIsOpen] = useState(false);
@@ -35,8 +36,12 @@ const ConditionPicker = ({
     <div className="relative w-full" ref={dropdownRef}>
       <h1 className="text-base font-medium">{label}</h1>
       <div
-        className="flex items-center border p-3 rounded-md cursor-pointer bg-white relative"
-        onClick={() => setIsOpen(!isOpen)}
+        className={`flex items-center border p-3 rounded-md relative ${
+          disabled
+            ? "bg-gray-100 cursor-not-allowed opacity-60"
+            : "cursor-pointer bg-white hover:bg-gray-50"
+        }`}
+        onClick={() => !disabled && setIsOpen(!isOpen)}
       >
         <span className="flex-1">
           {selected.length > 0
@@ -46,7 +51,7 @@ const ConditionPicker = ({
         <ChevronDown className="text-gray-500 absolute right-3" size={18} />
       </div>
 
-      {isOpen && (
+      {isOpen && !disabled && (
         <div className="absolute w-full bg-white border rounded-md shadow-md mt-1 z-10">
           <input
             type="text"
