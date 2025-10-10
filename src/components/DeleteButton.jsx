@@ -1,12 +1,22 @@
 // components/DeleteButton.jsx
 import React from "react";
 
-const DeleteButton = ({ onClick, title = "Delete", className = "" }) => {
+const DeleteButton = ({
+  onClick,
+  title = "Delete",
+  className = "",
+  disabled = false,
+}) => {
   return (
     <button
-      onClick={onClick}
-      title={title}
-      className={`text-red-600 hover:text-red-800 transition-colors duration-200 ${className}`}
+      onClick={disabled ? undefined : onClick}
+      title={disabled ? "Cannot delete in current state" : title}
+      disabled={disabled}
+      className={`transition-colors duration-200 ${
+        disabled
+          ? "text-gray-400 cursor-not-allowed opacity-50"
+          : "text-red-600 hover:text-red-800"
+      } ${className}`}
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
