@@ -89,7 +89,7 @@ const Navbar = () => {
             </div>
           )}
         </form>
-        <CanAccess allowedRoles={[ROLES.HOSPITAL_ADMIN]}>
+        <CanAccess allowedRoles={[ROLES.ADMINISTRATOR]}>
           <button
             onClick={() => setIsModalOpen(true)}
             className="flex items-center gap-2 px-4 py-2 text-white bg-[#2f3192] rounded-md text-sm"

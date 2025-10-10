@@ -9,6 +9,8 @@ import { showToast } from "../components/ToasterHelper";
 import { hasFormChanged } from "../utils/deepCompare";
 import NavigationButtons from "../components/NavigationButtons";
 import SupervisorGradingButton from "./SupervisorGradingButton";
+import { useGetAppointmentDetailsQuery } from "../redux/api/features/appointmentsApi";
+import useComponentGrading from "../hooks/useComponentGrading";
 
 const CHART_OPTIONS = [
   { value: "SNELLEN", label: "Snellen" },
@@ -28,6 +30,19 @@ export default function VisualAcuityForm({
     createVisualAcuity,
     createVASubmissionStatus,
   } = useVisualAcuityData(appointmentId);
+
+  const { data: appointmentDetails } = useGetAppointmentDetailsQuery(
+    appointmentId,
+    {
+      skip: !appointmentId,
+    }
+  );
+
+  // Use component grading hook
+  const { shouldShowGrading, section, sectionLabel } = useComponentGrading(
+    "VISUAL_ACUITY",
+    appointmentId
+  );
 
   const [vaChart, setVaChart] = useState("");
   const [distanceVA, setDistanceVA] = useState({
@@ -360,15 +375,12 @@ export default function VisualAcuityForm({
   return (
     <div className="space-y-8 pb-12">
       <h1 className="text-2xl font-bold mb-6">Visual Acuity</h1>
-      {!loadingVA && (
-        <div className="flex justify-end">
+      {shouldShowGrading && (
+        <div className="flex justify-end mb-4">
           <SupervisorGradingButton
-            sectionLabel="Grading: Visual Acuity"
-            averageMarks={visualAcuity?.average_marks ?? null}
-            // onSubmit={handleSubmitGrading(
-            //   submitVisualAcuityGrading,
-            //   appointmentId
-            // )}
+            appointmentId={appointmentId}
+            section={section}
+            sectionLabel={sectionLabel}
           />
         </div>
       )}

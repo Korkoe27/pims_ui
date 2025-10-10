@@ -1,9 +1,12 @@
 import React from "react";
 import { IoIosCheckmarkCircle } from "react-icons/io";
 import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 
 const CompleteConsultation = ({ appointmentId }) => {
   const navigate = useNavigate();
+  const { user } = useSelector((state) => state.auth || {});
+  const userRole = (user?.role || "").toLowerCase();
 
   return (
     <div className="flex flex-col items-center justify-center py-16 px-8 bg-white rounded-md shadow-md">
@@ -18,12 +21,14 @@ const CompleteConsultation = ({ appointmentId }) => {
         the dashboard or attend to the next patient.
       </p>
       <div className="flex flex-wrap gap-4 justify-center">
-        <button
-          onClick={() => navigate("/appointments")}
-          className="bg-[#0F973D] text-white px-6 py-3 rounded-lg shadow hover:bg-green-700"
-        >
-          Attend to Next Patient
-        </button>
+        {userRole !== "administrator" && userRole !== "admin" && (
+          <button
+            onClick={() => navigate("/appointments")}
+            className="bg-[#0F973D] text-white px-6 py-3 rounded-lg shadow hover:bg-green-700"
+          >
+            Attend to Next Patient
+          </button>
+        )}
         <button
           onClick={() => navigate("/")}
           className="border border-[#2f3192] text-[#2f3192] px-6 py-3 rounded-lg hover:bg-[#2f3192] hover:text-white"

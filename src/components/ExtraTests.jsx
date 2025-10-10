@@ -1,11 +1,14 @@
 import React, { useState } from "react";
 import { showToast } from "../components/ToasterHelper";
 import ExtraTestUploadModal from "./ExtraTestUploadModal";
+import { useFetchExtraTestsQuery } from "../redux/api/features/extraTestsApi";
 import {
-  useCreateExtraTestMutation,
-  useFetchExtraTestsQuery,
-} from "../redux/api/features/extraTestsApi";
+  useTransitionAppointmentMutation,
+  useGetAppointmentFlowContextQuery,
+} from "../redux/api/features/appointmentsApi";
 import SupervisorGradingButton from "./SupervisorGradingButton";
+import useComponentGrading from "../hooks/useComponentGrading";
+import { useSelector } from "react-redux";
 
 const ExtraTests = ({
   appointmentId,
@@ -14,30 +17,66 @@ const ExtraTests = ({
   setTabCompletionStatus,
 }) => {
   const [modalOpen, setModalOpen] = useState(false);
+  const role = useSelector((state) => state.auth.user?.role);
+
+  // Use the component grading hook
+  const { shouldShowGrading, section, sectionLabel } = useComponentGrading(
+    "EXTRA_TEST",
+    appointmentId
+  );
+
+  // Fetch uploaded tests
   const { data: uploadedTests = [], refetch } =
     useFetchExtraTestsQuery(appointmentId);
 
-  const proceedToDiagnosis = () => {
-    setTabCompletionStatus?.((prev) => ({
-      ...prev,
-      "extra tests": true,
-    }));
+  // Fetch flow context so we know allowed transitions
+  const { data: flowContext } = useGetAppointmentFlowContextQuery(
+    appointmentId,
+    {
+      skip: !appointmentId,
+    }
+  );
 
-    showToast("Extra tests submitted!", "success");
-    setFlowStep("diagnosis");
+  // Mutation for FSM transition
+  const [transitionAppointment, { isLoading: transitioning }] =
+    useTransitionAppointmentMutation();
+
+  const proceedToDiagnosis = async () => {
+    try {
+      // local UI update
+      setTabCompletionStatus?.((prev) => ({
+        ...prev,
+        "extra tests": true,
+      }));
+
+      setFlowStep("diagnosis"); // just move UI forward
+
+      // optional: one backend update
+      await transitionAppointment({
+        appointmentId,
+        body: { to_status: "Diagnosis Added", reason: "Extra tests completed" },
+      }).unwrap();
+
+      showToast("Moved to Diagnosis", "success");
+    } catch (err) {
+      console.error("❌ Failed to update backend:", err);
+      // fallback: still show UI
+      setFlowStep("diagnosis");
+    }
   };
 
   return (
     <div className="py-10 px-6 flex flex-col items-center max-w-5xl mx-auto">
-      <h2 className="text-2xl font-bold">Extra Tests</h2>
-      <SupervisorGradingButton
-        sectionLabel="Grading: Extra Tests"
-        // averageMarks={someData?.average_marks}
-        onSubmit={(grading) => {
-          // TODO: hook this to your grading API
-          console.log("Grading submitted for Extra Tests:", grading);
-        }}
-      />
+      <div className="flex items-center justify-between w-full mb-6">
+        <h2 className="text-2xl font-bold">Extra Tests</h2>
+        {shouldShowGrading && (
+          <SupervisorGradingButton
+            appointmentId={appointmentId}
+            section={section}
+            sectionLabel={sectionLabel}
+          />
+        )}
+      </div>
 
       {/* Upload Modal Trigger */}
       <div className="flex justify-center mb-8">
@@ -59,7 +98,7 @@ const ExtraTests = ({
             >
               <p className="font-semibold mb-2">{test.name}</p>
 
-              {/* ✅ Tonometry-specific fields */}
+              {/* Tonometry-specific fields */}
               {test.name.toLowerCase().includes("tonometry") && (
                 <div className="text-sm text-gray-700 mb-2 space-y-1">
                   <p>
@@ -116,9 +155,10 @@ const ExtraTests = ({
         </button>
         <button
           onClick={proceedToDiagnosis}
+          disabled={transitioning}
           className="px-6 py-3 bg-[#2f3192] text-white rounded-lg hover:bg-[#1e217a] w-64"
         >
-          Proceed to Diagnosis →
+          {transitioning ? "Processing..." : "Proceed to Diagnosis →"}
         </button>
       </div>
 

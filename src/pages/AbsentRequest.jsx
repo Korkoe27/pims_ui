@@ -1,15 +1,17 @@
 import React, { useState } from "react";
+import { useSelector } from "react-redux";
 import { Tabs, Tab } from "../components/ui/tabs";
 import Card from "../components/ui/card";
 import PageContainer from "../components/PageContainer";
 import ConfirmationModal from "../components/ConfirmationModal";
+import CanAccess from "../components/auth/CanAccess";
+import { ROLES } from "../constants/roles";
 import {
   useGetAbsentRequestsQuery,
   useCreateAbsentRequestMutation,
   useUpdateAbsentRequestMutation,
 } from "../redux/api/features/absentRequestApi";
 import { toast } from "react-hot-toast";
-
 
 const AbsentRequest = () => {
   const [showModal, setShowModal] = useState(false);
@@ -20,9 +22,22 @@ const AbsentRequest = () => {
     action: "",
   });
 
-  const { data: requests = [] } = useGetAbsentRequestsQuery();
+  // Get current user info
+  const { user } = useSelector((state) => state.auth);
+  const currentUserId = user?.id;
+  const userRole = user?.role;
+
+  const { data: allRequests = [] } = useGetAbsentRequestsQuery();
   const [createAbsentRequest] = useCreateAbsentRequestMutation();
   const [updateAbsentRequest] = useUpdateAbsentRequestMutation();
+
+  // Filter requests based on user role
+  const requests =
+    userRole === ROLES.COORDINATOR
+      ? allRequests // Coordinators see all requests
+      : allRequests.filter(
+          (req) => req.user === currentUserId || req.user_id === currentUserId
+        ); // Users see only their own requests
 
   const handleCreateRequest = async (data) => {
     try {
@@ -78,7 +93,15 @@ const AbsentRequest = () => {
                       <th className="px-6 py-3 font-bold">From</th>
                       <th className="px-6 py-3 font-bold">To</th>
                       <th className="px-6 py-3 font-bold">Reason</th>
-                      <th className="px-6 py-3 font-bold">Actions</th>
+                      <CanAccess roles={[ROLES.COORDINATOR]}>
+                        <th className="px-6 py-3 font-bold">Actions</th>
+                      </CanAccess>
+                      <CanAccess
+                        roles={[ROLES.STUDENT, ROLES.LECTURER]}
+                        fallback
+                      >
+                        <th className="px-6 py-3 font-bold">Status</th>
+                      </CanAccess>
                     </tr>
                   </thead>
                   <tbody>
@@ -87,23 +110,35 @@ const AbsentRequest = () => {
                         <td className="px-6 py-4">{req.from_date}</td>
                         <td className="px-6 py-4">{req.to_date}</td>
                         <td className="px-6 py-4">{req.reason}</td>
-                        <td className="px-6 py-4 flex gap-2">
-                          <button
-                            onClick={() =>
-                              handleStatusChange(req.id, "approved")
-                            }
-                            className="bg-green-600 text-white hover:bg-green-700 px-4 py-2 rounded-md text-sm font-semibold shadow transition cursor-pointer"
+                        <td className="px-6 py-4">
+                          <CanAccess roles={[ROLES.COORDINATOR]}>
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() =>
+                                  handleStatusChange(req.id, "approved")
+                                }
+                                className="bg-green-600 text-white hover:bg-green-700 px-4 py-2 rounded-md text-sm font-semibold shadow transition cursor-pointer"
+                              >
+                                Approve
+                              </button>
+                              <button
+                                onClick={() =>
+                                  handleStatusChange(req.id, "rejected")
+                                }
+                                className="bg-red-600 text-white hover:bg-red-700 px-4 py-2 rounded-md text-sm font-semibold shadow transition cursor-pointer"
+                              >
+                                Decline
+                              </button>
+                            </div>
+                          </CanAccess>
+                          <CanAccess
+                            roles={[ROLES.STUDENT, ROLES.LECTURER]}
+                            fallback
                           >
-                            Approve
-                          </button>
-                          <button
-                            onClick={() =>
-                              handleStatusChange(req.id, "rejected")
-                            }
-                            className="bg-red-600 text-white hover:bg-red-700 px-4 py-2 rounded-md text-sm font-semibold shadow transition cursor-pointer"
-                          >
-                            Decline
-                          </button>
+                            <span className="px-3 py-1 text-sm font-medium bg-yellow-100 text-yellow-800 rounded-full capitalize">
+                              {req.status}
+                            </span>
+                          </CanAccess>
                         </td>
                       </tr>
                     ))}

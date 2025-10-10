@@ -13,6 +13,8 @@ const PersonalInfo = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const selectedClinic = useSelector((state) => state.clinic.selectedClinic);
+  const { user } = useSelector((state) => state.auth || {});
+  const userRole = (user?.role || "").toLowerCase();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [generalError, setGeneralError] = useState("");
@@ -429,13 +431,15 @@ const PersonalInfo = () => {
             >
               Schedule Appointment
             </button>
-            <button
-              type="button"
-              onClick={handleAttendPatient}
-              className="w-56 p-4 rounded-lg text-white bg-[#2f3192]"
-            >
-              Attend to Patient Now
-            </button>
+            {userRole !== "administrator" && userRole !== "admin" && (
+              <button
+                type="button"
+                onClick={handleAttendPatient}
+                className="w-56 p-4 rounded-lg text-white bg-[#2f3192]"
+              >
+                Attend to Patient Now
+              </button>
+            )}
           </div>
         </form>
       )}

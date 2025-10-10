@@ -1,8 +1,11 @@
 export const ROLES = {
-  SYSTEMS_ADMIN: "systems administrator",
-  HOSPITAL_ADMIN: "hospital administrator",
+  ADMINISTRATOR: "administrator",
   LECTURER: "lecturer",
   STUDENT: "student",
-  COORDINATOR: "coordinator", // if needed
-  DEFAULT: "default group",    // if you plan to use it
-};
+  COORDINATOR: "coordinator",
+  FINANCE: "finance",
+  PHARMACY: "pharmacy",
+  INVENTORY: "inventory",
+  IT: "it",
+  OTHER: "other",
+}

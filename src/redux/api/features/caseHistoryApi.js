@@ -1,28 +1,26 @@
 import { apiClient } from "../api_client/apiClient";
 import {
-  createCaseHistoryUrl,
+  createOrUpdateCaseHistoryUrl,   // <- use this
   fetchCaseHistoryUrl,
 } from "../end_points/endpoints";
 
 export const caseHistoryApi = apiClient.injectEndpoints({
   endpoints: (builder) => ({
-    /** ✅ Fetch Latest Case History for an Appointment **/
+    /** ✅ Fetch latest Case History for an appointment */
     fetchCaseHistory: builder.query({
       query: (appointmentId) => fetchCaseHistoryUrl(appointmentId),
       providesTags: ["CaseHistory"],
     }),
 
-    /** ✅ Create a New Version of Case History **/
+    /** ✅ Create/Update Case History by appointment (POST upsert) */
     createCaseHistory: builder.mutation({
       query: (data) => ({
-        url: createCaseHistoryUrl,
+        url: createOrUpdateCaseHistoryUrl,   // <- renamed
         method: "POST",
-        body: data,
+        body: data,                          // must include { appointment: "<uuid>", ... }
       }),
       invalidatesTags: ["CaseHistory"],
     }),
-
-    
   }),
 });
 
