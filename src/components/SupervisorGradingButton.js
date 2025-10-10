@@ -1,27 +1,55 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import useGrading from "../hooks/useGrading";
 
 const SupervisorGradingButton = ({
-  onSubmit,
+  appointmentId,
+  section,
   sectionLabel = "Supervisor Grading",
-  averageMarks = null,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [marks, setMarks] = useState("");
+  const [score, setScore] = useState("");
   const [remarks, setRemarks] = useState("");
 
-  const handleSubmit = () => {
-    const parsedMarks = parseFloat(marks);
-    if (isNaN(parsedMarks)) return alert("Please enter a valid mark.");
-    onSubmit?.({ marks: parsedMarks, remarks });
+  // Use the existing grading hook
+  const { existingGrading, submitGrading, isLoading } = useGrading(
+    appointmentId,
+    section
+  );
+
+  // Pre-populate form with existing grading data
+  useEffect(() => {
+    if (existingGrading) {
+      setScore(existingGrading.score?.toString() || "");
+      setRemarks(existingGrading.remarks || "");
+    }
+  }, [existingGrading]);
+
+  const handleSubmit = async () => {
+    const parsedScore = parseFloat(score);
+    if (isNaN(parsedScore) || parsedScore < 0 || parsedScore > 100) {
+      return alert("Please enter a valid score between 0 and 100.");
+    }
+
+    await submitGrading({ score: parsedScore, remarks });
     setIsOpen(false);
-    setMarks("");
-    setRemarks("");
+  };
+
+  const handleCancel = () => {
+    setIsOpen(false);
+    // Reset to existing values if available
+    if (existingGrading) {
+      setScore(existingGrading.score?.toString() || "");
+      setRemarks(existingGrading.remarks || "");
+    } else {
+      setScore("");
+      setRemarks("");
+    }
   };
 
   return (
     <>
       <button
-        type="button" // ✅ prevent form submission
+        type="button"
         onClick={() => setIsOpen(true)}
         className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded shadow ml-auto"
       >
@@ -33,31 +61,17 @@ const SupervisorGradingButton = ({
           <div className="bg-white rounded-md p-6 w-full max-w-md shadow-lg">
             <h2 className="text-lg font-semibold mb-4">{sectionLabel}</h2>
 
-            {averageMarks !== null && (
-              <div className="mb-4">
-                <label className="block mb-1 font-medium text-gray-700">
-                  Average Marks (Read-only)
-                </label>
-                <input
-                  type="text"
-                  value={averageMarks}
-                  readOnly
-                  className="w-full border px-3 py-2 rounded bg-gray-100 text-gray-600"
-                />
-              </div>
-            )}
-
             <div className="mb-4">
-              <label className="block mb-1 font-medium">Marks (0 - 100)</label>
+              <label className="block mb-1 font-medium">Score (0 - 100)</label>
               <input
                 type="number"
                 step="0.01"
                 min="0"
                 max="100"
-                value={marks}
-                onChange={(e) => setMarks(e.target.value)}
+                value={score}
+                onChange={(e) => setScore(e.target.value)}
                 className="w-full border px-3 py-2 rounded"
-                placeholder="Enter marks as decimal (e.g. 85.5)"
+                placeholder="Enter score as decimal (e.g. 85.5)"
               />
             </div>
 
@@ -74,18 +88,18 @@ const SupervisorGradingButton = ({
 
             <div className="flex justify-end gap-2">
               <button
-                type="button" // ✅ prevent form submission
-                onClick={() => setIsOpen(false)}
+                type="button"
+                onClick={handleCancel}
                 className="bg-gray-300 px-4 py-2 rounded"
               >
                 Cancel
               </button>
               <button
-                type="button" // ✅ prevent form submission
+                type="button"
                 onClick={handleSubmit}
                 className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded"
               >
-                Submit Marks
+                Submit Score
               </button>
             </div>
           </div>

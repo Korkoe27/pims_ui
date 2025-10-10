@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import useFetchConditionsData from "../hooks/useFetchConditionsData";
+import { useGetAppointmentDetailsQuery } from "../redux/api/features/appointmentsApi";
 import {
   useCreateCaseHistoryMutation,
   useFetchCaseHistoryQuery,
@@ -16,6 +17,9 @@ import NavigationButtons from "../components/NavigationButtons";
 import CheckboxInput from "./CheckboxInput";
 import PageContainer from "./PageContainer";
 import SupervisorGradingButton from "./SupervisorGradingButton";
+import useComponentGrading from "../hooks/useComponentGrading";
+import CanAccess from "./auth/CanAccess";
+import { ROLES } from "../constants/roles";
 
 const CaseHistory = ({
   patientId,
@@ -39,14 +43,33 @@ const CaseHistory = ({
   const [selectedConditions, setSelectedConditions] = useState([]);
   const [initialPayload, setInitialPayload] = useState(null);
 
+  // Debug toggle to show raw endpoint response
+  const [showDebug, setShowDebug] = useState(false);
+
+  // Use component grading hook
+  const { shouldShowGrading, section, sectionLabel } = useComponentGrading(
+    "CASE_HISTORY",
+    appointmentId
+  );
+
   const isLoading = loadingCaseHistory || loadingConditions;
+
+  const { data: appointment } = useGetAppointmentDetailsQuery(appointmentId, {
+    skip: !appointmentId,
+  });
+
+  // Console print of endpoint response when it arrives
+  useEffect(() => {
+    if (!loadingConditions) {
+      console.log("▶️ ODQ endpoint response:", directQuestioningConditions);
+    }
+  }, [directQuestioningConditions, loadingConditions]);
 
   useEffect(() => {
     if (caseHistory) {
       setChiefComplaint(caseHistory?.chief_complaint || "");
 
       const grouped = {};
-
       (caseHistory?.condition_details || []).forEach((item) => {
         const matchedCondition = directQuestioningConditions?.find(
           (c) => c.id === item.condition
@@ -56,10 +79,10 @@ const CaseHistory = ({
           grouped[item.condition] = {
             id: item.condition,
             name: item.condition_name || "",
-            has_text: matchedCondition?.has_text || false,
+            has_text_per_eye: matchedCondition?.has_text_per_eye || false,
             has_dropdown: matchedCondition?.has_dropdown || false,
             has_grading: matchedCondition?.has_grading || false,
-            has_notes: matchedCondition?.has_notes || false,
+            has_general_notes: matchedCondition?.has_general_notes || false,
             has_checkbox: matchedCondition?.has_checkbox || false,
             dropdown_options: matchedCondition?.dropdown_options || [],
             OD: {},
@@ -83,7 +106,6 @@ const CaseHistory = ({
       });
 
       const mapped = Object.values(grouped);
-
       setSelectedConditions(mapped);
 
       setInitialPayload({
@@ -105,16 +127,15 @@ const CaseHistory = ({
       showToast("This condition is already selected.", "error");
       return;
     }
-
     setSelectedConditions((prev) => [
       ...prev,
       {
         id: option.id,
         name: option.name,
-        has_text: option.has_text || false,
+        has_text_per_eye: option.has_text_per_eye || false,
         has_dropdown: option.has_dropdown || false,
         has_grading: option.has_grading || false,
-        has_notes: option.has_notes || false,
+        has_general_notes: option.has_general_notes || false,
         has_checkbox: option.has_checkbox || false,
         dropdown_options: option.dropdown_options || [],
         OD: {},
@@ -150,7 +171,6 @@ const CaseHistory = ({
     }
 
     const observations = [];
-
     selectedConditions.forEach((entry) => {
       ["OD", "OS"].forEach((eye) => {
         const data = entry[eye] || {};
@@ -217,155 +237,185 @@ const CaseHistory = ({
   };
 
   return (
-    <PageContainer>
-      <div className="bg-white rounded-md shadow p-4">
-        <div className="flex justify-between items-center mb-4">
-          <h1 className="text-2xl font-bold">Case History</h1>
-          {caseHistory && (
-            <SupervisorGradingButton
-              sectionLabel="Grading: Case History"
-              averageMarks={76.8}
-              // onSubmit={({ marks, remarks }) => {
-              //   submitDiagnosisGrading({ appointmentId, marks, remarks });
-              // }}
-            />
-          )}
-        </div>
-        {isLoading ? (
-          <p>Loading patient case history...</p>
-        ) : (
-          <>
-            <div className="mb-4">
-              <label className="block font-semibold mb-1">
-                Chief Complaint <span className="text-red-500">*</span>
-              </label>
-              <textarea
-                value={chiefComplaint}
-                onChange={(e) => setChiefComplaint(e.target.value)}
-                className="w-full border p-3 rounded-md"
-                placeholder="Enter chief complaint..."
+    <CanAccess allowedRoles={[ROLES.STUDENT, ROLES.LECTURER]}>
+      <PageContainer>
+        <div className="bg-white rounded-md shadow p-4">
+          <div className="flex justify-between items-center mb-4">
+            <h1 className="text-2xl font-bold">Case History</h1>
+            {shouldShowGrading && (
+              <SupervisorGradingButton
+                appointmentId={appointmentId}
+                section={section}
+                sectionLabel={sectionLabel}
               />
-            </div>
+            )}
+          </div>
 
-            <div className="mb-6">
-              <ConditionPicker
-                label={
-                  <span>
-                    On-Direct Questioning{" "}
-                    <span className="text-red-500">*</span>
+          {isLoading ? (
+            <p>Loading patient case history...</p>
+          ) : (
+            <>
+              {/* Debug tools */}
+              <div className="mb-3 flex items-center justify-between">
+                <button
+                  type="button"
+                  onClick={() => setShowDebug((s) => !s)}
+                  className="text-sm px-3 py-1 border rounded"
+                >
+                  {showDebug ? "Hide" : "Show"} ODQ API Response
+                </button>
+                {!loadingConditions && (
+                  <span className="text-xs text-gray-500">
+                    {Array.isArray(directQuestioningConditions)
+                      ? `${directQuestioningConditions.length} conditions loaded`
+                      : "No data"}
                   </span>
-                }
-                options={formattedODQOptions}
-                selectedValues={selectedConditions.map((c) => ({
-                  id: c.id,
-                  name: c.name,
-                }))}
-                onSelect={handleSelect}
-                conditionKey="id"
-                conditionNameKey="name"
-              />
-
-              {selectedConditions.length > 0 && (
-                <div className="mt-4 space-y-4">
-                  {selectedConditions.map((item) => (
-                    <div
-                      key={item.id}
-                      className="p-4 bg-gray-50 border rounded space-y-4"
-                    >
-                      <div className="flex items-center justify-between">
-                        <h4 className="font-semibold">{item.name}</h4>
-                        <DeleteButton
-                          onClick={() => handleDeleteCondition(item.id)}
-                        />
-                      </div>
-
-                      {item.has_grading && (
-                        <GradingSelect
-                          valueOD={item.OD?.grading || ""}
-                          valueOS={item.OS?.grading || ""}
-                          onChangeOD={(val) =>
-                            handleFieldChange(item.id, "OD", "grading", val)
-                          }
-                          onChangeOS={(val) =>
-                            handleFieldChange(item.id, "OS", "grading", val)
-                          }
-                        />
-                      )}
-
-                      {item.has_dropdown && (
-                        <ConditionsDropdown
-                          valueOD={item.OD?.dropdown || ""}
-                          valueOS={item.OS?.dropdown || ""}
-                          options={item.dropdown_options}
-                          onChangeOD={(val) =>
-                            handleFieldChange(item.id, "OD", "dropdown", val)
-                          }
-                          onChangeOS={(val) =>
-                            handleFieldChange(item.id, "OS", "dropdown", val)
-                          }
-                        />
-                      )}
-
-                      {item.has_text && (
-                        <TextInput
-                          valueOD={item.OD?.text || ""}
-                          valueOS={item.OS?.text || ""}
-                          onChangeOD={(val) =>
-                            handleFieldChange(item.id, "OD", "text", val)
-                          }
-                          onChangeOS={(val) =>
-                            handleFieldChange(item.id, "OS", "text", val)
-                          }
-                          placeholderOD="Enter text for OD"
-                          placeholderOS="Enter text for OS"
-                        />
-                      )}
-
-                      {item.has_checkbox && (
-                        <CheckboxInput
-                          checkedOD={item.OD?.checkbox ?? false}
-                          checkedOS={item.OS?.checkbox ?? false}
-                          onChangeOD={(val) =>
-                            handleFieldChange(item.id, "OD", "checkbox", val)
-                          }
-                          onChangeOS={(val) =>
-                            handleFieldChange(item.id, "OS", "checkbox", val)
-                          }
-                        />
-                      )}
-
-                      {item.has_notes && (
-                        <NotesTextArea
-                          value={item.notes || ""}
-                          onChange={(val) =>
-                            setSelectedConditions((prev) =>
-                              prev.map((c) =>
-                                c.id === item.id ? { ...c, notes: val } : c
-                              )
-                            )
-                          }
-                        />
-                      )}
-                    </div>
-                  ))}
-                </div>
+                )}
+              </div>
+              {showDebug && (
+                <pre className="text-xs bg-gray-900 text-green-200 p-3 rounded overflow-auto max-h-64 mb-4">
+                  {JSON.stringify(directQuestioningConditions, null, 2)}
+                </pre>
               )}
-            </div>
 
-            {selectedConditions.length > 0 && (
-              <div className="pt-4">
-                <NavigationButtons
-                  hideBack={true}
-                  onSave={handleSaveAndProceed}
-                  saving={isSaving}
-                  saveLabel="Save and Proceed"
+              {/* Chief Complaint */}
+              <div className="mb-4">
+                <label className="block font-semibold mb-1">
+                  Chief Complaint <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  value={chiefComplaint}
+                  onChange={(e) => setChiefComplaint(e.target.value)}
+                  className="w-full border p-3 rounded-md"
+                  placeholder="Enter chief complaint..."
                 />
               </div>
-            )}
-          </>
-        )}
-      </div>
-    </PageContainer>
+
+              {/* Conditions */}
+              <div className="mb-6">
+                <ConditionPicker
+                  label={
+                    <span>
+                      On-Direct Questioning{" "}
+                      <span className="text-red-500">*</span>
+                    </span>
+                  }
+                  options={formattedODQOptions}
+                  selectedValues={selectedConditions.map((c) => ({
+                    id: c.id,
+                    name: c.name,
+                  }))}
+                  onSelect={handleSelect}
+                  conditionKey="id"
+                  conditionNameKey="name"
+                />
+
+                {selectedConditions.length > 0 && (
+                  <div className="mt-4 space-y-4">
+                    {console.log("🔍 Selected Conditions:", selectedConditions)}
+                    {selectedConditions.map((item) => (
+                      <div
+                        key={item.id}
+                        className="p-4 bg-gray-50 border rounded space-y-4"
+                      >
+                        {console.log("🔍 Rendering condition:", item.name, item)}
+                        <div className="flex items-center justify-between">
+                          <h4 className="font-semibold">{item.name}</h4>
+                          <DeleteButton
+                            onClick={() => handleDeleteCondition(item.id)}
+                          />
+                        </div>
+
+                        {item.has_grading && (
+                          <GradingSelect
+                            valueOD={item.OD?.grading || ""}
+                            valueOS={item.OS?.grading || ""}
+                            onChangeOD={(val) =>
+                              handleFieldChange(item.id, "OD", "grading", val)
+                            }
+                            onChangeOS={(val) =>
+                              handleFieldChange(item.id, "OS", "grading", val)
+                            }
+                          />
+                        )}
+
+                        {item.has_dropdown && (
+                          <ConditionsDropdown
+                            valueOD={item.OD?.dropdown || ""}
+                            valueOS={item.OS?.dropdown || ""}
+                            options={item.dropdown_options}
+                            onChangeOD={(val) =>
+                              handleFieldChange(item.id, "OD", "dropdown", val)
+                            }
+                            onChangeOS={(val) =>
+                              handleFieldChange(item.id, "OS", "dropdown", val)
+                            }
+                          />
+                        )}
+
+                        {item.has_text_per_eye && (
+                          <>
+                            <TextInput
+                              valueOD={item.OD?.text || ""}
+                              valueOS={item.OS?.text || ""}
+                              onChangeOD={(val) =>
+                                handleFieldChange(item.id, "OD", "text", val)
+                              }
+                              onChangeOS={(val) =>
+                                handleFieldChange(item.id, "OS", "text", val)
+                              }
+                              placeholderOD="Enter text for OD"
+                              placeholderOS="Enter text for OS"
+                            />
+                          </>
+                        )}
+
+                        {item.has_checkbox && (
+                          <CheckboxInput
+                            checkedOD={item.OD?.checkbox ?? false}
+                            checkedOS={item.OS?.checkbox ?? false}
+                            onChangeOD={(val) =>
+                              handleFieldChange(item.id, "OD", "checkbox", val)
+                            }
+                            onChangeOS={(val) =>
+                              handleFieldChange(item.id, "OS", "checkbox", val)
+                            }
+                          />
+                        )}
+
+                        {item.has_general_notes && (
+                          <NotesTextArea
+                            value={item.notes || ""}
+                            onChange={(val) =>
+                              setSelectedConditions((prev) =>
+                                prev.map((c) =>
+                                  c.id === item.id ? { ...c, notes: val } : c
+                                )
+                              )
+                            }
+                          />
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {selectedConditions.length > 0 && (
+                <div className="pt-4">
+                  <NavigationButtons
+                    hideBack={true}
+                    onSave={handleSaveAndProceed}
+                    saving={isSaving}
+                    saveLabel="Save and Proceed"
+                  />
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      </PageContainer>
+    </CanAccess>
   );
 };
 

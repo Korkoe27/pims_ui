@@ -16,7 +16,11 @@ const Sidebar = () => {
     useGetDashboardDataQuery();
 
   const totalAppointments = dashboardData
-    ? dashboardData?.today_appointments?.count
+    ? dashboardData?.total_appointments
+    : "--";
+
+  const totalPendingReviews = dashboardData
+    ? dashboardData?.pending_reviews?.data?.length || 0
     : "--";
 
   const activeLink =
@@ -49,6 +53,11 @@ const Sidebar = () => {
             {item.name === "appointments" && (
               <span className="ml-auto bg-[#f0f2f5] w-[2rem] h-[1.5rem] flex justify-center items-center rounded-full text-[#344054] text-xs">
                 {isDashboardLoading ? "--" : totalAppointments}
+              </span>
+            )}
+            {item.name === "pending reviews" && (
+              <span className="ml-auto bg-[#fff2e5] w-[2rem] h-[1.5rem] flex justify-center items-center rounded-full text-[#d97706] text-xs font-medium">
+                {isDashboardLoading ? "--" : totalPendingReviews}
               </span>
             )}
           </NavLink>

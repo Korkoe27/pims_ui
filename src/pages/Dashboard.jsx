@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
-import { useSelector, useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { HiOutlineUser } from "react-icons/hi2";
 import { LuClock3 } from "react-icons/lu";
 import { FiUserCheck } from "react-icons/fi";
@@ -11,10 +11,16 @@ import useHandleConsult from "../hooks/useHandleConsult";
 import PageContainer from "../components/PageContainer";
 import CanAccess from "../components/auth/CanAccess";
 import { ROLES } from "../constants/roles";
+import ConsultButton from "../components/ui/buttons/ConsultButton";
+import { canShowConsultButton } from "../utils/canShowConsultButton"; // ✅ helper
 
 const Dashboard = () => {
   const { handleConsult } = useHandleConsult();
   const dispatch = useDispatch();
+
+  // 🔑 get current user role from auth slice
+  const currentUserRole = useSelector((state) => state.auth.user?.role);
+
   const {
     data: dashboardData,
     isLoading: dashboardLoading,
@@ -28,22 +34,29 @@ const Dashboard = () => {
     }
   }, [dashboardError, dispatch]);
 
-  const todaysAppointmentCount = dashboardData?.today_appointments?.count || 0;
+  const scheduledAppointments =
+    dashboardData?.scheduled_appointments?.data || [];
+  const totalAppointments = dashboardData?.total_appointments || 0;
+  const completedAppointments =
+    dashboardData?.completed_appointments?.count || 0;
   const pendingAppointments = dashboardData?.pending_appointments || 0;
-  const completedAppointments = dashboardData?.completed_appointments || 0;
-  const todayAppointments = dashboardData?.today_appointments?.data || [];
-  const recentPatientActivity = dashboardData?.recent_activity || [];
+
+  // ✅ check if at least one consult action should render
+  const hasAnyConsultAction = scheduledAppointments.some((appt) =>
+    canShowConsultButton(appt, currentUserRole)
+  );
 
   return (
     <PageContainer>
+      {/* Summary cards */}
       <div className="grid grid-cols-12 gap-9 w-full">
         <div className="bg-[#ececf9] p-4 h-36 col-span-4">
           <h3 className="flex items-center text-base gap-[12px] font-normal">
             <HiOutlineUser className="w-6 h-6" />
-            Today's Appointments
+            Total Appointments
           </h3>
           <span className="text-[50px] font-bold text-[#2f3192]">
-            {dashboardLoading ? <LoadingSpinner /> : todaysAppointmentCount}
+            {dashboardLoading ? <LoadingSpinner /> : totalAppointments}
           </span>
         </div>
         <div className="bg-[#fbeae9] p-4 h-36 col-span-4">
@@ -66,20 +79,19 @@ const Dashboard = () => {
         </div>
       </div>
 
-      <div>
+      {/* Upcoming Appointments */}
+      <div className="mt-10">
         <div className="flex justify-between my-[15px]">
           <h2 className="font-bold text-xl">Upcoming Appointments</h2>
           <Link to="/appointments" className="text-[#2f3192] font-semibold">
             See all
           </Link>
         </div>
-
         {dashboardLoading ? (
           <div className="flex justify-center items-center">
             <LoadingSpinner />
           </div>
-        ) : todayAppointments.filter((a) => a.status === "Scheduled").length >
-          0 ? (
+        ) : scheduledAppointments.length > 0 ? (
           <table className="w-full">
             <thead className="text-black uppercase text-left h-16 bg-[#f0f2f5]">
               <tr>
@@ -87,37 +99,33 @@ const Dashboard = () => {
                 <th className="px-3 py-3">Patient’s ID</th>
                 <th className="px-3 py-3">Name</th>
                 <th className="px-3 py-3">Appointment Type</th>
-                <CanAccess allowedRoles={[ROLES.STUDENT, ROLES.LECTURER]}>
-                <th className="px-3 py-3 text-center">Action</th>
-                </CanAccess>
+                {hasAnyConsultAction && (
+                  <CanAccess allowedRoles={[ROLES.STUDENT, ROLES.LECTURER]}>
+                    <th className="px-3 py-3 text-center">Action</th>
+                  </CanAccess>
+                )}
               </tr>
             </thead>
             <tbody>
-              {todayAppointments
-                .filter((a) => a.status === "Scheduled")
-                .slice(0, 5)
-                .map((appointment) => (
-                  <tr key={appointment.id} className="bg-white border-b">
-                    <td className="px-3 py-3">
-                      {appointment.appointment_date}
-                    </td>
-                    <td className="px-3 py-3">{appointment.patient_id}</td>
-                    <td className="px-3 py-3">{appointment.patient_name}</td>
-                    <td className="px-3 py-3">
-                      {appointment.appointment_type}
-                    </td>
-                    <td className="py-3 flex justify-center">
-                      <CanAccess allowedRoles={[ROLES.STUDENT, ROLES.LECTURER]}>
-                        <button
-                          className="text-white bg-[#2f3192] px-4 py-2 rounded-lg"
-                          onClick={() => handleConsult(appointment)}
-                        >
-                          Attend to Patient
-                        </button>
-                      </CanAccess>
-                    </td>
-                  </tr>
-                ))}
+              {scheduledAppointments.slice(0, 5).map((appointment) => (
+                <tr key={appointment.id} className="bg-white border-b">
+                  <td className="px-3 py-3">{appointment.appointment_date}</td>
+                  <td className="px-3 py-3">{appointment.patient_id}</td>
+                  <td className="px-3 py-3">{appointment.patient_name}</td>
+                  <td className="px-3 py-3">{appointment.appointment_type}</td>
+                  {hasAnyConsultAction && (
+                    <CanAccess allowedRoles={[ROLES.STUDENT, ROLES.LECTURER]}>
+                      <td className="py-3 flex justify-center">
+                        <ConsultButton
+                          appointment={appointment}
+                          role={currentUserRole}
+                          onClick={handleConsult}
+                        />
+                      </td>
+                    </CanAccess>
+                  )}
+                </tr>
+              ))}
             </tbody>
           </table>
         ) : (
@@ -126,46 +134,6 @@ const Dashboard = () => {
           </p>
         )}
       </div>
-
-      {/* Recent Patient Activity Table
-      <div className="my-5">
-        <div className="flex justify-between my-4">
-          <h2 className="font-bold text-xl">Recent Patient Activity</h2>
-          <Link className="text-[#2f3192] font-semibold">See all</Link>
-        </div>
-        <table className="w-full">
-          <thead className="text-black uppercase text-left h-16 bg-[#f0f2f5]">
-            <tr>
-              <th className="px-3 py-3">Date</th>
-              <th className="px-3 py-3">Patient’s ID</th>
-              <th className="px-3 py-3">Name</th>
-              <th className="px-3 py-3">Diagnosis</th>
-              <th className="px-3 py-3">Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {recentPatientActivity.map((activity) => (
-              <tr key={activity.id} className="bg-white border-b">
-                <td className="px-3 py-3">{activity.date}</td>
-                <td className="px-3 py-3">{activity.patient_id}</td>
-                <td className="px-3 py-3">{activity.name}</td>
-                <td className="px-3 py-3">{activity.diagnosis}</td>
-                <td className="px-3 py-3">
-                  <span
-                    className={`py-2 px-3 rounded-lg ${
-                      activity.status === "Completed"
-                        ? "bg-green-200 text-green-800"
-                        : "bg-red-200 text-red-800"
-                    }`}
-                  >
-                    {activity.status}
-                  </span>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div> */}
     </PageContainer>
   );
 };

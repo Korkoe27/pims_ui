@@ -4,6 +4,9 @@ import {
   listMedicationsUrl,
   filterMedicationsUrl,
   managementPlanUrl,
+  caseManagementGuideUrl,
+  updateCaseManagementGuideUrl,
+  deleteCaseManagementGuideUrl,
 } from "../end_points/endpoints";
 
 export const managementApi = apiClient.injectEndpoints({
@@ -48,6 +51,40 @@ export const managementApi = apiClient.injectEndpoints({
         body: payload,
       }),
     }),
+
+    // Get/Create Case Management Guide
+    getCaseManagementGuide: builder.query({
+      query: (appointmentId) => ({
+        url: caseManagementGuideUrl(appointmentId),
+        method: "GET",
+      }),
+      providesTags: (result, error, appointmentId) => [
+        { type: "CaseManagementGuide", id: appointmentId },
+      ],
+    }),
+
+    // Update Case Management Guide
+    updateCaseManagementGuide: builder.mutation({
+      query: ({ appointmentId, payload }) => ({
+        url: updateCaseManagementGuideUrl(appointmentId),
+        method: "PATCH",
+        body: payload,
+      }),
+      invalidatesTags: (result, error, { appointmentId }) => [
+        { type: "CaseManagementGuide", id: appointmentId },
+      ],
+    }),
+
+    // Delete Case Management Guide
+    deleteCaseManagementGuide: builder.mutation({
+      query: (appointmentId) => ({
+        url: deleteCaseManagementGuideUrl(appointmentId),
+        method: "DELETE",
+      }),
+      invalidatesTags: (result, error, appointmentId) => [
+        { type: "CaseManagementGuide", id: appointmentId },
+      ],
+    }),
   }),
 });
 
@@ -55,6 +92,9 @@ export const {
   useGetMedicationTypesQuery,
   useGetAllMedicationsQuery,
   useFilterMedicationsQuery,
-  useGetManagementPlanQuery,    
+  useGetManagementPlanQuery,
   useCreateManagementPlanMutation,
+  useGetCaseManagementGuideQuery,
+  useUpdateCaseManagementGuideMutation,
+  useDeleteCaseManagementGuideMutation,
 } = managementApi;
