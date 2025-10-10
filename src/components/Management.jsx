@@ -271,11 +271,11 @@ const CaseManagementGuide = ({
                         }}
                         placeholder="Enter management plan..."
                         className="w-full p-2 border border-gray-300 rounded-md resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        style={{ 
-                          textDecoration: 'none',
-                          color: '#000000',
-                          backgroundColor: '#ffffff',
-                          opacity: 1
+                        style={{
+                          textDecoration: "none",
+                          color: "#000000",
+                          backgroundColor: "#ffffff",
+                          opacity: 1,
                         }}
                         rows="3"
                         data-row-id={row.id}
@@ -296,11 +296,11 @@ const CaseManagementGuide = ({
                         }}
                         placeholder="Enter notes..."
                         className="w-full p-2 border border-gray-300 rounded-md resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        style={{ 
-                          textDecoration: 'none',
-                          color: '#000000',
-                          backgroundColor: '#ffffff',
-                          opacity: 1
+                        style={{
+                          textDecoration: "none",
+                          color: "#000000",
+                          backgroundColor: "#ffffff",
+                          opacity: 1,
                         }}
                         rows="3"
                         data-row-id={row.id}
