@@ -42,19 +42,11 @@ const consultationSlice = createSlice({
       state.flowState = action.payload?.status || null;
       state.nextAllowedStates = action.payload?.next_allowed_states || [];
 
-      // Determine flow type based on consultation data
-      if (action.payload?.is_student_case) {
-        if (
-          action.payload?.status === "Under Review" ||
-          action.payload?.status === "Graded"
-        ) {
-          state.flowType = "lecturer_reviewing";
-        } else {
-          state.flowType = "student_consulting";
-        }
-      } else {
-        state.flowType = "lecturer_consulting";
-      }
+      // ✅ Prefer UI-derived flow type from the hook; fall back softly
+      state.flowType =
+        action.payload?.uiFlowType ??
+        action.payload?.flowType ?? // if you ever send it
+        state.flowType; // leave unchanged if not provided
 
       // Update permissions based on consultation data
       if (action.payload?.permissions) {

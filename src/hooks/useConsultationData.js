@@ -142,7 +142,7 @@ const useConsultationData = (
       id: `fallback_${appointmentId}`,
       appointment_id: appointmentId,
       status: appointmentStatus,
-      flowType: flowType,
+      uiFlowType: flowType, // <- UI-owned field name
       flowState: appointmentStatus,
       is_student_case: isStudentCase,
       permissions: permissions,

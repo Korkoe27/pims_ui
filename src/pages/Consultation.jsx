@@ -35,6 +35,7 @@ const TransitionControls = ({
   transitionSuccess,
   clearTransitionMessages,
   appointmentId,
+  currentUserRole, // Add user role prop
 }) => {
   const {
     nextAllowedStates = [],
@@ -95,6 +96,7 @@ const TransitionControls = ({
           <p className="text-sm text-gray-600 mt-1">{getFlowDescription()}</p>
         </div>
         <div className="text-xs bg-gray-100 px-2 py-1 rounded">
+          ROLE: {currentUserRole?.toUpperCase()} | MODE:{" "}
           {flowType?.replace("_", " ").toUpperCase()}
         </div>
       </div>
@@ -560,6 +562,7 @@ const Consultation = () => {
           transitionSuccess={transitionSuccess}
           clearTransitionMessages={clearTransitionMessages}
           appointmentId={appointmentId}
+          currentUserRole={currentUserRole}
         />
 
         <div className="mb-10">{renderFlowStep()}</div>
