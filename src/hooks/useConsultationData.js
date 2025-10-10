@@ -18,14 +18,14 @@ import {
 const useConsultationData = (appointmentId) => {
   const dispatch = useDispatch();
 
-  // Get consultation data
+  // Get consultation data (optional - may not exist with new appointment-based system)
   const {
     data: consultation,
     isLoading: isConsultationLoading,
     error: consultationError,
     refetch: refetchConsultation,
   } = useGetConsultationQuery(appointmentId, {
-    skip: !appointmentId,
+    skip: true, // Skip consultation queries since backend uses appointment-based system
   });
 
   // Mutations
@@ -116,18 +116,18 @@ const useConsultationData = (appointmentId) => {
     }
   };
 
-  const completeConsultationFlow = async (consultationId) => {
+  const completeConsultationFlow = async (appointmentId) => {
     try {
       dispatch(setTransitioning(true));
       dispatch(clearTransitionMessages());
 
-      const result = await completeConsultation(consultationId).unwrap();
+      // Use appointment ID directly (simplified approach)
+      const result = await completeConsultation(appointmentId).unwrap();
+
       // Refresh the consultation data so UI reflects the new state immediately
       try {
         await refetchConsultation?.();
       } catch (e) {
-        // Non-fatal: if refetch fails, we'll still treat the complete as successful
-        // and surface the transition success message.
         // eslint-disable-next-line no-console
         console.warn("Refetch after complete failed:", e);
       }

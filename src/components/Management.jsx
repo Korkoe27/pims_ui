@@ -7,7 +7,6 @@ import PatientModal from "./SelectClinicModal";
 import { showToast } from "../components/ToasterHelper";
 import useManagementData from "../hooks/useManagementData";
 import useConsultationData from "../hooks/useConsultationData";
-import { useGetConsultationsQuery } from "../redux/api/features/consultationApi";
 import {
   useGetCaseManagementGuideQuery,
   useUpdateCaseManagementGuideMutation,
@@ -838,57 +837,28 @@ const Management = ({ setFlowStep, appointmentId }) => {
     refetchConsultation,
   } = useConsultationData(apptId);
 
-  // Try to resolve consultation id by appointment if hook.consultation is missing
-  const {
-    data: consultationsForAppointment,
-    isLoading: isLoadingConsultationList,
-  } = useGetConsultationsQuery(
-    // query params - backend may accept appointment filter
-    { appointment: apptId },
-    { skip: !apptId }
-  );
-
   const onComplete = async () => {
     try {
       await saveManagement(); // optional final save
 
-      // Attempt to mark consultation as completed on the backend
+      // Use appointment-based completion (simplified approach)
       try {
-        // Make sure we have the latest consultation record. If the hook's
-        // `consultation` is stale or missing, refetch (RTK Query) and use
-        // the returned consultation id. This ensures we send the backend a
-        // consultation UUID (not the appointment id).
-        let consultationId = consultation?.id;
-        try {
-          const ref = await refetchConsultation?.();
-          const returned = ref?.data || (ref && ref.payload) || null;
-          consultationId = returned?.id || consultationId;
-        } catch (e) {
-          // ignore refetch errors - we'll fall back to existing value
-        }
-
-        // final fallback: try list endpoint result, then appointment id (may produce backend 404)
-        if (!consultationId) {
-          const first =
-            consultationsForAppointment && consultationsForAppointment.length
-              ? consultationsForAppointment[0]
-              : null;
-          consultationId = first?.id ?? apptId;
-        }
-        await completeConsultationFlow(consultationId);
+        await completeConsultationFlow(apptId);
         showToast("Consultation completed.", "success");
+
+        // Navigate to dashboard after successful completion
+        setTimeout(() => {
+          navigate("/");
+        }, 1500); // Small delay to show the success message
       } catch (err) {
-        // If backend completion fails, show an error but still allow navigation
+        // If backend completion fails, show an error
         const msg =
           err?.data?.detail ||
           err?.data?.message ||
           err?.message ||
           "Failed to complete consultation";
         showToast(msg, "error");
-        // Do not return here; still proceed to payment to avoid blocking UX
       }
-
-      setFlowStep?.("payment");
     } catch (err) {
       // saveManagement already shows toast; ensure we don't proceed
     }

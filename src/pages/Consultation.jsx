@@ -129,6 +129,7 @@ const TransitionControls = ({
       <div className="flex flex-wrap gap-3">
         {/* Lecturer Consulting: Full transition control */}
         {flowType === "lecturer_consulting" &&
+          flowState !== "Consultation Completed" &&
           nextAllowedStates.map((state) => (
             <button
               key={state}
@@ -155,53 +156,65 @@ const TransitionControls = ({
         {/* Lecturer Reviewing: Grading and transition controls */}
         {flowType === "lecturer_reviewing" && (
           <>
-            {nextAllowedStates.map((state) => (
-              <button
-                key={state}
-                onClick={() => transitionToState(appointmentId, state)}
-                disabled={isTransitioning}
-                className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isTransitioning ? "Transitioning..." : `✓ ${state}`}
-              </button>
-            ))}
-            {permissions.can_complete && (
-              <button
-                onClick={() => completeConsultationFlow(appointmentId)}
-                disabled={isTransitioning}
-                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isTransitioning ? "Completing..." : "🏁 Complete Consultation"}
-              </button>
-            )}
+            {flowState !== "Consultation Completed" &&
+              nextAllowedStates.map((state) => (
+                <button
+                  key={state}
+                  onClick={() => transitionToState(appointmentId, state)}
+                  disabled={isTransitioning}
+                  className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isTransitioning ? "Transitioning..." : `✓ ${state}`}
+                </button>
+              ))}
+            {permissions.can_complete &&
+              flowState !== "Consultation Completed" && (
+                <button
+                  onClick={() => completeConsultationFlow(appointmentId)}
+                  disabled={isTransitioning}
+                  className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isTransitioning
+                    ? "Completing..."
+                    : "🏁 Complete Consultation"}
+                </button>
+              )}
           </>
         )}
 
         {/* General complete for lecturer consulting */}
-        {flowType === "lecturer_consulting" && permissions.can_complete && (
-          <button
-            onClick={() => completeConsultationFlow(appointmentId)}
-            disabled={isTransitioning}
-            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isTransitioning ? "Completing..." : "🏁 Complete Consultation"}
-          </button>
-        )}
+        {flowType === "lecturer_consulting" &&
+          permissions.can_complete &&
+          flowState !== "Consultation Completed" && (
+            <button
+              onClick={() => completeConsultationFlow(appointmentId)}
+              disabled={isTransitioning}
+              className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isTransitioning ? "Completing..." : "🏁 Complete Consultation"}
+            </button>
+          )}
       </div>
 
       {/* Current state info */}
       <div className="mt-3 text-sm text-gray-600">
         <span className="font-medium">Current State:</span>{" "}
         {flowState || "Loading..."}
+        {flowState === "Consultation Completed" && (
+          <span className="ml-2 text-green-600 font-semibold">
+            ✅ Consultation Complete
+          </span>
+        )}
         {flowType === "student_consulting" &&
           flowState === "Submitted For Review" && (
             <span className="ml-2 text-orange-600">
               ⏳ Awaiting lecturer review
             </span>
           )}
-        {flowType === "lecturer_reviewing" && (
-          <span className="ml-2 text-purple-600">👨‍🏫 Review in progress</span>
-        )}
+        {flowType === "lecturer_reviewing" &&
+          flowState !== "Consultation Completed" && (
+            <span className="ml-2 text-purple-600">👨‍🏫 Review in progress</span>
+          )}
       </div>
     </div>
   );

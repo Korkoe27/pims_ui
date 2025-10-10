@@ -312,9 +312,9 @@ export const transitionConsultationUrl = (consultationId) =>
 export const submitConsultationUrl = (consultationId) =>
   `/consultations/${consultationId}/submit/`;
 
-// Complete consultation
-export const completeConsultationUrl = (consultationId) =>
-  `/consultations/${consultationId}/complete/`;
+// Complete consultation (appointment-based)
+export const completeConsultationUrl = (appointmentId) =>
+  `/clients/appointments/${appointmentId}/complete/`;
 
 // Admin status override
 export const overrideConsultationUrl = (consultationId) =>
