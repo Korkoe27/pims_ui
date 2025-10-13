@@ -85,7 +85,6 @@ const Diagnosis = ({
     };
 
     try {
-      // Check if diagnosis already exists (has an id)
       const hasExistingDiagnosis =
         appointmentDiagnosis && appointmentDiagnosis.id;
 
@@ -97,7 +96,9 @@ const Diagnosis = ({
         showToast("Diagnosis saved successfully ✅", "success");
       }
 
+      // Explicitly navigate to Management
       setFlowStep("management");
+      setActiveTab("management"); // <-- ensure this matches your tab key
     } catch (error) {
       console.error("❌ Raw error:", error);
       const fallbackMessage =
@@ -298,9 +299,11 @@ const Diagnosis = ({
 
           <div className="flex justify-end pt-4 gap-4">
             <button
-              onClick={() =>
-                setFlowStep("consultation") || setActiveTab("extra tests")
-              }
+              type="button"
+              onClick={() => {
+                setFlowStep("consultation");
+                setActiveTab("extra tests");
+              }}
               className="px-6 py-2 border border-indigo-600 text-indigo-700 bg-white hover:bg-indigo-50 rounded-lg"
             >
               ← Back to Extra Tests
