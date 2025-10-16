@@ -1,19 +1,8 @@
-import React from "react";
 import { RxDashboard } from "react-icons/rx";
 import { IoCalendarClearOutline } from "react-icons/io5";
 import { LuUsers } from 'react-icons/lu';
-import {
-  MdAssignment,
-  MdOutlineSchedule,
-  MdOutlineLogout,
-  MdOutlinePayment,
-  MdLeaderboard,
-} from "react-icons/md";
-import { BsBoxSeam } from "react-icons/bs";
-import { GiPill } from "react-icons/gi";
+import { MdOutlineSchedule, MdOutlineLogout } from "react-icons/md";
 import { HiOutlineClipboardList } from "react-icons/hi";
-import { BiUserCircle } from "react-icons/bi";
-import { HiOutlineDocumentReport } from "react-icons/hi";
 import { ROLES } from "../constants/roles";
 
 export const Sidebar_links = [
