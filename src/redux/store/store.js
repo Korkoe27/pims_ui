@@ -35,6 +35,21 @@ const persistConfig = {
 
 const persistedAuthReducer = persistReducer(persistConfig, authReducer);
 
+const apiMiddlewares = [
+  authApi.middleware,
+  patientApi.middleware,
+  caseHistoryApi.middleware,
+  visualAcuityApi.middleware,
+  diagnosisApi.middleware,
+  managementApi.middleware,
+  dashboardApi.middleware,
+  appointmentsApi.middleware,
+  absentRequestApi.middleware,
+  gradingApi.middleware,
+  consultationApi.middleware,
+];
+const uniqueApiMiddlewares = Array.from(new Set(apiMiddlewares));
+
 export const store = configureStore({
   reducer: {
     auth: persistedAuthReducer,
@@ -61,18 +76,7 @@ export const store = configureStore({
     [consultationApi.reducerPath]: consultationApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware({ serializableCheck: false })
-      .concat(authApi.middleware)
-      .concat(patientApi.middleware)
-      .concat(caseHistoryApi.middleware)
-      .concat(visualAcuityApi.middleware)
-      .concat(diagnosisApi.middleware)
-      .concat(managementApi.middleware)
-      .concat(dashboardApi.middleware)
-      .concat(appointmentsApi.middleware)
-      .concat(absentRequestApi.middleware)
-      .concat(gradingApi.middleware)
-      .concat(consultationApi.middleware),
+    getDefaultMiddleware({ serializableCheck: false }).concat(uniqueApiMiddlewares),
 });
 
 export const persistor = persistStore(store);

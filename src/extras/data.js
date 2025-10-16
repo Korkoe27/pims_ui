@@ -1,7 +1,7 @@
 import React from "react";
 import { RxDashboard } from "react-icons/rx";
 import { IoCalendarClearOutline } from "react-icons/io5";
-import { LuUsers2 } from "react-icons/lu";
+import { LuUsers } from 'react-icons/lu';
 import {
   MdAssignment,
   MdOutlineSchedule,
@@ -38,7 +38,7 @@ export const Sidebar_links = [
   
   {
     name: "patients",
-    icon: <LuUsers2 className="text-xl font-bold" />,
+    icon: <LuUsers className="text-xl font-bold" />,
     path: "/my-patients",
     roles: "all",
   },
