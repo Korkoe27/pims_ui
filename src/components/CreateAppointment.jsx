@@ -83,8 +83,9 @@ const CreateAppointment = () => {
   };
 
   return (
-    <div className="ml-72 my-8 px-8 w-[800px] flex flex-col bg-[#f9fafb] gap-12">
-      <h1 className="font-semibold text-xl text-center">
+    <div className="flex justify-center min-h-screen bg-[#f9fafb] items-start">
+      <div className="max-w-2xl w-full flex flex-col px-6 py-8 gap-8 bg-white rounded-xl shadow-lg mt-12">
+        <h1 className="font-semibold text-xl text-center">
         Schedule an Appointment
       </h1>
 
@@ -96,21 +97,16 @@ const CreateAppointment = () => {
         <>
           <div className="bg-gray-100 p-4 rounded-md shadow-md">
             <p>
-              <strong>Patient Name:</strong> {patient.first_name}{" "}
-              {patient.last_name || ""}
+              <strong>Patient Name:</strong> {patient.first_name} {patient.last_name || ""}
             </p>
             <p>
               <strong>Patient ID:</strong> {patient.patient_id}
             </p>
           </div>
-
-          <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-6">
+          <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-6 mt-6">
             <div className="flex flex-col gap-4">
               <div className="flex flex-col gap-2">
-                <label
-                  htmlFor="appointment_date"
-                  className="font-medium text-base"
-                >
+                <label htmlFor="appointment_date" className="font-medium text-base">
                   Appointment Date
                 </label>
                 <input
@@ -125,10 +121,7 @@ const CreateAppointment = () => {
             </div>
             <div className="flex flex-col gap-4">
               <div className="flex flex-col gap-2">
-                <label
-                  htmlFor="appointment_type"
-                  className="font-medium text-base"
-                >
+                <label htmlFor="appointment_type" className="font-medium text-base">
                   Appointment Type
                 </label>
                 <select
@@ -148,7 +141,7 @@ const CreateAppointment = () => {
                   ))}
                 </select>
               </div>
-
+              {/*
               <div className="flex flex-col gap-2">
                 <label htmlFor="status" className="font-medium text-base">
                   Appointment Status
@@ -170,6 +163,7 @@ const CreateAppointment = () => {
                   ))}
                 </select>
               </div>
+              */}
             </div>
             <div className="col-span-2 flex flex-col gap-2">
               <label htmlFor="notes" className="font-medium text-base">
@@ -197,6 +191,7 @@ const CreateAppointment = () => {
           </form>
         </>
       )}
+      </div>
     </div>
   );
 };
