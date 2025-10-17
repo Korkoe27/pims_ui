@@ -43,7 +43,7 @@ const GeneralAppointments = () => {
   return (
     <PageContainer>
       {isLoading && <LoadingSpinner />}
-      <h1 className="font-extrabold text-xl">Today's Appointments</h1>
+      <h1 className="font-extrabold text-xl">General Appointments</h1>
 
       {/* ✅ Fixed error handling - extract message from error object */}
       {error && (
