@@ -112,7 +112,9 @@ const Dashboard = () => {
                   <td className="px-3 py-3">{appointment.appointment_date}</td>
                   <td className="px-3 py-3">{appointment.patient_id}</td>
                   <td className="px-3 py-3">{appointment.patient_name}</td>
-                  <td className="px-3 py-3">{appointment.appointment_type}</td>
+                  <td className="px-3 py-3">
+                    {appointment.appointment_type_name}
+                  </td>
                   {hasAnyConsultAction && (
                     <CanAccess allowedRoles={[ROLES.STUDENT, ROLES.LECTURER]}>
                       <td className="py-3 flex justify-center">

@@ -6,9 +6,6 @@
 export const createDiagnosisUrl = (appointmentId) =>
   `/diagnosis/${appointmentId}/create/`;
 
-// Update an existing diagnosis for an appointment (same endpoint, different method)
-export const updateDiagnosisUrl = (appointmentId) =>
-  `/diagnosis/${appointmentId}/create/`;
 
 // List all diagnoses (master list)
 export const listAllDiagnosesUrl = "/diagnosis/codes/";or better maintainability and scalability.

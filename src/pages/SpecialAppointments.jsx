@@ -10,7 +10,7 @@ import { useGetTodaysAppointmentsQuery } from "../redux/api/features/appointment
 import ConsultButton from "../components/ui/buttons/ConsultButton";
 import { canShowConsultButton } from "../utils/canShowConsultButton";
 
-const Appointments = () => {
+const SpecialAppointments = () => {
   const userRole = useSelector((state) => state.auth?.user?.role);
   const { handleConsult } = useHandleConsult();
   const [currentPage, setCurrentPage] = useState(1);
@@ -133,7 +133,7 @@ const Appointments = () => {
   );
 };
 
-export default Appointments;
+export default SpecialAppointments;
 
 const checkStatus = (status) => {
   switch (status) {

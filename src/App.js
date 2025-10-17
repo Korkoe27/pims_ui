@@ -21,6 +21,8 @@ import {
   Consultation,
   Dashboard,
   Appointments,
+  GeneralAppointments,
+  SpecialAppointments,
   Pharmacy,
   Inventory,
   Patients,
@@ -94,6 +96,8 @@ const App = () => {
             <Route path="patients-details" element={<PatientDetails />} />
             <Route path="register-patient" element={<PersonalInfo />} />
             <Route path="appointments" element={<Appointments />} />
+            <Route path="general-appointments" element={<GeneralAppointments />} />
+            <Route path="special-appointments" element={<SpecialAppointments />} />
             <Route path="inventory" element={<Inventory />} />
             <Route path="pharmacy" element={<Pharmacy />}>
               <Route path="order/:orderId" element={<PharmacyOrder />} />

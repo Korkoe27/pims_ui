@@ -43,8 +43,8 @@ const Sidebar = () => {
   );
 
   const CLINIC_LINKS = [
-    { label: "General Clinic", path: "/appointments/general", count: totalGeneral },
-    { label: "Special Clinic", path: "/appointments/special", count: totalSpecial },
+    { label: "General Clinic", path: "general-appointments", count: totalGeneral },
+    { label: "Special Clinic", path: "special-appointments", count: totalSpecial },
   ];
 
   return (

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom"; // ✅ import navigate
 import { useDispatch } from "react-redux";
 import {
@@ -13,13 +13,11 @@ const CreateAppointment = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate(); // ✅ initialize navigate
   const patient = state?.patient || null;
+  const [category, setCategory] = useState("General");
 
   const [createAppointment, { isLoading }] = useCreateAppointmentMutation();
-  const {
-    data: appointmentTypes = [],
-    isLoading: isTypesLoading,
-    isError: isTypesError,
-  } = useFetchAppointmentTypesQuery();
+  const { data: appointmentTypes = [], isLoading: isTypesLoading, isError: isTypesError } =
+    useFetchAppointmentTypesQuery(category);
 
   const [formData, setFormData] = useState({
     appointment_date: "",
@@ -27,6 +25,20 @@ const CreateAppointment = () => {
     status: "scheduled",
     notes: "",
   });
+
+  useEffect(() => {
+    if (!isTypesLoading && !isTypesError && appointmentTypes.length === 1) {
+      // auto-select the only available type
+      setFormData((prev) => ({
+        ...prev,
+        appointment_type: appointmentTypes[0].value,
+      }));
+    } else if (appointmentTypes.length > 1) {
+      // clear previous selection so user can pick
+      setFormData((prev) => ({ ...prev, appointment_type: "" }));
+    }
+  }, [appointmentTypes, isTypesLoading, isTypesError]);
+
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -111,45 +123,62 @@ const CreateAppointment = () => {
                 />
               </div>
 
-              {/* Appointment Type */}
-              <div className="flex flex-col gap-2">
-                <label htmlFor="appointment_type" className="font-medium text-base">
-                  Appointment Type
-                </label>
+              {/* Appointment Category */}
+              <div className="flex flex-col gap-2 mb-4">
+                <label className="font-medium text-base">Appointment Category</label>
                 <select
-                  name="appointment_type"
-                  id="appointment_type"
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
                   className="p-4 border border-[#d0d5dd] h-14 rounded-lg"
-                  value={formData.appointment_type}
-                  onChange={handleChange}
-                  required
-                  disabled={isTypesLoading || isTypesError}
                 >
-                  <option value="" disabled>
-                    {isTypesLoading
-                      ? "Loading types..."
-                      : isTypesError
-                      ? "Failed to load types"
-                      : "Select Appointment Type"}
-                  </option>
-                  {!isTypesLoading &&
-                    !isTypesError &&
-                    appointmentTypes.map((type) => (
+                  <option value="General">General</option>
+                  <option value="Special">Special</option>
+                </select>
+              </div>
+
+              {/* Appointment Type */}
+              {appointmentTypes.length > 1 ? (
+                <div className="flex flex-col gap-2">
+                  <label htmlFor="appointment_type" className="font-medium text-base">
+                    Appointment Type
+                  </label>
+                  <select
+                    name="appointment_type"
+                    id="appointment_type"
+                    className="p-4 border border-[#d0d5dd] h-14 rounded-lg"
+                    value={formData.appointment_type}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        appointment_type: e.target.value,
+                      }))
+                    }
+                    required
+                    disabled={isTypesLoading || isTypesError}
+                  >
+                    <option value="" disabled>
+                      {isTypesLoading
+                        ? "Loading types..."
+                        : isTypesError
+                        ? "Failed to load types"
+                        : "Select Appointment Type"}
+                    </option>
+
+                    {appointmentTypes.map((type) => (
                       <option key={type.value} value={type.value}>
                         {type.label}
                       </option>
                     ))}
-                </select>
+                  </select>
+                </div>
+              ) : (
+                appointmentTypes.length === 1 && (
+                  <div className="text-sm text-gray-600">
+                    Auto-selected: <strong>{appointmentTypes[0].label}</strong>
+                  </div>
+                )
+              )}
 
-                {!isTypesLoading && !isTypesError && appointmentTypes.length === 0 && (
-                  <span className="text-sm text-amber-600">No appointment types found.</span>
-                )}
-                {isTypesError && (
-                  <span className="text-sm text-red-500">
-                    Couldn’t load appointment types. Please refresh.
-                  </span>
-                )}
-              </div>
 
               {/* Notes */}
               <div className="col-span-2 flex flex-col gap-2">

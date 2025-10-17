@@ -58,27 +58,36 @@ export const appointmentsApi = apiClient.injectEndpoints({
 
     // ✅ Get today's appointments
     getTodaysAppointments: builder.query({
-      query: () => ({
-        url: getTodaysAppointmentUrl,
-        method: "GET",
-      }),
+      query: (params = {}) => {
+        const queryString = new URLSearchParams(params).toString();
+        return {
+          url: queryString
+            ? `${getTodaysAppointmentUrl}?${queryString}`
+            : getTodaysAppointmentUrl,
+          method: "GET",
+        };
+      },
     }),
 
     // Fetch Appointment Types
     fetchAppointmentTypes: builder.query({
-      query: () => ({
-        url: fetchAppointmentTypesUrl,
+      query: (category) => ({
+        url: category
+          ? `${fetchAppointmentTypesUrl}?category=${encodeURIComponent(category)}`
+          : fetchAppointmentTypesUrl,
         method: "GET",
       }),
       transformResponse: (resp) => {
         if (!Array.isArray(resp)) return [];
         return resp.map((t) => ({
-          value: t.id,       // numeric id
-          label: t.name,     // display name
-          raw: t,            // optional: keep original object if you need more fields
+          value: t.id,        // numeric id
+          label: t.name,      // display name
+          category: t.category, // "General" or "Special"
+          raw: t,             // keep full object for later use
         }));
       },
     }),
+
 
     // ======================
     // Flow Endpoints
