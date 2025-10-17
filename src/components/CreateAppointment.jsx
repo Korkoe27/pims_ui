@@ -1,7 +1,10 @@
 import { useState } from "react";
 import { useLocation } from "react-router-dom";
 import { useDispatch } from "react-redux";
-import { useCreateAppointmentMutation } from "../redux/api/features/appointmentsApi";
+import {
+  useCreateAppointmentMutation,
+  useFetchAppointmentTypesQuery,
+} from "../redux/api/features/appointmentsApi";
 import { showToast, formatErrorMessage } from "../components/ToasterHelper";
 import { addNewAppointment } from "../redux/slices/dashboardSlice";
 
@@ -11,51 +14,22 @@ const CreateAppointment = () => {
   const patient = state?.patient || null;
 
   const [createAppointment, { isLoading }] = useCreateAppointmentMutation();
+  const {
+    data: appointmentTypes = [],
+    isLoading: isTypesLoading,
+    isError: isTypesError,
+  } = useFetchAppointmentTypesQuery();
 
   const [formData, setFormData] = useState({
     appointment_date: "",
     appointment_type: "",
-    consultation_category: "",
-    special_clinic: "",
     status: "scheduled",
     notes: "",
   });
 
-  // --- Dropdown options ---
-  const APPOINTMENT_TYPES = [
-    { value: "New", label: "New" },
-    { value: "Review", label: "Review" },
-  ];
-
-  const CONSULTATION_CATEGORIES = [
-    { value: "regular", label: "Regular Consultation" },
-    { value: "special", label: "Special Clinic" },
-  ];
-
-  const SPECIAL_CLINIC_TYPES = [
-    { value: "pediatric", label: "Pediatric" },
-    { value: "low_vision", label: "Low Vision" },
-    { value: "contact_lens", label: "Contact Lens" },
-    { value: "binocular_vision", label: "Binocular Vision" },
-    { value: "glaucoma", label: "Glaucoma" },
-    { value: "retina", label: "Retina" },
-    { value: "cornea", label: "Cornea" },
-    { value: "dry_eye", label: "Dry Eye" },
-    { value: "neuro_optometry", label: "Neuro-Optometry" },
-    { value: "occupational", label: "Occupational / Vision Therapy" },
-    { value: "emergency", label: "Emergency" },
-    { value: "other", label: "Other" },
-  ];
-
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-      ...(name === "consultation_category" && value === "regular"
-        ? { special_clinic: "" }
-        : {}),
-    }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
@@ -69,12 +43,7 @@ const CreateAppointment = () => {
     const payload = {
       patient: patient.id,
       appointment_date: formData.appointment_date,
-      appointment_type: formData.appointment_type,
-      consultation_category: formData.consultation_category,
-      special_clinic:
-        formData.consultation_category === "special"
-          ? formData.special_clinic
-          : null,
+      appointment_type: Number(formData.appointment_type),
       status: formData.status,
       notes: formData.notes,
     };
@@ -97,8 +66,6 @@ const CreateAppointment = () => {
       setFormData({
         appointment_date: "",
         appointment_type: "",
-        consultation_category: "",
-        special_clinic: "",
         status: "scheduled",
         notes: "",
       });
@@ -111,20 +78,15 @@ const CreateAppointment = () => {
   return (
     <div className="flex justify-center min-h-screen bg-[#f9fafb] items-start">
       <div className="max-w-2xl w-full flex flex-col px-6 py-8 gap-8 bg-white rounded-xl shadow-lg mt-12">
-        <h1 className="font-semibold text-xl text-center">
-          Schedule an Appointment
-        </h1>
+        <h1 className="font-semibold text-xl text-center">Schedule an Appointment</h1>
 
         {!patient ? (
-          <p className="text-red-500 text-center">
-            Error: No valid patient selected.
-          </p>
+          <p className="text-red-500 text-center">Error: No valid patient selected.</p>
         ) : (
           <>
             <div className="bg-gray-100 p-4 rounded-md shadow-md">
               <p>
-                <strong>Patient Name:</strong> {patient.first_name}{" "}
-                {patient.last_name || ""}
+                <strong>Patient Name:</strong> {patient.first_name} {patient.last_name || ""}
               </p>
               <p>
                 <strong>Patient ID:</strong> {patient.patient_id}
@@ -132,7 +94,7 @@ const CreateAppointment = () => {
             </div>
 
             <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-6 mt-6">
-              {/* Row 1: Appointment Date */}
+              {/* Appointment Date */}
               <div className="flex flex-col gap-2">
                 <label htmlFor="appointment_date" className="font-medium text-base">
                   Appointment Date
@@ -148,7 +110,7 @@ const CreateAppointment = () => {
                 />
               </div>
 
-              {/* Row 2: Appointment Type */}
+              {/* Appointment Type (fetched) */}
               <div className="flex flex-col gap-2">
                 <label htmlFor="appointment_type" className="font-medium text-base">
                   Appointment Type
@@ -160,70 +122,33 @@ const CreateAppointment = () => {
                   value={formData.appointment_type}
                   onChange={handleChange}
                   required
+                  disabled={isTypesLoading || isTypesError}
                 >
                   <option value="" disabled>
-                    Select Appointment Type
+                    {isTypesLoading
+                      ? "Loading types..."
+                      : isTypesError
+                      ? "Failed to load types"
+                      : "Select Appointment Type"}
                   </option>
-                  {APPOINTMENT_TYPES.map((type) => (
-                    <option key={type.value} value={type.value}>
-                      {type.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Row 3: Consultation Category */}
-              <div className="flex flex-col gap-2">
-                <label
-                  htmlFor="consultation_category"
-                  className="font-medium text-base"
-                >
-                  Consultation Category
-                </label>
-                <select
-                  name="consultation_category"
-                  id="consultation_category"
-                  className="p-4 border border-[#d0d5dd] h-14 rounded-lg"
-                  value={formData.consultation_category}
-                  onChange={handleChange}
-                  required
-                >
-                  <option value="" disabled>
-                    Select Consultation Category
-                  </option>
-                  {CONSULTATION_CATEGORIES.map((cat) => (
-                    <option key={cat.value} value={cat.value}>
-                      {cat.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Row 4: Special Clinic (conditional) */}
-              {formData.consultation_category === "special" && (
-                <div className="flex flex-col gap-2">
-                  <label htmlFor="special_clinic" className="font-medium text-base">
-                    Special Clinic
-                  </label>
-                  <select
-                    name="special_clinic"
-                    id="special_clinic"
-                    className="p-4 border border-[#d0d5dd] h-14 rounded-lg"
-                    value={formData.special_clinic}
-                    onChange={handleChange}
-                    required
-                  >
-                    <option value="" disabled>
-                      Select Special Clinic
-                    </option>
-                    {SPECIAL_CLINIC_TYPES.map((type) => (
+                  {!isTypesLoading &&
+                    !isTypesError &&
+                    appointmentTypes.map((type) => (
                       <option key={type.value} value={type.value}>
                         {type.label}
                       </option>
                     ))}
-                  </select>
-                </div>
-              )}
+                </select>
+
+                {!isTypesLoading && !isTypesError && appointmentTypes.length === 0 && (
+                  <span className="text-sm text-amber-600">No appointment types found.</span>
+                )}
+                {isTypesError && (
+                  <span className="text-sm text-red-500">
+                    Couldn’t load appointment types. Please refresh.
+                  </span>
+                )}
+              </div>
 
               {/* Notes */}
               <div className="col-span-2 flex flex-col gap-2">
@@ -237,7 +162,7 @@ const CreateAppointment = () => {
                   className="h-24 p-4 border resize-none w-full rounded-lg"
                   value={formData.notes}
                   onChange={handleChange}
-                ></textarea>
+                />
               </div>
 
               {/* Submit */}
@@ -245,7 +170,7 @@ const CreateAppointment = () => {
                 <button
                   type="submit"
                   className="w-56 p-4 rounded-lg text-white text-lg font-medium bg-[#2f3192]"
-                  disabled={isLoading}
+                  disabled={isLoading || isTypesLoading || isTypesError}
                 >
                   {isLoading ? "Booking..." : "Book Appointment"}
                 </button>

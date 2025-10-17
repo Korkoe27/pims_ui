@@ -83,6 +83,10 @@ export const submitAppointmentForReviewUrl = (appointmentId) =>
 export const flowContextAppointmentUrl = (appointmentId) =>
   `/clients/appointments/${appointmentId}/flow-context/`;
 
+
+//Fetch appointment types
+export const fetchAppointmentTypesUrl = "/clients/appointment-types/";
+
 /////////////////////////
 // Case History
 /////////////////////////

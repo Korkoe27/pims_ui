@@ -5,6 +5,7 @@ import {
   getAppointmentsDetailsUrl,
   markAppointmentCompletedUrl,
   getTodaysAppointmentUrl,
+  fetchAppointmentTypesUrl,
   // 👇 new ones
   transitionAppointmentUrl,
   submitAppointmentForReviewUrl,
@@ -63,6 +64,22 @@ export const appointmentsApi = apiClient.injectEndpoints({
       }),
     }),
 
+    // Fetch Appointment Types
+    fetchAppointmentTypes: builder.query({
+      query: () => ({
+        url: fetchAppointmentTypesUrl,
+        method: "GET",
+      }),
+      transformResponse: (resp) => {
+        if (!Array.isArray(resp)) return [];
+        return resp.map((t) => ({
+          value: t.id,       // numeric id
+          label: t.name,     // display name
+          raw: t,            // optional: keep original object if you need more fields
+        }));
+      },
+    }),
+
     // ======================
     // Flow Endpoints
     // ======================
@@ -103,6 +120,7 @@ export const {
   useGetTodaysAppointmentsQuery,
   useCreateAppointmentMutation,
   useMarkAppointmentCompletedMutation,
+  useFetchAppointmentTypesQuery,
 
   // Flow
   useTransitionAppointmentMutation,

@@ -8,6 +8,7 @@ const initialState = {
   error: null,
   loading: false,
   successMessage: null,
+  appointmentTypes: [], 
 };
 
 // Appointment Slice
@@ -114,6 +115,31 @@ const appointmentsSlice = createSlice({
           state.error =
             action.error?.message ||
             "Failed to mark appointment as completed";
+        }
+      );
+
+    // Fetch Appointment Types
+    builder
+      .addMatcher(
+        appointmentsApi.endpoints.fetchAppointmentTypes.matchPending,
+        (state) => {
+          state.loading = true;
+          state.error = null;
+        }
+      )
+      .addMatcher(
+        appointmentsApi.endpoints.fetchAppointmentTypes.matchFulfilled,
+        (state, action) => {
+          state.appointmentTypes = action.payload;
+          state.loading = false;
+        }
+      )
+      .addMatcher(
+        appointmentsApi.endpoints.fetchAppointmentTypes.matchRejected,
+        (state, action) => {
+          state.error =
+            action.error?.message || "Failed to fetch appointment types";
+          state.loading = false;
         }
       );
 
