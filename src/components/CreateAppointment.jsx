@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom"; // ✅ import navigate
 import { useDispatch } from "react-redux";
 import {
   useCreateAppointmentMutation,
@@ -11,6 +11,7 @@ import { addNewAppointment } from "../redux/slices/dashboardSlice";
 const CreateAppointment = () => {
   const { state } = useLocation();
   const dispatch = useDispatch();
+  const navigate = useNavigate(); // ✅ initialize navigate
   const patient = state?.patient || null;
 
   const [createAppointment, { isLoading }] = useCreateAppointmentMutation();
@@ -63,12 +64,12 @@ const CreateAppointment = () => {
       );
 
       showToast("Appointment Created Successfully!", "success");
-      setFormData({
-        appointment_date: "",
-        appointment_type: "",
-        status: "scheduled",
-        notes: "",
-      });
+
+      // ✅ Redirect after short delay (so user sees toast)
+      setTimeout(() => {
+        navigate("/"); // <-- adjust path if your dashboard route differs
+      }, 1000);
+
     } catch (err) {
       const message = formatErrorMessage(err?.data);
       showToast(message, "error");
@@ -110,7 +111,7 @@ const CreateAppointment = () => {
                 />
               </div>
 
-              {/* Appointment Type (fetched) */}
+              {/* Appointment Type */}
               <div className="flex flex-col gap-2">
                 <label htmlFor="appointment_type" className="font-medium text-base">
                   Appointment Type
