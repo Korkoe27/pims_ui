@@ -12,19 +12,28 @@ const Sidebar = () => {
   const role = user?.role?.toLowerCase();
   const { handleLogout } = useLogout();
 
-  // Dashboard summary
+  // 🔹 Fetch Dashboard Summary
   const { data: dashboardData, isLoading: isDashboardLoading } =
     useGetDashboardDataQuery();
 
+  // ✅ Safely extract counts
   const totalAppointments = dashboardData?.total_appointments ?? "--";
   const totalPendingReviews =
-    dashboardData?.pending_reviews?.data?.length ?? "--";
+    dashboardData?.pending_reviews?.count ??
+    dashboardData?.pending_reviews?.data?.length ??
+    "--";
 
-  // Optional: you can later populate these dynamically from API
-  const totalGeneral = dashboardData?.general_appointments ?? "--";
-  const totalSpecial = dashboardData?.special_appointments ?? "--";
+  const totalGeneral =
+    dashboardData?.general_appointments?.count ??
+    dashboardData?.general_appointments ??
+    "--";
 
-  // Styling presets
+  const totalSpecial =
+    dashboardData?.special_appointments?.count ??
+    dashboardData?.special_appointments ??
+    "--";
+
+  // 🔹 Styling presets
   const activeLink =
     "flex items-center gap-4 pl-4 py-2.5 rounded text-blue-900 font-semibold text-md bg-[#e3effc]";
   const normalLink =
@@ -42,6 +51,7 @@ const Sidebar = () => {
     <span className={badgeClass}>{isDashboardLoading ? "--" : count}</span>
   );
 
+  // 🔹 Clinic Links
   const CLINIC_LINKS = [
     { label: "General Clinic", path: "general-appointments", count: totalGeneral },
     { label: "Special Clinic", path: "special-appointments", count: totalSpecial },
@@ -104,11 +114,14 @@ const Sidebar = () => {
             <NavLink
               to={item.path}
               key={item.name}
-              className={({ isActive }) => (isActive ? activeLink : normalLink)}
+              className={({ isActive }) =>
+                isActive ? activeLink : normalLink
+              }
             >
               {item.icon}
               <span className="capitalize">{item.name}</span>
 
+              {/* Pending Reviews badge */}
               {item.name === "pending reviews" && (
                 <span className="ml-auto bg-[#fff2e5] min-w-[2rem] h-[1.5rem] px-2 flex justify-center items-center rounded-full text-[#d97706] text-xs font-medium">
                   {isDashboardLoading ? "--" : totalPendingReviews}
@@ -119,7 +132,7 @@ const Sidebar = () => {
         })}
       </div>
 
-      {/* User + Logout */}
+      {/* User Info + Logout */}
       <div className="p-4 border-t border-gray-100 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="rounded-full bg-[#eef2ff] w-10 h-10 flex items-center justify-center">
