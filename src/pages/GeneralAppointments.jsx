@@ -17,9 +17,17 @@ const GeneralAppointments = () => {
   const pageSize = 10;
 
   const { data, isLoading, error } = useGetTodaysAppointmentsQuery();
+
+  // ✅ Extract all appointments
   const appointments = data?.data || [];
 
-  const sortedAppointments = [...appointments].sort((a, b) => {
+  // ✅ Filter only "General" category appointments
+  const generalAppointments = appointments.filter(
+    (appt) => appt?.appointment_category === "General"
+  );
+
+  // ✅ Sort by status
+  const sortedAppointments = [...generalAppointments].sort((a, b) => {
     const statusOrder = { Scheduled: 1, Completed: 2, Cancelled: 3 };
     return statusOrder[a.status] - statusOrder[b.status];
   });
@@ -35,7 +43,6 @@ const GeneralAppointments = () => {
     setCurrentPage(page);
   };
 
-  // ✅ check if at least one row has a valid consult action
   const hasAnyConsultAction = paginatedAppointments.some((appt) =>
     canShowConsultButton(appt, userRole)
   );
@@ -43,9 +50,8 @@ const GeneralAppointments = () => {
   return (
     <PageContainer>
       {isLoading && <LoadingSpinner />}
-      <h1 className="font-extrabold text-xl">General Appointments</h1>
+      <h1 className="font-extrabold text-xl mb-4">General Appointments</h1>
 
-      {/* ✅ Fixed error handling - extract message from error object */}
       {error && (
         <p className="text-red-500 bg-red-50 border border-red-200 rounded-lg p-4 my-4">
           <span className="font-semibold">Error:</span>{" "}
@@ -55,31 +61,19 @@ const GeneralAppointments = () => {
         </p>
       )}
 
-      {!isLoading && paginatedAppointments?.length > 0 ? (
+      {!isLoading && paginatedAppointments.length > 0 ? (
         <>
-          <table className="w-full text-base text-left rtl:text-right text-gray-500">
+          <table className="w-full text-base text-left text-gray-500">
             <thead className="text-base text-gray-700 uppercase bg-gray-50">
               <tr>
-                <th scope="col" className="px-6 py-3">
-                  Date
-                </th>
-                <th scope="col" className="px-6 py-3">
-                  Patient ID
-                </th>
-                <th scope="col" className="px-6 py-3">
-                  Name
-                </th>
-                <th scope="col" className="px-6 py-3">
-                  Type
-                </th>
-                <th scope="col" className="px-6 py-3">
-                  Status
-                </th>
+                <th className="px-6 py-3">Date</th>
+                <th className="px-6 py-3">Patient ID</th>
+                <th className="px-6 py-3">Name</th>
+                <th className="px-6 py-3">Type</th>
+                <th className="px-6 py-3">Status</th>
                 {hasAnyConsultAction && (
                   <CanAccess allowedRoles={[ROLES.STUDENT, ROLES.LECTURER]}>
-                    <th scope="col" className="px-3 min-w-40 py-3">
-                      Action
-                    </th>
+                    <th className="px-3 min-w-40 py-3">Action</th>
                   </CanAccess>
                 )}
               </tr>
@@ -90,10 +84,12 @@ const GeneralAppointments = () => {
                   <td className="px-6 py-4">{appointment?.appointment_date}</td>
                   <td className="px-6 py-4">{appointment?.patient_id}</td>
                   <td className="px-6 py-4">{appointment?.patient_name}</td>
-                  <td className="px-6 py-4">{appointment?.appointment_type}</td>
+                  <td className="px-6 py-4">
+                    {appointment?.appointment_type_name}
+                  </td>
                   <td className="w-fit mx-auto">
                     <span
-                      className={`px-6 rounded-full py-2 text-base font-medium text-white w-5 ${checkStatus(
+                      className={`px-6 rounded-full py-2 text-base font-medium text-white ${checkStatus(
                         appointment?.status
                       )}`}
                     >
@@ -115,7 +111,7 @@ const GeneralAppointments = () => {
               ))}
             </tbody>
           </table>
-                
+
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}
@@ -125,7 +121,7 @@ const GeneralAppointments = () => {
       ) : (
         !isLoading && (
           <p className="text-gray-500 text-center">
-            No appointments available.
+            No general appointments available.
           </p>
         )
       )}
@@ -135,6 +131,7 @@ const GeneralAppointments = () => {
 
 export default GeneralAppointments;
 
+// ✅ Helper to style statuses
 const checkStatus = (status) => {
   switch (status) {
     case "Consultation Completed":
