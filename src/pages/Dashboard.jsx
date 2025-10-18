@@ -43,21 +43,7 @@ const Dashboard = () => {
   const pendingAppointments = dashboardData?.pending_appointments || 0;
 
   // ✅ General / Special Clinic counts (safe for both numeric or object)
-  const totalGeneral =
-    dashboardData?.general_appointments?.count ??
-    dashboardData?.general_appointments ??
-    0;
-
-  const totalSpecial =
-    dashboardData?.special_appointments?.count ??
-    dashboardData?.special_appointments ??
-    0;
-
-  // Optional: arrays of today’s clinic appointments
-  const generalAppointments =
-    dashboardData?.general_appointments?.data ?? [];
-  const specialAppointments =
-    dashboardData?.special_appointments?.data ?? [];
+  // ...existing code...
 
   // ✅ check if at least one consult action should render
   const hasAnyConsultAction = scheduledAppointments.some((appt) =>
@@ -98,28 +84,6 @@ const Dashboard = () => {
           </span>
         </div>
       </div>
-
-      {/* 🔹 Clinic Breakdown */}
-      {/* <div className="grid grid-cols-12 gap-9 w-full mt-8">
-        <div className="bg-[#e3effc] p-4 h-36 col-span-6">
-          <h3 className="flex items-center text-base gap-[12px] font-normal">
-            <HiOutlineUser className="w-6 h-6 text-[#2f3192]" />
-            General Clinic
-          </h3>
-          <span className="text-[50px] font-bold text-[#2f3192]">
-            {dashboardLoading ? <LoadingSpinner /> : totalGeneral}
-          </span>
-        </div>
-        <div className="bg-[#fff0e5] p-4 h-36 col-span-6">
-          <h3 className="flex items-center text-base gap-[12px] font-normal">
-            <HiOutlineUser className="w-6 h-6 text-[#d97706]" />
-            Special Clinic
-          </h3>
-          <span className="text-[50px] font-bold text-[#d97706]">
-            {dashboardLoading ? <LoadingSpinner /> : totalSpecial}
-          </span>
-        </div>
-      </div> */}
 
       {/* Upcoming Appointments */}
       <div className="mt-10">
