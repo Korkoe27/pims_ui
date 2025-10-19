@@ -1,10 +1,13 @@
 /**
- * Permission utilities based on the comprehensive API documentation
- * Supports role-based editing rules and backward flow mechanisms
+ * =======================================================
+ *   UNIVERSAL PERMISSION & ROLE UTILITIES
+ *   (Frontend mirror of backend role/permission logic)
+ * =======================================================
  */
 
 /**
- * Check if user can edit a specific section based on role and appointment status
+ * Check if user can edit a specific section
+ * based on role, appointment status, and case type.
  */
 export const canEditSection = (
   userRole,
@@ -12,63 +15,61 @@ export const canEditSection = (
   sectionType,
   isStudentCase = false
 ) => {
-  // Administrator can edit ANY time, ANY status
-  if (userRole === "administrator") {
-    return true;
-  }
+  if (!userRole) return false;
 
-  // Student editing rules
-  if (userRole === "student") {
+  // 🔹 Administrator can edit anything
+  if (userRole.toLowerCase() === "administrator") return true;
+
+  // 🔹 Student editing rules
+  if (userRole.toLowerCase() === "student") {
     switch (appointmentStatus) {
       case "Consultation In Progress":
       case "Exams Recorded":
       case "Diagnosis Added":
       case "Management Created":
-        return true; // Can edit until submission
-      case "Submitted For Review":
-      case "Under Review":
-      case "Graded":
-        return false; // Read-only after submission
+        return true; // can edit until submission
       case "Returned for Changes":
-        return true; // Can edit again if returned
+        return true;
       default:
-        return false;
+        return false; // read-only after submission
     }
   }
 
-  // Lecturer editing rules
-  if (userRole === "lecturer") {
+  // 🔹 Lecturer editing rules
+  if (userRole.toLowerCase() === "lecturer") {
     switch (appointmentStatus) {
       case "Under Review":
       case "Graded":
-        return true; // Can edit during review phases + jump backward
+        return true; // can edit or adjust
       case "Submitted For Review":
-        return isStudentCase; // Can edit student cases under review
+        return isStudentCase; // only for student cases
       default:
         return false;
     }
   }
 
-  // Secretary - limited to payment-related sections
-  if (userRole === "secretary") {
+  // 🔹 Secretary — payment sections only
+  if (userRole.toLowerCase() === "secretary") {
     return sectionType === "payment";
   }
 
-  // Pharmacy - limited to medication sections
-  if (userRole === "pharmacy") {
-    return sectionType === "medication" || sectionType === "dispensing";
+  // 🔹 Pharmacy — medication/dispensing sections only
+  if (userRole.toLowerCase() === "pharmacy") {
+    return ["medication", "dispensing"].includes(sectionType);
   }
 
   return false;
 };
 
 /**
- * Check if user can perform backward flow actions
+ * Check backward flow privileges (e.g., return, override)
  */
 export const canPerformBackwardFlow = (userRole, appointmentStatus, action) => {
-  if (userRole === "administrator") return true;
+  if (!userRole) return false;
 
-  if (userRole === "lecturer") {
+  if (userRole.toLowerCase() === "administrator") return true;
+
+  if (userRole.toLowerCase() === "lecturer") {
     switch (action) {
       case "return_for_changes":
         return ["Under Review", "Graded"].includes(appointmentStatus);
@@ -87,7 +88,7 @@ export const canPerformBackwardFlow = (userRole, appointmentStatus, action) => {
 };
 
 /**
- * Get available actions based on role and status
+ * Get available actions for a user based on role & status
  */
 export const getAvailableActions = (
   userRole,
@@ -95,14 +96,11 @@ export const getAvailableActions = (
   isStudentCase = false
 ) => {
   const actions = [];
+  if (!userRole) return actions;
 
-  // Common actions for all roles
-  if (canEditSection(userRole, appointmentStatus, "view")) {
-    actions.push("view");
-  }
+  if (canEditSection(userRole, appointmentStatus, "view")) actions.push("view");
 
-  // Role-specific actions
-  if (userRole === "student") {
+  if (userRole.toLowerCase() === "student") {
     if (
       [
         "Consultation In Progress",
@@ -118,7 +116,7 @@ export const getAvailableActions = (
     }
   }
 
-  if (userRole === "lecturer") {
+  if (userRole.toLowerCase() === "lecturer") {
     if (
       isStudentCase &&
       ["Submitted For Review", "Under Review"].includes(appointmentStatus)
@@ -130,7 +128,7 @@ export const getAvailableActions = (
     }
   }
 
-  if (userRole === "administrator") {
+  if (userRole.toLowerCase() === "administrator") {
     actions.push("edit", "override", "complete", "delete");
   }
 
@@ -138,36 +136,32 @@ export const getAvailableActions = (
 };
 
 /**
- * Check if appointment status allows completion
+ * Check if appointment is ready for completion
  */
 export const canCompleteAppointment = (
   userRole,
   appointmentStatus,
   isStudentCase = false
 ) => {
-  if (userRole === "administrator") return true;
+  if (!userRole) return false;
 
-  if (userRole === "lecturer") {
-    if (isStudentCase) {
-      return appointmentStatus === "Graded"; // Student cases must be graded first
-    } else {
-      return appointmentStatus === "Management Created"; // Lecturer cases need management
-    }
+  if (userRole.toLowerCase() === "administrator") return true;
+
+  if (userRole.toLowerCase() === "lecturer") {
+    if (isStudentCase) return appointmentStatus === "Graded";
+    return appointmentStatus === "Management Created";
   }
 
   return false;
 };
 
-
-/**
- * -------------------------------
- *  GENERAL PERMISSION UTILITIES
- * -------------------------------
+/* =======================================================
+ *  GENERAL PERMISSION UTILITIES (System-Level Checks)
+ * =======================================================
  */
 
 /**
- * Check boolean access flags (preferred for system-level checks)
- * Example: can(user, "canViewAppointments")
+ * Boolean access flags — e.g., user.access.canViewAppointments
  */
 export const can = (user, key) => {
   if (!user || !user.access) return false;
@@ -175,8 +169,8 @@ export const can = (user, key) => {
 };
 
 /**
- * Check permission codes (fallback for legacy checks)
- * Example: hasPermission(user, "view_appointment")
+ * Permission code lookup — matches backend codes
+ * e.g., hasPermission(user, "appointments.create")
  */
 export const hasPermission = (user, code) => {
   if (!user || !Array.isArray(user.permissions)) return false;
@@ -184,8 +178,7 @@ export const hasPermission = (user, code) => {
 };
 
 /**
- * Combined check (either access flag OR permission code)
- * Useful when migrating gradually
+ * Combined check for flexibility
  */
 export const isAuthorized = (user, accessKey, permissionCode) => {
   return can(user, accessKey) || hasPermission(user, permissionCode);
