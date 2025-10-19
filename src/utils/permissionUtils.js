@@ -157,3 +157,36 @@ export const canCompleteAppointment = (
 
   return false;
 };
+
+
+/**
+ * -------------------------------
+ *  GENERAL PERMISSION UTILITIES
+ * -------------------------------
+ */
+
+/**
+ * Check boolean access flags (preferred for system-level checks)
+ * Example: can(user, "canViewAppointments")
+ */
+export const can = (user, key) => {
+  if (!user || !user.access) return false;
+  return Boolean(user.access[key]);
+};
+
+/**
+ * Check permission codes (fallback for legacy checks)
+ * Example: hasPermission(user, "view_appointment")
+ */
+export const hasPermission = (user, code) => {
+  if (!user || !Array.isArray(user.permissions)) return false;
+  return user.permissions.includes(code);
+};
+
+/**
+ * Combined check (either access flag OR permission code)
+ * Useful when migrating gradually
+ */
+export const isAuthorized = (user, accessKey, permissionCode) => {
+  return can(user, accessKey) || hasPermission(user, permissionCode);
+};

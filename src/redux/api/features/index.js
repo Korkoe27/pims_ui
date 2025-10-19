@@ -1,0 +1,11 @@
+export { authApi } from "./authApi";
+export { patientApi } from "./patientApi";
+export { caseHistoryApi } from "./caseHistoryApi";
+export { visualAcuityApi } from "./visualAcuityApi";
+export { diagnosisApi } from "./diagnosisApi";
+export { managementApi } from "./managementApi";
+export { dashboardApi } from "./dashboardApi";
+export { appointmentsApi } from "./appointmentsApi";
+export { absentRequestApi } from "./absentRequestApi";
+export { gradingApi } from "./gradingApi";
+export { consultationApi } from "./consultationApi";

@@ -6,10 +6,11 @@ import { Sidebar_links } from "../extras/data.js";
 import { useSelector } from "react-redux";
 import useLogout from "../hooks/useLogout";
 import { useGetDashboardDataQuery } from "../redux/api/features/dashboardApi";
+import { can, hasPermission } from "../utils/permissionUtils.js";
 
 const Sidebar = () => {
   const { user } = useSelector((state) => state.auth);
-  const role = user?.role?.toLowerCase();
+  const role = user?.role_name?.toLowerCase();
   const { handleLogout } = useLogout();
 
   // 🔹 Fetch Dashboard Summary
@@ -57,6 +58,18 @@ const Sidebar = () => {
     { label: "Special Clinic", path: "special-appointments", count: totalSpecial },
   ];
 
+  // 🔹 Filter visible sidebar items
+  const visibleLinks = Sidebar_links.filter((item) => {
+    const hasRoleAccess =
+      item.roles === "all" || item.roles?.includes(role);
+    const hasPermissionAccess =
+      (item.accessKey && can(user, item.accessKey)) ||
+      (item.permissionCode && hasPermission(user, item.permissionCode));
+
+    // show if role or permissions allow it
+    return hasRoleAccess || hasPermissionAccess;
+  });
+
   return (
     <div className="w-72 bg-white fixed h-screen flex flex-col shadow-sm border-r border-gray-100">
       {/* Logo */}
@@ -68,11 +81,8 @@ const Sidebar = () => {
 
       {/* Navigation */}
       <div className="flex-1 overflow-y-auto px-2 mt-4 border-t border-gray-100 pt-4">
-        {Sidebar_links.filter(
-          (item) =>
-            item.roles === "all" || item.roles.includes(role?.toLowerCase())
-        ).map((item) => {
-          // 🩺 Appointments section
+        {visibleLinks.map((item) => {
+          // 🩺 Appointments section (with sub-links)
           if (item.name.toLowerCase() === "appointments") {
             return (
               <div key="appointments" className="mb-2">
@@ -90,21 +100,23 @@ const Sidebar = () => {
                   </span>
                 </NavLink>
 
-                {/* Sub-links: General & Special Clinics */}
-                <div className="mt-1">
-                  {CLINIC_LINKS.map((clinic) => (
-                    <NavLink
-                      key={clinic.path}
-                      to={clinic.path}
-                      className={({ isActive }) =>
-                        isActive ? subLinkActive : subLinkNormal
-                      }
-                    >
-                      <span>{clinic.label}</span>
-                      {clinicBadge(clinic.count)}
-                    </NavLink>
-                  ))}
-                </div>
+                {/* Sub-links only if user can view appointments */}
+                {can(user, "canViewAppointments") && (
+                  <div className="mt-1">
+                    {CLINIC_LINKS.map((clinic) => (
+                      <NavLink
+                        key={clinic.path}
+                        to={clinic.path}
+                        className={({ isActive }) =>
+                          isActive ? subLinkActive : subLinkNormal
+                        }
+                      >
+                        <span>{clinic.label}</span>
+                        {clinicBadge(clinic.count)}
+                      </NavLink>
+                    ))}
+                  </div>
+                )}
               </div>
             );
           }
@@ -142,7 +154,6 @@ const Sidebar = () => {
             <h4 className="text-sm font-semibold text-[#101928]">
               {user?.first_name || "User"}
             </h4>
-            <p className="text-xs text-gray-500 capitalize">{role || "user"}</p>
           </div>
         </div>
         <button
