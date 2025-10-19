@@ -10,7 +10,9 @@ import LoadingSpinner from "./LoadingSpinner";
 import useLogout from "../hooks/useLogout";
 import { useLazySearchPatientsQuery } from "../redux/api/features/patientApi";
 import { showToast } from "../components/ToasterHelper";
-import CanAccess from "../components/auth/CanAccess";
+
+// ✅ new imports
+import { isAuthorized } from "../utils/permissionUtils";
 import { ROLES } from "../constants/roles";
 
 const Navbar = () => {
@@ -26,22 +28,23 @@ const Navbar = () => {
 
   const handleSearch = async (e) => {
     e.preventDefault();
-    if (searchQuery.trim()) {
-      setIsLoading(true);
-      showToast("Searching for patient...", "loading", {
-        duration: 10000,
-        isLoading: true,
-      });
-      try {
-        await triggerSearch(searchQuery);
-        showToast("Search completed successfully!", "success");
-        navigate(`/patients/search?query=${searchQuery}`);
-      } catch (error) {
-        console.error("Search error:", error);
-        showToast("Failed to fetch search results.", "error");
-      } finally {
-        setIsLoading(false);
-      }
+    if (!searchQuery.trim()) return;
+
+    setIsLoading(true);
+    showToast("Searching for patient...", "loading", {
+      duration: 10000,
+      isLoading: true,
+    });
+
+    try {
+      await triggerSearch(searchQuery);
+      showToast("Search completed successfully!", "success");
+      navigate(`/patients/search?query=${searchQuery}`);
+    } catch (error) {
+      console.error("Search error:", error);
+      showToast("Failed to fetch search results.", "error");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -51,6 +54,11 @@ const Navbar = () => {
     if (hour < 18) return "Afternoon";
     return "Evening";
   };
+
+  // ✅ check authorization for adding patients
+  const canAddPatient =
+    isAuthorized(user, "canAddPatient", "add_patient") ||
+    (user?.role_name?.toLowerCase() === ROLES.ADMINISTRATOR.toLowerCase());
 
   return (
     <div className="h-16 w-full px-6 flex items-center justify-between bg-white z-20">
@@ -89,7 +97,9 @@ const Navbar = () => {
             </div>
           )}
         </form>
-        <CanAccess allowedRoles={[ROLES.ADMINISTRATOR]}>
+
+        {/* ✅ Authorized Add Button */}
+        {canAddPatient && (
           <button
             onClick={() => setIsModalOpen(true)}
             className="flex items-center gap-2 px-4 py-2 text-white bg-[#2f3192] rounded-md text-sm"
@@ -97,7 +107,7 @@ const Navbar = () => {
             <GrAdd />
             Add New Patient
           </button>
-        </CanAccess>
+        )}
       </div>
 
       {/* Avatar and dropdown */}
