@@ -2,44 +2,67 @@ import { createSlice } from "@reduxjs/toolkit";
 import { persistReducer } from "redux-persist";
 import storage from "redux-persist/lib/storage";
 
+// -----------------------------------------------------
+// 🔹 Initial State
+// -----------------------------------------------------
+const initialState = {
+  user: null,        // Full user object (id, name, role, etc.)
+  access: null,      // Access permissions from backend
+  loading: false,    // For async actions like login/logout
+  error: null,       // Holds any error messages
+};
+
+// -----------------------------------------------------
+// 🔹 Slice Definition
+// -----------------------------------------------------
 const authSlice = createSlice({
   name: "auth",
-  initialState: {
-    user: null, // Stores the logged-in user's data
-    loading: false, // Indicates if an authentication action is in progress
-    error: null, // Stores error messages related to authentication
-  },
+  initialState,
   reducers: {
-    // Manually set user data
+    // ✅ Set authenticated user and access data
     setUser: (state, action) => {
-      state.user = action.payload;
+      const { user, access } = action.payload || {};
+      state.user = user || null;
+      state.access = access || null;
+      state.loading = false;
+      state.error = null;
     },
-    // Reset authentication state (used during logout)
+
+    // ✅ Reset auth state (on logout or session expiry)
     resetAuth: (state) => {
       state.user = null;
+      state.access = null;
+      state.loading = false;
       state.error = null;
-      state.loading = false; // Reset loading state
     },
-    // Set loading state
+
+    // ✅ Manage loading state
     setLoading: (state, action) => {
       state.loading = action.payload;
     },
-    // Set error state
+
+    // ✅ Manage error state
     setError: (state, action) => {
       state.error = action.payload;
     },
   },
   extraReducers: (builder) => {
-    // Add extraReducers if integrating directly with RTK Query APIs
+    // Optionally handle RTK Query lifecycle events here
   },
 });
 
 export const { setUser, resetAuth, setLoading, setError } = authSlice.actions;
 
+// -----------------------------------------------------
+// 🔹 Persist Config (localStorage persistence)
+// -----------------------------------------------------
 const persistConfig = {
   key: "auth",
-  storage, // Use localStorage for persisting auth state
-  whitelist: ["user"], // Only persist the user state
+  storage,
+  whitelist: ["user", "access"], // Persist both user + access
 };
 
+// -----------------------------------------------------
+// 🔹 Export Persisted Reducer
+// -----------------------------------------------------
 export default persistReducer(persistConfig, authSlice.reducer);

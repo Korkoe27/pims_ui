@@ -19,7 +19,7 @@ export const listAllDiagnosesUrl = "/diagnosis/codes/";or better maintainability
 export const loginUrl = "auth/api/auth/jwt/create/";
 export const logoutUrl = "auth/api/auth/logout/";
 export const checkSessionUrl = "auth/api/auth/check-session/";
-export const getUserUrl = "auth/api/auth/users/me/";
+
 
 /////////////////////////
 // Dashboard
