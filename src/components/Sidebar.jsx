@@ -21,8 +21,8 @@ const Sidebar = () => {
     dashboardData?.pending_reviews?.data?.length ?? "--";
 
   // Optional: you can later populate these dynamically from API
-  const totalGeneral = dashboardData?.general_appointments ?? "--";
-  const totalSpecial = dashboardData?.special_appointments ?? "--";
+  const totalGeneral = dashboardData?.general_appointments?.count ?? "--";
+  const totalSpecial = dashboardData?.special_appointments?.count ?? "--";
 
   // Styling presets
   const activeLink =
