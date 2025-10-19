@@ -40,14 +40,19 @@ export const authApi = apiClient.injectEndpoints({
     // Fetch user data
     getUser: builder.query({
       query: () => ({
-        url: getUserUrl,
+        url: checkSessionUrl, // 🔁 now uses /auth/check-session/
         method: "GET",
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("access_token")}`, // Include access token
+          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
         },
       }),
-      providesTags: ["User"], // Cache user data
+      providesTags: ["User"],
+      transformResponse: (response) => ({
+        isAuthenticated: response?.is_authenticated ?? false,
+        user: response?.user ?? null,
+      }),
     }),
+
   }),
 });
 

@@ -10,10 +10,7 @@ import LoadingSpinner from "./LoadingSpinner";
 import useLogout from "../hooks/useLogout";
 import { useLazySearchPatientsQuery } from "../redux/api/features/patientApi";
 import { showToast } from "../components/ToasterHelper";
-
-// ✅ new imports
-import { isAuthorized } from "../utils/permissionUtils";
-import { ROLES } from "../constants/roles";
+import { hasPermission, can } from "../utils/permissionUtils";
 
 const Navbar = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -55,10 +52,9 @@ const Navbar = () => {
     return "Evening";
   };
 
-  // ✅ check authorization for adding patients
+  // ✅ Permission-based access (no role dependency)
   const canAddPatient =
-    isAuthorized(user, "canAddPatient", "add_patient") ||
-    (user?.role_name?.toLowerCase() === ROLES.ADMINISTRATOR.toLowerCase());
+    can(user, "canAddPatient") || hasPermission(user, "add_patient");
 
   return (
     <div className="h-16 w-full px-6 flex items-center justify-between bg-white z-20">
@@ -98,7 +94,7 @@ const Navbar = () => {
           )}
         </form>
 
-        {/* ✅ Authorized Add Button */}
+        {/* ✅ Only show Add button if user has permission */}
         {canAddPatient && (
           <button
             onClick={() => setIsModalOpen(true)}

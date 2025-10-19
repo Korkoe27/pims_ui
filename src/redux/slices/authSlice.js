@@ -1,4 +1,3 @@
-// src/redux/slices/authSlice.js
 import { createSlice } from "@reduxjs/toolkit";
 import { persistReducer } from "redux-persist";
 import storage from "redux-persist/lib/storage";
@@ -7,9 +6,10 @@ import storage from "redux-persist/lib/storage";
 // ⚙️ Initial State
 // ------------------------------------
 const initialState = {
-  user: null,          // Logged-in user's full data (includes role, permissions, access)
-  loading: false,      // Authentication/network operation in progress
-  error: null,         // Error message (login, logout, session failure, etc.)
+  user: null,              // Authenticated user's full data (id, name, role, permissions, etc.)
+  isAuthenticated: false,  // Whether the session is valid
+  loading: false,          // Network or authentication operation in progress
+  error: null,             // Error message for login/logout/session issues
 };
 
 // ------------------------------------
@@ -19,21 +19,24 @@ const authSlice = createSlice({
   name: "auth",
   initialState,
   reducers: {
-    // ✅ Set authenticated user data
+    // ✅ Set authenticated user + session state
     setUser: (state, action) => {
-      state.user = action.payload;
+      const payload = action.payload || {};
+      state.user = payload.user || null;
+      state.isAuthenticated = !!payload.isAuthenticated;
       state.loading = false;
       state.error = null;
     },
 
-    // ✅ Reset state (e.g., after logout)
+    // ✅ Reset state (used after logout or expired session)
     resetAuth: (state) => {
       state.user = null;
+      state.isAuthenticated = false;
       state.loading = false;
       state.error = null;
     },
 
-    // ✅ Track loading status (useful for spinners)
+    // ✅ Track loading status (for spinners)
     setLoading: (state, action) => {
       state.loading = action.payload;
     },
@@ -45,7 +48,7 @@ const authSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
-    // Optional: integrate directly with RTK Query or async thunks here
+    // Optional future RTK Query integration (e.g., login/logout)
   },
 });
 
@@ -59,8 +62,8 @@ export const { setUser, resetAuth, setLoading, setError } = authSlice.actions;
 // ------------------------------------
 const persistConfig = {
   key: "auth",
-  storage, // defaults to localStorage in web
-  whitelist: ["user"], // persist only the user data (not loading/error)
+  storage, // Uses localStorage by default
+  whitelist: ["user", "isAuthenticated"], // Persist only these fields
 };
 
 // ------------------------------------
