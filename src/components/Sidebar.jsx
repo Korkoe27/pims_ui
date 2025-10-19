@@ -6,7 +6,7 @@ import { Sidebar_links } from "../extras/data.js";
 import { useSelector } from "react-redux";
 import useLogout from "../hooks/useLogout";
 import { useGetDashboardDataQuery } from "../redux/api/features/dashboardApi";
-import { can, hasPermission } from "../utils/permissionUtils.js";
+import { can, isAuthorized } from "../utils/permissionUtils.js";
 
 const Sidebar = () => {
   const { user } = useSelector((state) => state.auth);
@@ -64,7 +64,7 @@ const Sidebar = () => {
       item.roles === "all" || item.roles?.includes(role);
     const hasPermissionAccess =
       (item.accessKey && can(user, item.accessKey)) ||
-      (item.permissionCode && hasPermission(user, item.permissionCode));
+      (item.permissionCode && isAuthorized(user, item.permissionCode));
 
     // show if role or permissions allow it
     return hasRoleAccess || hasPermissionAccess;

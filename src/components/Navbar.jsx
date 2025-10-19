@@ -1,3 +1,4 @@
+// src/components/Navbar.jsx
 import React, { useState } from "react";
 import { CiSearch } from "react-icons/ci";
 import { FaChevronDown } from "react-icons/fa6";
@@ -10,7 +11,7 @@ import LoadingSpinner from "./LoadingSpinner";
 import useLogout from "../hooks/useLogout";
 import { useLazySearchPatientsQuery } from "../redux/api/features/patientApi";
 import { showToast } from "../components/ToasterHelper";
-import { hasPermission, can } from "../utils/permissionUtils";
+import { can } from "../utils/permissionUtils"; // ✅ cleaned import
 
 const Navbar = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -52,9 +53,8 @@ const Navbar = () => {
     return "Evening";
   };
 
-  // ✅ Permission-based access (no role dependency)
-  const canAddPatient =
-    can(user, "canAddPatient") || hasPermission(user, "add_patient");
+  // ✅ Use backend-defined access directly
+  const canAddPatient = can(user, "canAddPatient");
 
   return (
     <div className="h-16 w-full px-6 flex items-center justify-between bg-white z-20">
