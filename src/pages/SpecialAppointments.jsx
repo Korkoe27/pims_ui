@@ -4,26 +4,35 @@ import LoadingSpinner from "../components/LoadingSpinner";
 import Pagination from "../components/Pagination";
 import useHandleConsult from "../hooks/useHandleConsult";
 import PageContainer from "../components/PageContainer";
-import CanAccess from "../components/auth/CanAccess";
 import { useGetTodaysAppointmentsQuery } from "../redux/api/features/appointmentsApi";
 import ConsultButton from "../components/ui/buttons/ConsultButton";
-import { canShowConsultButton } from "../utils/canShowConsultButton";
 
 const SpecialAppointments = () => {
   const { user } = useSelector((state) => state.auth || {});
   const access = user?.access || {};
-
   const { handleConsult } = useHandleConsult();
+
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
 
+  // ✅ Fetch today's appointments
   const { data, isLoading, error } = useGetTodaysAppointmentsQuery();
-  const appointments = data?.data || [];
+  const allAppointments = data?.data || [];
+
+  // ✅ Filter only Special Appointments by category
+  const appointments = allAppointments.filter((appt) => {
+    const category =
+      typeof appt?.appointment_category === "string"
+        ? appt.appointment_category.toLowerCase()
+        : "";
+
+    return category === "special";
+  });
 
   // ✅ Sort by status for consistent display
   const sortedAppointments = [...appointments].sort((a, b) => {
     const statusOrder = { Scheduled: 1, Completed: 2, Cancelled: 3 };
-    return statusOrder[a.status] - statusOrder[b.status];
+    return (statusOrder[a.status] || 99) - (statusOrder[b.status] || 99);
   });
 
   // ✅ Pagination logic
@@ -36,18 +45,13 @@ const SpecialAppointments = () => {
 
   const handlePageChange = (page) => setCurrentPage(page);
 
-  // ✅ Determine if any row has a consult action available
-  const hasAnyConsultAction = paginatedAppointments.some((appt) =>
-    canShowConsultButton(appt, access)
-  );
-
   return (
     <PageContainer>
       {isLoading && <LoadingSpinner />}
 
       <h1 className="font-extrabold text-xl mb-4">Special Appointments</h1>
 
-      {/* Error message */}
+      {/* ⚠️ Error Handling */}
       {error && (
         <p className="text-red-500 bg-red-50 border border-red-200 rounded-lg p-4 my-4">
           <span className="font-semibold">Error:</span>{" "}
@@ -57,7 +61,8 @@ const SpecialAppointments = () => {
         </p>
       )}
 
-      {!isLoading && paginatedAppointments?.length > 0 ? (
+      {/* ✅ Table Display */}
+      {!isLoading && paginatedAppointments.length > 0 ? (
         <>
           <table className="w-full text-base text-left text-gray-500 border-collapse">
             <thead className="text-base text-gray-700 uppercase bg-gray-50">
@@ -65,14 +70,10 @@ const SpecialAppointments = () => {
                 <th className="px-6 py-3">Date</th>
                 <th className="px-6 py-3">Patient ID</th>
                 <th className="px-6 py-3">Name</th>
+                <th className="px-6 py-3">Category</th>
                 <th className="px-6 py-3">Type</th>
                 <th className="px-6 py-3">Status</th>
-
-                {hasAnyConsultAction && (
-                  <CanAccess accessKeys={["canStartConsultation"]}>
-                    <th className="px-6 py-3 min-w-40">Action</th>
-                  </CanAccess>
-                )}
+                <th className="px-6 py-3 min-w-40">Action</th>
               </tr>
             </thead>
 
@@ -82,7 +83,11 @@ const SpecialAppointments = () => {
                   <td className="px-6 py-4">{appointment?.appointment_date}</td>
                   <td className="px-6 py-4">{appointment?.patient_id}</td>
                   <td className="px-6 py-4">{appointment?.patient_name}</td>
-                  <td className="px-6 py-4">{appointment?.appointment_type_name}</td>
+                  <td className="px-6 py-4">{appointment?.appointment_category}</td>
+                  <td className="px-6 py-4">
+                    {appointment?.appointment_type_name ||
+                      appointment?.appointment_type}
+                  </td>
                   <td className="px-6 py-4">
                     <span
                       className={`px-4 py-2 rounded-full text-white font-medium ${getStatusColor(
@@ -93,17 +98,14 @@ const SpecialAppointments = () => {
                     </span>
                   </td>
 
-                  {hasAnyConsultAction && (
-                    <td className="px-6 py-4">
-                      <CanAccess accessKeys={["canStartConsultation"]}>
-                        <ConsultButton
-                          appointment={appointment}
-                          access={access}
-                          onClick={handleConsult}
-                        />
-                      </CanAccess>
-                    </td>
-                  )}
+                  {/* ✅ Always show Consult Button */}
+                  <td className="px-6 py-4">
+                    <ConsultButton
+                      appointment={appointment}
+                      access={access}
+                      onClick={handleConsult}
+                    />
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -118,7 +120,7 @@ const SpecialAppointments = () => {
       ) : (
         !isLoading && (
           <p className="text-gray-500 text-center py-8">
-            No appointments available.
+            No special appointments available.
           </p>
         )
       )}
@@ -128,7 +130,7 @@ const SpecialAppointments = () => {
 
 export default SpecialAppointments;
 
-/* ✅ Utility function for status color */
+/* ✅ Utility for status badge color */
 const getStatusColor = (status) => {
   switch (status) {
     case "Consultation Completed":

@@ -4,48 +4,52 @@ import LoadingSpinner from "../components/LoadingSpinner";
 import Pagination from "../components/Pagination";
 import useHandleConsult from "../hooks/useHandleConsult";
 import PageContainer from "../components/PageContainer";
-import CanAccess from "../components/auth/CanAccess";
-import { ROLES } from "../constants/roles";
 import { useGetTodaysAppointmentsQuery } from "../redux/api/features/appointmentsApi";
 import ConsultButton from "../components/ui/buttons/ConsultButton";
-import { canShowConsultButton } from "../utils/canShowConsultButton";
 
 const GeneralAppointments = () => {
-  const userRole = useSelector((state) => state.auth?.user?.role);
+  const { user } = useSelector((state) => state.auth);
+  const access = user?.access || {};
   const { handleConsult } = useHandleConsult();
+
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
 
+  // ✅ Fetch today's appointments
   const { data, isLoading, error } = useGetTodaysAppointmentsQuery();
-  const appointments = data?.data || [];
+  const allAppointments = data?.data || [];
 
-  const sortedAppointments = [...appointments].sort((a, b) => {
-    const statusOrder = { Scheduled: 1, Completed: 2, Cancelled: 3 };
-    return statusOrder[a.status] - statusOrder[b.status];
+  // ✅ Filter only General Appointments using appointment_category
+  const appointments = allAppointments.filter((appt) => {
+    const category =
+      typeof appt?.appointment_category === "string"
+        ? appt.appointment_category.toLowerCase()
+        : "";
+    return category === "general";
   });
 
+  // ✅ Sort by status (Scheduled → Completed → Cancelled)
+  const sortedAppointments = [...appointments].sort((a, b) => {
+    const order = { Scheduled: 1, Completed: 2, Cancelled: 3 };
+    return (order[a.status] || 99) - (order[b.status] || 99);
+  });
+
+  // ✅ Pagination
   const paginatedAppointments = sortedAppointments.slice(
     (currentPage - 1) * pageSize,
     currentPage * pageSize
   );
-
   const totalPages = Math.ceil(sortedAppointments.length / pageSize);
 
-  const handlePageChange = (page) => {
-    setCurrentPage(page);
-  };
-
-  // ✅ check if at least one row has a valid consult action
-  const hasAnyConsultAction = paginatedAppointments.some((appt) =>
-    canShowConsultButton(appt, userRole)
-  );
+  const handlePageChange = (page) => setCurrentPage(page);
 
   return (
     <PageContainer>
       {isLoading && <LoadingSpinner />}
-      <h1 className="font-extrabold text-xl">General Appointments</h1>
 
-      {/* ✅ Fixed error handling - extract message from error object */}
+      <h1 className="font-extrabold text-xl mb-4">General Appointments</h1>
+
+      {/* ⚠️ Error Handling */}
       {error && (
         <p className="text-red-500 bg-red-50 border border-red-200 rounded-lg p-4 my-4">
           <span className="font-semibold">Error:</span>{" "}
@@ -55,42 +59,33 @@ const GeneralAppointments = () => {
         </p>
       )}
 
-      {!isLoading && paginatedAppointments?.length > 0 ? (
+      {/* ✅ Table Display */}
+      {!isLoading && paginatedAppointments.length > 0 ? (
         <>
-          <table className="w-full text-base text-left rtl:text-right text-gray-500">
-            <thead className="text-base text-gray-700 uppercase bg-gray-50">
+          <table className="w-full text-base text-left text-gray-500">
+            <thead className="text-gray-700 uppercase bg-gray-50">
               <tr>
-                <th scope="col" className="px-6 py-3">
-                  Date
-                </th>
-                <th scope="col" className="px-6 py-3">
-                  Patient ID
-                </th>
-                <th scope="col" className="px-6 py-3">
-                  Name
-                </th>
-                <th scope="col" className="px-6 py-3">
-                  Type
-                </th>
-                <th scope="col" className="px-6 py-3">
-                  Status
-                </th>
-                {hasAnyConsultAction && (
-                  <CanAccess allowedRoles={[ROLES.STUDENT, ROLES.LECTURER]}>
-                    <th scope="col" className="px-3 min-w-40 py-3">
-                      Action
-                    </th>
-                  </CanAccess>
-                )}
+                <th className="px-6 py-3">Date</th>
+                <th className="px-6 py-3">Patient ID</th>
+                <th className="px-6 py-3">Name</th>
+                <th className="px-6 py-3">Category</th>
+                <th className="px-6 py-3">Type</th>
+                <th className="px-6 py-3">Status</th>
+                <th className="px-3 min-w-40 py-3">Action</th>
               </tr>
             </thead>
+
             <tbody>
               {paginatedAppointments.map((appointment) => (
                 <tr key={appointment.id} className="bg-white border-b">
                   <td className="px-6 py-4">{appointment?.appointment_date}</td>
                   <td className="px-6 py-4">{appointment?.patient_id}</td>
                   <td className="px-6 py-4">{appointment?.patient_name}</td>
-                  <td className="px-6 py-4">{appointment?.appointment_type}</td>
+                  <td className="px-6 py-4">{appointment?.appointment_category}</td>
+                  <td className="px-6 py-4">
+                    {appointment?.appointment_type_name ||
+                      appointment?.appointment_type}
+                  </td>
                   <td className="w-fit mx-auto">
                     <span
                       className={`px-6 rounded-full py-2 text-base font-medium text-white w-5 ${checkStatus(
@@ -100,22 +95,19 @@ const GeneralAppointments = () => {
                       {appointment?.status}
                     </span>
                   </td>
-                  {hasAnyConsultAction && (
-                    <td className="px-6 py-4 flex gap-4">
-                      <CanAccess allowedRoles={[ROLES.STUDENT, ROLES.LECTURER]}>
-                        <ConsultButton
-                          appointment={appointment}
-                          role={userRole}
-                          onClick={handleConsult}
-                        />
-                      </CanAccess>
-                    </td>
-                  )}
+                  {/* ✅ Always show Consult button */}
+                  <td className="px-6 py-4 flex gap-4">
+                    <ConsultButton
+                      appointment={appointment}
+                      access={access}
+                      onClick={handleConsult}
+                    />
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
-                
+
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}
@@ -124,8 +116,8 @@ const GeneralAppointments = () => {
         </>
       ) : (
         !isLoading && (
-          <p className="text-gray-500 text-center">
-            No appointments available.
+          <p className="text-gray-500 text-center mt-6">
+            No general appointments available.
           </p>
         )
       )}
@@ -135,6 +127,9 @@ const GeneralAppointments = () => {
 
 export default GeneralAppointments;
 
+/**
+ * 🔹 Returns Tailwind class for appointment status badge color
+ */
 const checkStatus = (status) => {
   switch (status) {
     case "Consultation Completed":
