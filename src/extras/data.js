@@ -34,7 +34,7 @@ export const Sidebar_links = [
     name: "pending reviews",
     icon: <HiOutlineClipboardList className="text-xl font-bold" />,
     path: "/pending-reviews",
-    permissionKey: "canViewGrades", // students & lecturers get this if allowed
+    permissionKey: "canGradeStudents", // students & lecturers get this if allowed
   },
   {
     name: "absent request",
