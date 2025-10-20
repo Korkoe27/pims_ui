@@ -43,25 +43,15 @@ import {
 import Layout from "./pages/Layout";
 import ProtectedRoute from "./hooks/ProtectedRoute";
 import LoginLoader from "./components/LoginLoader";
-
-// Import the actual Case Management Guide page component
 import CaseManagementGuide from "./components/CaseManagementGuide";
 
-// Page wrapper to read :appointmentId from the URL and pass to the component
+// Wrapper for case guide route
 const CaseManagementGuidePage = () => {
   const { appointmentId } = useParams();
-  return (
-    <CaseManagementGuide
-      appointmentId={appointmentId}
-      role={window?.__APP_ROLE__ || "student"}
-      // Optionally wire these if you want in-page navigation to other consultation tabs:
-      // setActiveTab={(tab) => navigate(`/consultation/${appointmentId}/${tab}`)}
-      // setTabCompletionStatus={() => {}}
-    />
-  );
+  return <CaseManagementGuide appointmentId={appointmentId} role={window?.__APP_ROLE__ || "student"} />;
 };
 
-// Optional redirect to keep old /appointments/:id/case-guide links working
+// Redirect legacy routes
 const CaseGuideRedirect = () => {
   const { appointmentId } = useParams();
   return <Navigate to={`/consultation/${appointmentId}/case-guide`} replace />;
@@ -77,10 +67,10 @@ const App = () => {
       <BrowserRouter>
         <Toaster position="top-center" reverseOrder={false} />
         <Routes>
-          {/* Public */}
+          {/* 🟢 Public Routes */}
           <Route path="/login" element={<Login />} />
 
-          {/* Protected */}
+          {/* 🔒 Protected Routes */}
           <Route
             path="/"
             element={
@@ -91,58 +81,152 @@ const App = () => {
           >
             <Route index element={<Dashboard />} />
 
-            {/* Core pages */}
-            <Route path="my-patients" element={<Patients />} />
-            <Route path="patients-details" element={<PatientDetails />} />
-            <Route path="register-patient" element={<PersonalInfo />} />
-            <Route path="appointments" element={<Appointments />} />
-            <Route path="general-appointments" element={<GeneralAppointments />} />
-            <Route path="special-appointments" element={<SpecialAppointments />} />
-            <Route path="inventory" element={<Inventory />} />
-            <Route path="pharmacy" element={<Pharmacy />}>
+            {/* 🧍 Patients */}
+            <Route
+              path="my-patients"
+              element={
+                <ProtectedRoute accessKeys={["canViewPatients"]}>
+                  <Patients />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="register-patient"
+              element={
+                <ProtectedRoute accessKeys={["canAddPatient"]}>
+                  <PersonalInfo />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="patients-details"
+              element={
+                <ProtectedRoute accessKeys={["canViewPatients"]}>
+                  <PatientDetails />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* 📅 Appointments */}
+            <Route
+              path="appointments"
+              element={
+                <ProtectedRoute accessKeys={["canViewAppointments"]}>
+                  <Appointments />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="createAppointment"
+              element={
+                <ProtectedRoute accessKeys={["canCreateAppointment"]}>
+                  <CreateAppointment />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="general-appointments"
+              element={
+                <ProtectedRoute accessKeys={["canViewAppointments"]}>
+                  <GeneralAppointments />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="special-appointments"
+              element={
+                <ProtectedRoute accessKeys={["canViewAppointments"]}>
+                  <SpecialAppointments />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* 🧾 Reports */}
+            <Route
+              path="reports"
+              element={
+                <ProtectedRoute accessKeys={["canViewReports"]}>
+                  <Reports />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* 🏫 Clinic Schedule */}
+            <Route
+              path="clinic-schedule"
+              element={
+                <ProtectedRoute accessKeys={["canViewConsultations"]}>
+                  <ClinicSchedule />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* 🎓 Grading */}
+            <Route
+              path="my-scores"
+              element={
+                <ProtectedRoute accessKeys={["canViewGrades"]}>
+                  <MyScores />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="case-reviews"
+              element={
+                <ProtectedRoute accessKeys={["canGradeStudents"]}>
+                  <CaseReviews />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* 📋 Pending Reviews */}
+            <Route
+              path="pending-reviews"
+              element={
+                <ProtectedRoute accessKeys={["canViewConsultations"]}>
+                  <PendingReviews />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* 💊 Pharmacy */}
+            <Route
+              path="pharmacy"
+              element={
+                <ProtectedRoute accessKeys={["canViewConsultations"]}>
+                  <Pharmacy />
+                </ProtectedRoute>
+              }
+            >
               <Route path="order/:orderId" element={<PharmacyOrder />} />
             </Route>
 
-            {/* Direct single-step routes */}
-            <Route path="case-history/:appointmentId" element={<CaseHistory />} />
-            <Route path="visual-acuity/:appointmentId" element={<VisualAcuity />} />
-            <Route path="externals/:appointmentId" element={<Externals />} />
-            <Route path="internals/:appointmentId" element={<Internals />} />
-            <Route path="refraction/:appointmentId" element={<Refraction />} />
-            <Route path="extra-tests/:appointmentId" element={<ExtraTests />} />
-            <Route path="diagnosis" element={<Diagnosis />} />
-            <Route path="management" element={<Management />} />
-            <Route path="createAppointment" element={<CreateAppointment />} />
-
-            {/* Consultation flow with nested routes */}
-            <Route path="consultation/:appointmentId" element={<Consultation />}>
+            {/* 🧠 Consultation */}
+            <Route
+              path="consultation/:appointmentId"
+              element={
+                <ProtectedRoute accessKeys={["canStartConsultation"]}>
+                  <Consultation />
+                </ProtectedRoute>
+              }
+            >
               <Route index element={<Navigate to="management" replace />} />
               <Route path="management" element={<Management />} />
-              {/* NEW: Case Management Guide as a standalone page under consultation */}
               <Route path="case-guide" element={<CaseManagementGuidePage />} />
-              {/* You can add more nested routes later:
-                  <Route path="submit" element={<Submit />} />
-                  <Route path="logs" element={<Logs />} />
-                  <Route path="complete" element={<Complete />} />
-              */}
             </Route>
 
-            {/* Optional redirect to support old /appointments/:id/case-guide links */}
+            {/* Legacy redirect */}
             <Route
               path="appointments/:appointmentId/case-guide"
               element={<CaseGuideRedirect />}
             />
 
-            {/* Other pages */}
-            <Route path="patients/search" element={<PatientSearchResults />} />
+            {/* ⚙️ Other Pages */}
             <Route path="absent-request" element={<AbsentRequest />} />
             <Route path="my-portal" element={<MyPortal />} />
-            <Route path="case-reviews" element={<CaseReviews />} />
-            <Route path="clinic-schedule" element={<ClinicSchedule />} />
-            <Route path="pending-reviews" element={<PendingReviews />} />
-            <Route path="reports" element={<Reports />} />
+            <Route path="inventory" element={<Inventory />} />
             <Route path="my-cases" element={<MyCases />} />
-            <Route path="my-scores" element={<MyScores />} />
+            <Route path="patients/search" element={<PatientSearchResults />} />
           </Route>
         </Routes>
       </BrowserRouter>
