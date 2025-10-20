@@ -1,20 +1,26 @@
-// CanAccess.jsx
 import React from "react";
 import { useSelector } from "react-redux";
 
-const toLower = (v) => (typeof v === "string" ? v.toLowerCase() : "");
-const toArray = (v) => (Array.isArray(v) ? v : v != null ? [v] : []);
+/**
+ * 🔒 CanAccess — Access-based visibility component
+ *
+ * Example usage:
+ * <CanAccess accessKeys={["canAddPatient", "canViewReports"]}>
+ *   <button>Add Patient</button>
+ * </CanAccess>
+ *
+ * Optional:
+ * - fallback: component or element to show if user lacks permission
+ */
+export default function CanAccess({ accessKeys = [], children, fallback = null }) {
+  const user = useSelector((s) => s.auth?.user);
+  const access = user?.access || {};
 
-export default function CanAccess({ allowedRoles, children, fallback = null }) {
-  // Normalize the user's role from Redux
-  const rawRole = useSelector((s) => s.auth?.user?.role);
-  const role = toLower(rawRole);
+  // ✅ If no keys are required, allow by default
+  if (!accessKeys || accessKeys.length === 0) return <>{children}</>;
 
-  // Normalize allowed roles
-  const allowed = toArray(allowedRoles).filter(Boolean).map(toLower);
+  // ✅ Must have *all* required permissions
+  const hasAllAccess = accessKeys.every((key) => access[key]);
 
-  // Allow if "all" is present or user role is in list
-  const can = allowed.includes("all") || allowed.includes(role);
-
-  return can ? <>{children}</> : fallback;
+  return hasAllAccess ? <>{children}</> : fallback;
 }
