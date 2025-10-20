@@ -90,7 +90,7 @@ const Appointments = () => {
                   <td className="px-6 py-4">{appointment?.appointment_date}</td>
                   <td className="px-6 py-4">{appointment?.patient_id}</td>
                   <td className="px-6 py-4">{appointment?.patient_name}</td>
-                  <td className="px-6 py-4">{appointment?.appointment_type}</td>
+                  <td className="px-6 py-4">{appointment?.appointment_type_name}</td>
                   <td className="w-fit mx-auto">
                     <span
                       className={`px-6 rounded-full py-2 text-base font-medium text-white w-5 ${checkStatus(

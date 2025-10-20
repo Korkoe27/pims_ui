@@ -1,64 +1,67 @@
-const ConsultButton = ({ appointment, role, onClick }) => {
-  // guard: if appointment is missing, don't render
-  if (!appointment || !appointment.status) return null;
+import React from "react";
+
+/**
+ * 🔹 ConsultButton — Access-based action button for consultations.
+ *
+ * Rules:
+ * - Uses `access` object instead of `role`.
+ * - Displays appropriate label based on appointment status.
+ * - Disables button for completed consultations.
+ */
+const ConsultButton = ({ appointment, access = {}, onClick }) => {
+  if (!appointment?.status) return null;
 
   const status = appointment.status.toLowerCase();
   let label = null;
 
-  // If the consultation is already completed, we'll render a disabled
-  // Continue Consultation button so users can see the action but not perform it.
   const isConsultationCompleted =
-    status === "Consultation Completed" || status === "consultation completed";
+    status === "consultation completed" ||
+    status === "completed" ||
+    status === "consultation finalized";
 
-  if (role === "student") {
+  // ✅ Determine allowed actions by access permissions
+  const canConsult = access?.canConsultPatient;
+  const canReview = access?.canReviewConsultation;
+
+  // 🩺 Consultation permissions
+  if (canConsult) {
     if (status === "scheduled") {
       label = "Consult";
     } else if (
       [
         "consultation in progress",
-        "examinations recorded",
         "examination created",
-        "examinations created",
+        "examinations recorded",
         "diagnosis added",
+        "management created",
+        "case management guide created",
       ].includes(status)
     ) {
-      label = "Continue Consultation";
-    } else if (
-      ["management created", "case management guide created"].includes(status)
-    ) {
-      // Management exists but consultation is not finished — continue the consultation
       label = "Continue Consultation";
     }
   }
 
-  if (role === "lecturer") {
+  // 🧾 Review permissions
+  if (canReview) {
     if (status === "submitted for review") {
       label = "Review Case";
     } else if (status === "under review") {
       label = "Continue Review";
-    } else if (status === "scheduled") {
-      label = "Consult";
     } else if (
       [
         "consultation in progress",
-        "examinations recorded",
         "examination created",
-        "examinations created",
+        "examinations recorded",
         "diagnosis added",
+        "management created",
+        "case management guide created",
       ].includes(status)
     ) {
-      label = "Continue Consultation";
-    } else if (
-      status === "management created" ||
-      status === "case management guide created"
-    ) {
-      // For lecturers allow continuing (to review/complete the consultation)
       label = "Continue Consultation";
     }
   }
 
-  // If there's no label for this status, only render a disabled
-  // Continue Consultation button when consultation is completed.
+  // ❌ If no applicable label and not completed, skip rendering
   if (!label && !isConsultationCompleted) return null;
 
   const finalLabel = label || "Continue Consultation";
@@ -66,12 +69,12 @@ const ConsultButton = ({ appointment, role, onClick }) => {
   return (
     <button
       className={[
-        "text-white px-4 py-2 rounded-lg",
+        "px-4 py-2 rounded-lg font-medium text-white transition",
         isConsultationCompleted
           ? "bg-gray-400 cursor-not-allowed"
-          : "bg-[#2f3192]",
+          : "bg-[#2f3192] hover:bg-[#262777]",
       ].join(" ")}
-      onClick={() => !isConsultationCompleted && onClick(appointment)}
+      onClick={() => !isConsultationCompleted && onClick?.(appointment)}
       disabled={isConsultationCompleted}
       aria-disabled={isConsultationCompleted}
     >
