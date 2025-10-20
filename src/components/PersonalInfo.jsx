@@ -8,18 +8,18 @@ import SelectClinicModal from "../components/SelectClinicModal";
 import ConfirmSaveModal from "./ConfirmSaveModal";
 import useCreateAppointment from "../hooks/useCreateAppointment";
 import { showToast } from "../components/ToasterHelper";
+import CanAccess from "../components/auth/CanAccess";
 
 const PersonalInfo = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const selectedClinic = useSelector((state) => state.clinic.selectedClinic);
   const { user } = useSelector((state) => state.auth || {});
-  const userRole = (user?.role || "").toLowerCase();
+  const access = user?.access || {};
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [generalError, setGeneralError] = useState("");
 
-  /* ----------------------- state ----------------------- */
   const [formData, setFormData] = useState({
     first_name: "",
     last_name: "",
@@ -27,7 +27,7 @@ const PersonalInfo = () => {
     dob: "",
     gender: "",
     clinic: selectedClinic || "",
-    occupation_category: "", // 🔸 NEW
+    occupation_category: "",
     occupation: "",
     address: "",
     residence: "",
@@ -52,7 +52,7 @@ const PersonalInfo = () => {
   const [confirmMessage, setConfirmMessage] = useState("");
   const [retryAction, setRetryAction] = useState(null);
 
-  /* -------------------- effects ------------------------ */
+  /* -------------------- Effects -------------------- */
   useEffect(() => {
     if (selectedClinic) {
       setFormData((prev) => ({ ...prev, clinic: selectedClinic }));
@@ -63,15 +63,13 @@ const PersonalInfo = () => {
     if (!selectedClinic) setIsModalOpen(true);
   }, [selectedClinic]);
 
-  /* ------------------- handlers ------------------------ */
+  /* -------------------- Handlers -------------------- */
   const handleChange = (e) => {
     const { name, value } = e.target;
-
-    /* inline format / length checks -------------------- */
     let error = "";
+
     if (["first_name", "last_name", "otherNames"].includes(name)) {
-      if (!/^[A-Za-z ]{1,20}$/.test(value))
-        error = "Only letters, max 20 chars";
+      if (!/^[A-Za-z ]{1,20}$/.test(value)) error = "Only letters, max 20 chars";
     }
     if (
       ["primary_phone", "alternate_phone", "emergency_contact_number"].includes(
@@ -88,7 +86,6 @@ const PersonalInfo = () => {
     setErrors((prev) => ({ ...prev, [name]: error }));
   };
 
-  /* full-form validation & submission ------------------ */
   const createPatientHandler = async (onSuccess, confirmSave = false) => {
     const required = [
       "first_name",
@@ -117,14 +114,13 @@ const PersonalInfo = () => {
 
     try {
       showToast("Creating patient...", "info");
-
       const response = await createPatient({
         ...formData,
         confirm_save: confirmSave ? true : undefined,
       }).unwrap();
 
       dispatch(setPatientId(response.id));
-      showToast("Patient created successfully.", "success");
+      showToast("✅ Patient created successfully.", "success");
       onSuccess(response);
     } catch (error) {
       console.error("❌ Error creating patient:", error);
@@ -141,10 +137,12 @@ const PersonalInfo = () => {
         setRetryAction(() => () => createPatientHandler(onSuccess, true));
       } else {
         setErrors(error.data || {});
-        if (error.data?.detail) setGeneralError(error.data.detail);
-        else if (error.data?.non_field_errors?.[0])
-          setGeneralError(error.data.non_field_errors[0]);
-        else setGeneralError("An unexpected error occurred.");
+        setGeneralError(
+          error.data?.detail ||
+            error.data?.non_field_errors?.[0] ||
+            "An unexpected error occurred."
+        );
+        showToast("❌ Failed to create patient.", "error");
       }
     }
   };
@@ -154,32 +152,26 @@ const PersonalInfo = () => {
     retryAction && retryAction();
   };
 
-  const handleAttendPatient = () => {
-    createPatientHandler(async (patient) => {
-      const appointmentResult = await createAppointmentHandler(patient);
-      if (!appointmentResult.success) {
-        alert("❌ Failed to create appointment. Please try again.");
-        return;
-      }
-      navigate(`/consultation/${appointmentResult.data.id}`);
+  const handleAddPatient = () =>
+    createPatientHandler((patient) => {
+      showToast(`✅ Added ${patient.first_name} ${patient.last_name}`, "success");
+      navigate("/patients");
     });
-  };
 
   const handleScheduleAppointment = () =>
-    createPatientHandler((patient) =>
-      navigate("/createAppointment", { state: { patient } })
-    );
+    createPatientHandler((patient) => {
+      showToast("Opening appointment scheduling...", "info");
+      navigate("/createAppointment", { state: { patient } });
+    });
 
-  /* -------------------- render ------------------------ */
+  /* -------------------- Render -------------------- */
   return (
     <div className="px-72 bg-[#f9fafb] h-full w-full">
       {isModalOpen && <SelectClinicModal setIsModalOpen={setIsModalOpen} />}
 
       <div className="flex flex-col gap-4 px-8 my-6">
         <h1 className="text-2xl font-semibold">New Patient</h1>
-        <p className="text-base">
-          Fill out the following details of your new patient
-        </p>
+        <p className="text-base">Fill out the following details of your new patient</p>
       </div>
 
       {selectedClinic && (
@@ -192,14 +184,12 @@ const PersonalInfo = () => {
 
           {/* ---------- Section 1 ---------- */}
           <section className="flex gap-24 pb-16 justify-between">
-            {/* Column 1 */}
             <aside className="flex flex-col gap-8">
               <InputField
                 label="Surname"
                 name="last_name"
                 value={formData.last_name}
                 onChange={handleChange}
-                placeholder="Enter last name"
                 error={errors.last_name}
               />
               <InputField
@@ -207,7 +197,6 @@ const PersonalInfo = () => {
                 name="first_name"
                 value={formData.first_name}
                 onChange={handleChange}
-                placeholder="Enter first name"
                 error={errors.first_name}
               />
               <InputField
@@ -215,15 +204,14 @@ const PersonalInfo = () => {
                 name="otherNames"
                 value={formData.otherNames}
                 onChange={handleChange}
-                placeholder="Enter other names"
                 error={errors.otherNames}
               />
               <InputField
                 label="Date of Birth"
                 name="dob"
+                type="date"
                 value={formData.dob}
                 onChange={handleChange}
-                type="date"
                 error={errors.dob}
               />
               <div className="flex flex-col gap-2">
@@ -237,7 +225,6 @@ const PersonalInfo = () => {
                     value="Male"
                     checked={formData.gender === "Male"}
                     onChange={handleChange}
-                    error={errors.gender}
                   />
                   <RadioField
                     label="Female"
@@ -245,7 +232,6 @@ const PersonalInfo = () => {
                     value="Female"
                     checked={formData.gender === "Female"}
                     onChange={handleChange}
-                    error={errors.gender}
                   />
                 </div>
                 {errors.gender && (
@@ -266,7 +252,6 @@ const PersonalInfo = () => {
                   "Automotive & Mechanical",
                   "Business & Finance",
                   "Construction & Manual Labor",
-                  "Creative & Artistic",
                   "Education & Training",
                   "Health & Medical Services",
                   "Hospitality & Food Services",
@@ -280,7 +265,6 @@ const PersonalInfo = () => {
                 ]}
                 error={errors.occupation_category}
               />
-
               <InputField
                 label="Occupation"
                 name="occupation"
@@ -294,14 +278,12 @@ const PersonalInfo = () => {
                 value={formData.address}
                 onChange={handleChange}
                 error={errors.address}
-                placeholder="Enter Home Address"
               />
               <InputField
                 label="Residence"
                 name="residence"
                 value={formData.residence}
                 onChange={handleChange}
-                placeholder="Enter town/city"
               />
               <SelectField
                 label="Region"
@@ -334,7 +316,6 @@ const PersonalInfo = () => {
                 value={formData.landmark}
                 onChange={handleChange}
                 error={errors.landmark}
-                placeholder="Closest Landmark"
               />
               <InputField
                 label="Hometown"
@@ -342,14 +323,12 @@ const PersonalInfo = () => {
                 value={formData.hometown}
                 onChange={handleChange}
                 error={errors.hometown}
-                placeholder="Enter hometown"
               />
             </aside>
           </section>
 
           {/* ---------- Section 2 ---------- */}
           <section className="flex gap-24 pt-16 border-t border-[#d9d9d9] justify-between">
-            {/* Column 1 */}
             <aside className="flex flex-col gap-8">
               <InputField
                 label="Primary Phone"
@@ -366,7 +345,6 @@ const PersonalInfo = () => {
                 value={formData.alternate_phone}
                 onChange={handleChange}
                 placeholder="0555555555"
-                error={errors.alternate_phone}
                 icon={<IoPhonePortraitOutline />}
               />
               <InputField
@@ -374,7 +352,6 @@ const PersonalInfo = () => {
                 name="emergency_contact_name"
                 value={formData.emergency_contact_name}
                 onChange={handleChange}
-                placeholder="Contact Name"
                 error={errors.emergency_contact_name}
               />
               <InputField
@@ -382,20 +359,17 @@ const PersonalInfo = () => {
                 name="emergency_contact_number"
                 value={formData.emergency_contact_number}
                 onChange={handleChange}
-                placeholder="0555555555"
                 error={errors.emergency_contact_number}
                 icon={<IoPhonePortraitOutline />}
               />
             </aside>
 
-            {/* Column 2 */}
             <aside className="flex flex-col gap-8">
               <InputField
                 label="Hospital ID"
                 name="hospitalId"
                 value={formData.hospitalId}
                 onChange={handleChange}
-                placeholder="Enter ID"
               />
               <InputField
                 label="First Visit Date"
@@ -416,35 +390,35 @@ const PersonalInfo = () => {
                 name="healthInsuranceNumber"
                 value={formData.healthInsuranceNumber}
                 onChange={handleChange}
-                placeholder="Enter number"
-                error={errors.healthInsuranceNumber}
               />
             </aside>
           </section>
 
-          {/* ---------- actions ---------- */}
+          {/* ---------- Actions ---------- */}
           <div className="flex gap-8 justify-center my-16">
-            <button
-              type="button"
-              onClick={handleScheduleAppointment}
-              className="w-56 p-4 rounded-lg text-[#2f3192] border border-[#2f3192]"
-            >
-              Schedule Appointment
-            </button>
-            {userRole !== "administrator" && userRole !== "admin" && (
+            <CanAccess accessKeys={["canAddPatient"]}>
               <button
                 type="button"
-                onClick={handleAttendPatient}
+                onClick={handleAddPatient}
                 className="w-56 p-4 rounded-lg text-white bg-[#2f3192]"
               >
-                Attend to Patient Now
+                Add Patient
               </button>
-            )}
+            </CanAccess>
+
+            <CanAccess accessKeys={["canScheduleAppointment"]}>
+              <button
+                type="button"
+                onClick={handleScheduleAppointment}
+                className="w-56 p-4 rounded-lg text-[#2f3192] border border-[#2f3192]"
+              >
+                Schedule Appointment
+              </button>
+            </CanAccess>
           </div>
         </form>
       )}
 
-      {/* confirmation modal */}
       <ConfirmSaveModal
         isOpen={showConfirmModal}
         onClose={() => setShowConfirmModal(false)}
@@ -457,7 +431,7 @@ const PersonalInfo = () => {
 
 export default PersonalInfo;
 
-/* ------------ utility inputs ------------ */
+/* ------------ Utility Inputs ------------ */
 const InputField = ({
   label,
   name,
@@ -515,7 +489,6 @@ const SelectField = ({ label, name, value, onChange, options, error }) => (
         <span className="text-red-500">*</span>
       )}
     </label>
-
     <select
       name={name}
       value={value}
