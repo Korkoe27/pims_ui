@@ -6,14 +6,12 @@ import {
   markAppointmentCompletedUrl,
   getTodaysAppointmentUrl,
   fetchAppointmentTypesUrl,
-  // 👇 new ones
-  transitionAppointmentUrl,
   submitAppointmentForReviewUrl,
-  flowContextAppointmentUrl,
+  fetchAppointmentGradingChecklistUrl, // optional: you can use this later
 } from "../end_points/endpoints";
 
 export const appointmentsApi = apiClient.injectEndpoints({
-  tagTypes: ["Dashboard"], // ✅ Register tag used by consumers like Sidebar/Dashboard
+  tagTypes: ["Dashboard"], // ✅ for cache invalidation and dashboard updates
 
   endpoints: (builder) => ({
     // ======================
@@ -37,17 +35,17 @@ export const appointmentsApi = apiClient.injectEndpoints({
       }),
     }),
 
-    // ✅ Create a new appointment and invalidate dashboard
+    // ✅ Create a new appointment
     createAppointment: builder.mutation({
       query: (appointmentData) => ({
         url: createNewAppointmentUrl,
         method: "POST",
         body: appointmentData,
       }),
-      invalidatesTags: ["Dashboard"], // ✅ Refetch dashboard
+      invalidatesTags: ["Dashboard"],
     }),
 
-    // ✅ Mark appointment as completed and refresh dashboard
+    // ✅ Mark appointment as completed
     markAppointmentCompleted: builder.mutation({
       query: (appointmentId) => ({
         url: markAppointmentCompletedUrl(appointmentId),
@@ -69,7 +67,7 @@ export const appointmentsApi = apiClient.injectEndpoints({
       },
     }),
 
-    // Fetch Appointment Types
+    // ✅ Fetch Appointment Types
     fetchAppointmentTypes: builder.query({
       query: (category) => ({
         url: category
@@ -80,30 +78,15 @@ export const appointmentsApi = apiClient.injectEndpoints({
       transformResponse: (resp) => {
         if (!Array.isArray(resp)) return [];
         return resp.map((t) => ({
-          value: t.id,        // numeric id
-          label: t.name,      // display name
-          category: t.category, // "General" or "Special"
-          raw: t,             // keep full object for later use
+          value: t.id,
+          label: t.name,
+          category: t.category,
+          raw: t,
         }));
       },
     }),
 
-
-    // ======================
-    // Flow Endpoints
-    // ======================
-
-    // ✅ Transition appointment (FSM move forward/backward)
-    transitionAppointment: builder.mutation({
-      query: ({ appointmentId, body }) => ({
-        url: transitionAppointmentUrl(appointmentId),
-        method: "POST",
-        body, // optional: { to_status, reason }
-      }),
-      invalidatesTags: ["Dashboard"],
-    }),
-
-    // ✅ Submit appointment for review
+    // ✅ Submit appointment for lecturer/supervisor review
     submitAppointmentForReview: builder.mutation({
       query: (appointmentId) => ({
         url: submitAppointmentForReviewUrl(appointmentId),
@@ -112,10 +95,10 @@ export const appointmentsApi = apiClient.injectEndpoints({
       invalidatesTags: ["Dashboard"],
     }),
 
-    // ✅ Fetch flow context (allowed transitions, role perms)
-    getAppointmentFlowContext: builder.query({
+    // ✅ (Optional) Fetch appointment grading checklist
+    getAppointmentGradingChecklist: builder.query({
       query: (appointmentId) => ({
-        url: flowContextAppointmentUrl(appointmentId),
+        url: fetchAppointmentGradingChecklistUrl(appointmentId),
         method: "GET",
       }),
     }),
@@ -131,8 +114,7 @@ export const {
   useMarkAppointmentCompletedMutation,
   useFetchAppointmentTypesQuery,
 
-  // Flow
-  useTransitionAppointmentMutation,
+  // Review flow
   useSubmitAppointmentForReviewMutation,
-  useGetAppointmentFlowContextQuery,
+  useGetAppointmentGradingChecklistQuery,
 } = appointmentsApi;

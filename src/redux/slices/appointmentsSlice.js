@@ -3,12 +3,12 @@ import { appointmentsApi } from "../api/features/appointmentsApi";
 
 // Initial State
 const initialState = {
-  appointmentsList: [], // all appointments
-  selectedAppointment: null, // details
+  appointmentsList: [],
+  selectedAppointment: null,
   error: null,
   loading: false,
   successMessage: null,
-  appointmentTypes: [], 
+  appointmentTypes: [],
 };
 
 // Appointment Slice
@@ -75,8 +75,7 @@ const appointmentsSlice = createSlice({
         appointmentsApi.endpoints.getAppointmentDetails.matchRejected,
         (state, action) => {
           state.error =
-            action.error?.message ||
-            "Failed to fetch appointment details";
+            action.error?.message || "Failed to fetch appointment details";
         }
       );
 
@@ -94,8 +93,7 @@ const appointmentsSlice = createSlice({
         appointmentsApi.endpoints.createAppointment.matchRejected,
         (state, action) => {
           state.error =
-            action.error?.message ||
-            "Failed to create appointment";
+            action.error?.message || "Failed to create appointment";
         }
       );
 
@@ -113,12 +111,13 @@ const appointmentsSlice = createSlice({
         appointmentsApi.endpoints.markAppointmentCompleted.matchRejected,
         (state, action) => {
           state.error =
-            action.error?.message ||
-            "Failed to mark appointment as completed";
+            action.error?.message || "Failed to mark appointment as completed";
         }
       );
 
+    // ========================
     // Fetch Appointment Types
+    // ========================
     builder
       .addMatcher(
         appointmentsApi.endpoints.fetchAppointmentTypes.matchPending,
@@ -144,26 +143,6 @@ const appointmentsSlice = createSlice({
       );
 
     // ========================
-    // Transition Appointment
-    // ========================
-    builder
-      .addMatcher(
-        appointmentsApi.endpoints.transitionAppointment.matchFulfilled,
-        (state, action) => {
-          state.selectedAppointment = action.payload;
-          state.successMessage = "Appointment transitioned successfully";
-        }
-      )
-      .addMatcher(
-        appointmentsApi.endpoints.transitionAppointment.matchRejected,
-        (state, action) => {
-          state.error =
-            action.error?.message ||
-            "Failed to transition appointment";
-        }
-      );
-
-    // ========================
     // Submit For Review
     // ========================
     builder
@@ -182,29 +161,6 @@ const appointmentsSlice = createSlice({
             "Failed to submit appointment for review";
         }
       );
-
-    // ========================
-    // Flow Context
-    // ========================
-    builder
-      .addMatcher(
-        appointmentsApi.endpoints.getAppointmentFlowContext.matchFulfilled,
-        (state, action) => {
-          // merge flow-context into selectedAppointment
-          state.selectedAppointment = {
-            ...state.selectedAppointment,
-            flowContext: action.payload,
-          };
-        }
-      )
-      .addMatcher(
-        appointmentsApi.endpoints.getAppointmentFlowContext.matchRejected,
-        (state, action) => {
-          state.error =
-            action.error?.message ||
-            "Failed to fetch appointment flow context";
-        }
-      );
   },
 });
 
@@ -215,4 +171,5 @@ export const {
   clearError,
   clearSuccessMessage,
 } = appointmentsSlice.actions;
+
 export default appointmentsSlice.reducer;

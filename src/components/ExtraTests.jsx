@@ -2,10 +2,6 @@ import React, { useState } from "react";
 import { showToast } from "../components/ToasterHelper";
 import ExtraTestUploadModal from "./ExtraTestUploadModal";
 import { useFetchExtraTestsQuery } from "../redux/api/features/extraTestsApi";
-import {
-  useTransitionAppointmentMutation,
-  useGetAppointmentFlowContextQuery,
-} from "../redux/api/features/appointmentsApi";
 import SupervisorGradingButton from "./SupervisorGradingButton";
 import useComponentGrading from "../hooks/useComponentGrading";
 import { useSelector } from "react-redux";
@@ -19,54 +15,36 @@ const ExtraTests = ({
   const [modalOpen, setModalOpen] = useState(false);
   const role = useSelector((state) => state.auth.user?.role);
 
-  // Use the component grading hook
+  // ✅ Component grading hook
   const { shouldShowGrading, section, sectionLabel } = useComponentGrading(
     "EXTRA_TEST",
     appointmentId
   );
 
-  // Fetch uploaded tests
+  // ✅ Fetch uploaded tests
   const { data: uploadedTests = [], refetch } =
     useFetchExtraTestsQuery(appointmentId);
 
-  // Fetch flow context so we know allowed transitions
-  const { data: flowContext } = useGetAppointmentFlowContextQuery(
-    appointmentId,
-    {
-      skip: !appointmentId,
-    }
-  );
-
-  // Mutation for FSM transition
-  const [transitionAppointment, { isLoading: transitioning }] =
-    useTransitionAppointmentMutation();
-
+  // ✅ Proceed to Diagnosis (purely UI-level navigation now)
   const proceedToDiagnosis = async () => {
     try {
-      // local UI update
+      // Local UI update
       setTabCompletionStatus?.((prev) => ({
         ...prev,
         "extra tests": true,
       }));
 
-      setFlowStep("diagnosis"); // just move UI forward
-
-      // optional: one backend update
-      await transitionAppointment({
-        appointmentId,
-        body: { to_status: "Diagnosis Added", reason: "Extra tests completed" },
-      }).unwrap();
-
+      setFlowStep("diagnosis"); // move UI forward
       showToast("Moved to Diagnosis", "success");
     } catch (err) {
-      console.error("❌ Failed to update backend:", err);
-      // fallback: still show UI
-      setFlowStep("diagnosis");
+      console.error("❌ Failed to update:", err);
+      setFlowStep("diagnosis"); // still continue UI
     }
   };
 
   return (
     <div className="py-10 px-6 flex flex-col items-center max-w-5xl mx-auto">
+      {/* Header */}
       <div className="flex items-center justify-between w-full mb-6">
         <h2 className="text-2xl font-bold">Extra Tests</h2>
         {shouldShowGrading && (
@@ -155,10 +133,9 @@ const ExtraTests = ({
         </button>
         <button
           onClick={proceedToDiagnosis}
-          disabled={transitioning}
           className="px-6 py-3 bg-[#2f3192] text-white rounded-lg hover:bg-[#1e217a] w-64"
         >
-          {transitioning ? "Processing..." : "Proceed to Diagnosis →"}
+          Proceed to Diagnosis →
         </button>
       </div>
 
