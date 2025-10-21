@@ -72,11 +72,11 @@ const PersonalInfo = () => {
       if (!/^[A-Za-z ]{1,20}$/.test(value)) error = "Only letters, max 20 chars";
     }
     if (
-      ["primary_phone", "alternate_phone", "emergency_contact_number"].includes(
-        name
-      )
+      ["primary_phone", "alternate_phone", "emergency_contact_number"].includes(name)
     ) {
-      if (!/^\d{10}$/.test(value)) error = "Enter a valid 10-digit number";
+      if (!/^(02|05)\d{8}$/.test(value)) {
+        error = "Must start with 02** or 05** and be 10 digits";
+      }
     }
     if (name === "healthInsuranceNumber" && value.length > 20) {
       error = "Max 20 characters";
