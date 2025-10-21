@@ -155,7 +155,7 @@ const PersonalInfo = () => {
   const handleAddPatient = () =>
     createPatientHandler((patient) => {
       showToast(`✅ Added ${patient.first_name} ${patient.last_name}`, "success");
-      navigate("/patients");
+      navigate("/my-patients");
     });
 
   const handleScheduleAppointment = () =>
