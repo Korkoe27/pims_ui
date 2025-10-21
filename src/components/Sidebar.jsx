@@ -16,11 +16,12 @@ const Sidebar = () => {
   const { data: dashboardData, isLoading: isDashboardLoading } =
     useGetDashboardDataQuery();
 
-  const totalAppointments = dashboardData?.total_appointments ?? "--";
+  // ✅ Extract counts from correct structure
+  const totalAppointments = dashboardData?.summary?.total_appointments ?? "--";
   const totalPendingReviews =
-    dashboardData?.pending_reviews?.data?.length ?? "--";
-  const totalGeneral = dashboardData?.general_appointments?.count ?? "--";
-  const totalSpecial = dashboardData?.special_appointments?.count ?? "--";
+    dashboardData?.appointments?.pending_reviews?.count ?? "--";
+  const totalGeneral = dashboardData?.appointments?.general?.count ?? "--";
+  const totalSpecial = dashboardData?.appointments?.special?.count ?? "--";
 
   // 🔹 Styles
   const activeLink =
@@ -43,9 +44,8 @@ const Sidebar = () => {
     { label: "Special Clinic", path: "special-appointments", count: totalSpecial },
   ];
 
-  /** ✅ Checks backend permission flag for each sidebar link */
   const canAccess = (permissionKey) => {
-    if (!permissionKey) return true; // no restriction → visible
+    if (!permissionKey) return true;
     return Boolean(access?.[permissionKey]);
   };
 
@@ -62,7 +62,6 @@ const Sidebar = () => {
       <div className="flex-1 overflow-y-auto px-2 mt-4 border-t border-gray-100 pt-4">
         {Sidebar_links.filter((item) => canAccess(item.permissionKey)).map(
           (item) => {
-            // 🩺 Appointments section
             if (item.name.toLowerCase() === "appointments") {
               return (
                 <div key="appointments" className="mb-2">
@@ -98,7 +97,7 @@ const Sidebar = () => {
               );
             }
 
-            // 🔸 Default Sidebar Items
+            // Default items
             return (
               <NavLink
                 to={item.path}
