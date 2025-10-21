@@ -16,10 +16,10 @@ import { canShowConsultButton } from "../utils/canShowConsultButton";
 const Dashboard = () => {
   const dispatch = useDispatch();
   const { handleConsult } = useHandleConsult();
-
   const { user } = useSelector((state) => state.auth);
-  const access = user?.access || {}; // 🔑 All access permissions
+  const access = user?.access || {};
 
+  // ✅ Fetch dashboard data
   const {
     data: dashboardData,
     isLoading,
@@ -33,18 +33,29 @@ const Dashboard = () => {
     }
   }, [error, dispatch]);
 
-  const scheduledAppointments = dashboardData?.scheduled_appointments?.data || [];
-  const totalAppointments = dashboardData?.total_appointments || 0;
-  const completedAppointments = dashboardData?.completed_appointments?.count || 0;
-  const pendingAppointments = dashboardData?.pending_appointments || 0;
+  // ✅ Extract nested data safely
+  const summary = dashboardData?.summary || {};
+  const appointments = dashboardData?.appointments || {};
 
-  const hasAnyConsultAction = scheduledAppointments.some((appt) =>
-    canShowConsultButton(appt, user?.role)
-  );
+  const totalAppointments = summary?.total_appointments || 0;
+  const pendingAppointments = summary?.pending_appointments || 0;
+  const completedAppointments = appointments?.completed?.count || 0;
+  const scheduledAppointments = appointments?.scheduled?.data || [];
+
+  // ✅ Reusable access helper
+  const hasConsultationAccess = (access = {}) => {
+    const consultKeys = [
+      "canStartConsultation",
+      "canViewConsultations",
+      "canEditConsultations",
+      "canSubmitConsultations",
+    ];
+    return consultKeys.some((key) => access[key]);
+  };
 
   return (
     <PageContainer>
-      {/* Summary Cards */}
+      {/* 🔹 Summary Cards */}
       <div className="grid grid-cols-12 gap-9 w-full">
         <DashboardCard
           icon={<HiOutlineUser className="w-6 h-6" />}
@@ -71,12 +82,15 @@ const Dashboard = () => {
         />
       </div>
 
-      {/* Upcoming Appointments */}
+      {/* 🔹 Upcoming Appointments */}
       <div className="mt-10">
-        <div className="flex justify-between my-[15px]">
+        <div className="flex justify-between items-center mb-4">
           <h2 className="font-bold text-xl">Upcoming Appointments</h2>
           <CanAccess accessKeys={["canViewAppointments"]}>
-            <Link to="/appointments" className="text-[#2f3192] font-semibold">
+            <Link
+              to="/appointments"
+              className="text-[#2f3192] font-semibold hover:underline"
+            >
               See all
             </Link>
           </CanAccess>
@@ -87,15 +101,14 @@ const Dashboard = () => {
             <LoadingSpinner />
           </div>
         ) : scheduledAppointments.length > 0 ? (
-          <table className="w-full">
-            <thead className="text-black uppercase text-left h-16 bg-[#f0f2f5]">
+          <table className="w-full border border-gray-200 rounded-md overflow-hidden">
+            <thead className="text-black uppercase text-left bg-[#f0f2f5]">
               <tr>
                 <th className="px-3 py-3">Date</th>
-                <th className="px-3 py-3">Patient’s ID</th>
+                <th className="px-3 py-3">Patient ID</th>
                 <th className="px-3 py-3">Name</th>
                 <th className="px-3 py-3">Appointment Type</th>
-
-                {access.canConsult && (
+                {hasConsultationAccess(access) && (
                   <th className="px-3 py-3 text-center">Action</th>
                 )}
               </tr>
@@ -111,11 +124,11 @@ const Dashboard = () => {
                     {appointment.appointment_type_name}
                   </td>
 
-                  {access.canConsult && (
+                  {hasConsultationAccess(access) && (
                     <td className="py-3 flex justify-center">
                       <ConsultButton
                         appointment={appointment}
-                        role={user?.role}
+                        access={access}
                         onClick={handleConsult}
                       />
                     </td>
@@ -125,7 +138,7 @@ const Dashboard = () => {
             </tbody>
           </table>
         ) : (
-          <p className="text-gray-500 text-center">
+          <p className="text-gray-500 text-center py-6">
             No scheduled appointments available.
           </p>
         )}
@@ -136,7 +149,7 @@ const Dashboard = () => {
 
 export default Dashboard;
 
-/* -------------------- Sub-Component -------------------- */
+/* -------------------- 🔹 Subcomponent -------------------- */
 const DashboardCard = ({ icon, title, color, bg, value }) => (
   <div className={`${bg} p-4 h-36 col-span-4 rounded-xl`}>
     <h3 className="flex items-center text-base gap-[12px] font-normal">
