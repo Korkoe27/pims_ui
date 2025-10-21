@@ -14,6 +14,8 @@ import { appointmentsApi } from "../api/features/appointmentsApi";
 import { absentRequestApi } from "../api/features/absentRequestApi";
 import { gradingApi } from "../api/features/gradingApi";
 import { consultationApi } from "../api/features/consultationApi";
+import { reportsApi } from "../api/features/reportsApi";
+
 
 // State slices
 import authReducer from "../slices/authSlice";
@@ -47,6 +49,7 @@ const apiMiddlewares = [
   absentRequestApi.middleware,
   gradingApi.middleware,
   consultationApi.middleware,
+  reportsApi.middleware,
 ];
 const uniqueApiMiddlewares = Array.from(new Set(apiMiddlewares));
 
@@ -74,6 +77,8 @@ export const store = configureStore({
     [absentRequestApi.reducerPath]: absentRequestApi.reducer,
     [gradingApi.reducerPath]: gradingApi.reducer,
     [consultationApi.reducerPath]: consultationApi.reducer,
+    [reportsApi.reducerPath]: reportsApi.reducer,
+
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({ serializableCheck: false }).concat(uniqueApiMiddlewares),

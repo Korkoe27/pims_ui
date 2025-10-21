@@ -259,6 +259,20 @@ export const completeConsultationUrl = (appointmentId) =>
 export const overrideConsultationUrl = (consultationId) =>
   `/consultations/${consultationId}/override/`;
 
+/////////////////////////
+// Reports
+/////////////////////////
+
+// Base Reports Endpoints
+export const reportsBaseUrl = "/reports/";
+
+// Individual Report Endpoints
+export const patientsReportUrl = "/reports/patients/";
+export const appointmentsReportUrl = "/reports/appointments/";
+export const gradingsReportUrl = "/reports/gradings/";
+export const diagnosisReportUrl = "/reports/diagnosis/";
+export const inventoryReportUrl = "/reports/inventory/";
+
 
 /////////////////////////
 // WebSocket
