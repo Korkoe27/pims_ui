@@ -10,84 +10,79 @@ import LoadingSpinner from "../components/LoadingSpinner";
 import useHandleConsult from "../hooks/useHandleConsult";
 import PageContainer from "../components/PageContainer";
 import CanAccess from "../components/auth/CanAccess";
-import { ROLES } from "../constants/roles";
 import ConsultButton from "../components/ui/buttons/ConsultButton";
-import { canShowConsultButton } from "../utils/canShowConsultButton"; // ✅ helper
+import { canShowConsultButton } from "../utils/canShowConsultButton";
 
 const Dashboard = () => {
-  const { handleConsult } = useHandleConsult();
   const dispatch = useDispatch();
+  const { handleConsult } = useHandleConsult();
 
-  // 🔑 get current user role from auth slice
-  const currentUserRole = useSelector((state) => state.auth.user?.role);
+  const { user } = useSelector((state) => state.auth);
+  const access = user?.access || {}; // 🔑 All access permissions
 
   const {
     data: dashboardData,
-    isLoading: dashboardLoading,
-    error: dashboardError,
+    isLoading,
+    error,
   } = useGetDashboardDataQuery();
 
   useEffect(() => {
-    if (dashboardError) {
-      console.error("Failed to fetch dashboard data:", dashboardError);
+    if (error) {
+      console.error("Failed to fetch dashboard data:", error);
       dispatch(resetDashboardState());
     }
-  }, [dashboardError, dispatch]);
+  }, [error, dispatch]);
 
-  const scheduledAppointments =
-    dashboardData?.scheduled_appointments?.data || [];
+  const scheduledAppointments = dashboardData?.scheduled_appointments?.data || [];
   const totalAppointments = dashboardData?.total_appointments || 0;
-  const completedAppointments =
-    dashboardData?.completed_appointments?.count || 0;
+  const completedAppointments = dashboardData?.completed_appointments?.count || 0;
   const pendingAppointments = dashboardData?.pending_appointments || 0;
 
-  // ✅ check if at least one consult action should render
   const hasAnyConsultAction = scheduledAppointments.some((appt) =>
-    canShowConsultButton(appt, currentUserRole)
+    canShowConsultButton(appt, user?.role)
   );
 
   return (
     <PageContainer>
-      {/* Summary cards */}
+      {/* Summary Cards */}
       <div className="grid grid-cols-12 gap-9 w-full">
-        <div className="bg-[#ececf9] p-4 h-36 col-span-4">
-          <h3 className="flex items-center text-base gap-[12px] font-normal">
-            <HiOutlineUser className="w-6 h-6" />
-            Total Appointments
-          </h3>
-          <span className="text-[50px] font-bold text-[#2f3192]">
-            {dashboardLoading ? <LoadingSpinner /> : totalAppointments}
-          </span>
-        </div>
-        <div className="bg-[#fbeae9] p-4 h-36 col-span-4">
-          <h3 className="flex items-center text-base gap-[12px] font-normal">
-            <LuClock3 className="w-6 h-6" />
-            Pending Appointments
-          </h3>
-          <span className="text-[50px] font-bold text-[#d42620]">
-            {dashboardLoading ? <LoadingSpinner /> : pendingAppointments}
-          </span>
-        </div>
-        <div className="bg-[#e7f6ec] p-4 h-36 col-span-4">
-          <h3 className="flex items-center text-base gap-[12px] font-normal">
-            <FiUserCheck className="w-6 h-6" />
-            Completed Appointments
-          </h3>
-          <span className="text-[50px] font-bold text-[#0f973d]">
-            {dashboardLoading ? <LoadingSpinner /> : completedAppointments}
-          </span>
-        </div>
+        <DashboardCard
+          icon={<HiOutlineUser className="w-6 h-6" />}
+          title="Total Appointments"
+          color="text-[#2f3192]"
+          bg="bg-[#ececf9]"
+          value={isLoading ? <LoadingSpinner /> : totalAppointments}
+        />
+
+        <DashboardCard
+          icon={<LuClock3 className="w-6 h-6" />}
+          title="Pending Appointments"
+          color="text-[#d42620]"
+          bg="bg-[#fbeae9]"
+          value={isLoading ? <LoadingSpinner /> : pendingAppointments}
+        />
+
+        <DashboardCard
+          icon={<FiUserCheck className="w-6 h-6" />}
+          title="Completed Appointments"
+          color="text-[#0f973d]"
+          bg="bg-[#e7f6ec]"
+          value={isLoading ? <LoadingSpinner /> : completedAppointments}
+        />
       </div>
 
       {/* Upcoming Appointments */}
       <div className="mt-10">
         <div className="flex justify-between my-[15px]">
           <h2 className="font-bold text-xl">Upcoming Appointments</h2>
-          <Link to="/appointments" className="text-[#2f3192] font-semibold">
-            See all
-          </Link>
+          <CanAccess accessKeys={["canViewAppointments"]}>
+            <Link to="/appointments" className="text-[#2f3192] font-semibold">
+              See all
+            </Link>
+          </CanAccess>
         </div>
-        {dashboardLoading ? (
+
+        {isLoading ? (
           <div className="flex justify-center items-center">
             <LoadingSpinner />
           </div>
@@ -99,13 +94,13 @@ const Dashboard = () => {
                 <th className="px-3 py-3">Patient’s ID</th>
                 <th className="px-3 py-3">Name</th>
                 <th className="px-3 py-3">Appointment Type</th>
-                {hasAnyConsultAction && (
-                  <CanAccess allowedRoles={[ROLES.STUDENT, ROLES.LECTURER]}>
-                    <th className="px-3 py-3 text-center">Action</th>
-                  </CanAccess>
+
+                {access.canConsult && (
+                  <th className="px-3 py-3 text-center">Action</th>
                 )}
               </tr>
             </thead>
+
             <tbody>
               {scheduledAppointments.slice(0, 5).map((appointment) => (
                 <tr key={appointment.id} className="bg-white border-b">
@@ -115,16 +110,15 @@ const Dashboard = () => {
                   <td className="px-3 py-3">
                     {appointment.appointment_type_name}
                   </td>
-                  {hasAnyConsultAction && (
-                    <CanAccess allowedRoles={[ROLES.STUDENT, ROLES.LECTURER]}>
-                      <td className="py-3 flex justify-center">
-                        <ConsultButton
-                          appointment={appointment}
-                          role={currentUserRole}
-                          onClick={handleConsult}
-                        />
-                      </td>
-                    </CanAccess>
+
+                  {access.canConsult && (
+                    <td className="py-3 flex justify-center">
+                      <ConsultButton
+                        appointment={appointment}
+                        role={user?.role}
+                        onClick={handleConsult}
+                      />
+                    </td>
                   )}
                 </tr>
               ))}
@@ -141,3 +135,14 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
+
+/* -------------------- Sub-Component -------------------- */
+const DashboardCard = ({ icon, title, color, bg, value }) => (
+  <div className={`${bg} p-4 h-36 col-span-4 rounded-xl`}>
+    <h3 className="flex items-center text-base gap-[12px] font-normal">
+      {icon}
+      {title}
+    </h3>
+    <span className={`text-[50px] font-bold ${color}`}>{value}</span>
+  </div>
+);

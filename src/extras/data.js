@@ -10,7 +10,7 @@ export const Sidebar_links = [
     name: "dashboard",
     icon: <RxDashboard className="text-xl font-bold" />,
     path: "/",
-    permissionKey: "canViewDashboard", // ✅ backend decides
+    // permissionKey: "canViewDashboard", // ✅ backend decides
   },
   {
     name: "appointments",
