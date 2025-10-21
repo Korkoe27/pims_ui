@@ -291,20 +291,20 @@ const PersonalInfo = () => {
                 value={formData.region}
                 onChange={handleChange}
                 options={[
-                  "Greater Accra",
+                  "Ahafo",
                   "Ashanti",
-                  "Volta",
                   "Bono",
                   "Bono East",
-                  "Brong Ahafo",
                   "Central",
                   "Eastern",
+                  "Greater Accra",
                   "North East",
                   "Northern",
                   "Oti",
                   "Savannah",
                   "Upper East",
                   "Upper West",
+                  "Volta",
                   "Western",
                   "Western North",
                 ]}
