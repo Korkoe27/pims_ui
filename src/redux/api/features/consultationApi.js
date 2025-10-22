@@ -2,12 +2,8 @@ import { apiClient } from "../api_client/apiClient";
 import { TAGS } from "../tags/tags";
 import {
   listConsultationsUrl,
-  getConsultationUrl,
   updateConsultationUrl,
   deleteConsultationUrl,
-  startConsultationUrl,
-  transitionConsultationUrl,
-  submitConsultationUrl,
   completeConsultationUrl,
   overrideConsultationUrl,
 } from "../end_points/endpoints";

@@ -11,7 +11,7 @@ import useHandleConsult from "../hooks/useHandleConsult";
 import PageContainer from "../components/PageContainer";
 import CanAccess from "../components/auth/CanAccess";
 import ConsultButton from "../components/ui/buttons/ConsultButton";
-import { canShowConsultButton } from "../utils/canShowConsultButton";
+
 
 const Dashboard = () => {
   const dispatch = useDispatch();

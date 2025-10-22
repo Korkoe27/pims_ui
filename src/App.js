@@ -5,14 +5,7 @@ import { useSelector } from "react-redux";
 import "./App.css";
 
 import {
-  CaseHistory,
   PersonalInfo,
-  VisualAcuity,
-  Internals,
-  Externals,
-  Refraction,
-  ExtraTests,
-  Diagnosis,
   Management,
   CreateAppointment,
 } from "./components";
