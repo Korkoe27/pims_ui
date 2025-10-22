@@ -11,7 +11,6 @@ import useLogout from "../hooks/useLogout";
 import { useLazySearchPatientsQuery } from "../redux/api/features/patientApi";
 import { showToast } from "../components/ToasterHelper";
 import CanAccess from "../components/auth/CanAccess";
-import { ROLES } from "../constants/roles";
 
 const Navbar = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -56,7 +55,7 @@ const Navbar = () => {
     <div className="h-16 w-full px-6 flex items-center justify-between bg-white z-20">
       {isModalOpen && <PatientModal setIsModalOpen={setIsModalOpen} />}
 
-      {/* Greeting */}
+      {/* 👋 Greeting */}
       <div>
         <h2 className="text-base font-bold">
           {user ? (
@@ -69,7 +68,7 @@ const Navbar = () => {
         </h2>
       </div>
 
-      {/* Center search and button */}
+      {/* 🔍 Search + Buttons */}
       <div className="flex items-center gap-4 flex-1 justify-center">
         <form
           onSubmit={handleSearch}
@@ -89,18 +88,40 @@ const Navbar = () => {
             </div>
           )}
         </form>
-        <CanAccess allowedRoles={[ROLES.ADMINISTRATOR]}>
-          <button
-            onClick={() => setIsModalOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 text-white bg-[#2f3192] rounded-md text-sm"
-          >
-            <GrAdd />
-            Add New Patient
-          </button>
-        </CanAccess>
+
+        {/* 🔒 Access-controlled Buttons */}
+        <div className="flex gap-2">
+          <CanAccess accessKeys={["canAddPatient"]}>
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="flex items-center gap-2 px-4 py-2 text-white bg-[#2f3192] rounded-md text-sm hover:bg-[#24267a] transition"
+            >
+              <GrAdd />
+              Add New Patient
+            </button>
+          </CanAccess>
+
+          {/* <CanAccess accessKeys={["canCreateAppointment"]}>
+            <button
+              onClick={() => navigate("/appointments/create")}
+              className="flex items-center gap-2 px-4 py-2 text-white bg-blue-700 rounded-md text-sm hover:bg-blue-800 transition"
+            >
+              New Appointment
+            </button>
+          </CanAccess> */}
+
+          {/* <CanAccess accessKeys={["canViewReports"]}>
+            <button
+              onClick={() => navigate("/reports")}
+              className="flex items-center gap-2 px-4 py-2 text-white bg-green-700 rounded-md text-sm hover:bg-green-800 transition"
+            >
+              Reports
+            </button>
+          </CanAccess> */}
+        </div>
       </div>
 
-      {/* Avatar and dropdown */}
+      {/* 👤 Avatar + Dropdown */}
       <div className="relative flex items-center gap-3">
         <div className="w-12 h-12 bg-[#ffe7cc] rounded-full flex items-center justify-center font-semibold text-xl text-[#3e3838]">
           {user ? `${user.first_name[0] || ""}${user.last_name[0] || ""}` : "U"}

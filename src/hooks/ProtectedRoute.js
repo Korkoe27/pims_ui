@@ -1,17 +1,35 @@
 import React from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
 
-const ProtectedRoute = ({ children }) => {
-  // Dynamically track authentication state from Redux
-  const { user } = useSelector((state) => state.auth);
+/**
+ * 🔒 ProtectedRoute — Access-based route guard
+ *
+ * Example:
+ * <ProtectedRoute accessKeys={["canViewReports"]}>
+ *    <Reports />
+ * </ProtectedRoute>
+ */
+const ProtectedRoute = ({ children, accessKeys = [] }) => {
+  const { user, loading } = useSelector((state) => state.auth);
+  const location = useLocation();
 
-  // Redirect unauthenticated users to the login page
+  if (loading) return <div className="text-center p-8">Loading...</div>;
+
   if (!user) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // Render protected content for authenticated users
+  if (accessKeys.length > 0) {
+    const access = user?.access || {};
+    const hasAllAccess = accessKeys.every((key) => access[key]);
+
+    if (!hasAllAccess) {
+      // 🚫 No permission → redirect to dashboard
+      return <Navigate to="/" replace />;
+    }
+  }
+
   return children;
 };
 

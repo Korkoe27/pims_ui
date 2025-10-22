@@ -7,12 +7,8 @@ import PageContainer from "../components/PageContainer";
 import { useGetTodaysAppointmentsQuery } from "../redux/api/features/appointmentsApi";
 import ConsultButton from "../components/ui/buttons/ConsultButton";
 
-/**
- * 🔹 Appointments — Displays today's appointments
- *    and allows consultation/review actions.
- */
-const Appointments = () => {
-  const { user } = useSelector((state) => state.auth);
+const SpecialAppointments = () => {
+  const { user } = useSelector((state) => state.auth || {});
   const access = user?.access || {};
   const { handleConsult } = useHandleConsult();
 
@@ -21,44 +17,41 @@ const Appointments = () => {
 
   // ✅ Fetch today's appointments
   const { data, isLoading, error } = useGetTodaysAppointmentsQuery();
-  const appointments = data?.data || [];
+  const allAppointments = data?.data || [];
 
-  // ✅ Sort by status (Scheduled → Completed → Cancelled)
+  // ✅ Filter only Special Appointments by category
+  const appointments = allAppointments.filter((appt) => {
+    const category =
+      typeof appt?.appointment_category === "string"
+        ? appt.appointment_category.toLowerCase()
+        : "";
+
+    return category === "special";
+  });
+
+  // ✅ Sort by status for consistent display
   const sortedAppointments = [...appointments].sort((a, b) => {
     const statusOrder = { Scheduled: 1, Completed: 2, Cancelled: 3 };
     return (statusOrder[a.status] || 99) - (statusOrder[b.status] || 99);
   });
 
-  // 🔹 Helper: Check if user has any consultation-related access
-  const hasConsultationAccess = (access = {}) => {
-    const consultKeys = [
-      "canStartConsultation",
-      "canViewConsultations",
-      "canEditConsultations",
-      "canSubmitConsultations",
-    ];
-    return consultKeys.some((key) => access[key]);
-  };
-  const actionColClass = "text-center px-6 py-3 min-w-[10rem]";
-
-
-  // ✅ Paginate
+  // ✅ Pagination logic
   const paginatedAppointments = sortedAppointments.slice(
     (currentPage - 1) * pageSize,
     currentPage * pageSize
   );
+
   const totalPages = Math.ceil(sortedAppointments.length / pageSize);
 
-  // ✅ Change page
   const handlePageChange = (page) => setCurrentPage(page);
 
   return (
     <PageContainer>
       {isLoading && <LoadingSpinner />}
 
-      <h1 className="font-extrabold text-xl mb-4">Today's Appointments</h1>
+      <h1 className="font-extrabold text-xl mb-4">Special Appointments</h1>
 
-      {/* ⚠️ Error Display */}
+      {/* ⚠️ Error Handling */}
       {error && (
         <p className="text-red-500 bg-red-50 border border-red-200 rounded-lg p-4 my-4">
           <span className="font-semibold">Error:</span>{" "}
@@ -71,17 +64,16 @@ const Appointments = () => {
       {/* ✅ Table Display */}
       {!isLoading && paginatedAppointments.length > 0 ? (
         <>
-          <table className="w-full text-base text-left text-gray-500">
-            <thead className="text-gray-700 uppercase bg-gray-50">
+          <table className="w-full text-base text-left text-gray-500 border-collapse">
+            <thead className="text-base text-gray-700 uppercase bg-gray-50">
               <tr>
                 <th className="px-6 py-3">Date</th>
                 <th className="px-6 py-3">Patient ID</th>
                 <th className="px-6 py-3">Name</th>
+                <th className="px-6 py-3">Category</th>
                 <th className="px-6 py-3">Type</th>
                 <th className="px-6 py-3">Status</th>
-                {hasConsultationAccess(access) && (
-                <th className={actionColClass}>Action</th>
-              )}
+                <th className="px-6 py-3 min-w-40">Action</th>
               </tr>
             </thead>
 
@@ -91,12 +83,14 @@ const Appointments = () => {
                   <td className="px-6 py-4">{appointment?.appointment_date}</td>
                   <td className="px-6 py-4">{appointment?.patient_id}</td>
                   <td className="px-6 py-4">{appointment?.patient_name}</td>
+                  <td className="px-6 py-4">{appointment?.appointment_category}</td>
                   <td className="px-6 py-4">
-                    {appointment?.appointment_type_name}
+                    {appointment?.appointment_type_name ||
+                      appointment?.appointment_type}
                   </td>
-                  <td className="w-fit mx-auto">
+                  <td className="px-6 py-4">
                     <span
-                      className={`px-6 rounded-full py-2 text-base font-medium text-white w-5 ${checkStatus(
+                      className={`px-4 py-2 rounded-full text-white font-medium ${getStatusColor(
                         appointment?.status
                       )}`}
                     >
@@ -104,16 +98,14 @@ const Appointments = () => {
                     </span>
                   </td>
 
-                  {/* ✅ Always show button now */}
-                  {hasConsultationAccess(access) && (
-                    <td className={`${actionColClass} flex justify-center`}>
-                      <ConsultButton
-                        appointment={appointment}
-                        access={access}
-                        onClick={handleConsult}
-                      />
-                    </td>
-                  )}
+                  {/* ✅ Always show Consult Button */}
+                  <td className="px-6 py-4">
+                    <ConsultButton
+                      appointment={appointment}
+                      access={access}
+                      onClick={handleConsult}
+                    />
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -127,8 +119,8 @@ const Appointments = () => {
         </>
       ) : (
         !isLoading && (
-          <p className="text-gray-500 text-center mt-6">
-            No appointments available.
+          <p className="text-gray-500 text-center py-8">
+            No special appointments available.
           </p>
         )
       )}
@@ -136,18 +128,17 @@ const Appointments = () => {
   );
 };
 
-export default Appointments;
+export default SpecialAppointments;
 
-/**
- * 🔹 Returns Tailwind class for appointment status badge color
- */
-const checkStatus = (status) => {
+/* ✅ Utility for status badge color */
+const getStatusColor = (status) => {
   switch (status) {
     case "Consultation Completed":
+    case "Completed":
       return "bg-green-600";
     case "Cancelled":
       return "bg-red-600";
     default:
-      return "bg-yellow-400";
+      return "bg-yellow-500";
   }
 };
