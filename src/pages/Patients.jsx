@@ -84,7 +84,7 @@ const Patients = () => {
                     {/* ✅ Access-based control for viewing patient details */}
                     <CanAccess accessKeys={["canViewPatients"]}>
                       <button
-                        className="text-white bg-gray-700 hover:bg-gray-800 focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-4 py-2"
+                        className="text-white bg-blue-500 hover:bg-blue-600 focus:ring-4 focus:ring-blue-200 font-medium rounded-lg text-sm px-4 py-2 transition-all"
                         onClick={() => handlePatientDetails(patient)}
                       >
                         View
