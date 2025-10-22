@@ -5,11 +5,13 @@
  */
 
 import apiClient from "../api_client/apiClient";
-import { loginUrl, logoutUrl, checkSessionUrl, getUserUrl } from "../end_points/endpoints";
+import { loginUrl, logoutUrl, checkSessionUrl } from "../end_points/endpoints";
 
 export const authApi = apiClient.injectEndpoints({
   endpoints: (builder) => ({
-    // Login endpoint
+    // ---------------------------------------
+    // 🔹 Login Endpoint
+    // ---------------------------------------
     login: builder.mutation({
       query: (credentials) => ({
         url: loginUrl,
@@ -22,31 +24,35 @@ export const authApi = apiClient.injectEndpoints({
       }),
     }),
 
-    // Logout endpoint
+    // ---------------------------------------
+    // 🔹 Logout Endpoint
+    // ---------------------------------------
     logout: builder.mutation({
-      query: () => ({
+      query: (refreshToken) => ({
         url: logoutUrl,
         method: "POST",
+        body: { refresh: refreshToken },
       }),
-      invalidatesTags: ["Auth"], // Invalidate cached session data
+      invalidatesTags: ["Auth"],
     }),
 
-    // Check session query
-    checkSession: builder.query({
-      query: () => checkSessionUrl,
-      providesTags: ["Auth"], // Cache session data
-    }),
-
-    // Fetch user data
+    // ---------------------------------------
+    // 🔹 Check Session (alias for getUser)
+    // ---------------------------------------
     getUser: builder.query({
       query: () => ({
-        url: getUserUrl,
+        url: checkSessionUrl,  // ✅ same endpoint
         method: "GET",
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("access_token")}`, // Include access token
+          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
         },
       }),
-      providesTags: ["User"], // Cache user data
+      providesTags: ["User"],
+      transformResponse: (response) => ({
+        authenticated: response.authenticated,
+        user: response.user,
+        access: response.user?.access || {},
+      }),
     }),
   }),
 });
@@ -54,7 +60,6 @@ export const authApi = apiClient.injectEndpoints({
 export const {
   useLoginMutation,
   useLogoutMutation,
-  useCheckSessionQuery,
   useGetUserQuery,
-  useLazyGetUserQuery
+  useLazyGetUserQuery,
 } = authApi;
