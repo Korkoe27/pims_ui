@@ -14,6 +14,8 @@ import { appointmentsApi } from "../api/features/appointmentsApi";
 import { absentRequestApi } from "../api/features/absentRequestApi";
 import { gradingApi } from "../api/features/gradingApi";
 import { consultationApi } from "../api/features/consultationApi";
+import { reportsApi } from "../api/features/reportsApi";
+
 
 // State slices
 import authReducer from "../slices/authSlice";
@@ -34,6 +36,22 @@ const persistConfig = {
 };
 
 const persistedAuthReducer = persistReducer(persistConfig, authReducer);
+
+const apiMiddlewares = [
+  authApi.middleware,
+  patientApi.middleware,
+  caseHistoryApi.middleware,
+  visualAcuityApi.middleware,
+  diagnosisApi.middleware,
+  managementApi.middleware,
+  dashboardApi.middleware,
+  appointmentsApi.middleware,
+  absentRequestApi.middleware,
+  gradingApi.middleware,
+  consultationApi.middleware,
+  reportsApi.middleware,
+];
+const uniqueApiMiddlewares = Array.from(new Set(apiMiddlewares));
 
 export const store = configureStore({
   reducer: {
@@ -59,20 +77,11 @@ export const store = configureStore({
     [absentRequestApi.reducerPath]: absentRequestApi.reducer,
     [gradingApi.reducerPath]: gradingApi.reducer,
     [consultationApi.reducerPath]: consultationApi.reducer,
+    [reportsApi.reducerPath]: reportsApi.reducer,
+
   },
   middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware({ serializableCheck: false })
-      .concat(authApi.middleware)
-      .concat(patientApi.middleware)
-      .concat(caseHistoryApi.middleware)
-      .concat(visualAcuityApi.middleware)
-      .concat(diagnosisApi.middleware)
-      .concat(managementApi.middleware)
-      .concat(dashboardApi.middleware)
-      .concat(appointmentsApi.middleware)
-      .concat(absentRequestApi.middleware)
-      .concat(gradingApi.middleware)
-      .concat(consultationApi.middleware),
+    getDefaultMiddleware({ serializableCheck: false }).concat(uniqueApiMiddlewares),
 });
 
 export const persistor = persistStore(store);

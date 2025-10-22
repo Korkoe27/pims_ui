@@ -10,7 +10,9 @@ const PendingReviews = () => {
   const { data: dashboardData, isLoading, error } = useGetDashboardDataQuery();
   const { handleConsult } = useHandleConsult();
 
-  const pendingReviews = dashboardData?.pending_reviews?.data || [];
+  // ✅ Correct path
+  const pendingReviews =
+    dashboardData?.appointments?.pending_reviews?.data || [];
 
   return (
     <PageContainer>
@@ -28,7 +30,7 @@ const PendingReviews = () => {
           <thead className="text-black uppercase text-left h-16 bg-[#f0f2f5]">
             <tr>
               <th className="px-3 py-3">Date</th>
-              <th className="px-3 py-3">Patient’s ID</th>
+              <th className="px-3 py-3">Patient ID</th>
               <th className="px-3 py-3">Name</th>
               <th className="px-3 py-3">Appointment Type</th>
               <CanAccess allowedRoles={[ROLES.LECTURER]}>
@@ -42,7 +44,10 @@ const PendingReviews = () => {
                 <td className="px-3 py-3">{appointment.appointment_date}</td>
                 <td className="px-3 py-3">{appointment.patient_id}</td>
                 <td className="px-3 py-3">{appointment.patient_name}</td>
-                <td className="px-3 py-3">{appointment.appointment_type}</td>
+                {/* ✅ Show readable type name */}
+                <td className="px-3 py-3">
+                  {appointment.appointment_type_name || "—"}
+                </td>
                 <CanAccess allowedRoles={[ROLES.LECTURER]}>
                   <td className="py-3 flex justify-center">
                     <button

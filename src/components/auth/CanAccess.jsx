@@ -1,20 +1,19 @@
-// CanAccess.jsx
 import React from "react";
 import { useSelector } from "react-redux";
 
-const toLower = (v) => (typeof v === "string" ? v.toLowerCase() : "");
-const toArray = (v) => (Array.isArray(v) ? v : v != null ? [v] : []);
+/**
+ * 🔒 CanAccess — Wrapper for permission-based rendering
+ * Example:
+ * <CanAccess accessKeys={["canStartConsultation", "canViewConsultations"]}>
+ *   <Button>Consult</Button>
+ * </CanAccess>
+ */
+const CanAccess = ({ children, accessKeys = [] }) => {
+  const { user } = useSelector((state) => state.auth);
+  const access = user?.access || {};
 
-export default function CanAccess({ allowedRoles, children, fallback = null }) {
-  // Normalize the user's role from Redux
-  const rawRole = useSelector((s) => s.auth?.user?.role);
-  const role = toLower(rawRole);
+  const hasPermission = accessKeys.every((key) => access[key]);
+  return hasPermission ? children : null;
+};
 
-  // Normalize allowed roles
-  const allowed = toArray(allowedRoles).filter(Boolean).map(toLower);
-
-  // Allow if "all" is present or user role is in list
-  const can = allowed.includes("all") || allowed.includes(role);
-
-  return can ? <>{children}</> : fallback;
-}
+export default CanAccess;

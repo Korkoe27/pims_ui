@@ -7,11 +7,7 @@ import PageContainer from "../components/PageContainer";
 import { useGetTodaysAppointmentsQuery } from "../redux/api/features/appointmentsApi";
 import ConsultButton from "../components/ui/buttons/ConsultButton";
 
-/**
- * 🔹 Appointments — Displays today's appointments
- *    and allows consultation/review actions.
- */
-const Appointments = () => {
+const GeneralAppointments = () => {
   const { user } = useSelector((state) => state.auth);
   const access = user?.access || {};
   const { handleConsult } = useHandleConsult();
@@ -21,44 +17,39 @@ const Appointments = () => {
 
   // ✅ Fetch today's appointments
   const { data, isLoading, error } = useGetTodaysAppointmentsQuery();
-  const appointments = data?.data || [];
+  const allAppointments = data?.data || [];
+
+  // ✅ Filter only General Appointments using appointment_category
+  const appointments = allAppointments.filter((appt) => {
+    const category =
+      typeof appt?.appointment_category === "string"
+        ? appt.appointment_category.toLowerCase()
+        : "";
+    return category === "general";
+  });
 
   // ✅ Sort by status (Scheduled → Completed → Cancelled)
   const sortedAppointments = [...appointments].sort((a, b) => {
-    const statusOrder = { Scheduled: 1, Completed: 2, Cancelled: 3 };
-    return (statusOrder[a.status] || 99) - (statusOrder[b.status] || 99);
+    const order = { Scheduled: 1, Completed: 2, Cancelled: 3 };
+    return (order[a.status] || 99) - (order[b.status] || 99);
   });
 
-  // 🔹 Helper: Check if user has any consultation-related access
-  const hasConsultationAccess = (access = {}) => {
-    const consultKeys = [
-      "canStartConsultation",
-      "canViewConsultations",
-      "canEditConsultations",
-      "canSubmitConsultations",
-    ];
-    return consultKeys.some((key) => access[key]);
-  };
-  const actionColClass = "text-center px-6 py-3 min-w-[10rem]";
-
-
-  // ✅ Paginate
+  // ✅ Pagination
   const paginatedAppointments = sortedAppointments.slice(
     (currentPage - 1) * pageSize,
     currentPage * pageSize
   );
   const totalPages = Math.ceil(sortedAppointments.length / pageSize);
 
-  // ✅ Change page
   const handlePageChange = (page) => setCurrentPage(page);
 
   return (
     <PageContainer>
       {isLoading && <LoadingSpinner />}
 
-      <h1 className="font-extrabold text-xl mb-4">Today's Appointments</h1>
+      <h1 className="font-extrabold text-xl mb-4">General Appointments</h1>
 
-      {/* ⚠️ Error Display */}
+      {/* ⚠️ Error Handling */}
       {error && (
         <p className="text-red-500 bg-red-50 border border-red-200 rounded-lg p-4 my-4">
           <span className="font-semibold">Error:</span>{" "}
@@ -77,11 +68,10 @@ const Appointments = () => {
                 <th className="px-6 py-3">Date</th>
                 <th className="px-6 py-3">Patient ID</th>
                 <th className="px-6 py-3">Name</th>
+                <th className="px-6 py-3">Category</th>
                 <th className="px-6 py-3">Type</th>
                 <th className="px-6 py-3">Status</th>
-                {hasConsultationAccess(access) && (
-                <th className={actionColClass}>Action</th>
-              )}
+                <th className="px-3 min-w-40 py-3">Action</th>
               </tr>
             </thead>
 
@@ -91,8 +81,10 @@ const Appointments = () => {
                   <td className="px-6 py-4">{appointment?.appointment_date}</td>
                   <td className="px-6 py-4">{appointment?.patient_id}</td>
                   <td className="px-6 py-4">{appointment?.patient_name}</td>
+                  <td className="px-6 py-4">{appointment?.appointment_category}</td>
                   <td className="px-6 py-4">
-                    {appointment?.appointment_type_name}
+                    {appointment?.appointment_type_name ||
+                      appointment?.appointment_type}
                   </td>
                   <td className="w-fit mx-auto">
                     <span
@@ -103,17 +95,14 @@ const Appointments = () => {
                       {appointment?.status}
                     </span>
                   </td>
-
-                  {/* ✅ Always show button now */}
-                  {hasConsultationAccess(access) && (
-                    <td className={`${actionColClass} flex justify-center`}>
-                      <ConsultButton
-                        appointment={appointment}
-                        access={access}
-                        onClick={handleConsult}
-                      />
-                    </td>
-                  )}
+                  {/* ✅ Always show Consult button */}
+                  <td className="px-6 py-4 flex gap-4">
+                    <ConsultButton
+                      appointment={appointment}
+                      access={access}
+                      onClick={handleConsult}
+                    />
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -128,7 +117,7 @@ const Appointments = () => {
       ) : (
         !isLoading && (
           <p className="text-gray-500 text-center mt-6">
-            No appointments available.
+            No general appointments available.
           </p>
         )
       )}
@@ -136,7 +125,7 @@ const Appointments = () => {
   );
 };
 
-export default Appointments;
+export default GeneralAppointments;
 
 /**
  * 🔹 Returns Tailwind class for appointment status badge color
