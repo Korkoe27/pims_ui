@@ -7,7 +7,6 @@ import useConsultationData from "../hooks/useConsultationData";
 import Header from "../components/Header";
 import ProgressBar from "../components/ProgressBar";
 import NavMenu from "../components/NavMenu";
-import { formatErrorMessage } from "../components/ToasterHelper";
 import CaseHistory from "../components/CaseHistory";
 import PersonalHistory from "../components/PersonalHistory";
 import VisualAcuity from "../components/VisualAcuity";
@@ -33,195 +32,6 @@ const determineConsultationType = (access = {}, appointment = {}) => {
   if (canSubmit && !isSubmittedForReview) return "student_consultation";
   if (canComplete && isSubmittedForReview) return "consultation_review";
   return null;
-};
-
-// ------------------------------------------------------------
-// 🔹 Transition Controls Component
-// ------------------------------------------------------------
-const TransitionControls = ({
-  consultationState,
-  transitionToState,
-  submitForReview,
-  completeConsultationFlow,
-  isTransitioning,
-  transitionError,
-  transitionSuccess,
-  clearTransitionMessages,
-  appointmentId,
-}) => {
-  const {
-    nextAllowedStates = [],
-    permissions = {},
-    flowType,
-    flowState,
-  } = consultationState || {};
-
-  if (
-    !nextAllowedStates.length &&
-    !permissions.can_submit_for_review &&
-    !permissions.can_complete
-  ) {
-    return null;
-  }
-
-  const getFlowTitle = () => {
-    switch (flowType) {
-      case "lecturer_consulting":
-        return "Lecturer Consultation Controls";
-      case "student_consulting":
-        return "Student Consultation Progress";
-      case "lecturer_reviewing":
-        return "Review & Grading Controls";
-      default:
-        return "Consultation Flow Controls";
-    }
-  };
-
-  const getFlowDescription = () => {
-    switch (flowType) {
-      case "lecturer_consulting":
-        return "You have full control over this consultation.";
-      case "student_consulting":
-        return "Complete your work and submit for lecturer review.";
-      case "lecturer_reviewing":
-        return "Review student work and provide grading.";
-      default:
-        return "";
-    }
-  };
-
-  return (
-    <div className="mb-6 p-4 bg-white rounded-md shadow-sm border">
-      <div className="flex justify-between items-start mb-3">
-        <div>
-          <h3 className="text-lg font-semibold">{getFlowTitle()}</h3>
-          <p className="text-sm text-gray-600 mt-1">{getFlowDescription()}</p>
-        </div>
-        <div className="text-xs bg-gray-100 px-2 py-1 rounded">
-          {flowType?.replace("_", " ").toUpperCase()}
-        </div>
-      </div>
-
-      {/* Transition messages */}
-      {transitionError && (
-        <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded text-red-700">
-          {formatErrorMessage(transitionError)}
-          <button
-            onClick={clearTransitionMessages}
-            className="ml-2 text-red-500 hover:text-red-700"
-          >
-            ×
-          </button>
-        </div>
-      )}
-
-      {transitionSuccess && (
-        <div className="mb-3 p-3 bg-green-50 border border-green-200 rounded text-green-700">
-          {typeof transitionSuccess === "string"
-            ? transitionSuccess
-            : formatErrorMessage(transitionSuccess)}
-          <button
-            onClick={clearTransitionMessages}
-            className="ml-2 text-green-500 hover:text-green-700"
-          >
-            ×
-          </button>
-        </div>
-      )}
-
-      {/* Flow-specific controls */}
-      <div className="flex flex-wrap gap-3">
-        {/* Lecturer Consulting */}
-        {flowType === "lecturer_consulting" &&
-          flowState !== "Consultation Completed" &&
-          nextAllowedStates.map((state) => (
-            <button
-              key={state}
-              onClick={() => transitionToState(appointmentId, state)}
-              disabled={isTransitioning}
-              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isTransitioning ? "Transitioning..." : `→ ${state}`}
-            </button>
-          ))}
-
-        {/* Student Consulting */}
-        {flowType === "student_consulting" &&
-          permissions.can_submit_for_review && (
-            <button
-              onClick={() => submitForReview(appointmentId)}
-              disabled={isTransitioning}
-              className="px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isTransitioning ? "Submitting..." : "📤 Submit for Review"}
-            </button>
-          )}
-
-        {/* Lecturer Reviewing */}
-        {flowType === "lecturer_reviewing" && (
-          <>
-            {flowState !== "Consultation Completed" &&
-              nextAllowedStates.map((state) => (
-                <button
-                  key={state}
-                  onClick={() => transitionToState(appointmentId, state)}
-                  disabled={isTransitioning}
-                  className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isTransitioning ? "Transitioning..." : `✓ ${state}`}
-                </button>
-              ))}
-            {permissions.can_complete &&
-              flowState !== "Consultation Completed" && (
-                <button
-                  onClick={() => completeConsultationFlow(appointmentId)}
-                  disabled={isTransitioning}
-                  className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isTransitioning
-                    ? "Completing..."
-                    : "🏁 Complete Consultation"}
-                </button>
-              )}
-          </>
-        )}
-
-        {/* General complete for lecturer consulting */}
-        {flowType === "lecturer_consulting" &&
-          permissions.can_complete &&
-          flowState !== "Consultation Completed" && (
-            <button
-              onClick={() => completeConsultationFlow(appointmentId)}
-              disabled={isTransitioning}
-              className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isTransitioning ? "Completing..." : "🏁 Complete Consultation"}
-            </button>
-          )}
-      </div>
-
-      {/* Current state info */}
-      <div className="mt-3 text-sm text-gray-600">
-        <span className="font-medium">Current State:</span>{" "}
-        {flowState || "Loading..."}
-        {flowState === "Consultation Completed" && (
-          <span className="ml-2 text-green-600 font-semibold">
-            ✅ Consultation Complete
-          </span>
-        )}
-        {flowType === "student_consulting" &&
-          flowState === "Submitted For Review" && (
-            <span className="ml-2 text-orange-600">
-              ⏳ Awaiting lecturer review
-            </span>
-          )}
-        {flowType === "lecturer_reviewing" &&
-          flowState !== "Consultation Completed" && (
-            <span className="ml-2 text-purple-600">👨‍🏫 Review in progress</span>
-          )}
-      </div>
-    </div>
-  );
 };
 
 // ------------------------------------------------------------
@@ -286,15 +96,7 @@ const Consultation = () => {
   );
 
   const {
-    consultation,
     consultationState,
-    isConsultationLoading,
-    transitionError,
-    transitionSuccess,
-    transitionToState,
-    submitForReview,
-    completeConsultationFlow,
-    clearTransitionMessages,
   } = useConsultationData(appointmentId, selectedAppointment, consultationType);
 
   const stepMap = {
@@ -352,7 +154,7 @@ const Consultation = () => {
             appointmentId={idStr}
             setActiveTab={setActiveTab}
             setTabCompletionStatus={setTabCompletionStatus}
-            consultationType={consultationType}
+            consultationType="consultation_review"
           />
         );
       case "personal history":
@@ -493,17 +295,6 @@ const Consultation = () => {
           <ProgressBar step={stepMap[flowStep] || 1} />
         </div>
 
-        <TransitionControls
-          consultationState={consultationState}
-          transitionToState={transitionToState}
-          submitForReview={submitForReview}
-          completeConsultationFlow={completeConsultationFlow}
-          isTransitioning={consultationState?.isTransitioning || false}
-          transitionError={transitionError}
-          transitionSuccess={transitionSuccess}
-          clearTransitionMessages={clearTransitionMessages}
-          appointmentId={appointmentId}
-        />
 
         <div className="mb-10">{renderFlowStep()}</div>
       </div>
