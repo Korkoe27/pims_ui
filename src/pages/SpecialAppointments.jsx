@@ -11,6 +11,7 @@ const SpecialAppointments = () => {
   const { user } = useSelector((state) => state.auth || {});
   const access = user?.access || {};
   const { handleConsult } = useHandleConsult();
+  const canStartConsult = access?.canStartConsultation || false;
 
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
@@ -73,7 +74,9 @@ const SpecialAppointments = () => {
                 <th className="px-6 py-3">Category</th>
                 <th className="px-6 py-3">Type</th>
                 <th className="px-6 py-3">Status</th>
-                <th className="px-6 py-3 min-w-40">Action</th>
+                {canStartConsult && (
+                  <th className="px-6 py-3 text-center min-w-[160px]">Action</th>
+                )}
               </tr>
             </thead>
 

@@ -7,7 +7,7 @@ const ConsultButton = ({ appointment, access, onClick }) => {
   let label = null;
 
   // ✅ Lecturer flow (based on access permissions)
-  if (access.canGradeStudents || access.canEditConsultations) {
+  if (access.canGradeStudents || access.canEditConsultations ) {
     if (
       [
         "consultation in progress",

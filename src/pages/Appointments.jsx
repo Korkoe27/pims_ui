@@ -33,7 +33,6 @@ const Appointments = () => {
   const hasConsultationAccess = (access = {}) => {
     const consultKeys = [
       "canStartConsultation",
-      "canViewConsultations",
       "canEditConsultations",
       "canSubmitConsultations",
     ];

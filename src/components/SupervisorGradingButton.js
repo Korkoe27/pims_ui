@@ -5,12 +5,13 @@ const SupervisorGradingButton = ({
   appointmentId,
   section,
   sectionLabel = "Supervisor Grading",
+  consultation_flow, // 🔹 Determines if we should show
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [score, setScore] = useState("");
   const [remarks, setRemarks] = useState("");
 
-  // Use the existing grading hook
+  // ✅ Always call hooks at the top level
   const { existingGrading, submitGrading, isLoading } = useGrading(
     appointmentId,
     section
@@ -23,6 +24,11 @@ const SupervisorGradingButton = ({
       setRemarks(existingGrading.remarks || "");
     }
   }, [existingGrading]);
+
+  // ✅ Safe early return AFTER hooks
+  if (consultation_flow !== "consultation_review") {
+    return null;
+  }
 
   const handleSubmit = async () => {
     const parsedScore = parseFloat(score);
@@ -98,8 +104,9 @@ const SupervisorGradingButton = ({
                 type="button"
                 onClick={handleSubmit}
                 className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded"
+                disabled={isLoading}
               >
-                Submit Score
+                {isLoading ? "Submitting..." : "Submit Score"}
               </button>
             </div>
           </div>

@@ -406,7 +406,7 @@ const PersonalInfo = () => {
               </button>
             </CanAccess>
 
-            <CanAccess accessKeys={["canScheduleAppointment"]}>
+            <CanAccess accessKeys={["canAddPatient"]}>
               <button
                 type="button"
                 onClick={handleScheduleAppointment}

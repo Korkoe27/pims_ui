@@ -15,81 +15,49 @@ import {
   clearTransitionMessages,
 } from "../redux/slices/consultationSlice";
 
+// 🔹 Maps frontend consultation type → internal flow name used in UI
+const typeToFlowType = {
+  expert_consultation: "lecturer_consulting",
+  student_consultation: "student_consulting",
+  consultation_review: "lecturer_reviewing",
+};
+
 const useConsultationData = (
   appointmentId,
   appointmentData = null,
-  userRole = null
+  consultationType = null
 ) => {
   const dispatch = useDispatch();
 
-  // Get consultation data (optional - may not exist with new appointment-based system)
+  // --- Queries ------------------------------------------------------
   const {
     data: consultation,
     isLoading: isConsultationLoading,
     error: consultationError,
     refetch: refetchConsultation,
   } = useGetConsultationQuery(appointmentId, {
-    skip: true, // Skip consultation queries since backend uses appointment-based system
+    skip: true,
   });
 
-  // Determine flow type based on appointment status and user role
-  const determineFlowType = (appointmentStatus, role, isStudentCase) => {
-    const status = appointmentStatus?.toLowerCase() || "";
+  // --- Flow & Permission Mapping ------------------------------------
+  const flowType = typeToFlowType[consultationType] || null;
+  const appointmentStatus =
+    appointmentData?.status || "Consultation In Progress";
 
-    console.log("🔍 Flow Type Debug:", {
-      appointmentStatus,
-      status,
-      role,
-      isStudentCase,
-    });
-
-    // If user is a student, it's always student consulting
-    if (role === "student") {
-      console.log("✅ Flow Type: student_consulting");
-      return "student_consulting";
-    }
-
-    // For lecturers, determine based on appointment status
-    if (role === "lecturer") {
-      // If appointment is submitted for review, under review, or graded - lecturer is reviewing
-      if (
-        status.includes("submitted for review") ||
-        status.includes("under review") ||
-        status.includes("graded") ||
-        status.includes("scored")
-      ) {
-        console.log("✅ Flow Type: lecturer_reviewing");
-        return "lecturer_reviewing";
-      }
-      // Otherwise, lecturer is consulting
-      console.log("✅ Flow Type: lecturer_consulting");
-      return "lecturer_consulting";
-    }
-
-    // Default fallback
-    console.log("✅ Flow Type: lecturer_consulting (fallback)");
-    return "lecturer_consulting";
-  };
-
-  // Determine permissions based on flow type and appointment status
-  const determinePermissions = (flowType, appointmentStatus) => {
-    const status = appointmentStatus?.toLowerCase() || "";
-
-    switch (flowType) {
-      case "student_consulting":
+  const determinePermissions = (type, status) => {
+    const s = status?.toLowerCase() || "";
+    switch (type) {
+      case "student_consultation":
         return {
-          can_edit_exams:
-            !status.includes("submitted") && !status.includes("completed"),
-          can_edit_diagnosis:
-            !status.includes("submitted") && !status.includes("completed"),
-          can_edit_management:
-            !status.includes("submitted") && !status.includes("completed"),
+          can_edit_exams: !s.includes("submitted") && !s.includes("completed"),
+          can_edit_diagnosis: !s.includes("submitted") && !s.includes("completed"),
+          can_edit_management: !s.includes("submitted") && !s.includes("completed"),
           can_submit_for_review: true,
           can_grade: false,
           can_complete: false,
           can_override: false,
         };
-      case "lecturer_reviewing":
+      case "consultation_review":
         return {
           can_edit_exams: true,
           can_edit_diagnosis: true,
@@ -99,13 +67,13 @@ const useConsultationData = (
           can_complete: true,
           can_override: true,
         };
-      case "lecturer_consulting":
+      case "expert_consultation":
       default:
         return {
           can_edit_exams: true,
           can_edit_diagnosis: true,
           can_edit_management: true,
-          can_submit_for_review: true,
+          can_submit_for_review: false,
           can_grade: false,
           can_complete: true,
           can_override: true,
@@ -113,45 +81,24 @@ const useConsultationData = (
     }
   };
 
-  // Provide fallback consultation state when queries are skipped
+  const permissions = determinePermissions(consultationType, appointmentStatus);
+
+  // --- Build fallback consultation object ---------------------------
   const fallbackConsultation = useMemo(() => {
-    if (consultation) return consultation;
-
-    const appointmentStatus =
-      appointmentData?.status || "Consultation In Progress";
-    const isStudentCase = appointmentData?.is_student_case || false;
-
-    console.log("🔍 Fallback Consultation Debug:", {
-      appointmentData,
-      appointmentStatus,
-      userRole,
-      isStudentCase,
-    });
-
-    const flowType = determineFlowType(
-      appointmentStatus,
-      userRole,
-      isStudentCase
-    );
-    const permissions = determinePermissions(flowType, appointmentStatus);
-
-    console.log("✅ Final Flow Type:", flowType);
-
     const now = new Date().toISOString();
     return {
       id: `fallback_${appointmentId}`,
       appointment_id: appointmentId,
       status: appointmentStatus,
-      flowType: flowType,
+      flowType,
       flowState: appointmentStatus,
-      is_student_case: isStudentCase,
-      permissions: permissions,
+      permissions,
       created_at: now,
       updated_at: now,
     };
-  }, [consultation, appointmentId, appointmentData, userRole]);
+  }, [appointmentId, appointmentStatus, flowType, permissions]);
 
-  // Mutations
+  // --- Mutations ----------------------------------------------------
   const [startConsultation, { isLoading: isStarting }] =
     useStartConsultationMutation();
   const [transitionConsultation, { isLoading: isTransitioning }] =
@@ -161,25 +108,38 @@ const useConsultationData = (
   const [completeConsultation, { isLoading: isCompleting }] =
     useCompleteConsultationMutation();
 
-  // Get current consultation state from Redux
+  // --- Redux state --------------------------------------------------
   const consultationState = useSelector((state) => state.consultation);
 
-  // Update consultation state when data changes (use fallback if no real data)
+  // ================================================================
+  // 🔧 FIXED: Prevent infinite update loop
+  // ================================================================
   useEffect(() => {
-    if (
-      fallbackConsultation &&
-      consultationState?.id !== fallbackConsultation.id
-    ) {
+    if (!fallbackConsultation) return;
+
+    const current = consultationState?.currentConsultation;
+    const isSame =
+      current &&
+      current.id === fallbackConsultation.id &&
+      current.flowState === fallbackConsultation.flowState &&
+      current.flowType === fallbackConsultation.flowType;
+
+    if (!isSame) {
       dispatch(setCurrentConsultation(fallbackConsultation));
     }
-  }, [fallbackConsultation, dispatch, consultationState?.id]);
+  }, [
+    dispatch,
+    fallbackConsultation.id,
+    fallbackConsultation.flowState,
+    fallbackConsultation.flowType,
+    consultationState?.currentConsultation,
+  ]);
 
-  // Helper functions
+  // --- Helper functions ---------------------------------------------
   const startConsultationFlow = async (data) => {
     try {
       dispatch(setTransitioning(true));
       dispatch(clearTransitionMessages());
-
       const result = await startConsultation(data).unwrap();
       dispatch(setTransitionSuccess("Consultation started successfully"));
       return result;
@@ -192,22 +152,19 @@ const useConsultationData = (
         )
       );
       throw error;
+    } finally {
+      dispatch(setTransitioning(false));
     }
   };
 
-  const transitionToState = async (consultationId, newState, reason = "") => {
+  const transitionToState = async (appointmentId, newState, reason = "") => {
     try {
       dispatch(setTransitioning(true));
       dispatch(clearTransitionMessages());
-
       const result = await transitionConsultation({
-        consultationId,
-        data: {
-          to: newState,
-          meta: { reason },
-        },
+        consultationId: appointmentId,
+        data: { to: newState, meta: { reason } },
       }).unwrap();
-
       dispatch(setTransitionSuccess(`Transitioned to ${newState}`));
       return result;
     } catch (error) {
@@ -215,19 +172,20 @@ const useConsultationData = (
         setTransitionError(
           error?.data?.detail ||
             error?.data?.error ||
-            "Failed to transition state"
+            "Failed to transition consultation"
         )
       );
       throw error;
+    } finally {
+      dispatch(setTransitioning(false));
     }
   };
 
-  const submitForReview = async (consultationId) => {
+  const submitForReview = async (appointmentId) => {
     try {
       dispatch(setTransitioning(true));
       dispatch(clearTransitionMessages());
-
-      const result = await submitConsultation(consultationId).unwrap();
+      const result = await submitConsultation(appointmentId).unwrap();
       dispatch(setTransitionSuccess("Submitted for review successfully"));
       return result;
     } catch (error) {
@@ -239,6 +197,8 @@ const useConsultationData = (
         )
       );
       throw error;
+    } finally {
+      dispatch(setTransitioning(false));
     }
   };
 
@@ -246,18 +206,8 @@ const useConsultationData = (
     try {
       dispatch(setTransitioning(true));
       dispatch(clearTransitionMessages());
-
-      // Use appointment ID directly (simplified approach)
       const result = await completeConsultation(appointmentId).unwrap();
-
-      // Refresh the consultation data so UI reflects the new state immediately
-      try {
-        await refetchConsultation?.();
-      } catch (e) {
-        // eslint-disable-next-line no-console
-        console.warn("Refetch after complete failed:", e);
-      }
-
+      await refetchConsultation?.().catch(() => {});
       dispatch(setTransitionSuccess("Consultation completed successfully"));
       return result;
     } catch (error) {
@@ -269,27 +219,34 @@ const useConsultationData = (
         )
       );
       throw error;
+    } finally {
+      dispatch(setTransitioning(false));
     }
   };
 
+  // --- Return unified data + actions --------------------------------
   return {
-    // Data
     consultation: fallbackConsultation,
-    consultationState,
+    consultationState: {
+      ...fallbackConsultation,
+      flowType,
+      permissions,
+      nextAllowedStates: appointmentData?.next_allowed_states || [],
+      flowState: appointmentStatus,
+      isTransitioning:
+        isStarting || isTransitioning || isSubmitting || isCompleting,
+    },
 
-    // Loading states
     isConsultationLoading,
     isStarting,
     isTransitioning,
     isSubmitting,
     isCompleting,
 
-    // Errors
     consultationError,
     transitionError: consultationState.transitionError,
     transitionSuccess: consultationState.transitionSuccess,
 
-    // Actions
     startConsultationFlow,
     transitionToState,
     submitForReview,

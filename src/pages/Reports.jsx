@@ -9,13 +9,16 @@ import {
   useGetInventoryReportsQuery,
 } from "../redux/api/features/reportsApi";
 import { downloadReport } from "../utils/downloadReport";
+import CanAccess from "../components/auth/CanAccess";
 
-// ✅ Safe & Flexible Download Button
+// =============================================================
+// ✅ Permission-Aware Download Button
+// =============================================================
 const DownloadButton = ({ dataset = [], file, fetchFullData }) => {
   const handleDownload = async () => {
     let exportData = Array.isArray(dataset) ? dataset : [];
 
-    // Fetch full filtered data if provided
+    // Fetch full filtered data if fetchFullData is provided
     if ((!exportData || exportData.length === 0) && fetchFullData) {
       const json = await fetchFullData();
       exportData = json.results || json.data || [];
@@ -26,10 +29,13 @@ const DownloadButton = ({ dataset = [], file, fetchFullData }) => {
       return;
     }
 
-    // Normalize keys for clean Excel headers
+    // Clean up keys for Excel header
     const normalizedData = exportData.map((row) =>
       Object.fromEntries(
-        Object.entries(row).map(([key, val]) => [key.replace(/_/g, " "), val])
+        Object.entries(row).map(([key, val]) => [
+          key.replace(/_/g, " "),
+          val ?? "",
+        ])
       )
     );
 
@@ -37,12 +43,14 @@ const DownloadButton = ({ dataset = [], file, fetchFullData }) => {
   };
 
   return (
-    <button
-      onClick={handleDownload}
-      className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-    >
-      Download Excel
-    </button>
+    <CanAccess accessKeys={["canExportReports"]}>
+      <button
+        onClick={handleDownload}
+        className="mt-4 px-4 py-2 bg-[#2f3192] text-white rounded-lg hover:bg-[#24256e] focus:ring-2 focus:ring-blue-400 transition"
+      >
+        ⬇️ Download Excel
+      </button>
+    </CanAccess>
   );
 };
 
@@ -50,11 +58,11 @@ const DownloadButton = ({ dataset = [], file, fetchFullData }) => {
 // ✅ Main Reports Page
 // =============================================================
 const Reports = () => {
-  const [activeTab, setActiveTab] = useState("appointments"); // default to appointments
+  const [activeTab, setActiveTab] = useState("appointments");
   const [filters, setFilters] = useState({ start_date: "", end_date: "" });
   const [page, setPage] = useState(1);
 
-  // 🔹 Queries (no aggregate anymore — we want full raw data)
+  // 🔹 Queries
   const { data: patientData, isLoading: loadingPatients } =
     useGetPatientReportsQuery({ page, page_size: 10 }, { skip: activeTab !== "patients" });
 
@@ -73,6 +81,9 @@ const Reports = () => {
   const { data: inventoryData, isLoading: loadingInventory } =
     useGetInventoryReportsQuery({ page, page_size: 10 }, { skip: activeTab !== "inventory" });
 
+  // ==========================================================
+  // 🔹 Render Table Utility
+  // ==========================================================
   const renderTable = (rows) => {
     if (!rows || rows.length === 0)
       return (
@@ -80,7 +91,6 @@ const Reports = () => {
       );
 
     const headers = Object.keys(rows[0] || {});
-
     return (
       <div className="overflow-x-auto mt-4">
         <table className="min-w-full border border-gray-300 text-sm">
@@ -110,7 +120,7 @@ const Reports = () => {
   };
 
   // ==========================================================
-  // 🔹 RENDER ACTIVE REPORT TAB
+  // 🔹 Render Each Report Tab
   // ==========================================================
   const renderReport = () => {
     // -------------------- APPOINTMENTS --------------------
@@ -253,6 +263,9 @@ const Reports = () => {
     }
   };
 
+  // ==========================================================
+  // 🔹 Tabs Navigation
+  // ==========================================================
   const tabs = [
     { id: "appointments", label: "Appointments" },
     { id: "patients", label: "Patients" },
@@ -265,6 +278,7 @@ const Reports = () => {
     <PageContainer>
       <h1 className="text-2xl font-bold mb-4">Reports</h1>
 
+      {/* 🔹 Tabs */}
       <div className="flex space-x-4 border-b border-gray-300 mb-4">
         {tabs.map((tab) => (
           <button
