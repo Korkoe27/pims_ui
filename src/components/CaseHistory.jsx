@@ -23,6 +23,7 @@ import { ROLES } from "../constants/roles";
 
 const CaseHistory = ({
   appointmentId,
+  consultationType,
   nextTab,
   setActiveTab,
   setTabCompletionStatus,
@@ -64,6 +65,14 @@ const CaseHistory = ({
       console.log("▶️ ODQ endpoint response:", directQuestioningConditions);
     }
   }, [directQuestioningConditions, loadingConditions]);
+
+  useEffect(() => {
+    console.groupCollapsed("🧭 CaseHistory Flow Info");
+    console.log("📌 appointmentId:", appointmentId);
+    console.log("📌 canEdit:", canEdit);
+    console.log("📌 consultationType:", consultationType);
+    console.groupEnd();
+  }, [appointmentId, canEdit, consultationType]);
 
   useEffect(() => {
     if (caseHistory) {

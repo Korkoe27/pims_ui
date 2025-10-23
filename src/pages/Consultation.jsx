@@ -372,6 +372,7 @@ const Consultation = () => {
             setActiveTab={setActiveTab}
             setTabCompletionStatus={setTabCompletionStatus}
             canEdit={canEdit}
+            consultationType={consultationType}
           />
         );
       case "externals":
