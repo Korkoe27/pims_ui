@@ -4,8 +4,7 @@ import { Tabs, Tab } from "../components/ui/tabs";
 import Card from "../components/ui/card";
 import PageContainer from "../components/PageContainer";
 import ConfirmationModal from "../components/ConfirmationModal";
-import CanAccess from "../components/auth/CanAccess";
-import { ROLES } from "../constants/roles";
+import LoadingSpinner from "../components/LoadingSpinner";
 import {
   useGetAbsentRequestsQuery,
   useCreateAbsentRequestMutation,
@@ -22,23 +21,32 @@ const AbsentRequest = () => {
     action: "",
   });
 
-  // Get current user info
-  const { user } = useSelector((state) => state.auth);
+  // 🔹 Auth + Access
+  const { user } = useSelector((state) => state.auth || {});
+  const access = user?.access || {};
   const currentUserId = user?.id;
-  const userRole = user?.role;
 
-  const { data: allRequests = [] } = useGetAbsentRequestsQuery();
+  // 🔹 Extract access keys
+  const canView = access.canViewAbsentRequests;
+  const canCreate = access.canCreateAbsentRequest;
+  const canApprove = access.canApproveAbsentRequests;
+  const canDecline = access.canDeclineAbsentRequests;
+
+  // 🔹 Fetch data (skip query if no view access)
+  const { data: allRequests = [], isLoading } = useGetAbsentRequestsQuery(
+    undefined,
+    { skip: !canView }
+  );
+
   const [createAbsentRequest] = useCreateAbsentRequestMutation();
   const [updateAbsentRequest] = useUpdateAbsentRequestMutation();
 
-  // Filter requests based on user role
-  const requests =
-    userRole === ROLES.COORDINATOR
-      ? allRequests // Coordinators see all requests
-      : allRequests.filter(
-          (req) => req.user === currentUserId || req.user_id === currentUserId
-        ); // Users see only their own requests
+  // 🔹 Filter based on ownership — non-admin users only see their own
+  const requests = allRequests.filter(
+    (req) => req.user === currentUserId || req.user_id === currentUserId
+  );
 
+  // 🔹 Handlers
   const handleCreateRequest = async (data) => {
     try {
       await createAbsentRequest(data).unwrap();
@@ -58,29 +66,59 @@ const AbsentRequest = () => {
     const { id, status, action } = modalData;
     try {
       await updateAbsentRequest({ id, status }).unwrap();
-      toast.success(`Request ${action.toLowerCase()}d`);
+      toast.success(`Request ${action.toLowerCase()}d successfully`);
+      setModalData({ ...modalData, open: false });
     } catch (err) {
       toast.error(`Failed to ${action.toLowerCase()} request`);
     }
   };
 
+  // 🔹 Categorize requests
   const pending = requests.filter((r) => r.status === "pending");
   const approved = requests.filter((r) => r.status === "approved");
   const rejected = requests.filter((r) => r.status === "rejected");
 
+  // 🔹 Access Gate — No permission
+  if (!canView) {
+    return (
+      <PageContainer>
+        <div className="p-6 bg-red-50 border border-red-200 rounded-md text-red-700 font-medium">
+          You do not have permission to view Absent Requests.
+        </div>
+      </PageContainer>
+    );
+  }
+
+  // 🔹 Loading
+  if (isLoading) {
+    return (
+      <PageContainer>
+        <div className="flex justify-center items-center py-10">
+          <LoadingSpinner />
+        </div>
+      </PageContainer>
+    );
+  }
+
   return (
     <PageContainer>
-      <div className="flex justify-between mb-4">
+      {/* ===== Header ===== */}
+      <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-bold">Absent Requests</h1>
-        <button
-          onClick={() => setShowModal(true)}
-          className="px-4 py-2 bg-blue-600 text-white rounded"
-        >
-          Make Request
-        </button>
+
+        {canCreate && (
+          <button
+            onClick={() => setShowModal(true)}
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          >
+            Make Request
+          </button>
+        )}
       </div>
 
+      {/* ===== Tabs ===== */}
       <Tabs>
+        {/* PENDING REQUESTS */}
         <Tab title="Pending Requests">
           <Card className="p-4 mt-4 overflow-x-auto">
             {pending.length === 0 ? (
@@ -93,15 +131,11 @@ const AbsentRequest = () => {
                       <th className="px-6 py-3 font-bold">From</th>
                       <th className="px-6 py-3 font-bold">To</th>
                       <th className="px-6 py-3 font-bold">Reason</th>
-                      <CanAccess roles={[ROLES.COORDINATOR]}>
-                        <th className="px-6 py-3 font-bold">Actions</th>
-                      </CanAccess>
-                      <CanAccess
-                        roles={[ROLES.STUDENT, ROLES.LECTURER]}
-                        fallback
-                      >
-                        <th className="px-6 py-3 font-bold">Status</th>
-                      </CanAccess>
+                      {(canApprove || canDecline) && (
+                        <th className="px-6 py-3 font-bold text-center">
+                          Actions
+                        </th>
+                      )}
                     </tr>
                   </thead>
                   <tbody>
@@ -110,36 +144,33 @@ const AbsentRequest = () => {
                         <td className="px-6 py-4">{req.from_date}</td>
                         <td className="px-6 py-4">{req.to_date}</td>
                         <td className="px-6 py-4">{req.reason}</td>
-                        <td className="px-6 py-4">
-                          <CanAccess roles={[ROLES.COORDINATOR]}>
-                            <div className="flex gap-2">
-                              <button
-                                onClick={() =>
-                                  handleStatusChange(req.id, "approved")
-                                }
-                                className="bg-green-600 text-white hover:bg-green-700 px-4 py-2 rounded-md text-sm font-semibold shadow transition cursor-pointer"
-                              >
-                                Approve
-                              </button>
-                              <button
-                                onClick={() =>
-                                  handleStatusChange(req.id, "rejected")
-                                }
-                                className="bg-red-600 text-white hover:bg-red-700 px-4 py-2 rounded-md text-sm font-semibold shadow transition cursor-pointer"
-                              >
-                                Decline
-                              </button>
+
+                        {(canApprove || canDecline) && (
+                          <td className="px-6 py-4 text-center">
+                            <div className="flex gap-2 justify-center">
+                              {canApprove && (
+                                <button
+                                  onClick={() =>
+                                    handleStatusChange(req.id, "approved")
+                                  }
+                                  className="bg-green-600 text-white hover:bg-green-700 px-4 py-2 rounded-md text-sm font-semibold shadow transition"
+                                >
+                                  Approve
+                                </button>
+                              )}
+                              {canDecline && (
+                                <button
+                                  onClick={() =>
+                                    handleStatusChange(req.id, "rejected")
+                                  }
+                                  className="bg-red-600 text-white hover:bg-red-700 px-4 py-2 rounded-md text-sm font-semibold shadow transition"
+                                >
+                                  Decline
+                                </button>
+                              )}
                             </div>
-                          </CanAccess>
-                          <CanAccess
-                            roles={[ROLES.STUDENT, ROLES.LECTURER]}
-                            fallback
-                          >
-                            <span className="px-3 py-1 text-sm font-medium bg-yellow-100 text-yellow-800 rounded-full capitalize">
-                              {req.status}
-                            </span>
-                          </CanAccess>
-                        </td>
+                          </td>
+                        )}
                       </tr>
                     ))}
                   </tbody>
@@ -149,6 +180,7 @@ const AbsentRequest = () => {
           </Card>
         </Tab>
 
+        {/* APPROVED REQUESTS */}
         <Tab title="Approved Requests">
           <Card className="p-4 mt-4 overflow-x-auto">
             {approved.length === 0 ? (
@@ -161,6 +193,7 @@ const AbsentRequest = () => {
                       <th className="px-6 py-3 font-bold">From</th>
                       <th className="px-6 py-3 font-bold">To</th>
                       <th className="px-6 py-3 font-bold">Reason</th>
+                      <th className="px-6 py-3 font-bold">Approved At</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -169,6 +202,11 @@ const AbsentRequest = () => {
                         <td className="px-6 py-4">{req.from_date}</td>
                         <td className="px-6 py-4">{req.to_date}</td>
                         <td className="px-6 py-4">{req.reason}</td>
+                        <td className="px-6 py-4">
+                          {req.actioned_at
+                            ? new Date(req.actioned_at).toLocaleString()
+                            : "—"}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -178,6 +216,7 @@ const AbsentRequest = () => {
           </Card>
         </Tab>
 
+        {/* REJECTED REQUESTS */}
         <Tab title="Rejected Requests">
           <Card className="p-4 mt-4 overflow-x-auto">
             {rejected.length === 0 ? (
@@ -216,6 +255,7 @@ const AbsentRequest = () => {
         </Tab>
       </Tabs>
 
+      {/* ===== CREATE REQUEST MODAL ===== */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded shadow-lg w-full max-w-md">
@@ -288,6 +328,7 @@ const AbsentRequest = () => {
         </div>
       )}
 
+      {/* ===== CONFIRMATION MODAL ===== */}
       <ConfirmationModal
         isOpen={modalData.open}
         title={`${modalData.action} Request`}
