@@ -18,13 +18,26 @@ import ExtraTests from "../components/ExtraTests";
 import Diagnosis from "../components/Diagnosis";
 import Management from "../components/Management";
 import CaseManagementGuide from "../components/CaseManagementGuide";
+import MedicationDispensing from "../components/MedicationDispensing";
 import BouncingBallsLoader from "../components/BouncingBallsLoader";
 
-// ✅ New flow components (post-management ops)
-// Payment step removed from flow
-import MedicationDispensing from "../components/MedicationDispensing";
+// ------------------------------------------------------------
+// 🔹 Determine consultation type dynamically (no roles used)
+// ------------------------------------------------------------
+const determineConsultationType = (access = {}, appointment = {}) => {
+  const canComplete = access.canCompleteConsultations;
+  const canSubmit = access.canSubmitConsultations;
+  const isSubmittedForReview = !!appointment.is_submitted_for_review;
 
-// Consultation flow transition controls
+  if (canComplete && !isSubmittedForReview) return "expert_consultation";
+  if (canSubmit && !isSubmittedForReview) return "student_consultation";
+  if (canComplete && isSubmittedForReview) return "consultation_review";
+  return null;
+};
+
+// ------------------------------------------------------------
+// 🔹 Transition Controls Component
+// ------------------------------------------------------------
 const TransitionControls = ({
   consultationState,
   transitionToState,
@@ -43,7 +56,6 @@ const TransitionControls = ({
     flowState,
   } = consultationState || {};
 
-  // Don't show controls if no permissions or states available
   if (
     !nextAllowedStates.length &&
     !permissions.can_submit_for_review &&
@@ -52,7 +64,6 @@ const TransitionControls = ({
     return null;
   }
 
-  // Get flow-specific messaging
   const getFlowTitle = () => {
     switch (flowType) {
       case "lecturer_consulting":
@@ -78,14 +89,6 @@ const TransitionControls = ({
         return "";
     }
   };
-
-  // Debug info
-  console.log("TransitionControls Debug:", {
-    flowType,
-    flowState,
-    permissions,
-    nextAllowedStates,
-  });
 
   return (
     <div className="mb-6 p-4 bg-white rounded-md shadow-sm border">
@@ -128,7 +131,7 @@ const TransitionControls = ({
 
       {/* Flow-specific controls */}
       <div className="flex flex-wrap gap-3">
-        {/* Lecturer Consulting: Full transition control */}
+        {/* Lecturer Consulting */}
         {flowType === "lecturer_consulting" &&
           flowState !== "Consultation Completed" &&
           nextAllowedStates.map((state) => (
@@ -142,7 +145,7 @@ const TransitionControls = ({
             </button>
           ))}
 
-        {/* Student Consulting: Only submit for review */}
+        {/* Student Consulting */}
         {flowType === "student_consulting" &&
           permissions.can_submit_for_review && (
             <button
@@ -154,7 +157,7 @@ const TransitionControls = ({
             </button>
           )}
 
-        {/* Lecturer Reviewing: Grading and transition controls */}
+        {/* Lecturer Reviewing */}
         {flowType === "lecturer_reviewing" && (
           <>
             {flowState !== "Consultation Completed" &&
@@ -221,6 +224,9 @@ const TransitionControls = ({
   );
 };
 
+// ------------------------------------------------------------
+// 🔹 Main Consultation Component
+// ------------------------------------------------------------
 const Consultation = () => {
   const { appointmentId } = useParams();
   const navigate = useNavigate();
@@ -229,18 +235,12 @@ const Consultation = () => {
   const LOCAL_FLOW_KEY = `consultation-${appointmentId}-flowStep`;
   const LOCAL_STATUS_KEY = `consultation-${appointmentId}-tabCompletionStatus`;
 
-  // Local tab state (case history, VA, externals, etc.)
-  const [activeTab, _setActiveTab] = useState(() => {
-    const stored = localStorage.getItem(LOCAL_TAB_KEY);
-    return stored || "case history";
-  });
-
-  // Local fallback for flow step
-  const [flowStep, _setFlowStep] = useState(() => {
-    const stored = localStorage.getItem(LOCAL_FLOW_KEY);
-    return stored || "consultation";
-  });
-
+  const [activeTab, _setActiveTab] = useState(
+    localStorage.getItem(LOCAL_TAB_KEY) || "case history"
+  );
+  const [flowStep, _setFlowStep] = useState(
+    localStorage.getItem(LOCAL_FLOW_KEY) || "consultation"
+  );
   const [tabCompletionStatus, _setTabCompletionStatus] = useState(() => {
     try {
       const stored = localStorage.getItem(LOCAL_STATUS_KEY);
@@ -254,7 +254,6 @@ const Consultation = () => {
     localStorage.setItem(LOCAL_TAB_KEY, tab);
     _setActiveTab(tab);
   };
-
   const setFlowStep = useCallback(
     (step) => {
       localStorage.setItem(LOCAL_FLOW_KEY, step);
@@ -262,7 +261,6 @@ const Consultation = () => {
     },
     [LOCAL_FLOW_KEY]
   );
-
   const setTabCompletionStatus = (updateFnOrObject) => {
     _setTabCompletionStatus((prev) => {
       const update =
@@ -274,19 +272,19 @@ const Consultation = () => {
     });
   };
 
-  // ================================
-  // Backend Data
-  // ================================
-  // Get current user role from Redux
-  const currentUserRole = useSelector((state) => state.auth.user?.role);
-
+  // --- Data and Consultation Type ---------------------------------
+  const userAccess = useSelector((state) => state.auth.user?.access);
   const {
     data: selectedAppointment,
     error,
     isLoading,
   } = useGetAppointmentDetailsQuery(appointmentId);
 
-  // Consultation flow data - pass appointment data and user role for proper flow type determination
+  const consultationType = determineConsultationType(
+    userAccess,
+    selectedAppointment
+  );
+
   const {
     consultation,
     consultationState,
@@ -297,9 +295,8 @@ const Consultation = () => {
     submitForReview,
     completeConsultationFlow,
     clearTransitionMessages,
-  } = useConsultationData(appointmentId, selectedAppointment, currentUserRole);
+  } = useConsultationData(appointmentId, selectedAppointment, consultationType);
 
-  // ✅ Align with the progress bar (5 local steps; bar shows 3 and clamps)
   const stepMap = {
     consultation: 1,
     diagnosis: 2,
@@ -307,57 +304,46 @@ const Consultation = () => {
     dispensing: 5,
   };
 
-  // ✅ Map consultation status to flowStep
   useEffect(() => {
     if (!consultationState?.flowState) return;
-
-    const consultationStatus = consultationState.flowState;
-
-    // Map consultation states to UI flow steps
     const stateToFlowStep = {
       "Consultation In Progress": "consultation",
       "Exams Recorded": "consultation",
       "Diagnosis Added": "diagnosis",
-      // Keep the user in the consultation step even if management has been created;
-      // this prevents auto-switching away from exams/diagnosis when a management
-      // record exists but the clinician still needs to complete the consultation.
       "Management Created": "consultation",
       "Case Management Guide Created": "management",
-      "Logs Created": "management",
       "Submitted For Review": "diagnosis",
       "Under Review": "diagnosis",
       Graded: "management",
       "Consultation Completed": "dispensing",
     };
-
-    const mappedFlowStep =
-      stateToFlowStep[consultationStatus] || "consultation";
-    setFlowStep(mappedFlowStep);
+    setFlowStep(stateToFlowStep[consultationState.flowState] || "consultation");
   }, [consultationState?.flowState, setFlowStep]);
 
-  // Loading gate
-  if (isLoading) {
+  if (isLoading)
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-white z-50">
         <BouncingBallsLoader />
       </div>
     );
-  }
 
-  // Error/empty gate
   if (error || !selectedAppointment) {
-    console.error("❌ Error fetching appointment details. Redirecting...");
-    // Redirect out of render to avoid rendering an object as a child
     setTimeout(() => navigate("/"), 0);
     return <p>Redirecting to Dashboard...</p>;
   }
 
-  // --------------------------------
-  // Tab Content (inside consultation)
-  // --------------------------------
+  // -------------------------
+  // Tab Content Renderer
+  // -------------------------
   const renderTabContent = () => {
     const tab = (activeTab || "").toLowerCase();
     const idStr = String(appointmentId);
+    const canEdit =
+      consultationState?.flowType === "lecturer_consulting" ||
+      (consultationState?.flowType === "student_consulting" &&
+        consultationState?.permissions?.can_edit_exams) ||
+      (consultationState?.flowType === "lecturer_reviewing" &&
+        consultationState?.permissions?.can_override);
 
     switch (tab) {
       case "case history":
@@ -366,13 +352,7 @@ const Consultation = () => {
             appointmentId={idStr}
             setActiveTab={setActiveTab}
             setTabCompletionStatus={setTabCompletionStatus}
-            canEdit={
-              consultationState?.flowType === "lecturer_consulting" ||
-              (consultationState?.flowType === "student_consulting" &&
-                consultationState?.permissions?.can_edit_exams) ||
-              (consultationState?.flowType === "lecturer_reviewing" &&
-                consultationState?.permissions?.can_override)
-            }
+            canEdit={canEdit}
           />
         );
       case "personal history":
@@ -391,13 +371,7 @@ const Consultation = () => {
             appointmentId={idStr}
             setActiveTab={setActiveTab}
             setTabCompletionStatus={setTabCompletionStatus}
-            canEdit={
-              consultationState?.flowType === "lecturer_consulting" ||
-              (consultationState?.flowType === "student_consulting" &&
-                consultationState?.permissions?.can_edit_exams) ||
-              (consultationState?.flowType === "lecturer_reviewing" &&
-                consultationState?.permissions?.can_override)
-            }
+            canEdit={canEdit}
           />
         );
       case "externals":
@@ -406,13 +380,7 @@ const Consultation = () => {
             appointmentId={idStr}
             setActiveTab={setActiveTab}
             setTabCompletionStatus={setTabCompletionStatus}
-            canEdit={
-              consultationState?.flowType === "lecturer_consulting" ||
-              (consultationState?.flowType === "student_consulting" &&
-                consultationState?.permissions?.can_edit_exams) ||
-              (consultationState?.flowType === "lecturer_reviewing" &&
-                consultationState?.permissions?.can_override)
-            }
+            canEdit={canEdit}
           />
         );
       case "internals":
@@ -421,13 +389,7 @@ const Consultation = () => {
             appointmentId={idStr}
             setActiveTab={setActiveTab}
             setTabCompletionStatus={setTabCompletionStatus}
-            canEdit={
-              consultationState?.flowType === "lecturer_consulting" ||
-              (consultationState?.flowType === "student_consulting" &&
-                consultationState?.permissions?.can_edit_exams) ||
-              (consultationState?.flowType === "lecturer_reviewing" &&
-                consultationState?.permissions?.can_override)
-            }
+            canEdit={canEdit}
           />
         );
       case "refraction":
@@ -436,13 +398,7 @@ const Consultation = () => {
             appointmentId={idStr}
             setActiveTab={setActiveTab}
             setTabCompletionStatus={setTabCompletionStatus}
-            canEdit={
-              consultationState?.flowType === "lecturer_consulting" ||
-              (consultationState?.flowType === "student_consulting" &&
-                consultationState?.permissions?.can_edit_exams) ||
-              (consultationState?.flowType === "lecturer_reviewing" &&
-                consultationState?.permissions?.can_override)
-            }
+            canEdit={canEdit}
           />
         );
       case "extra tests":
@@ -452,13 +408,7 @@ const Consultation = () => {
             setFlowStep={setFlowStep}
             setActiveTab={setActiveTab}
             setTabCompletionStatus={setTabCompletionStatus}
-            canEdit={
-              consultationState?.flowType === "lecturer_consulting" ||
-              (consultationState?.flowType === "student_consulting" &&
-                consultationState?.permissions?.can_edit_exams) ||
-              (consultationState?.flowType === "lecturer_reviewing" &&
-                consultationState?.permissions?.can_override)
-            }
+            canEdit={canEdit}
           />
         );
       case "case management guide":
@@ -475,10 +425,16 @@ const Consultation = () => {
   };
 
   // -------------------------
-  // Render flow-level content
+  // Flow Step Renderer
   // -------------------------
   const renderFlowStep = () => {
     const idStr = String(appointmentId);
+    const canEdit =
+      consultationState?.flowType === "lecturer_consulting" ||
+      (consultationState?.flowType === "student_consulting" &&
+        consultationState?.permissions?.can_edit_management) ||
+      (consultationState?.flowType === "lecturer_reviewing" &&
+        consultationState?.permissions?.can_override);
 
     switch (flowStep) {
       case "consultation":
@@ -498,13 +454,7 @@ const Consultation = () => {
             setActiveTab={setActiveTab}
             appointmentId={idStr}
             setFlowStep={setFlowStep}
-            canEdit={
-              consultationState?.flowType === "lecturer_consulting" ||
-              (consultationState?.flowType === "student_consulting" &&
-                consultationState?.permissions?.can_edit_diagnosis) ||
-              (consultationState?.flowType === "lecturer_reviewing" &&
-                consultationState?.permissions?.can_override)
-            }
+            canEdit={canEdit}
           />
         );
       case "management":
@@ -513,16 +463,9 @@ const Consultation = () => {
             setActiveTab={setActiveTab}
             appointmentId={idStr}
             setFlowStep={setFlowStep}
-            canEdit={
-              consultationState?.flowType === "lecturer_consulting" ||
-              (consultationState?.flowType === "student_consulting" &&
-                consultationState?.permissions?.can_edit_management) ||
-              (consultationState?.flowType === "lecturer_reviewing" &&
-                consultationState?.permissions?.can_override)
-            }
+            canEdit={canEdit}
           />
         );
-      // payment step intentionally removed; proceed from management -> dispensing
       case "dispensing":
         return (
           <MedicationDispensing
@@ -535,21 +478,20 @@ const Consultation = () => {
     }
   };
 
+  // -------------------------
+  // Main Render
+  // -------------------------
+  const idStr = String(appointmentId);
   return (
     <div className="min-h-screen bg-[#f9fafb] pt-6 px-4 md:px-12 lg:px-24">
       <div className="max-w-6xl mx-auto">
         <h1 className="font-extrabold text-xl mb-2">Consultation</h1>
-        <Header
-          patient={selectedAppointment}
-          appointmentId={String(appointmentId)}
-        />
+        <Header patient={selectedAppointment} appointmentId={idStr} />
 
         <div className="mt-4 mb-6">
-          {/* ProgressBar ends at Management (3 steps). stepMap values > 3 are clamped */}
           <ProgressBar step={stepMap[flowStep] || 1} />
         </div>
 
-        {/* Consultation flow transition controls */}
         <TransitionControls
           consultationState={consultationState}
           transitionToState={transitionToState}

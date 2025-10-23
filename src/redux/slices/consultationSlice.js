@@ -5,11 +5,12 @@ const initialState = {
   currentConsultation: null,
 
   // Flow type identification
-  flowType: null, // 'lecturer_consulting' | 'student_consulting' | 'lecturer_reviewing'
+  // 'lecturer_consulting' | 'student_consulting' | 'lecturer_reviewing'
+  flowType: null,
 
   // Flow state management
-  flowState: null, // Current state in the consultation flow
-  nextAllowedStates: [], // States that can be transitioned to
+  flowState: null, // e.g. "Consultation In Progress"
+  nextAllowedStates: [],
 
   // Permission flags
   permissions: {
@@ -27,7 +28,7 @@ const initialState = {
   transitionError: null,
   transitionSuccess: null,
 
-  // Loading states
+  // Loading state
   isLoading: false,
   error: null,
 };
@@ -36,67 +37,55 @@ const consultationSlice = createSlice({
   name: "consultation",
   initialState,
   reducers: {
-    // Set current consultation
+    // ========================================================
+    // 🔹 Set or refresh the current consultation
+    // ========================================================
     setCurrentConsultation: (state, action) => {
-      state.currentConsultation = action.payload;
-      state.flowState = action.payload?.status || null;
-      state.nextAllowedStates = action.payload?.next_allowed_states || [];
+      const payload = action.payload || {};
 
-      // Determine flow type based on consultation data
-      if (action.payload?.is_student_case) {
-        if (
-          action.payload?.status === "Under Review" ||
-          action.payload?.status === "Graded"
-        ) {
-          state.flowType = "lecturer_reviewing";
-        } else {
-          state.flowType = "student_consulting";
-        }
-      } else {
-        state.flowType = "lecturer_consulting";
-      }
+      state.currentConsultation = payload;
+      state.flowState = payload.flowState || payload.status || null;
+      state.nextAllowedStates =
+        payload.nextAllowedStates || payload.next_allowed_states || [];
 
-      // Update permissions based on consultation data
-      if (action.payload?.permissions) {
-        state.permissions = {
-          ...state.permissions,
-          ...action.payload.permissions,
-        };
+      // ✅ flowType is now determined by the frontend (Consultation.jsx)
+      state.flowType = payload.flowType || null;
+
+      // ✅ Permissions are provided by useConsultationData
+      if (payload.permissions) {
+        state.permissions = { ...state.permissions, ...payload.permissions };
       }
     },
 
-    // Update flow state
+    // ========================================================
+    // 🔹 Flow and permission updates
+    // ========================================================
     setFlowState: (state, action) => {
       state.flowState = action.payload;
     },
 
-    // Update next allowed states
     setNextAllowedStates: (state, action) => {
       state.nextAllowedStates = action.payload;
     },
 
-    // Update permissions
     setPermissions: (state, action) => {
-      state.permissions = {
-        ...state.permissions,
-        ...action.payload,
-      };
+      state.permissions = { ...state.permissions, ...action.payload };
     },
 
-    // Transition state management
+    // ========================================================
+    // 🔹 Transition handling (success, error, loading)
+    // ========================================================
     setTransitioning: (state, action) => {
       state.isTransitioning = action.payload;
     },
 
     setTransitionError: (state, action) => {
-      // Normalize errors to strings to avoid rendering raw objects in the UI
       const payload = action.payload;
       if (!payload) {
         state.transitionError = null;
       } else if (typeof payload === "string") {
         state.transitionError = payload;
       } else if (typeof payload === "object") {
-        // Prefer `detail` if present, otherwise fallback to joined keys or JSON
         if (typeof payload.detail === "string") {
           state.transitionError = payload.detail;
         } else if (payload.error && typeof payload.error === "string") {
@@ -106,7 +95,7 @@ const consultationSlice = createSlice({
         } else {
           try {
             state.transitionError = JSON.stringify(payload);
-          } catch (e) {
+          } catch {
             state.transitionError = String(payload);
           }
         }
@@ -117,7 +106,6 @@ const consultationSlice = createSlice({
     },
 
     setTransitionSuccess: (state, action) => {
-      // Normalize success messages similarly
       const payload = action.payload;
       if (!payload) {
         state.transitionSuccess = null;
@@ -131,7 +119,7 @@ const consultationSlice = createSlice({
         } else {
           try {
             state.transitionSuccess = JSON.stringify(payload);
-          } catch (e) {
+          } catch {
             state.transitionSuccess = String(payload);
           }
         }
@@ -146,7 +134,9 @@ const consultationSlice = createSlice({
       state.transitionSuccess = null;
     },
 
-    // Loading states
+    // ========================================================
+    // 🔹 Loading and general error states
+    // ========================================================
     setLoading: (state, action) => {
       state.isLoading = action.payload;
     },
@@ -160,9 +150,12 @@ const consultationSlice = createSlice({
       state.error = null;
     },
 
-    // Reset consultation state
+    // ========================================================
+    // 🔹 Reset consultation state (on exit or logout)
+    // ========================================================
     resetConsultation: (state) => {
       state.currentConsultation = null;
+      state.flowType = null;
       state.flowState = null;
       state.nextAllowedStates = [];
       state.permissions = {
