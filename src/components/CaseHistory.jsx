@@ -22,7 +22,6 @@ import CanAccess from "./auth/CanAccess";
 import { ROLES } from "../constants/roles";
 
 const CaseHistory = ({
-  patientId,
   appointmentId,
   nextTab,
   setActiveTab,

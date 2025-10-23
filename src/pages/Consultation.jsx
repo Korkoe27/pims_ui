@@ -352,7 +352,7 @@ const Consultation = () => {
             appointmentId={idStr}
             setActiveTab={setActiveTab}
             setTabCompletionStatus={setTabCompletionStatus}
-            canEdit={canEdit}
+            consultationType={consultationType}
           />
         );
       case "personal history":
