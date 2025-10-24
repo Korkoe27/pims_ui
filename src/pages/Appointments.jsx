@@ -29,27 +29,18 @@ const Appointments = () => {
     return (statusOrder[a.status] || 99) - (statusOrder[b.status] || 99);
   });
 
-  // 🔹 Helper: Check if user has any consultation-related access
-  const hasConsultationAccess = (access = {}) => {
-    const consultKeys = [
-      "canStartConsultation",
-      "canEditConsultations",
-      "canSubmitConsultations",
-    ];
-    return consultKeys.some((key) => access[key]);
-  };
-  const actionColClass = "text-center px-6 py-3 min-w-[10rem]";
-
-
-  // ✅ Paginate
+  // ✅ Pagination
   const paginatedAppointments = sortedAppointments.slice(
     (currentPage - 1) * pageSize,
     currentPage * pageSize
   );
   const totalPages = Math.ceil(sortedAppointments.length / pageSize);
-
-  // ✅ Change page
   const handlePageChange = (page) => setCurrentPage(page);
+
+  // ✅ Determine if Action column should appear (via ConsultButton)
+  const showActionColumn = ConsultButton.shouldShow(access);
+
+  const actionColClass = "text-center px-6 py-3 min-w-[10rem]";
 
   return (
     <PageContainer>
@@ -78,9 +69,9 @@ const Appointments = () => {
                 <th className="px-6 py-3">Name</th>
                 <th className="px-6 py-3">Type</th>
                 <th className="px-6 py-3">Status</th>
-                {hasConsultationAccess(access) && (
-                <th className={actionColClass}>Action</th>
-              )}
+                {showActionColumn && (
+                  <th className={actionColClass}>Action</th>
+                )}
               </tr>
             </thead>
 
@@ -103,12 +94,11 @@ const Appointments = () => {
                     </span>
                   </td>
 
-                  {/* ✅ Always show button now */}
-                  {hasConsultationAccess(access) && (
+                  {/* 🔹 Self-contained ConsultButton (handles its own access logic) */}
+                  {showActionColumn && (
                     <td className={`${actionColClass} flex justify-center`}>
                       <ConsultButton
                         appointment={appointment}
-                        access={access}
                         onClick={handleConsult}
                       />
                     </td>
