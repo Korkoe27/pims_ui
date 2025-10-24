@@ -12,6 +12,11 @@ import {
 } from "../redux/api/features/absentRequestApi";
 import { toast } from "react-hot-toast";
 
+// ✅ Access-aware buttons
+import MakeAbsentRequestButton from "../components/ui/buttons/MakeAbsentRequestButton";
+import ApproveRequestButton from "../components/ui/buttons/ApproveRequestButton";
+import DeclineRequestButton from "../components/ui/buttons/DeclineRequestButton";
+
 const AbsentRequest = () => {
   const [showModal, setShowModal] = useState(false);
   const [modalData, setModalData] = useState({
@@ -26,13 +31,8 @@ const AbsentRequest = () => {
   const access = user?.access || {};
   const currentUserId = user?.id;
 
-  // 🔹 Extract access keys
-  const canView = access.canViewAbsentRequests;
-  const canCreate = access.canCreateAbsentRequest;
-  const canApprove = access.canApproveAbsentRequests;
-  const canDecline = access.canDeclineAbsentRequests;
-
   // 🔹 Fetch data (skip query if no view access)
+  const canView = access.canViewAbsentRequests;
   const { data: allRequests = [], isLoading } = useGetAbsentRequestsQuery(
     undefined,
     { skip: !canView }
@@ -41,7 +41,7 @@ const AbsentRequest = () => {
   const [createAbsentRequest] = useCreateAbsentRequestMutation();
   const [updateAbsentRequest] = useUpdateAbsentRequestMutation();
 
-  // 🔹 Filter based on ownership — non-admin users only see their own
+  // 🔹 Filter for current user (if non-admin)
   const requests = allRequests.filter(
     (req) => req.user === currentUserId || req.user_id === currentUserId
   );
@@ -52,7 +52,7 @@ const AbsentRequest = () => {
       await createAbsentRequest(data).unwrap();
       toast.success("Absent request submitted successfully");
       setShowModal(false);
-    } catch (err) {
+    } catch {
       toast.error("Failed to submit request");
     }
   };
@@ -68,7 +68,7 @@ const AbsentRequest = () => {
       await updateAbsentRequest({ id, status }).unwrap();
       toast.success(`Request ${action.toLowerCase()}d successfully`);
       setModalData({ ...modalData, open: false });
-    } catch (err) {
+    } catch {
       toast.error(`Failed to ${action.toLowerCase()} request`);
     }
   };
@@ -78,7 +78,7 @@ const AbsentRequest = () => {
   const approved = requests.filter((r) => r.status === "approved");
   const rejected = requests.filter((r) => r.status === "rejected");
 
-  // 🔹 Access Gate — No permission
+  // 🔹 Access gate
   if (!canView) {
     return (
       <PageContainer>
@@ -89,7 +89,6 @@ const AbsentRequest = () => {
     );
   }
 
-  // 🔹 Loading
   if (isLoading) {
     return (
       <PageContainer>
@@ -100,20 +99,17 @@ const AbsentRequest = () => {
     );
   }
 
+  // ✅ Header visibility logic (only show Actions column if any button will render)
+  const showActionHeader =
+    ApproveRequestButton.shouldShow(access) ||
+    DeclineRequestButton.shouldShow(access);
+
   return (
     <PageContainer>
       {/* ===== Header ===== */}
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-bold">Absent Requests</h1>
-
-        {canCreate && (
-          <button
-            onClick={() => setShowModal(true)}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-          >
-            Make Request
-          </button>
-        )}
+        <MakeAbsentRequestButton onClick={() => setShowModal(true)} />
       </div>
 
       {/* ===== Tabs ===== */}
@@ -131,43 +127,33 @@ const AbsentRequest = () => {
                       <th className="px-6 py-3 font-bold">From</th>
                       <th className="px-6 py-3 font-bold">To</th>
                       <th className="px-6 py-3 font-bold">Reason</th>
-                      {(canApprove || canDecline) && (
+                      {showActionHeader && (
                         <th className="px-6 py-3 font-bold text-center">
                           Actions
                         </th>
                       )}
                     </tr>
                   </thead>
+
                   <tbody>
                     {pending.map((req) => (
                       <tr key={req.id} className="border-b bg-white">
                         <td className="px-6 py-4">{req.from_date}</td>
                         <td className="px-6 py-4">{req.to_date}</td>
                         <td className="px-6 py-4">{req.reason}</td>
-
-                        {(canApprove || canDecline) && (
+                        {showActionHeader && (
                           <td className="px-6 py-4 text-center">
                             <div className="flex gap-2 justify-center">
-                              {canApprove && (
-                                <button
-                                  onClick={() =>
-                                    handleStatusChange(req.id, "approved")
-                                  }
-                                  className="bg-green-600 text-white hover:bg-green-700 px-4 py-2 rounded-md text-sm font-semibold shadow transition"
-                                >
-                                  Approve
-                                </button>
-                              )}
-                              {canDecline && (
-                                <button
-                                  onClick={() =>
-                                    handleStatusChange(req.id, "rejected")
-                                  }
-                                  className="bg-red-600 text-white hover:bg-red-700 px-4 py-2 rounded-md text-sm font-semibold shadow transition"
-                                >
-                                  Decline
-                                </button>
-                              )}
+                              <ApproveRequestButton
+                                onClick={() =>
+                                  handleStatusChange(req.id, "approved")
+                                }
+                              />
+                              <DeclineRequestButton
+                                onClick={() =>
+                                  handleStatusChange(req.id, "rejected")
+                                }
+                              />
                             </div>
                           </td>
                         )}
@@ -186,32 +172,30 @@ const AbsentRequest = () => {
             {approved.length === 0 ? (
               <p>No approved requests.</p>
             ) : (
-              <div className="w-full overflow-x-auto">
-                <table className="min-w-full text-sm text-left text-gray-500">
-                  <thead className="text-sm text-gray-700 uppercase bg-gray-100">
-                    <tr>
-                      <th className="px-6 py-3 font-bold">From</th>
-                      <th className="px-6 py-3 font-bold">To</th>
-                      <th className="px-6 py-3 font-bold">Reason</th>
-                      <th className="px-6 py-3 font-bold">Approved At</th>
+              <table className="min-w-full text-sm text-left text-gray-500">
+                <thead className="text-sm text-gray-700 uppercase bg-gray-100">
+                  <tr>
+                    <th className="px-6 py-3 font-bold">From</th>
+                    <th className="px-6 py-3 font-bold">To</th>
+                    <th className="px-6 py-3 font-bold">Reason</th>
+                    <th className="px-6 py-3 font-bold">Approved At</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {approved.map((req) => (
+                    <tr key={req.id} className="border-b bg-white">
+                      <td className="px-6 py-4">{req.from_date}</td>
+                      <td className="px-6 py-4">{req.to_date}</td>
+                      <td className="px-6 py-4">{req.reason}</td>
+                      <td className="px-6 py-4">
+                        {req.actioned_at
+                          ? new Date(req.actioned_at).toLocaleString()
+                          : "—"}
+                      </td>
                     </tr>
-                  </thead>
-                  <tbody>
-                    {approved.map((req) => (
-                      <tr key={req.id} className="border-b bg-white">
-                        <td className="px-6 py-4">{req.from_date}</td>
-                        <td className="px-6 py-4">{req.to_date}</td>
-                        <td className="px-6 py-4">{req.reason}</td>
-                        <td className="px-6 py-4">
-                          {req.actioned_at
-                            ? new Date(req.actioned_at).toLocaleString()
-                            : "—"}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                  ))}
+                </tbody>
+              </table>
             )}
           </Card>
         </Tab>
@@ -222,34 +206,32 @@ const AbsentRequest = () => {
             {rejected.length === 0 ? (
               <p>No rejected requests.</p>
             ) : (
-              <div className="w-full overflow-x-auto">
-                <table className="min-w-full text-sm text-left text-gray-500">
-                  <thead className="text-sm text-gray-700 uppercase bg-gray-100">
-                    <tr>
-                      <th className="px-6 py-3 font-bold">From</th>
-                      <th className="px-6 py-3 font-bold">To</th>
-                      <th className="px-6 py-3 font-bold">Reason</th>
-                      <th className="px-6 py-3 font-bold">Actioned By</th>
-                      <th className="px-6 py-3 font-bold">Actioned At</th>
+              <table className="min-w-full text-sm text-left text-gray-500">
+                <thead className="text-sm text-gray-700 uppercase bg-gray-100">
+                  <tr>
+                    <th className="px-6 py-3 font-bold">From</th>
+                    <th className="px-6 py-3 font-bold">To</th>
+                    <th className="px-6 py-3 font-bold">Reason</th>
+                    <th className="px-6 py-3 font-bold">Actioned By</th>
+                    <th className="px-6 py-3 font-bold">Actioned At</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {rejected.map((req) => (
+                    <tr key={req.id} className="border-b bg-white">
+                      <td className="px-6 py-4">{req.from_date}</td>
+                      <td className="px-6 py-4">{req.to_date}</td>
+                      <td className="px-6 py-4">{req.reason}</td>
+                      <td className="px-6 py-4">{req.actioned_by || "—"}</td>
+                      <td className="px-6 py-4">
+                        {req.actioned_at
+                          ? new Date(req.actioned_at).toLocaleString()
+                          : "—"}
+                      </td>
                     </tr>
-                  </thead>
-                  <tbody>
-                    {rejected.map((req) => (
-                      <tr key={req.id} className="border-b bg-white">
-                        <td className="px-6 py-4">{req.from_date}</td>
-                        <td className="px-6 py-4">{req.to_date}</td>
-                        <td className="px-6 py-4">{req.reason}</td>
-                        <td className="px-6 py-4">{req.actioned_by || "—"}</td>
-                        <td className="px-6 py-4">
-                          {req.actioned_at
-                            ? new Date(req.actioned_at).toLocaleString()
-                            : "—"}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                  ))}
+                </tbody>
+              </table>
             )}
           </Card>
         </Tab>
@@ -264,12 +246,11 @@ const AbsentRequest = () => {
               onSubmit={(e) => {
                 e.preventDefault();
                 const form = e.target;
-                const data = {
+                handleCreateRequest({
                   from_date: form.from_date.value,
                   to_date: form.to_date.value,
                   reason: form.reason.value,
-                };
-                handleCreateRequest(data);
+                });
               }}
               className="space-y-4"
             >
@@ -284,7 +265,6 @@ const AbsentRequest = () => {
                   className="w-full border border-gray-300 px-3 py-2 rounded"
                 />
               </div>
-
               <div>
                 <label htmlFor="to_date" className="block font-medium mb-1">
                   To Date
@@ -296,7 +276,6 @@ const AbsentRequest = () => {
                   className="w-full border border-gray-300 px-3 py-2 rounded"
                 />
               </div>
-
               <div>
                 <label htmlFor="reason" className="block font-medium mb-1">
                   Reason
@@ -307,7 +286,6 @@ const AbsentRequest = () => {
                   className="w-full border border-gray-300 px-3 py-2 rounded h-24 resize-none"
                 ></textarea>
               </div>
-
               <div className="flex justify-end gap-3 pt-2">
                 <button
                   type="button"
