@@ -12,7 +12,6 @@ import PageContainer from "../components/PageContainer";
 import CanAccess from "../components/auth/CanAccess";
 import ConsultButton from "../components/ui/buttons/ConsultButton";
 
-
 const Dashboard = () => {
   const dispatch = useDispatch();
   const { handleConsult } = useHandleConsult();
@@ -42,16 +41,8 @@ const Dashboard = () => {
   const completedAppointments = appointments?.completed?.count || 0;
   const scheduledAppointments = appointments?.scheduled?.data || [];
 
-  // ✅ Reusable access helper
-  const hasConsultationAccess = (access = {}) => {
-    const consultKeys = [
-      "canStartConsultation",
-      "canViewConsultations",
-      "canEditConsultations",
-      "canSubmitConsultations",
-    ];
-    return consultKeys.some((key) => access[key]);
-  };
+  // ✅ Determine if Action column should appear
+  const showActionColumn = ConsultButton.shouldShow(access);
 
   return (
     <PageContainer>
@@ -108,7 +99,7 @@ const Dashboard = () => {
                 <th className="px-3 py-3">Patient ID</th>
                 <th className="px-3 py-3">Name</th>
                 <th className="px-3 py-3">Appointment Type</th>
-                {hasConsultationAccess(access) && (
+                {showActionColumn && (
                   <th className="px-3 py-3 text-center">Action</th>
                 )}
               </tr>
@@ -124,11 +115,10 @@ const Dashboard = () => {
                     {appointment.appointment_type_name}
                   </td>
 
-                  {hasConsultationAccess(access) && (
+                  {showActionColumn && (
                     <td className="py-3 flex justify-center">
                       <ConsultButton
                         appointment={appointment}
-                        access={access}
                         onClick={handleConsult}
                       />
                     </td>
