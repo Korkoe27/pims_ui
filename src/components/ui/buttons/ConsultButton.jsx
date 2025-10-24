@@ -1,53 +1,37 @@
+// components/ui/buttons/ConsultButton.jsx
+import { useSelector } from "react-redux";
 import React from "react";
 
-const ConsultButton = ({ appointment, access, onClick }) => {
-  if (!appointment || !appointment.status) return null;
+const ConsultButton = ({ appointment, onClick }) => {
+  const access = useSelector((s) => s.auth?.user?.access || {});
+  if (!ConsultButton.shouldShow(access, appointment)) return null;
 
   const status = appointment.status.toLowerCase();
-  let label = null;
+  let label = "Start Consultation";
 
-  // ✅ Lecturer flow (based on access permissions)
-  if (access.canGradeStudents || access.canEditConsultations ) {
-    if (
-      [
-        "consultation in progress",
-        "examinations recorded",
-        "diagnosis added",
-        "management created",
-      ].includes(status)
-    ) {
-      label = "Review Consultation";
-    } else if (status === "scheduled" && access.canStartConsultation) {
-      label = "Start Consultation";
-    }
-  }
-
-  // ✅ Student flow (based on access permissions)
-  else if (access.canStartConsultation) {
-    if (status === "scheduled") {
-      label = "Consult";
-    } else if (
-      [
-        "consultation in progress",
-        "examinations recorded",
-        "diagnosis added",
-        "management created",
-      ].includes(status)
-    ) {
-      label = "Continue Consultation";
-    }
-  }
-
-  if (!label) return null;
+  if (
+    [
+      "consultation in progress",
+      "examinations recorded",
+      "diagnosis added",
+      "management created",
+    ].includes(status)
+  ) label = "Continue Consultation";
+  else if (status === "consultation completed") label = "View Consultation";
 
   return (
     <button
       onClick={() => onClick(appointment)}
-      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-all"
+      className="px-4 py-2 bg-[#2f3192] hover:bg-[#24267a] text-white rounded-lg font-medium transition-all"
     >
       {label}
     </button>
   );
+};
+
+// 🧠 Static helper: tells whether this button is relevant for current user
+ConsultButton.shouldShow = (access, appointment = null) => {
+  return Boolean(access?.canStartConsultation);
 };
 
 export default ConsultButton;

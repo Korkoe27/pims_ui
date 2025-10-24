@@ -6,16 +6,15 @@ import { setPatientId } from "../redux/slices/patientSlice";
 import { useCreatePatientMutation } from "../redux/api/features/patientApi";
 import SelectClinicModal from "../components/SelectClinicModal";
 import ConfirmSaveModal from "./ConfirmSaveModal";
-import useCreateAppointment from "../hooks/useCreateAppointment";
 import { showToast } from "../components/ToasterHelper";
-import CanAccess from "../components/auth/CanAccess";
+import AddPatientFormButton from "../components/ui/buttons/AddPatientFormButton";
+import ScheduleAppointmentButton from "../components/ui/buttons/ScheduleAppointmentButton";
+
 
 const PersonalInfo = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const selectedClinic = useSelector((state) => state.clinic.selectedClinic);
-  const { user } = useSelector((state) => state.auth || {});
-  const access = user?.access || {};
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [generalError, setGeneralError] = useState("");
@@ -45,7 +44,6 @@ const PersonalInfo = () => {
   });
 
   const [errors, setErrors] = useState({});
-  const { createAppointmentHandler } = useCreateAppointment();
   const [createPatient] = useCreatePatientMutation();
 
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -396,25 +394,8 @@ const PersonalInfo = () => {
 
           {/* ---------- Actions ---------- */}
           <div className="flex gap-8 justify-center my-16">
-            <CanAccess accessKeys={["canAddPatient"]}>
-              <button
-                type="button"
-                onClick={handleAddPatient}
-                className="w-56 p-4 rounded-lg text-white bg-[#2f3192]"
-              >
-                Add Patient
-              </button>
-            </CanAccess>
-
-            <CanAccess accessKeys={["canAddPatient"]}>
-              <button
-                type="button"
-                onClick={handleScheduleAppointment}
-                className="w-56 p-4 rounded-lg text-[#2f3192] border border-[#2f3192]"
-              >
-                Schedule Appointment
-              </button>
-            </CanAccess>
+            <AddPatientFormButton onClick={handleAddPatient} />
+            <ScheduleAppointmentButton onClick={handleScheduleAppointment} />
           </div>
         </form>
       )}

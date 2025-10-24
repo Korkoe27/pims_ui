@@ -6,7 +6,8 @@ import Pagination from "../components/Pagination";
 import useHandlePatientDetails from "../hooks/useHandlePatientDetails";
 import useHandleAppointmentNavigation from "../hooks/useHandleAppointmentNavigation";
 import PageContainer from "../components/PageContainer";
-import CanAccess from "../components/auth/CanAccess";
+import BookAppointmentButton from "../components/ui/buttons/BookAppointmentButton";
+import ViewPatientButton from "../components/ui/buttons/ViewPatientButton";
 
 const Patients = () => {
   const { currentPage, pageSize, handlePageChange } = usePagination();
@@ -65,31 +66,21 @@ const Patients = () => {
                   </td>
                   <td className="px-6 py-4 flex flex-wrap gap-3">
                     {/* ✅ Access-based control for appointment booking */}
-                    <CanAccess accessKeys={["canCreateAppointment"]}>
-                      <button
-                        className="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2"
-                        onClick={() =>
-                          goToCreateAppointment({
-                            id: patient.id,
-                            patient_id: patient.patient_id,
-                            first_name: patient.first_name,
-                            last_name: patient.last_name,
-                          })
-                        }
-                      >
-                        Book Appointment
-                      </button>
-                    </CanAccess>
+                    <BookAppointmentButton
+                      onClick={() =>
+                        goToCreateAppointment({
+                          id: patient.id,
+                          patient_id: patient.patient_id,
+                          first_name: patient.first_name,
+                          last_name: patient.last_name,
+                        })
+                      }
+                    />
 
                     {/* ✅ Access-based control for viewing patient details */}
-                    <CanAccess accessKeys={["canViewPatients"]}>
-                      <button
-                        className="text-white bg-blue-500 hover:bg-blue-600 focus:ring-4 focus:ring-blue-200 font-medium rounded-lg text-sm px-4 py-2 transition-all"
-                        onClick={() => handlePatientDetails(patient)}
-                      >
-                        View
-                      </button>
-                    </CanAccess>
+                    <ViewPatientButton
+                      onClick={() => handlePatientDetails(patient)}
+                    />
                   </td>
                 </tr>
               ))}

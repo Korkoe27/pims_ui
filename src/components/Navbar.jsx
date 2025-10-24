@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { CiSearch } from "react-icons/ci";
 import { FaChevronDown } from "react-icons/fa6";
-import { GrAdd } from "react-icons/gr";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 
@@ -10,7 +9,7 @@ import LoadingSpinner from "./LoadingSpinner";
 import useLogout from "../hooks/useLogout";
 import { useLazySearchPatientsQuery } from "../redux/api/features/patientApi";
 import { showToast } from "../components/ToasterHelper";
-import CanAccess from "../components/auth/CanAccess";
+import AddPatientButton from "../components/ui/buttons/AddPatientButton";
 
 const Navbar = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -89,36 +88,8 @@ const Navbar = () => {
           )}
         </form>
 
-        {/* 🔒 Access-controlled Buttons */}
-        <div className="flex gap-2">
-          <CanAccess accessKeys={["canAddPatient"]}>
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className="flex items-center gap-2 px-4 py-2 text-white bg-[#2f3192] rounded-md text-sm hover:bg-[#24267a] transition"
-            >
-              <GrAdd />
-              Add New Patient
-            </button>
-          </CanAccess>
-
-          {/* <CanAccess accessKeys={["canCreateAppointment"]}>
-            <button
-              onClick={() => navigate("/appointments/create")}
-              className="flex items-center gap-2 px-4 py-2 text-white bg-blue-700 rounded-md text-sm hover:bg-blue-800 transition"
-            >
-              New Appointment
-            </button>
-          </CanAccess> */}
-
-          {/* <CanAccess accessKeys={["canViewReports"]}>
-            <button
-              onClick={() => navigate("/reports")}
-              className="flex items-center gap-2 px-4 py-2 text-white bg-green-700 rounded-md text-sm hover:bg-green-800 transition"
-            >
-              Reports
-            </button>
-          </CanAccess> */}
-        </div>
+        {/* 🔹 Add Patient Button (access-aware, self-contained) */}
+        <AddPatientButton onClick={() => setIsModalOpen(true)} />
       </div>
 
       {/* 👤 Avatar + Dropdown */}
