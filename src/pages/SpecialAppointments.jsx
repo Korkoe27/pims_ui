@@ -11,7 +11,6 @@ const SpecialAppointments = () => {
   const { user } = useSelector((state) => state.auth || {});
   const access = user?.access || {};
   const { handleConsult } = useHandleConsult();
-  const canStartConsult = access?.canStartConsultation || false;
 
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
@@ -26,7 +25,6 @@ const SpecialAppointments = () => {
       typeof appt?.appointment_category === "string"
         ? appt.appointment_category.toLowerCase()
         : "";
-
     return category === "special";
   });
 
@@ -41,10 +39,12 @@ const SpecialAppointments = () => {
     (currentPage - 1) * pageSize,
     currentPage * pageSize
   );
-
   const totalPages = Math.ceil(sortedAppointments.length / pageSize);
-
   const handlePageChange = (page) => setCurrentPage(page);
+
+  // ✅ Determine if Action column should appear (based on ConsultButton)
+  const showActionColumn = ConsultButton.shouldShow(access);
+  const actionColClass = "text-center px-6 py-3 min-w-[10rem]";
 
   return (
     <PageContainer>
@@ -74,8 +74,8 @@ const SpecialAppointments = () => {
                 <th className="px-6 py-3">Category</th>
                 <th className="px-6 py-3">Type</th>
                 <th className="px-6 py-3">Status</th>
-                {canStartConsult && (
-                  <th className="px-6 py-3 text-center min-w-[160px]">Action</th>
+                {showActionColumn && (
+                  <th className={actionColClass}>Action</th>
                 )}
               </tr>
             </thead>
@@ -86,7 +86,9 @@ const SpecialAppointments = () => {
                   <td className="px-6 py-4">{appointment?.appointment_date}</td>
                   <td className="px-6 py-4">{appointment?.patient_id}</td>
                   <td className="px-6 py-4">{appointment?.patient_name}</td>
-                  <td className="px-6 py-4">{appointment?.appointment_category}</td>
+                  <td className="px-6 py-4">
+                    {appointment?.appointment_category}
+                  </td>
                   <td className="px-6 py-4">
                     {appointment?.appointment_type_name ||
                       appointment?.appointment_type}
@@ -101,14 +103,15 @@ const SpecialAppointments = () => {
                     </span>
                   </td>
 
-                  {/* ✅ Always show Consult Button */}
-                  <td className="px-6 py-4">
-                    <ConsultButton
-                      appointment={appointment}
-                      access={access}
-                      onClick={handleConsult}
-                    />
-                  </td>
+                  {/* 🔹 Self-contained ConsultButton (handles its own access logic) */}
+                  {showActionColumn && (
+                    <td className={`${actionColClass} flex justify-center`}>
+                      <ConsultButton
+                        appointment={appointment}
+                        onClick={handleConsult}
+                      />
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>

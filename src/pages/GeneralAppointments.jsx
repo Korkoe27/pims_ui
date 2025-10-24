@@ -40,8 +40,11 @@ const GeneralAppointments = () => {
     currentPage * pageSize
   );
   const totalPages = Math.ceil(sortedAppointments.length / pageSize);
-
   const handlePageChange = (page) => setCurrentPage(page);
+
+  // ✅ Determine if Action column should appear (based on ConsultButton)
+  const showActionColumn = ConsultButton.shouldShow(access);
+  const actionColClass = "text-center px-6 py-3 min-w-[10rem]";
 
   return (
     <PageContainer>
@@ -71,7 +74,9 @@ const GeneralAppointments = () => {
                 <th className="px-6 py-3">Category</th>
                 <th className="px-6 py-3">Type</th>
                 <th className="px-6 py-3">Status</th>
-                <th className="px-3 min-w-40 py-3">Action</th>
+                {showActionColumn && (
+                  <th className={actionColClass}>Action</th>
+                )}
               </tr>
             </thead>
 
@@ -81,7 +86,9 @@ const GeneralAppointments = () => {
                   <td className="px-6 py-4">{appointment?.appointment_date}</td>
                   <td className="px-6 py-4">{appointment?.patient_id}</td>
                   <td className="px-6 py-4">{appointment?.patient_name}</td>
-                  <td className="px-6 py-4">{appointment?.appointment_category}</td>
+                  <td className="px-6 py-4">
+                    {appointment?.appointment_category}
+                  </td>
                   <td className="px-6 py-4">
                     {appointment?.appointment_type_name ||
                       appointment?.appointment_type}
@@ -95,14 +102,16 @@ const GeneralAppointments = () => {
                       {appointment?.status}
                     </span>
                   </td>
-                  {/* ✅ Always show Consult button */}
-                  <td className="px-6 py-4 flex gap-4">
-                    <ConsultButton
-                      appointment={appointment}
-                      access={access}
-                      onClick={handleConsult}
-                    />
-                  </td>
+
+                  {/* 🔹 Self-contained ConsultButton (handles its own access logic) */}
+                  {showActionColumn && (
+                    <td className={`${actionColClass} flex justify-center`}>
+                      <ConsultButton
+                        appointment={appointment}
+                        onClick={handleConsult}
+                      />
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>

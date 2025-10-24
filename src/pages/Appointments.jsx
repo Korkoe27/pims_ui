@@ -12,7 +12,10 @@ import ConsultButton from "../components/ui/buttons/ConsultButton";
  *    and allows consultation/review actions.
  */
 const Appointments = () => {
+  const { user } = useSelector((state) => state.auth);
+  const access = user?.access || {};
   const { handleConsult } = useHandleConsult();
+
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
 
@@ -33,6 +36,9 @@ const Appointments = () => {
   );
   const totalPages = Math.ceil(sortedAppointments.length / pageSize);
   const handlePageChange = (page) => setCurrentPage(page);
+
+  // ✅ Determine if Action column should appear (via ConsultButton)
+  const showActionColumn = ConsultButton.shouldShow(access);
 
   const actionColClass = "text-center px-6 py-3 min-w-[10rem]";
 
@@ -63,7 +69,9 @@ const Appointments = () => {
                 <th className="px-6 py-3">Name</th>
                 <th className="px-6 py-3">Type</th>
                 <th className="px-6 py-3">Status</th>
-                <th className={actionColClass}>Action</th>
+                {showActionColumn && (
+                  <th className={actionColClass}>Action</th>
+                )}
               </tr>
             </thead>
 
@@ -86,13 +94,15 @@ const Appointments = () => {
                     </span>
                   </td>
 
-                  {/* 🔹 Self-contained button (handles its own access logic) */}
-                  <td className={`${actionColClass} flex justify-center`}>
-                    <ConsultButton
-                      appointment={appointment}
-                      onClick={handleConsult}
-                    />
-                  </td>
+                  {/* 🔹 Self-contained ConsultButton (handles its own access logic) */}
+                  {showActionColumn && (
+                    <td className={`${actionColClass} flex justify-center`}>
+                      <ConsultButton
+                        appointment={appointment}
+                        onClick={handleConsult}
+                      />
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>

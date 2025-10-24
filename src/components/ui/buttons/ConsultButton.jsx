@@ -1,35 +1,23 @@
 // components/ui/buttons/ConsultButton.jsx
-import React from "react";
 import { useSelector } from "react-redux";
+import React from "react";
 
 const ConsultButton = ({ appointment, onClick }) => {
-  const access = useSelector((state) => state.auth?.user?.access || {});
-  const { canStartConsultation } = access;
-
-  // 🔒 Hide if user doesn’t have consultation rights
-  if (!canStartConsultation) return null;
-  if (!appointment || !appointment.status) return null;
+  const access = useSelector((s) => s.auth?.user?.access || {});
+  if (!ConsultButton.shouldShow(access, appointment)) return null;
 
   const status = appointment.status.toLowerCase();
-  let label = null;
+  let label = "Start Consultation";
 
-  // 🔹 Status-based label (consistent for all users)
-  if (status === "scheduled") {
-    label = "Start Consultation";
-  } else if (
+  if (
     [
       "consultation in progress",
       "examinations recorded",
       "diagnosis added",
       "management created",
     ].includes(status)
-  ) {
-    label = "Continue Consultation";
-  } else if (status === "consultation completed") {
-    label = "View Consultation";
-  }
-
-  if (!label) return null;
+  ) label = "Continue Consultation";
+  else if (status === "consultation completed") label = "View Consultation";
 
   return (
     <button
@@ -39,6 +27,11 @@ const ConsultButton = ({ appointment, onClick }) => {
       {label}
     </button>
   );
+};
+
+// 🧠 Static helper: tells whether this button is relevant for current user
+ConsultButton.shouldShow = (access, appointment = null) => {
+  return Boolean(access?.canStartConsultation);
 };
 
 export default ConsultButton;
