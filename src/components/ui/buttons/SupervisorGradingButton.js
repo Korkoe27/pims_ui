@@ -1,23 +1,34 @@
 import React, { useState, useEffect } from "react";
-import useGrading from "../hooks/useGrading";
+import { useSelector } from "react-redux";
+import { useGetAppointmentDetailsQuery } from "../../../redux/api/features/appointmentsApi";
+import useGrading from "../../../hooks/useGrading";
 
 const SupervisorGradingButton = ({
   appointmentId,
   section,
   sectionLabel = "Supervisor Grading",
-  consultation_flow, // 🔹 Determines if we should show
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [score, setScore] = useState("");
   const [remarks, setRemarks] = useState("");
 
-  // ✅ Always call hooks at the top level
+  // ✅ Hooks must always come first
+  const userAccess = useSelector((state) => state.auth?.user?.access);
+  const canGradeStudents = userAccess?.canGradeStudents;
+
+  // ✅ Fetch appointment details to check review status
+  const { data: appointment, isLoading: loadingAppointment } =
+    useGetAppointmentDetailsQuery(appointmentId, {
+      skip: !appointmentId,
+    });
+
+  // ✅ Grading logic hook
   const { existingGrading, submitGrading, isLoading } = useGrading(
     appointmentId,
     section
   );
 
-  // Pre-populate form with existing grading data
+  // ✅ Pre-fill form if existing grading found
   useEffect(() => {
     if (existingGrading) {
       setScore(existingGrading.score?.toString() || "");
@@ -25,24 +36,30 @@ const SupervisorGradingButton = ({
     }
   }, [existingGrading]);
 
-  // ✅ Safe early return AFTER hooks
-  if (consultation_flow !== "consultation_review") {
-    return null;
-  }
+  // 🚫 Hide button until we have both user access and appointment data
+  if (!userAccess || loadingAppointment) return null;
 
+  // 🚫 Show only if BOTH conditions are met
+  const isSubmittedForReview =
+    appointment?.status?.toLowerCase?.() === "submitted for review" ||
+    appointment?.is_submitted_for_review === true;
+
+  const canShowButton = canGradeStudents && isSubmittedForReview;
+  const hasGrade = !!existingGrading;
+
+  // ✅ Submit handler
   const handleSubmit = async () => {
     const parsedScore = parseFloat(score);
     if (isNaN(parsedScore) || parsedScore < 0 || parsedScore > 100) {
-      return alert("Please enter a valid score between 0 and 100.");
+      alert("Please enter a valid score between 0 and 100.");
+      return;
     }
-
     await submitGrading({ score: parsedScore, remarks });
     setIsOpen(false);
   };
 
   const handleCancel = () => {
     setIsOpen(false);
-    // Reset to existing values if available
     if (existingGrading) {
       setScore(existingGrading.score?.toString() || "");
       setRemarks(existingGrading.remarks || "");
@@ -52,16 +69,48 @@ const SupervisorGradingButton = ({
     }
   };
 
+  // ✅ Elegant inline score display
+  const renderGradeDisplay = () => {
+    if (!hasGrade) return null;
+    const colorClass =
+      existingGrading.score >= 70
+        ? "text-green-600"
+        : existingGrading.score >= 50
+        ? "text-yellow-600"
+        : "text-red-600";
+
+    return (
+      <div className="flex items-center gap-2 mr-2">
+        <span className="text-sm text-gray-600 font-medium">
+          Score:
+          <span className={`ml-1 font-semibold ${colorClass}`}>
+            {existingGrading.score}%
+          </span>
+        </span>
+      </div>
+    );
+  };
+
+  // ✅ Final render
   return (
     <>
-      <button
-        type="button"
-        onClick={() => setIsOpen(true)}
-        className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded shadow ml-auto"
-      >
-        {sectionLabel}
-      </button>
+      <div className="flex items-center gap-3">
+        {/* 📊 Display grading summary if exists */}
+        {renderGradeDisplay()}
 
+        {/* 🎓 Only graders see the button */}
+        {canShowButton && (
+          <button
+            type="button"
+            onClick={() => setIsOpen(true)}
+            className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded shadow ml-auto"
+          >
+            {hasGrade ? "Edit Grading" : sectionLabel}
+          </button>
+        )}
+      </div>
+
+      {/* 🪟 Modal for grading */}
       {isOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
           <div className="bg-white rounded-md p-6 w-full max-w-md shadow-lg">

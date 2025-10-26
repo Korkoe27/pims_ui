@@ -6,7 +6,7 @@ import NotesTextArea from "./NotesTextArea";
 import DiagnosisQuerySection from "./DiagnosisQuerySection";
 import ManagementPlanSection from "./ManagementPlanSection";
 import useDiagnosisData from "../hooks/useDiagnosisData";
-import SupervisorGradingButton from "./SupervisorGradingButton";
+import SupervisorGradingButton from "./ui/buttons/SupervisorGradingButton";
 import useComponentGrading from "../hooks/useComponentGrading";
 
 const Diagnosis = ({
