@@ -11,7 +11,7 @@ import AXISValidator from "./validators/AXISValidator";
 import VAValidator from "./validators/VAValidator";
 import ADDValidator from "./validators/ADDValidator";
 import NavigationButtons from "../components/NavigationButtons";
-import SupervisorGradingButton from "./SupervisorGradingButton";
+import SupervisorGradingButton from "./ui/buttons/SupervisorGradingButton";
 import useComponentGrading from "../hooks/useComponentGrading";
 
 const OBJECTIVE_METHOD_OPTIONS = [
