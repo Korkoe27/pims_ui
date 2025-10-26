@@ -117,7 +117,7 @@ export const fetchVisualAcuityUrl = (appointmentId) =>
 /////////////////////////
 
 const fetchInternalExternalExaminationConditionsUrl = (type) =>
-  `/tests/api/examination-conditions/?type=${type}`;
+  `tests/api/conditions?type=${type}`;
 
 export const externalUrl =
   fetchInternalExternalExaminationConditionsUrl("external");

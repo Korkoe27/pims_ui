@@ -2,19 +2,23 @@ import React, { useState, useEffect } from "react";
 import { FaChevronDown, FaChevronUp } from "react-icons/fa";
 import { useParams } from "react-router-dom";
 import useInternalObservationData from "../hooks/useInternalObservationData";
+import useComponentGrading from "../hooks/useComponentGrading";
+import {
+  showToast,
+  formatErrorMessage,
+} from "../components/ToasterHelper";
 import ConditionPicker from "./ConditionPicker";
 import DeleteButton from "./DeleteButton";
-import { showToast, formatErrorMessage } from "../components/ToasterHelper";
 import TextInput from "./TextInput";
 import ConditionsDropdown from "./ConditionsDropdown";
 import GradingSelect from "./GradingSelect";
 import NotesTextArea from "./NotesTextArea";
 import NavigationButtons from "../components/NavigationButtons";
 import SupervisorGradingButton from "./ui/buttons/SupervisorGradingButton";
-import useComponentGrading from "../hooks/useComponentGrading";
 
 const Internals = ({ setActiveTab, setTabCompletionStatus }) => {
   const { appointmentId } = useParams();
+
   const [formData, setFormData] = useState({});
   const [mainOpen, setMainOpen] = useState({});
   const [subOpen, setSubOpen] = useState({});
@@ -27,12 +31,12 @@ const Internals = ({ setActiveTab, setTabCompletionStatus }) => {
     createInternalObservation,
   } = useInternalObservationData(appointmentId);
 
-  const { shouldShowGrading, section, sectionLabel } = useComponentGrading(
+  const { section, sectionLabel } = useComponentGrading(
     "INTERNAL_OBSERVATION",
     appointmentId
   );
 
-  // 1. Group conditions
+  // 🧩 Group conditions by main → sub
   const groupedConditions = (rawConditions || []).reduce((acc, main) => {
     acc[main.name] = main.subgroups.reduce((subAcc, subgroup) => {
       subAcc[subgroup.name] = subgroup.conditions.map((c) => ({
@@ -46,12 +50,11 @@ const Internals = ({ setActiveTab, setTabCompletionStatus }) => {
     return acc;
   }, {});
 
-  // 2. Hydrate saved data
+  // 🧠 Hydrate saved data
   useEffect(() => {
     if (loadingInternals || loadingConditions) return;
-    if (!existingObservations || !rawConditions.length) return;
+    if (!existingObservations?.length || !rawConditions?.length) return;
 
-    // Flatten rawConditions into a list with group context
     const flatConditions = rawConditions.flatMap((main) =>
       main.subgroups.flatMap((sub) =>
         sub.conditions.map((c) => ({
@@ -62,12 +65,11 @@ const Internals = ({ setActiveTab, setTabCompletionStatus }) => {
       )
     );
 
-    const map = {}; // final formData
-    const mains = {}; // for auto-expansion
-    const subs = {};
+    const hydrated = {};
+    const openMains = {};
+    const openSubs = {};
 
     existingObservations.forEach((obs) => {
-      // obs.condition may be an ID or an object with id
       const conditionId =
         typeof obs.condition === "object" ? obs.condition.id : obs.condition;
 
@@ -75,20 +77,13 @@ const Internals = ({ setActiveTab, setTabCompletionStatus }) => {
       if (!matched) return;
 
       const { main, sub } = matched;
+      openMains[main] = true;
+      openSubs[main] = { ...(openSubs[main] || {}), [sub]: true };
 
-      if (!map[main]) {
-        map[main] = {};
-        mains[main] = true;
-      }
+      if (!hydrated[main]) hydrated[main] = {};
+      if (!hydrated[main][sub]) hydrated[main][sub] = [];
 
-      if (!map[main][sub]) {
-        map[main][sub] = [];
-        if (!subs[main]) subs[main] = {};
-        subs[main][sub] = true;
-      }
-
-      // Check if condition already exists in the sub group
-      let condition = map[main][sub].find((c) => c.id === matched.id);
+      let condition = hydrated[main][sub].find((c) => c.id === matched.id);
       if (!condition) {
         condition = {
           id: matched.id,
@@ -102,7 +97,7 @@ const Internals = ({ setActiveTab, setTabCompletionStatus }) => {
           OS: {},
           notes: "",
         };
-        map[main][sub].push(condition);
+        hydrated[main][sub].push(condition);
       }
 
       if (obs.field_type === "notes") {
@@ -115,12 +110,12 @@ const Internals = ({ setActiveTab, setTabCompletionStatus }) => {
       }
     });
 
-    setFormData(map);
-    setMainOpen(mains);
-    setSubOpen(subs);
+    setFormData(hydrated);
+    setMainOpen(openMains);
+    setSubOpen(openSubs);
   }, [existingObservations, rawConditions]);
 
-  // 3. UI toggles
+  // 🔄 UI toggles
   const toggleMain = (main) =>
     setMainOpen((prev) => ({ ...prev, [main]: !prev[main] }));
 
@@ -130,25 +125,16 @@ const Internals = ({ setActiveTab, setTabCompletionStatus }) => {
       [main]: { ...prev[main], [sub]: !prev[main]?.[sub] },
     }));
 
-  // 4. Handlers
+  // 🖊️ Handlers
   const handleSelect = (main, sub, selected) => {
     setFormData((prev) => {
       const existing = prev[main]?.[sub] || [];
       if (existing.some((c) => c.id === selected.id)) return prev;
 
-      const updated = {
-        ...selected,
-        OD: {},
-        OS: {},
-        notes: "",
-      };
-
+      const updated = { ...selected, OD: {}, OS: {}, notes: "" };
       return {
         ...prev,
-        [main]: {
-          ...prev[main],
-          [sub]: [...existing, updated],
-        },
+        [main]: { ...prev[main], [sub]: [...existing, updated] },
       };
     });
   };
@@ -170,10 +156,7 @@ const Internals = ({ setActiveTab, setTabCompletionStatus }) => {
         ...prev[main],
         [sub]: prev[main][sub].map((item) =>
           item.id === id
-            ? {
-                ...item,
-                [eye]: { ...(item[eye] || {}), [type]: val },
-              }
+            ? { ...item, [eye]: { ...(item[eye] || {}), [type]: val } }
             : item
         ),
       },
@@ -192,7 +175,7 @@ const Internals = ({ setActiveTab, setTabCompletionStatus }) => {
     }));
   };
 
-  // 5. Save
+  // 💾 Save logic
   const handleSave = async () => {
     const payload = [];
 
@@ -229,37 +212,34 @@ const Internals = ({ setActiveTab, setTabCompletionStatus }) => {
         appointment: appointmentId,
         observations: payload,
       }).unwrap();
+
       showToast("Internal Observations Saved", "success");
-      setTabCompletionStatus?.((prev) => ({
-        ...prev,
-        internals: true,
-      }));
+      setTabCompletionStatus?.((prev) => ({ ...prev, internals: true }));
       setActiveTab("refraction");
     } catch (err) {
       showToast(formatErrorMessage(err?.data), "error");
     }
   };
 
-  // 6. Render
-  if (loadingInternals || loadingConditions) {
+  // 🕒 Loading
+  if (loadingInternals || loadingConditions)
     return <div className="p-6 text-gray-600">Loading observations...</div>;
-  }
 
+  // 🎨 Render
   return (
     <div className="p-6 max-w-6xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Internal Observations</h1>
-        {shouldShowGrading && (
-          <SupervisorGradingButton
-            appointmentId={appointmentId}
-            section={section}
-            sectionLabel={sectionLabel}
-          />
-        )}
+        <SupervisorGradingButton
+          appointmentId={appointmentId}
+          section={section}
+          sectionLabel={sectionLabel}
+        />
       </div>
 
       {Object.entries(groupedConditions).map(([main, subGroups]) => (
         <div key={main} className="mb-6 border rounded">
+          {/* 🔹 Main Group */}
           <button
             onClick={() => toggleMain(main)}
             className="w-full text-left px-4 py-2 font-semibold bg-gray-100 flex justify-between items-center"
@@ -274,12 +254,17 @@ const Internals = ({ setActiveTab, setTabCompletionStatus }) => {
 
               return (
                 <div key={sub} className="border-t px-4 py-4">
+                  {/* 🧩 Sub Group */}
                   <button
                     onClick={() => toggleSub(main, sub)}
                     className="w-full text-left font-medium mb-2 flex justify-between items-center"
                   >
                     <span>{sub}</span>
-                    {subOpen[main]?.[sub] ? <FaChevronUp /> : <FaChevronDown />}
+                    {subOpen[main]?.[sub] ? (
+                      <FaChevronUp />
+                    ) : (
+                      <FaChevronDown />
+                    )}
                   </button>
 
                   {subOpen[main]?.[sub] && (
@@ -318,7 +303,9 @@ const Internals = ({ setActiveTab, setTabCompletionStatus }) => {
                             <div className="flex justify-between items-center">
                               <h4 className="font-semibold">{item.name}</h4>
                               <DeleteButton
-                                onClick={() => handleDelete(main, sub, item.id)}
+                                onClick={() =>
+                                  handleDelete(main, sub, item.id)
+                                }
                               />
                             </div>
 
