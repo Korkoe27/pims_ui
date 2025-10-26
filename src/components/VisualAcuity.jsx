@@ -8,7 +8,7 @@ import PrescriptionSection, {
 import { showToast } from "../components/ToasterHelper";
 import { hasFormChanged } from "../utils/deepCompare";
 import NavigationButtons from "../components/NavigationButtons";
-import SupervisorGradingButton from "./SupervisorGradingButton";
+import SupervisorGradingButton from "./ui/buttons/SupervisorGradingButton";
 import { useGetAppointmentDetailsQuery } from "../redux/api/features/appointmentsApi";
 import useComponentGrading from "../hooks/useComponentGrading";
 

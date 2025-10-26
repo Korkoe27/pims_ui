@@ -148,7 +148,7 @@ const App = () => {
             <Route
               path="clinic-schedule"
               element={
-                <ProtectedRoute accessKeys={["canViewConsultations"]}>
+                <ProtectedRoute accessKeys={["canViewClinicSchedule"]}>
                   <ClinicSchedule />
                 </ProtectedRoute>
               }

@@ -1,5 +1,5 @@
 import React from "react";
-import SupervisorGradingButton from "../SupervisorGradingButton";
+import SupervisorGradingButton from "../ui/buttons/SupervisorGradingButton";
 import { showToast } from "../ToasterHelper";
 
 const GradingTab = ({ appointmentId, setActiveTab }) => {

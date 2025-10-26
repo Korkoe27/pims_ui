@@ -10,7 +10,7 @@ import ConditionsDropdown from "./ConditionsDropdown";
 import GradingSelect from "./GradingSelect";
 import NotesTextArea from "./NotesTextArea";
 import NavigationButtons from "../components/NavigationButtons";
-import SupervisorGradingButton from "./SupervisorGradingButton";
+import SupervisorGradingButton from "./ui/buttons/SupervisorGradingButton";
 import useComponentGrading from "../hooks/useComponentGrading";
 
 const Internals = ({ setActiveTab, setTabCompletionStatus }) => {
