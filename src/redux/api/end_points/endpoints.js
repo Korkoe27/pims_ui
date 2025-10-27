@@ -149,7 +149,7 @@ export const fetchRefractionUrl = (appointmentId) =>
 /////////////////////////
 
 export const createExtraTestUrl = (appointmentId) =>
-  `/tests/extra-tests/${appointmentId}/`;
+  `tests/extra-tests/${appointmentId}/`;
 export const fetchExtraTestsUrl = (appointmentId) =>
   `/tests/extra-tests/${appointmentId}/`;
 
