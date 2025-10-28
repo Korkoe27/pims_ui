@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo, useState, useRef } from "react";
-import { useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import { IoClose } from "react-icons/io5";
 import { IoIosCheckmarkCircle } from "react-icons/io";
@@ -21,18 +20,9 @@ import {
 } from "./Management/";
 
 /* =========================================================================
-   Case Management Guide - Manual save on Next button click only
+   Case Management Guide
    ========================================================================= */
-
-const CaseManagementGuide = ({
-  appointmentId,
-  setActiveTab,
-  setTabCompletionStatus,
-  role = "student",
-}) => {
-  // Read consultation permissions from Redux so we can decide where to navigate next
-  const consultationState = useSelector((s) => s.consultation || {});
-  const permissions = consultationState.permissions || {};
+const CaseManagementGuide = ({ appointmentId, setActiveTab }) => {
   const [saving, setSaving] = useState(false);
   const [guideData, setGuideData] = useState({
     table_rows: [{ id: 1, diagnosis: "", management_plan: "", notes: "" }],
@@ -40,35 +30,27 @@ const CaseManagementGuide = ({
   });
   const nextBtnRef = useRef(null);
 
-  // API hooks
-  const {
-    data: caseGuide,
-    isLoading: isLoadingGuide,
-    error: guideError,
-  } = useGetCaseManagementGuideQuery(appointmentId);
-
+  const { data: caseGuide, isLoading, error } =
+    useGetCaseManagementGuideQuery(appointmentId);
   const [updateCaseGuide] = useUpdateCaseManagementGuideMutation();
 
-  // Initialize data when API response is received
   useEffect(() => {
     if (caseGuide) {
-      // Handle backend response format - map comments to notes for frontend
       const tableRows = caseGuide.table_rows
         ? caseGuide.table_rows.map((row) => ({
             id: row.id,
             diagnosis: row.diagnosis || "",
             management_plan: row.management_plan || "",
-            notes: row.comments || "", // Map 'comments' to 'notes'
+            notes: row.comments || "",
           }))
         : [
             {
               id: 1,
               diagnosis: caseGuide.diagnosis || "",
               management_plan: caseGuide.management_plan || "",
-              notes: caseGuide.comments || "", // Map 'comments' to 'notes'
+              notes: caseGuide.comments || "",
             },
           ];
-
       setGuideData({
         table_rows:
           tableRows.length > 0
@@ -77,37 +59,28 @@ const CaseManagementGuide = ({
         completed: caseGuide.completed || false,
       });
     }
-  }, [caseGuide, appointmentId]);
+  }, [caseGuide]);
+
+  const hasContent = guideData.table_rows.some(
+    (row) => row.diagnosis || row.management_plan || row.notes
+  );
 
   const handleNext = async () => {
     if (saving || !hasContent) return;
     setSaving(true);
     try {
-      // Send table_rows data - backend should handle multiple rows
       const payload = {
         table_rows: guideData.table_rows.map((row) => ({
-          diagnosis: row.diagnosis || "",
-          management_plan: row.management_plan || "",
-          comments: row.notes || "", // Map 'notes' to 'comments'
+          diagnosis: row.diagnosis,
+          management_plan: row.management_plan,
+          comments: row.notes,
         })),
         completed: true,
       };
-
-      console.log("🚀 Sending Case Management Guide payload:", payload);
-
-      // Final save before proceeding
-      await updateCaseGuide({
-        appointmentId,
-        payload,
-      }).unwrap();
-
-      // Mark as completed when user proceeds
-      setTabCompletionStatus?.("case_guide", true);
-
-      showToast("Case management guide completed successfully", "success");
-      // After completing case guide navigate to grading if allowed, else complete
-      setActiveTab?.(permissions?.can_grade ? "grading" : "complete");
-    } catch (error) {
+      await updateCaseGuide({ appointmentId, payload }).unwrap();
+      showToast("Case management guide saved successfully", "success");
+      setActiveTab?.("logs");
+    } catch {
       showToast("Failed to save case management guide", "error");
     } finally {
       setSaving(false);
@@ -124,7 +97,7 @@ const CaseManagementGuide = ({
   };
 
   const addNewRow = () => {
-    const newId = Math.max(...guideData.table_rows.map((row) => row.id)) + 1;
+    const newId = Math.max(...guideData.table_rows.map((r) => r.id)) + 1;
     setGuideData((prev) => ({
       ...prev,
       table_rows: [
@@ -138,388 +111,127 @@ const CaseManagementGuide = ({
     if (guideData.table_rows.length > 1) {
       setGuideData((prev) => ({
         ...prev,
-        table_rows: prev.table_rows.filter((row) => row.id !== rowId),
+        table_rows: prev.table_rows.filter((r) => r.id !== rowId),
       }));
     }
   };
 
-  const hasContent = guideData.table_rows.some(
-    (row) => row.diagnosis || row.management_plan || row.notes
-  );
-
-  if (isLoadingGuide) {
+  if (isLoading)
     return (
-      <div className="max-w-4xl mx-auto p-6 bg-white rounded-md shadow border">
-        <div className="animate-pulse">
-          <div className="h-8 bg-gray-200 rounded w-1/3 mb-4"></div>
-          <div className="h-4 bg-gray-200 rounded w-1/2 mb-6"></div>
-          <div className="space-y-3">
-            <div className="h-4 bg-gray-200 rounded"></div>
-            <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-          </div>
-        </div>
+      <div className="p-6 text-center">Loading Case Management Guide...</div>
+    );
+  if (error)
+    return (
+      <div className="p-6 text-center text-red-600">
+        Failed to load Case Management Guide.
       </div>
     );
-  }
-
-  if (guideError) {
-    return (
-      <div className="max-w-4xl mx-auto p-6 bg-white rounded-md shadow border">
-        <div className="text-center text-red-600">
-          <p>Failed to load case management guide</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="mt-2 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-          >
-            Retry
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="max-w-4xl mx-auto p-6 bg-white rounded-md shadow border">
-      <header className="mb-6">
-        <h1 className="text-2xl font-bold text-[#101928]">
-          Case Management Guide
-        </h1>
-      </header>
-
-      <section className="space-y-4">
-        <p className="text-gray-700 leading-relaxed">
-          Document diagnosis and corresponding management plans for this case.
-        </p>
-
-        <div className="rounded-lg border bg-white p-4">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="font-semibold">Management Guide</h2>
-            <button
-              onClick={addNewRow}
-              className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
-            >
-              + Add Row
-            </button>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="border-b-2 border-gray-200">
-                  <th className="text-left py-2 px-3 font-semibold text-gray-700 w-1/3">
-                    Diagnosis
-                  </th>
-                  <th className="text-left py-2 px-3 font-semibold text-gray-700 w-1/3">
-                    Management Plan
-                  </th>
-                  <th className="text-left py-2 px-3 font-semibold text-gray-700 w-1/3">
-                    Notes
-                  </th>
-                  <th className="w-16"></th>
-                </tr>
-              </thead>
-              <tbody>
-                {guideData.table_rows.map((row) => (
-                  <tr key={row.id} className="border-b border-gray-100">
-                    <td className="py-2 px-3">
-                      <textarea
-                        value={row.diagnosis}
-                        onChange={(e) =>
-                          handleRowChange(row.id, "diagnosis", e.target.value)
-                        }
-                        placeholder="Enter diagnosis..."
-                        className="w-full p-2 border border-gray-300 rounded-md resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        rows="3"
-                      />
-                    </td>
-                    <td className="py-2 px-3">
-                      <textarea
-                        value={row.management_plan}
-                        onChange={(e) =>
-                          handleRowChange(
-                            row.id,
-                            "management_plan",
-                            e.target.value
-                          )
-                        }
-                        placeholder="Enter management plan..."
-                        className="w-full p-2 border border-gray-300 rounded-md resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        rows="3"
-                      />
-                    </td>
-                    <td className="py-2 px-3">
-                      <textarea
-                        value={row.notes}
-                        onChange={(e) =>
-                          handleRowChange(row.id, "notes", e.target.value)
-                        }
-                        placeholder="Enter notes..."
-                        className="w-full p-2 border border-gray-300 rounded-md resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        rows="3"
-                      />
-                    </td>
-                    <td className="py-2 px-3">
-                      {guideData.table_rows.length > 1 && (
-                        <button
-                          onClick={() => removeRow(row.id)}
-                          className="text-red-600 hover:text-red-800 p-1"
-                          title="Remove row"
-                        >
-                          <svg
-                            className="w-4 h-4"
-                            fill="currentColor"
-                            viewBox="0 0 20 20"
-                          >
-                            <path
-                              fillRule="evenodd"
-                              d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                              clipRule="evenodd"
-                            />
-                          </svg>
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          <p className="text-xs text-gray-500 mt-3">
-            Data will be saved when you click "Next"
-          </p>
-        </div>
-      </section>
-
-      <footer className="mt-6 flex flex-wrap gap-3">
+      <h1 className="text-2xl font-bold mb-4 text-[#101928]">
+        Case Management Guide
+      </h1>
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="font-semibold">Entries</h2>
         <button
-          type="button"
+          onClick={addNewRow}
+          className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
+        >
+          + Add Row
+        </button>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full border-collapse">
+          <thead>
+            <tr className="border-b-2 border-gray-200">
+              <th className="text-left py-2 px-3">Diagnosis</th>
+              <th className="text-left py-2 px-3">Management Plan</th>
+              <th className="text-left py-2 px-3">Notes</th>
+              <th className="w-8"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {guideData.table_rows.map((row) => (
+              <tr key={row.id} className="border-b border-gray-100">
+                <td className="p-2">
+                  <textarea
+                    className="w-full border rounded p-2"
+                    rows="2"
+                    value={row.diagnosis}
+                    onChange={(e) =>
+                      handleRowChange(row.id, "diagnosis", e.target.value)
+                    }
+                  />
+                </td>
+                <td className="p-2">
+                  <textarea
+                    className="w-full border rounded p-2"
+                    rows="2"
+                    value={row.management_plan}
+                    onChange={(e) =>
+                      handleRowChange(row.id, "management_plan", e.target.value)
+                    }
+                  />
+                </td>
+                <td className="p-2">
+                  <textarea
+                    className="w-full border rounded p-2"
+                    rows="2"
+                    value={row.notes}
+                    onChange={(e) =>
+                      handleRowChange(row.id, "notes", e.target.value)
+                    }
+                  />
+                </td>
+                <td className="p-2">
+                  {guideData.table_rows.length > 1 && (
+                    <button
+                      onClick={() => removeRow(row.id)}
+                      className="text-red-600 hover:text-red-800"
+                    >
+                      ×
+                    </button>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <div className="mt-6 flex justify-between">
+        <button
           onClick={() => setActiveTab?.("management")}
-          className="px-4 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50"
+          className="px-4 py-2 rounded border border-gray-300 hover:bg-gray-50"
         >
           ← Back to Management
         </button>
-
         <button
-          type="button"
-          ref={nextBtnRef}
           onClick={handleNext}
-          disabled={saving || !hasContent}
-          className={[
-            "px-4 py-2 rounded-md text-white flex items-center gap-2",
-            !saving && hasContent
-              ? "bg-[#2f3192] hover:opacity-90"
-              : "bg-[#2f3192]/60 cursor-not-allowed",
-          ].join(" ")}
-          aria-disabled={saving || !hasContent}
+          disabled={!hasContent || saving}
+          className={`px-4 py-2 rounded text-white ${
+            !hasContent || saving
+              ? "bg-gray-400"
+              : "bg-[#2f3192] hover:opacity-90"
+          }`}
         >
-          {saving ? (
-            <>
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-              Saving...
-            </>
-          ) : (
-            <>
-              Next: Logs →
-              {!hasContent && (
-                <span className="text-xs bg-white/20 px-1 rounded">
-                  Add content
-                </span>
-              )}
-            </>
-          )}
-        </button>
-      </footer>
-    </div>
-  );
-};
-
-const LogsPanel = ({ appointmentId, setActiveTab, role }) => {
-  const [logEntry, setLogEntry] = useState("");
-  const [logs, setLogs] = useState([]);
-
-  // Read consultation permissions to decide next tab (grading vs complete)
-  const consultationState = useSelector((s) => s.consultation || {});
-  const permissions = consultationState.permissions || {};
-
-  const handleAddLog = () => {
-    if (logEntry.trim()) {
-      const newLog = {
-        id: Date.now(),
-        entry: logEntry,
-        timestamp: new Date().toLocaleString(),
-        user: "Current User", // You can get this from Redux state if needed
-      };
-      setLogs([...logs, newLog]);
-      setLogEntry("");
-    }
-  };
-
-  // Determine the previous tab based on role
-  const getPreviousTab = () => {
-    return role === "student" ? "case_guide" : "management";
-  };
-
-  const getNextTab = () => {
-    if (role === "student") return "submit";
-    // For non-students, navigate to grading only if permissions allow it;
-    // otherwise go to the final Complete tab.
-    if (permissions?.can_grade) return "grading";
-    return "complete";
-  };
-
-  return (
-    <div className="rounded-md border bg-white p-4">
-      <h3 className="text-lg font-semibold mb-2">Logs</h3>
-      <p className="text-sm text-gray-600 mb-4">
-        Audit trail & activity for this management plan (appointment:{" "}
-        {appointmentId})
-      </p>
-
-      {/* Log Entry Input */}
-      <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Add Log Entry
-        </label>
-        <div className="flex gap-2">
-          <textarea
-            value={logEntry}
-            onChange={(e) => setLogEntry(e.target.value)}
-            placeholder="Enter log entry..."
-            className="flex-1 p-2 border border-gray-300 rounded-md resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            rows="3"
-          />
-          <button
-            onClick={handleAddLog}
-            disabled={!logEntry.trim()}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed h-fit"
-          >
-            Add Log
-          </button>
-        </div>
-      </div>
-
-      {/* Log Entries Display */}
-      <div className="space-y-2 mb-6">
-        <h4 className="text-sm font-medium text-gray-700">Log Entries</h4>
-        {logs.length === 0 ? (
-          <p className="text-sm text-gray-500 italic">No log entries yet.</p>
-        ) : (
-          <div className="max-h-60 overflow-y-auto space-y-2">
-            {logs.map((log) => (
-              <div
-                key={log.id}
-                className="bg-gray-50 p-3 rounded border-l-4 border-blue-500"
-              >
-                <div className="flex justify-between items-start mb-1">
-                  <span className="text-xs text-gray-500">{log.timestamp}</span>
-                  <span className="text-xs text-gray-500">{log.user}</span>
-                </div>
-                <p className="text-sm text-gray-700">{log.entry}</p>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Navigation Buttons */}
-      <div className="flex gap-3 pt-4 border-t border-gray-200">
-        <button
-          type="button"
-          onClick={() => setActiveTab?.(getPreviousTab())}
-          className="px-4 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50"
-        >
-          ← Back to {role === "student" ? "Case Guide" : "Management"}
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setActiveTab?.(getNextTab())}
-          className="px-4 py-2 rounded-md bg-[#2f3192] text-white hover:opacity-90"
-        >
-          Next:{" "}
-          {role === "student"
-            ? "Submit"
-            : permissions?.can_grade
-            ? "Grading"
-            : "Complete"}{" "}
-          →
+          {saving ? "Saving..." : "Next → Logs"}
         </button>
       </div>
     </div>
   );
 };
 
-const Tab = ({ active, onClick, children }) => (
-  <button
-    type="button"
-    onClick={onClick}
-    className={[
-      "px-4 py-2 rounded-md text-sm font-medium border",
-      active
-        ? "bg-[#2f3192] text-white border-[#2f3192]"
-        : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50",
-    ].join(" ")}
-  >
-    {children}
-  </button>
-);
-
-// ---------- helpers ----------
-const toMedArray = (raw) => {
-  if (!raw) return [];
-  if (Array.isArray(raw)) return raw;
-  if (typeof raw === "object") return Object.values(raw);
-  try {
-    const parsed = JSON.parse(raw);
-    if (Array.isArray(parsed)) return parsed;
-    if (parsed && typeof parsed === "object") return Object.values(parsed);
-  } catch {}
-  return [];
-};
-
-// ---------------------------------------------------------------
-// Management Flow (mini-sub-steps just like Consultation tabs)
-// ---------------------------------------------------------------
+/* =========================================================================
+   Management Component (no roles, no permissions)
+   ========================================================================= */
 const Management = ({ setFlowStep, appointmentId }) => {
   const navigate = useNavigate();
-  const { appointmentId: appointmentIdParam } = useParams();
-  const apptId = appointmentId ?? appointmentIdParam;
+  const { appointmentId: paramId } = useParams();
+  const apptId = appointmentId ?? paramId;
 
-  // ✅ Get role from Redux (student | lecturer | admin)
-  const { user } = useSelector((s) => s.auth || {});
-  const role = (user?.role || "student").toLowerCase();
+  const [activeTab, setActiveTab] = useState("management");
 
-  // Get consultation state (flowType, permissions) to control Management tabs
-  const consultationState = useSelector((s) => s.consultation || {});
-  const flowType = consultationState.flowType;
-  const permissions = consultationState.permissions || {};
-
-  // ---- localStorage key for this appointment ----
-  const LOCAL_TAB_KEY = `management-${apptId}-activeTab`;
-
-  const [activeTab, _setActiveTab] = useState(() => {
-    try {
-      const stored = apptId ? localStorage.getItem(LOCAL_TAB_KEY) : null;
-      return stored || "management";
-    } catch {
-      return "management";
-    }
-  });
-  const setActiveTab = (tab) => {
-    try {
-      if (apptId) localStorage.setItem(LOCAL_TAB_KEY, tab);
-    } catch {}
-    _setActiveTab(tab);
-  };
-
-  const setTabCompletionStatus = (key, value) => {
-    try {
-      localStorage.setItem(`cmg-${apptId}-${key}`, value ? "1" : "0");
-    } catch {}
-  };
-
-  // ---------------- RTK QUERY ----------------
   const [selectedTypeId, setSelectedTypeId] = useState(null);
   const {
     medications,
@@ -533,14 +245,13 @@ const Management = ({ setFlowStep, appointmentId }) => {
     isCreatingManagementPlan,
   } = useManagementData(apptId, selectedTypeId);
 
-  // Appointment submission mutation
   const [submitAppointmentForReview, { isLoading: isSubmittingForReview }] =
     useSubmitAppointmentForReviewMutation();
 
-  // ---------------- UI STATE ----------------
-  const [modal, setModal] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [confirmSave, setConfirmSave] = useState(false);
+  const {
+    completeConsultationFlow,
+    isCompleting,
+  } = useConsultationData(apptId);
 
   const [checkboxes, setCheckboxes] = useState({
     refractiveCorrection: false,
@@ -551,31 +262,8 @@ const Management = ({ setFlowStep, appointmentId }) => {
     surgery: false,
     referral: false,
   });
-
-  const [prescription, setPrescription] = useState({
-    type_of_refractive_correction: "",
-    od_sph: "",
-    od_cyl: "",
-    od_axis: "",
-    od_add: "",
-    os_sph: "",
-    os_cyl: "",
-    os_axis: "",
-    os_add: "",
-    type_of_lens: "",
-    pd: "",
-    segment_height: "",
-    fitting_cross_height: "",
-  });
-
-  const [details, setDetails] = useState({
-    surgery_details: "",
-    referral_details: "",
-    counselling_details: "",
-    low_vision_aid_details: "",
-    therapy_details: "",
-  });
-
+  const [prescription, setPrescription] = useState({});
+  const [details, setDetails] = useState({});
   const [selectedMedications, setSelectedMedications] = useState([]);
 
   const medsList = useMemo(
@@ -583,481 +271,129 @@ const Management = ({ setFlowStep, appointmentId }) => {
     [selectedTypeId, filteredMedications, medications]
   );
 
-  // ---------------- PREFILL FROM BACKEND ----------------
-  useEffect(() => {
-    if (!managementPlan) return;
+  const TABS = [
+    { key: "management", label: "Management" },
+    { key: "case_guide", label: "Case Management Guide" },
+    { key: "logs", label: "Logs" },
+    { key: "submit", label: "Submit" },
+    { key: "grading", label: "Grading" },
+    { key: "complete", label: "Complete" },
+  ];
 
-    const optsRaw = managementPlan.options;
-    const rx = managementPlan.refractive_prescription;
-    const medsRaw = managementPlan.medications;
-    const extra = managementPlan.extra_details || {};
-
-    if (optsRaw && typeof optsRaw === "object") {
-      setCheckboxes((prev) => ({
-        ...prev,
-        ...Object.fromEntries(
-          Object.keys(prev).map((k) => [k, Boolean(optsRaw[k])])
-        ),
-      }));
-    }
-
-    if (rx) {
-      setPrescription({
-        type_of_refractive_correction: rx.type_of_refractive_correction ?? "",
-        od: undefined, // avoid storing nested obj in state shape
-        os: undefined,
-        od_sph: rx.od?.sph ?? "",
-        od_cyl: rx.od?.cyl ?? "",
-        od_axis: rx.od?.axis ?? "",
-        od_add: rx.od?.add ?? "",
-        os_sph: rx.os?.sph ?? "",
-        os_cyl: rx.os?.cyl ?? "",
-        os_axis: rx.os?.axis ?? "",
-        os_add: rx.os?.add ?? "",
-        type_of_lens: rx.type_of_lens ?? "",
-        pd: rx.pd ?? "",
-        segment_height: rx.segment_height ?? "",
-        fitting_cross_height: rx.fitting_cross_height ?? "",
-      });
-    }
-
-    setDetails({
-      surgery_details: extra.surgery_details ?? "",
-      referral_details: extra.referral_details ?? "",
-      counselling_details: extra.counselling_details ?? "",
-      low_vision_aid_details: extra.low_vision_aid_details ?? "",
-      therapy_details: extra.therapy_details ?? "",
-    });
-
-    const medsArr = toMedArray(medsRaw);
-    setSelectedMedications(
-      medsArr.map((m) => ({
-        medication_id: m.medication_id ?? m.id ?? m.value ?? m.medId ?? null,
-        dosage: m.dosage ?? "",
-        frequency: m.frequency ?? "",
-        duration: m.duration ?? "",
-        notes: m.notes ?? "",
-        name: m.name ?? m.label ?? "",
-      }))
-    );
-  }, [managementPlan]);
-
-  // ---------------- VALIDATION ----------------
-  const validateBeforeConfirm = () => {
-    const isValidSPH = (v) =>
-      /^[+-][0-9]+(\.25|\.50|\.75|\.00)?$/.test((v || "").trim());
-    const isValidCYL = (v) =>
-      /^-[0-9]+(\.25|\.50|\.75|\.00)?$/.test((v || "").trim());
-    const isValidAXIS = (v) => {
-      const n = Number((v || "").trim());
-      return Number.isInteger(n) && n >= 0 && n <= 180;
-    };
-    const isValidADD = (v) =>
-      /^\+[0-9]+(\.25|\.50|\.75|\.00)?$/.test((v || "").trim());
-
-    const atLeastOneSelected = Object.values(checkboxes).some(Boolean);
-    if (!atLeastOneSelected) {
-      showToast("Please select at least one management option.", "error");
-      return false;
-    }
-
-    if (checkboxes.refractiveCorrection) {
-      if (!prescription.type_of_refractive_correction) {
-        showToast("Please select a type of refractive correction.", "error");
-        return false;
-      }
-      if (
-        !isValidSPH(prescription.od_sph) ||
-        !isValidSPH(prescription.os_sph)
-      ) {
-        showToast("SPH is required and must be valid for both eyes.", "error");
-        return false;
-      }
-      if (
-        (prescription.od_cyl && !isValidCYL(prescription.od_cyl)) ||
-        (prescription.os_cyl && !isValidCYL(prescription.os_cyl))
-      ) {
-        showToast("CYL must be negative and valid (e.g., -0.75).", "error");
-        return false;
-      }
-      if (
-        (prescription.od_cyl && !isValidAXIS(prescription.od_axis)) ||
-        (prescription.os_cyl && !isValidAXIS(prescription.os_axis))
-      ) {
-        showToast(
-          "AXIS is required and must be 0–180 if CYL is provided.",
-          "error"
-        );
-        return false;
-      }
-      if (
-        (prescription.od_add && !isValidADD(prescription.od_add)) ||
-        (prescription.os_add && !isValidADD(prescription.os_add))
-      ) {
-        showToast(
-          "ADD must start with '+' and be valid (e.g., +1.00).",
-          "error"
-        );
-        return false;
-      }
-    }
-    return true;
-  };
-
-  // ---------------- PAYLOAD ----------------
-  const buildPayload = () => {
-    const options = Object.fromEntries(
-      Object.entries(checkboxes).map(([k, v]) => [k, !!v])
-    );
-
-    const refractive_prescription = checkboxes.refractiveCorrection
-      ? {
-          type_of_refractive_correction:
-            prescription.type_of_refractive_correction || null,
-          od: {
-            sph: prescription.od_sph || null,
-            cyl: prescription.od_cyl || null,
-            axis: prescription.od_axis || null,
-            add: prescription.od_add || null,
-          },
-          os: {
-            sph: prescription.os_sph || null,
-            cyl: prescription.os_cyl || null,
-            axis: prescription.os_axis || null,
-            add: prescription.os_add || null,
-          },
-          type_of_lens: prescription.type_of_lens || null,
-          pd: prescription.pd || null,
-          segment_height: prescription.segment_height || null,
-          fitting_cross_height: prescription.fitting_cross_height || null,
-        }
-      : null;
-
-    const meds = checkboxes.medications
-      ? selectedMedications.map((m) => ({
-          medication_id: m.medication_id ?? m.id ?? m.value,
-          dosage: m.dosage ?? null,
-          frequency: m.frequency ?? null,
-          duration: m.duration ?? null,
-          notes: m.notes ?? null,
-        }))
-      : [];
-
-    const extra_details = {
-      surgery_details: checkboxes.surgery
-        ? details.surgery_details || null
-        : null,
-      referral_details: checkboxes.referral
-        ? details.referral_details || null
-        : null,
-      counselling_details: checkboxes.counselling
-        ? details.counselling_details || null
-        : null,
-      therapy_details: checkboxes.therapy
-        ? details.therapy_details || null
-        : null,
-      low_vision_aid_details: checkboxes.lowVisionAid
-        ? details.low_vision_aid_details || null
-        : null,
-    };
-
-    return {
-      appointment: apptId,
-      options,
-      refractive_prescription,
-      medications: meds,
-      extra_details,
-    };
-  };
-
-  // ---------------- SAVE / SUBMIT ----------------
-  const saveManagement = async () => {
-    if (!apptId) {
-      showToast("Missing appointment ID for this management session.", "error");
-      throw new Error("Missing appointment ID");
-    }
-    const payload = buildPayload();
-    showToast("Saving management plan...", "info");
+  const onSaveDraftAndNext = async () => {
     try {
       await createManagementPlan({
         appointmentId: apptId,
-        data: payload,
+        data: {
+          appointment: apptId,
+          options: checkboxes,
+          refractive_prescription: prescription,
+          medications: selectedMedications,
+          extra_details: details,
+        },
       }).unwrap();
-      showToast("Management saved.", "success");
-    } catch (err) {
-      console.error("Save failed:", err);
-      const msg =
-        err?.data?.message ||
-        err?.error ||
-        err?.message ||
-        "Failed to save management plan.";
-      showToast(msg, "error");
-      throw err;
+      showToast("Saved successfully", "success");
+      setActiveTab("case_guide");
+    } catch {
+      showToast("Save failed", "error");
     }
-  };
-
-  const onSaveDraftAndNext = async () => {
-    if (!validateBeforeConfirm()) return;
-    try {
-      await saveManagement();
-      if (role === "student") {
-        setActiveTab("case_guide");
-      } else {
-        setActiveTab(permissions?.can_grade ? "grading" : "complete");
-      }
-    } catch {}
   };
 
   const onSubmitForReview = async () => {
-    if (!validateBeforeConfirm()) return;
     try {
-      // First save the management plan
-      await saveManagement();
-
-      // Then submit the appointment for review
+      await onSaveDraftAndNext();
       await submitAppointmentForReview(apptId).unwrap();
-
-      showToast("Successfully submitted for supervisor review!", "success");
-
-      // Redirect to dashboard after successful submission
-      setTimeout(() => {
-        navigate("/");
-      }, 1000); // Small delay to show the success message
-    } catch (error) {
-      console.error("Submit for review failed:", error);
-      const errorMessage =
-        error?.data?.message || error?.message || "Failed to submit for review";
-      showToast(errorMessage, "error");
+      showToast("Submitted for review", "success");
+      navigate("/");
+    } catch {
+      showToast("Submit failed", "error");
     }
   };
-
-  const {
-    consultation,
-    completeConsultationFlow,
-    isCompleting,
-    refetchConsultation,
-  } = useConsultationData(apptId);
 
   const onComplete = async () => {
     try {
-      await saveManagement(); // optional final save
-
-      // Use appointment-based completion (simplified approach)
-      try {
-        await completeConsultationFlow(apptId);
-        showToast("Consultation completed.", "success");
-
-        // Navigate to dashboard after successful completion
-        setTimeout(() => {
-          navigate("/");
-        }, 1500); // Small delay to show the success message
-      } catch (err) {
-        // If backend completion fails, show an error
-        const msg =
-          err?.data?.detail ||
-          err?.data?.message ||
-          err?.message ||
-          "Failed to complete consultation";
-        showToast(msg, "error");
-      }
-    } catch (err) {
-      // saveManagement already shows toast; ensure we don't proceed
+      await completeConsultationFlow(apptId);
+      showToast("Consultation completed.", "success");
+      navigate("/");
+    } catch {
+      showToast("Failed to complete consultation.", "error");
     }
   };
 
-  // ---------------- TABS (role-based) ----------------
-  // Show grading tab only when permissions allow grading (e.g., lecturer reviewing flow)
-  const baseTabs = [
-    { key: "management", label: "Management" },
-    ...(role === "student"
-      ? [{ key: "case_guide", label: "Case Management Guide" }]
-      : []),
-    { key: "logs", label: "Logs" }, // Re-added logs tab
-    ...(role === "student" ? [{ key: "submit", label: "Submit" }] : []),
-    ...(permissions?.can_grade ? [{ key: "grading", label: "Grading" }] : []),
-  ];
-
-  // Hide Complete tab for students
-  const TABS = [
-    ...baseTabs,
-    ...(role !== "student" ? [{ key: "complete", label: "Complete" }] : []),
-  ];
-
   return (
-    <div className="ml-72 py-8 px-8 w-fit flex flex-col gap-8">
-      {/* Tabs header */}
-      <div className="flex flex-wrap gap-2">
+    <div className="flex flex-col items-center justify-start py-10 px-6 w-full">
+      {/* Tabs */}
+      <div className="flex flex-wrap justify-center gap-3 mb-8">
         {TABS.map((t) => (
-          <Tab
+          <button
             key={t.key}
-            active={activeTab === t.key}
             onClick={() => setActiveTab(t.key)}
+            className={`px-5 py-2 rounded-md text-sm font-medium border ${
+              activeTab === t.key
+                ? "bg-[#2f3192] text-white border-[#2f3192]"
+                : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+            }`}
           >
             {t.label}
-          </Tab>
+          </button>
         ))}
       </div>
 
-      {/* Tab content */}
-      {activeTab === "management" && (
-        <ManagementForm
-          checkboxes={checkboxes}
-          setCheckboxes={setCheckboxes}
-          prescription={prescription}
-          setPrescription={setPrescription}
-          details={details}
-          setDetails={setDetails}
-          selectedMedications={selectedMedications}
-          setSelectedMedications={setSelectedMedications}
-          medsList={medsList}
-          medicationTypes={medicationTypes}
-          selectedTypeId={selectedTypeId}
-          setSelectedTypeId={setSelectedTypeId}
-          isLoadingMeds={
-            isMedicationsLoading ||
-            isMedicationTypesLoading ||
-            isFilteringMedications
-          }
-          isCreatingManagementPlan={isCreatingManagementPlan}
-          onSaveDraftAndNext={onSaveDraftAndNext}
-          setFlowStep={setFlowStep}
-        />
-      )}
-
-      {activeTab === "case_guide" &&
-        (role === "student" || role === "lecturer") && (
-          <CaseManagementGuide
-            appointmentId={apptId}
-            setActiveTab={setActiveTab}
-            setTabCompletionStatus={setTabCompletionStatus}
-            role={role}
+      {/* Tab Content */}
+      <div className="w-full max-w-5xl flex justify-center">
+        {activeTab === "management" && (
+          <ManagementForm
+            checkboxes={checkboxes}
+            setCheckboxes={setCheckboxes}
+            prescription={prescription}
+            setPrescription={setPrescription}
+            details={details}
+            setDetails={setDetails}
+            selectedMedications={selectedMedications}
+            setSelectedMedications={setSelectedMedications}
+            medsList={medsList}
+            medicationTypes={medicationTypes}
+            selectedTypeId={selectedTypeId}
+            setSelectedTypeId={setSelectedTypeId}
+            isLoadingMeds={
+              isMedicationsLoading ||
+              isMedicationTypesLoading ||
+              isFilteringMedications
+            }
+            isCreatingManagementPlan={isCreatingManagementPlan}
+            onSaveDraftAndNext={onSaveDraftAndNext}
+            setFlowStep={setFlowStep}
           />
         )}
 
-      {activeTab === "submit" && role === "student" && (
-        <SubmitTab
-          onSubmitForReview={onSubmitForReview}
-          isCreatingManagementPlan={isCreatingManagementPlan}
-          isSubmittingForReview={isSubmittingForReview}
-          setActiveTab={setActiveTab}
-          permissions={permissions}
-        />
-      )}
+        {activeTab === "case_guide" && (
+          <CaseManagementGuide
+            appointmentId={apptId}
+            setActiveTab={setActiveTab}
+          />
+        )}
 
-      {activeTab === "logs" && (
-        <LogsTab
-          appointmentId={apptId}
-          setActiveTab={setActiveTab}
-          role={role}
-        />
-      )}
+        {activeTab === "logs" && (
+          <LogsTab appointmentId={apptId} setActiveTab={setActiveTab} />
+        )}
 
-      {activeTab === "grading" && role !== "student" && (
-        <GradingTab appointmentId={apptId} setActiveTab={setActiveTab} />
-      )}
+        {activeTab === "submit" && (
+          <SubmitTab
+            onSubmitForReview={onSubmitForReview}
+            isCreatingManagementPlan={isCreatingManagementPlan}
+            isSubmittingForReview={isSubmittingForReview}
+            setActiveTab={setActiveTab}
+          />
+        )}
 
-      {activeTab === "complete" && role !== "student" && (
-        <CompleteTab
-          onComplete={onComplete}
-          isCompleting={isCompleting}
-          setActiveTab={setActiveTab}
-        />
-      )}
+        {activeTab === "grading" && (
+          <GradingTab appointmentId={apptId} setActiveTab={setActiveTab} />
+        )}
 
-      {/* Confirm modal (optional) */}
-      {confirmSave && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-20 backdrop-blur-sm z-50"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) setConfirmSave(false);
-          }}
-        >
-          <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md border border-gray-300">
-            <h2 className="text-lg font-bold mb-2">Confirm Save</h2>
-            <p className="mb-4">
-              Are you sure you want to save this treatment record?
-            </p>
-            <div className="flex justify-end gap-4">
-              <button
-                onClick={() => setConfirmSave(false)}
-                className="px-4 py-2 border border-gray-400 rounded-md hover:bg-gray-100"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={async () => {
-                  if (!validateBeforeConfirm()) return;
-                  try {
-                    setConfirmSave(false);
-                    await saveManagement();
-                  } catch {}
-                }}
-                disabled={isCreatingManagementPlan}
-                className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-60"
-              >
-                {isCreatingManagementPlan ? "Saving..." : "Yes, Save"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {isModalOpen && <PatientModal setIsModalOpen={setIsModalOpen} />}
-      {modal && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          className="fixed inset-0 flex items-start justify-center bg-black bg-opacity-15 backdrop-blur-sm"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) setModal(false);
-          }}
-        >
-          <div className="relative mt-20 bg-white p-6 rounded-lg border border-l-4 border-[#0F973D] w-fit">
-            <button
-              className="absolute top-4 right-3 text-xl font-semibold cursor-pointer"
-              onClick={() => setModal(false)}
-              aria-label="Close"
-            >
-              <IoClose size={20} />
-            </button>
-            <div className="flex items-start gap-6 pr-8">
-              <span className="w-10 h-10 rounded-lg justify-center items-center p-1.5 bg-green-100">
-                <IoIosCheckmarkCircle size={20} color="#0f973d" />
-              </span>
-              <div className="flex flex-col items-start gap-2 pr-6 border-l border-gray-300 pl-4">
-                <h3 className="text-base font-bold">Success!</h3>
-                <p className="text-base font-medium">
-                  You have finished attending to your patient.
-                </p>
-                <div className="flex justify-between gap-4 mt-4">
-                  {role !== "administrator" && role !== "admin" && (
-                    <button
-                      onClick={() => {
-                        setModal(false);
-                        navigate("/appointments");
-                      }}
-                      className="bg-[#0F973D] text-white px-4 py-2 rounded-lg"
-                    >
-                      Attend to next patient
-                    </button>
-                  )}
-                  <button
-                    onClick={() => {
-                      setModal(false);
-                      navigate("/");
-                    }}
-                    className="border border-gray-600 px-4 py-2 rounded-lg"
-                  >
-                    Go to dashboard
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+        {activeTab === "complete" && (
+          <CompleteTab onComplete={onComplete} isCompleting={isCompleting} />
+        )}
+      </div>
     </div>
   );
 };
