@@ -1,5 +1,4 @@
 import React from "react";
-import { useSelector } from "react-redux";
 import PageContainer from "../components/PageContainer";
 import { useGetDashboardDataQuery } from "../redux/api/features/dashboardApi";
 import LoadingSpinner from "../components/LoadingSpinner";
@@ -8,17 +7,15 @@ import useHandleConsult from "../hooks/useHandleConsult";
 
 const PendingReviews = () => {
   const { data: dashboardData, isLoading, error } = useGetDashboardDataQuery();
-  const { access } = useSelector((state) => state.auth);
   const { handleConsult } = useHandleConsult();
 
   // ✅ Extract pending review data safely
   const pendingReviews =
     dashboardData?.appointments?.pending_reviews?.data || [];
 
-  // ✅ Determine if Action column should show
-  const showActionColumn = pendingReviews.some((appt) =>
-    ConsultButton.shouldShow(access, appt)
-  );
+  // ✅ Debug: print to verify
+  console.log("📊 Dashboard data:", dashboardData);
+  console.log("🧾 Pending reviews:", pendingReviews);
 
   return (
     <PageContainer>
@@ -39,9 +36,7 @@ const PendingReviews = () => {
               <th className="px-3 py-3">Patient ID</th>
               <th className="px-3 py-3">Name</th>
               <th className="px-3 py-3">Appointment Type</th>
-              {showActionColumn && (
-                <th className="px-3 py-3 text-center">Action</th>
-              )}
+              <th className="px-3 py-3 text-center">Action</th>
             </tr>
           </thead>
 
@@ -54,14 +49,12 @@ const PendingReviews = () => {
                 <td className="px-3 py-3">
                   {appointment.appointment_type_name || "—"}
                 </td>
-                {ConsultButton.shouldShow(access, appointment) && (
-                  <td className="py-3 flex justify-center">
-                    <ConsultButton
-                      appointment={appointment}
-                      onClick={handleConsult}
-                    />
-                  </td>
-                )}
+                <td className="py-3 flex justify-center">
+                  <ConsultButton
+                    appointment={appointment}
+                    onClick={handleConsult}
+                  />
+                </td>
               </tr>
             ))}
           </tbody>
