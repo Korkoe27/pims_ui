@@ -109,8 +109,17 @@ const Management = ({ setFlowStep, appointmentId }) => {
           extra_details: details,
         },
       }).unwrap();
+
       showToast("Saved successfully", "success");
-      setActiveTab("case_guide");
+
+      // 👇 Decide next tab based on permissions
+      if (permissions.canCompleteConsultations) {
+        setActiveTab("complete"); // Lecturer goes straight to Complete tab
+      } else if (permissions.canSubmitConsultations) {
+        setActiveTab("case_guide"); // Student goes to Case Management Guide
+      } else {
+        setActiveTab("logs"); // Fallback (if neither permission)
+      }
     } catch {
       showToast("Save failed", "error");
     }
