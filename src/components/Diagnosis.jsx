@@ -6,15 +6,10 @@ import NotesTextArea from "./NotesTextArea";
 import DiagnosisQuerySection from "./DiagnosisQuerySection";
 import ManagementPlanSection from "./ManagementPlanSection";
 import useDiagnosisData from "../hooks/useDiagnosisData";
-import SupervisorGradingButton from "./SupervisorGradingButton";
+import SupervisorGradingButton from "./ui/buttons/SupervisorGradingButton";
 import useComponentGrading from "../hooks/useComponentGrading";
 
-const Diagnosis = ({
-  appointmentId,
-  setFlowStep,
-  setActiveTab,
-  canEdit = true,
-}) => {
+const Diagnosis = ({ appointmentId, setFlowStep, setActiveTab, canEdit = true }) => {
   const {
     appointmentDiagnosis,
     diagnosisList,
@@ -27,15 +22,12 @@ const Diagnosis = ({
     refetchDiagnosis,
   } = useDiagnosisData(appointmentId);
 
-  // Use the component grading hook
-  const { shouldShowGrading, section, sectionLabel } = useComponentGrading(
-    "DIAGNOSIS",
-    appointmentId
-  );
+  const { section, sectionLabel } = useComponentGrading("DIAGNOSIS", appointmentId);
 
   const [differentialDiagnosis, setDifferentialDiagnosis] = useState("");
   const [finalDiagnosisEntries, setFinalDiagnosisEntries] = useState([]);
 
+  // ✅ Hydrate data from backend
   useEffect(() => {
     if (!appointmentDiagnosis) return;
 
@@ -44,10 +36,7 @@ const Diagnosis = ({
     if (Array.isArray(appointmentDiagnosis.final_diagnoses_info)) {
       setFinalDiagnosisEntries(
         appointmentDiagnosis.final_diagnoses_info.map((d) => {
-          // Look up the diagnosis name from diagnosisList using the code ID
-          const diagnosisInfo = diagnosisList?.find(
-            (diag) => diag.id === d.code?.id
-          );
+          const diagnosisInfo = diagnosisList?.find((diag) => diag.id === d.code?.id);
           return {
             id: d.code?.id,
             name:
@@ -66,6 +55,7 @@ const Diagnosis = ({
     }
   }, [appointmentDiagnosis, diagnosisList]);
 
+  // ✅ Submit diagnosis
   const handleSubmit = async () => {
     if (!differentialDiagnosis.trim()) {
       showToast("Differential diagnosis cannot be empty.", "error");
@@ -85,11 +75,9 @@ const Diagnosis = ({
     };
 
     try {
-      // Check if diagnosis already exists (has an id)
-      const hasExistingDiagnosis =
-        appointmentDiagnosis && appointmentDiagnosis.id;
+      const hasExisting = appointmentDiagnosis && appointmentDiagnosis.id;
 
-      if (hasExistingDiagnosis) {
+      if (hasExisting) {
         await updateDiagnosis({ appointmentId, data: payload }).unwrap();
         showToast("Diagnosis updated successfully ✅", "success");
       } else {
@@ -100,12 +88,13 @@ const Diagnosis = ({
       setFlowStep("management");
     } catch (error) {
       console.error("❌ Raw error:", error);
-      const fallbackMessage =
+      const fallback =
         error?.data || error?.error || "Server error occurred.";
-      showToast(fallbackMessage, "error");
+      showToast(fallback, "error");
     }
   };
 
+  // ✅ Handlers for dynamic UI
   const handleAddFinalDiagnosis = (option) => {
     if (finalDiagnosisEntries.some((d) => d.id === option.value)) {
       showToast("Diagnosis already selected", "error");
@@ -113,7 +102,6 @@ const Diagnosis = ({
     }
 
     const name = option.label || "Unnamed diagnosis";
-
     setFinalDiagnosisEntries((prev) => [
       ...prev,
       {
@@ -162,43 +150,37 @@ const Diagnosis = ({
     setFinalDiagnosisEntries((prev) =>
       prev.map((d) =>
         d.id === diagnosisId
-          ? {
-              ...d,
-              queries: d.queries.filter((_, i) => i !== index),
-            }
+          ? { ...d, queries: d.queries.filter((_, i) => i !== index) }
           : d
       )
     );
   };
 
-  const handleRemoveDiagnosis = (id) => {
+  const handleRemoveDiagnosis = (id) =>
     setFinalDiagnosisEntries((prev) => prev.filter((d) => d.id !== id));
-  };
 
-  const diagnosisOptions = (diagnosisList || []).map((d) => {
-    return {
-      value: d.id,
-      label: `${d.diagnosis} ${d.icd_code ? `(${d.icd_code})` : ""}`,
-    };
-  });
+  const diagnosisOptions = (diagnosisList || []).map((d) => ({
+    value: d.id,
+    label: `${d.diagnosis} ${d.icd_code ? `(${d.icd_code})` : ""}`,
+  }));
 
+  // ✅ UI
   return (
     <div className="p-6 bg-white rounded-md shadow-md max-w-3xl mx-auto">
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-bold text-[#101928]">Diagnosis</h1>
-        {shouldShowGrading && appointmentId && section && (
-          <SupervisorGradingButton
-            appointmentId={appointmentId}
-            section={section}
-            sectionLabel={sectionLabel || "Grading: Diagnosis"}
-          />
-        )}
+        <SupervisorGradingButton
+          appointmentId={appointmentId}
+          section={section}
+          sectionLabel={sectionLabel || "Grading: Diagnosis"}
+        />
       </div>
 
       {isAppointmentDiagnosisLoading || isDiagnosisLoading ? (
         <p className="text-gray-500">Loading diagnosis data...</p>
       ) : (
         <>
+          {/* Differential Diagnosis */}
           <div className="mb-4">
             <label className="block font-semibold mb-1">
               Differential Diagnosis <span className="text-red-500">*</span>
@@ -212,6 +194,7 @@ const Diagnosis = ({
             />
           </div>
 
+          {/* Final Diagnosis */}
           <div className="mb-6">
             <div className="flex justify-between items-center mb-1">
               <label className="block font-semibold">
@@ -219,9 +202,7 @@ const Diagnosis = ({
               </label>
               {(!diagnosisList || diagnosisList.length === 0) && (
                 <button
-                  onClick={() => {
-                    refetchDiagnosis();
-                  }}
+                  onClick={refetchDiagnosis}
                   className="text-sm text-blue-600 hover:text-blue-800 underline"
                   disabled={isDiagnosisLoading}
                 >
@@ -296,6 +277,7 @@ const Diagnosis = ({
             )}
           </div>
 
+          {/* Navigation Buttons */}
           <div className="flex justify-end pt-4 gap-4">
             <button
               onClick={() =>

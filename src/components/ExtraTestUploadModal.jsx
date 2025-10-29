@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { IoClose } from "react-icons/io5";
 import { showToast } from "../components/ToasterHelper";
 import { useCreateExtraTestMutation } from "../redux/api/features/extraTestsApi";
+import { baseURL } from "../redux/api/base_url/baseurl";
+import { createExtraTestUrl } from "../redux/api/end_points/endpoints";
 
 const TEST_OPTIONS = [
   "OCT",
@@ -23,6 +25,7 @@ const ExtraTestUploadModal = ({
   const [notes, setNotes] = useState("");
   const [file, setFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   // Tonometry-specific fields
   const [method, setMethod] = useState("");
@@ -30,7 +33,7 @@ const ExtraTestUploadModal = ({
   const [iopOs, setIopOs] = useState("");
   const [recordedAt, setRecordedAt] = useState("");
 
-  const [createExtraTest] = useCreateExtraTestMutation();
+  const [createExtraTest, { isLoading }] = useCreateExtraTestMutation();
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
@@ -58,13 +61,10 @@ const ExtraTestUploadModal = ({
 
     const formData = new FormData();
     formData.append("name", testName);
-    formData.append("notes", notes);
+    formData.append("notes", notes || "");
     formData.append("appointment", appointmentId);
 
-    if (file) {
-      formData.append("file", file);
-    }
-
+    if (file) formData.append("file", file);
     if (isTonometry) {
       formData.append("method", method);
       formData.append("iop_od", iopOd);
@@ -72,15 +72,52 @@ const ExtraTestUploadModal = ({
       formData.append("recorded_at", recordedAt);
     }
 
+    // 🧠 DEBUG: Log what we’re sending
+    console.groupCollapsed("🚀 Payload sent to Extra Test endpoint");
+    for (const [key, value] of formData.entries()) {
+      if (value instanceof File) {
+        console.log(`${key}: [File]`, value.name, value.type, `${(value.size / 1024).toFixed(2)}KB`);
+      } else {
+        console.log(`${key}:`, value);
+      }
+    }
+    console.groupEnd();
+
     try {
-      await createExtraTest(formData).unwrap();
-      showToast("Extra test uploaded successfully!", "success");
-      onUploadSuccess?.();
-      onClose();
+      const uploadUrl = `${baseURL}${createExtraTestUrl(appointmentId)}`;
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", uploadUrl);
+      xhr.setRequestHeader(
+        "Authorization",
+        `Bearer ${localStorage.getItem("access_token")}`
+      );
+
+      xhr.upload.onprogress = (event) => {
+        if (event.lengthComputable) {
+          const progress = Math.round((event.loaded / event.total) * 100);
+          setUploadProgress(progress);
+        }
+      };
+
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          showToast("Extra test uploaded successfully!", "success");
+          onUploadSuccess?.();
+          onClose();
+        } else {
+          console.error("❌ Server error:", xhr.status, xhr.responseText);
+          showToast("Failed to upload test.", "error");
+        }
+      };
+
+      xhr.onerror = () => showToast("Network error during upload.", "error");
+      xhr.send(formData);
     } catch (error) {
+      console.error("❌ Upload failed:", error);
       showToast("Failed to upload test.", "error");
     }
   };
+
 
   if (!isOpen) return null;
 
@@ -93,6 +130,7 @@ const ExtraTestUploadModal = ({
         >
           <IoClose size={24} />
         </button>
+
         <h2 className="text-xl font-semibold mb-4 text-center">
           Upload Extra Test
         </h2>
@@ -102,6 +140,7 @@ const ExtraTestUploadModal = ({
             value={testName}
             onChange={(e) => setTestName(e.target.value)}
             className="border p-3 rounded"
+            required
           >
             <option value="">Select a test</option>
             {TEST_OPTIONS.map((option) => (
@@ -111,13 +150,14 @@ const ExtraTestUploadModal = ({
             ))}
           </select>
 
-          {/* ✅ Tonometry-specific fields */}
+          {/* Tonometry Fields */}
           {testName.toLowerCase().includes("tonometry") && (
             <>
               <select
                 value={method}
                 onChange={(e) => setMethod(e.target.value)}
                 className="border rounded p-3"
+                required
               >
                 <option value="">Select Tonometry Method</option>
                 <option value="Applanation">Applanation</option>
@@ -132,6 +172,7 @@ const ExtraTestUploadModal = ({
                   onChange={(e) => setIopOd(e.target.value)}
                   placeholder="IOP OD"
                   className="border rounded p-3 w-full"
+                  required
                 />
                 <input
                   type="number"
@@ -139,6 +180,7 @@ const ExtraTestUploadModal = ({
                   onChange={(e) => setIopOs(e.target.value)}
                   placeholder="IOP OS"
                   className="border rounded p-3 w-full"
+                  required
                 />
               </div>
               <input
@@ -146,6 +188,7 @@ const ExtraTestUploadModal = ({
                 value={recordedAt}
                 onChange={(e) => setRecordedAt(e.target.value)}
                 className="border rounded p-3"
+                required
               />
             </>
           )}
@@ -158,18 +201,18 @@ const ExtraTestUploadModal = ({
             className="border rounded p-3"
           />
 
-          {/* File Upload */}
-          <label className="border rounded p-3 cursor-pointer bg-gray-50 text-sm text-gray-700 hover:bg-gray-100">
-            {file ? "Change File" : "Upload File"}
-            <input
-              type="file"
-              accept="image/*,application/pdf"
-              onChange={handleFileChange}
-              className="hidden"
-            />
-          </label>
+          {!testName.toLowerCase().includes("tonometry") && (
+            <label className="border rounded p-3 cursor-pointer bg-gray-50 text-sm text-gray-700 hover:bg-gray-100">
+              {file ? "Change File" : "Upload File"}
+              <input
+                type="file"
+                accept="image/*,application/pdf"
+                onChange={handleFileChange}
+                className="hidden"
+              />
+            </label>
+          )}
 
-          {/* File Preview */}
           {file && (
             <div className="relative border rounded p-3 bg-gray-100 mt-2">
               <button
@@ -179,7 +222,6 @@ const ExtraTestUploadModal = ({
               >
                 <IoClose size={18} />
               </button>
-
               {previewUrl ? (
                 <img
                   src={previewUrl}
@@ -192,11 +234,23 @@ const ExtraTestUploadModal = ({
             </div>
           )}
 
+          {uploadProgress > 0 && (
+            <div className="w-full bg-gray-200 rounded-full h-2.5">
+              <div
+                className="bg-[#2f3192] h-2.5 rounded-full transition-all"
+                style={{ width: `${uploadProgress}%` }}
+              ></div>
+            </div>
+          )}
+
           <button
             type="submit"
             className="bg-[#2f3192] text-white py-2 px-4 rounded hover:bg-[#1e217a]"
+            disabled={isLoading}
           >
-            Upload
+            {uploadProgress > 0
+              ? `Uploading... ${uploadProgress}%`
+              : "Upload"}
           </button>
         </form>
       </div>
