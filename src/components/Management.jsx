@@ -24,16 +24,9 @@ const Management = ({ setFlowStep, appointmentId }) => {
 
   const [activeTab, setActiveTab] = useState("management");
 
-  // ✅ Correct: Get permissions from authenticated user state
+  // ✅ Get permissions from authenticated user state
   const user = useSelector((state) => state.auth?.user);
   const permissions = user?.access || {};
-
-  // // 🔍 Debug log for verification
-  // useEffect(() => {
-  //   console.group("🔐 User Permissions");
-  //   console.table(permissions);
-  //   console.groupEnd();
-  // }, [permissions]);
 
   const [selectedTypeId, setSelectedTypeId] = useState(null);
   const {
@@ -83,7 +76,6 @@ const Management = ({ setFlowStep, appointmentId }) => {
 
   // ✅ Compute visible tabs based on permissions
   let visibleTabs = [];
-
   if (permissions.canSubmitConsultations) {
     visibleTabs = ALL_TABS.filter((tab) => tab.key !== "complete");
   } else if (permissions.canCompleteConsultations) {
@@ -114,11 +106,11 @@ const Management = ({ setFlowStep, appointmentId }) => {
 
       // 👇 Decide next tab based on permissions
       if (permissions.canCompleteConsultations) {
-        setActiveTab("complete"); // Lecturer goes straight to Complete tab
+        setActiveTab("complete"); // Lecturer
       } else if (permissions.canSubmitConsultations) {
-        setActiveTab("case_guide"); // Student goes to Case Management Guide
+        setActiveTab("case_guide"); // Student
       } else {
-        setActiveTab("logs"); // Fallback (if neither permission)
+        setActiveTab("logs"); // Fallback
       }
     } catch {
       showToast("Save failed", "error");
@@ -127,7 +119,6 @@ const Management = ({ setFlowStep, appointmentId }) => {
 
   const onSubmitForReview = async () => {
     try {
-      await onSaveDraftAndNext();
       await submitAppointmentForReview(apptId).unwrap();
       showToast("Submitted for review", "success");
       navigate("/");
@@ -151,7 +142,6 @@ const Management = ({ setFlowStep, appointmentId }) => {
   --------------------------------------------------------------------- */
   return (
     <div className="flex flex-col items-center justify-start py-10 px-6 w-full">
-
       {/* Tabs */}
       {visibleTabs.length > 0 ? (
         <div className="flex flex-wrap justify-center gap-3 mb-8">
@@ -206,11 +196,27 @@ const Management = ({ setFlowStep, appointmentId }) => {
           <CaseManagementGuide
             appointmentId={apptId}
             setActiveTab={setActiveTab}
+            onComplete={() => {
+              // ✅ Move to Logs when Case Guide is marked complete
+              setActiveTab("logs");
+              showToast(
+                "Case Management Guide reviewed. Proceeding to Logs.",
+                "success"
+              );
+            }}
           />
         )}
 
         {activeTab === "logs" && (
-          <LogsTab appointmentId={apptId} setActiveTab={setActiveTab} />
+          <LogsTab
+            appointmentId={apptId}
+            setActiveTab={setActiveTab}
+            onComplete={() => {
+              // ✅ Automatically advance to Submit after logs
+              setActiveTab("submit");
+              showToast("Logs recorded. Proceeding to Submit.", "success");
+            }}
+          />
         )}
 
         {activeTab === "submit" && (
