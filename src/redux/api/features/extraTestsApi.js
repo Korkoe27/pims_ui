@@ -4,10 +4,9 @@ import {
   fetchExtraTestsUrl,
 } from "../end_points/endpoints";
 
-// Create ExtraTest API functions using `apiClient`
 export const extraTestApi = apiClient.injectEndpoints({
   endpoints: (builder) => ({
-    /** ✅ Fetch Extra Tests for an Appointment **/
+    /** ✅ Fetch all Extra Tests for a specific appointment **/
     fetchExtraTests: builder.query({
       query: (appointmentId) => ({
         url: fetchExtraTestsUrl(appointmentId),
@@ -15,10 +14,10 @@ export const extraTestApi = apiClient.injectEndpoints({
       providesTags: ["ExtraTests"],
     }),
 
-    /** ✅ Create Extra Test for an Appointment **/
+    /** ✅ Create new Extra Test with FormData upload **/
     createExtraTest: builder.mutation({
       query: (formData) => {
-        const appointmentId = formData.get("appointment"); // ✅ Grab from FormData
+        const appointmentId = formData.get("appointment");
         return {
           url: createExtraTestUrl(appointmentId),
           method: "POST",
