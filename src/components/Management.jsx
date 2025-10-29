@@ -8,7 +8,6 @@ import { useSubmitAppointmentForReviewMutation } from "../redux/api/features/app
 import {
   ManagementForm,
   SubmitTab,
-  GradingTab,
   CompleteTab,
   LogsTab,
 } from "./Management/";
@@ -70,7 +69,6 @@ const Management = ({ setFlowStep, appointmentId }) => {
     { key: "case_guide", label: "Case Management Guide" },
     { key: "logs", label: "Logs" },
     { key: "submit", label: "Submit" },
-    { key: "grading", label: "Grading" },
     { key: "complete", label: "Complete" },
   ];
 
@@ -226,10 +224,6 @@ const Management = ({ setFlowStep, appointmentId }) => {
             isSubmittingForReview={isSubmittingForReview}
             setActiveTab={setActiveTab}
           />
-        )}
-
-        {activeTab === "grading" && (
-          <GradingTab appointmentId={apptId} setActiveTab={setActiveTab} />
         )}
 
         {activeTab === "complete" && (
