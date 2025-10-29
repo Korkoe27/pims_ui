@@ -1,18 +1,19 @@
 import React from "react";
+import { useSelector } from "react-redux";
 import PageContainer from "../components/PageContainer";
 import { useGetDashboardDataQuery } from "../redux/api/features/dashboardApi";
 import LoadingSpinner from "../components/LoadingSpinner";
-import CanAccess from "../components/auth/CanAccess";
-import { ROLES } from "../constants/roles";
-import useHandleConsult from "../hooks/useHandleConsult";
+import ReviewCaseButton from "../components/ui/buttons/ReviewCaseButton";
 
 const PendingReviews = () => {
   const { data: dashboardData, isLoading, error } = useGetDashboardDataQuery();
-  const { handleConsult } = useHandleConsult();
+  const { access } = useSelector((state) => state.auth);
 
-  // ✅ Correct path
   const pendingReviews =
     dashboardData?.appointments?.pending_reviews?.data || [];
+
+  // ✅ Determine if the Action column should show
+  const showActionColumn = ReviewCaseButton.shouldShow(access);
 
   return (
     <PageContainer>
@@ -26,16 +27,16 @@ const PendingReviews = () => {
       ) : error ? (
         <p className="text-red-500">Failed to load pending reviews.</p>
       ) : pendingReviews.length > 0 ? (
-        <table className="w-full">
+        <table className="w-full border border-gray-200 rounded-md overflow-hidden">
           <thead className="text-black uppercase text-left h-16 bg-[#f0f2f5]">
             <tr>
               <th className="px-3 py-3">Date</th>
               <th className="px-3 py-3">Patient ID</th>
               <th className="px-3 py-3">Name</th>
               <th className="px-3 py-3">Appointment Type</th>
-              <CanAccess allowedRoles={[ROLES.LECTURER]}>
+              {showActionColumn && (
                 <th className="px-3 py-3 text-center">Action</th>
-              </CanAccess>
+              )}
             </tr>
           </thead>
           <tbody>
@@ -44,20 +45,14 @@ const PendingReviews = () => {
                 <td className="px-3 py-3">{appointment.appointment_date}</td>
                 <td className="px-3 py-3">{appointment.patient_id}</td>
                 <td className="px-3 py-3">{appointment.patient_name}</td>
-                {/* ✅ Show readable type name */}
                 <td className="px-3 py-3">
                   {appointment.appointment_type_name || "—"}
                 </td>
-                <CanAccess allowedRoles={[ROLES.LECTURER]}>
+                {showActionColumn && (
                   <td className="py-3 flex justify-center">
-                    <button
-                      className="text-white bg-[#2f3192] px-4 py-2 rounded-lg"
-                      onClick={() => handleConsult(appointment)}
-                    >
-                      Review Case
-                    </button>
+                    <ReviewCaseButton appointment={appointment} />
                   </td>
-                </CanAccess>
+                )}
               </tr>
             ))}
           </tbody>
