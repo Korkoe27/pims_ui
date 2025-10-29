@@ -3,17 +3,22 @@ import { useSelector } from "react-redux";
 import PageContainer from "../components/PageContainer";
 import { useGetDashboardDataQuery } from "../redux/api/features/dashboardApi";
 import LoadingSpinner from "../components/LoadingSpinner";
-import ReviewCaseButton from "../components/ui/buttons/ReviewCaseButton";
+import ConsultButton from "../components/ui/buttons/ConsultButton";
+import useHandleConsult from "../hooks/useHandleConsult";
 
 const PendingReviews = () => {
   const { data: dashboardData, isLoading, error } = useGetDashboardDataQuery();
   const { access } = useSelector((state) => state.auth);
+  const { handleConsult } = useHandleConsult();
 
+  // ✅ Extract pending review data safely
   const pendingReviews =
     dashboardData?.appointments?.pending_reviews?.data || [];
 
-  // ✅ Determine if the Action column should show
-  const showActionColumn = ReviewCaseButton.shouldShow(access);
+  // ✅ Determine if Action column should show
+  const showActionColumn = pendingReviews.some((appt) =>
+    ConsultButton.shouldShow(access, appt)
+  );
 
   return (
     <PageContainer>
@@ -39,6 +44,7 @@ const PendingReviews = () => {
               )}
             </tr>
           </thead>
+
           <tbody>
             {pendingReviews.map((appointment) => (
               <tr key={appointment.id} className="bg-white border-b">
@@ -48,9 +54,12 @@ const PendingReviews = () => {
                 <td className="px-3 py-3">
                   {appointment.appointment_type_name || "—"}
                 </td>
-                {showActionColumn && (
+                {ConsultButton.shouldShow(access, appointment) && (
                   <td className="py-3 flex justify-center">
-                    <ReviewCaseButton appointment={appointment} />
+                    <ConsultButton
+                      appointment={appointment}
+                      onClick={handleConsult}
+                    />
                   </td>
                 )}
               </tr>
