@@ -259,6 +259,33 @@ export const completeConsultationUrl = (appointmentId) =>
 export const overrideConsultationUrl = (consultationId) =>
   `/consultations/${consultationId}/override/`;
 
+
+/////////////////////////
+// Consultation Versions
+/////////////////////////
+
+/**
+ * Version listing and history per appointment
+ * Example: GET /consultation-versions/<appointment_id>/
+ */
+export const listConsultationVersionsUrl = (appointmentId) =>
+  `/consultations/versions/${appointmentId}/`;
+
+/**
+ * Fetch a specific version's data (optional, if backend supports)
+ * Example: GET /consultations/versions/view/<version_id>/
+ */
+export const getConsultationVersionUrl = (versionId) =>
+  `/consultations/versions/view/${versionId}/`;
+
+/**
+ * Mark a version as final (optional administrative endpoint)
+ * Example: POST /consultations/versions/<version_id>/finalize/
+ */
+export const finalizeConsultationVersionUrl = (versionId) =>
+  `/consultations/versions/${versionId}/finalize/`;
+
+
 /////////////////////////
 // Reports
 /////////////////////////
