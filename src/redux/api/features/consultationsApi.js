@@ -13,9 +13,6 @@ export const consultationsApi = apiClient.injectEndpoints({
       query: ({ appointmentId, versionType = "student" }) => {
         // startConsultationUrl is a string, not a function
         const url = startConsultationUrl;
-        console.log("🚀 startConsultation URL:", url);
-        console.log("📦 Request body:", { appointment_id: appointmentId, version_type: versionType });
-
         return {
           url,
           method: "POST",

@@ -45,19 +45,21 @@ const ConsultButton = ({ appointment }) => {
   const handleConsult = async () => {
     console.log("🟦 Starting consultation for:", appointment.id);
     try {
-      // Decide flow type
+      // ✅ Determine version type (aligned with backend enums)
       let versionType = "student";
       let flowType = "student_consulting";
 
       if (access?.canGradeStudents) {
-        versionType = "reviewing";
-        flowType = "reviewing";
+        versionType = "reviewed";
+        flowType = "lecturer_reviewing";
       } else if (access?.canCompleteConsultations) {
-        versionType = "direct";
+        versionType = "professional";
         flowType = "professional_consulting";
       }
 
-      // Trigger backend call
+      console.log("🧭 Consultation flow decided:", { versionType, flowType });
+
+      // 🔹 Call backend to start or fetch existing version
       const res = await startConsultation({
         appointmentId: appointment.id,
         versionType,
@@ -65,7 +67,7 @@ const ConsultButton = ({ appointment }) => {
 
       console.log("✅ Consultation started:", res);
 
-      // Update Redux state
+      // 🔹 Update Redux state
       dispatch(
         setCurrentConsultation({
           appointment: appointment.id,
@@ -78,7 +80,7 @@ const ConsultButton = ({ appointment }) => {
 
       showToast("Consultation started successfully!", "success");
 
-      // Navigate to workspace
+      // 🔹 Navigate to workspace
       navigate(`/consultation/${appointment.id}?version=${res.version_id || res.id}`);
     } catch (error) {
       console.error("❌ Consultation start failed:", error);
@@ -112,9 +114,12 @@ ConsultButton.shouldShow = (access, appointment = {}) => {
   // Student / Clinician: can start or continue consultation
   if (
     (access?.canStartConsultation || access?.canCompleteConsultations) &&
-    !["submitted for review", "under review", "scored", "consultation completed"].includes(
-      status
-    )
+    ![
+      "submitted for review",
+      "under review",
+      "scored",
+      "consultation completed",
+    ].includes(status)
   ) {
     return true;
   }
