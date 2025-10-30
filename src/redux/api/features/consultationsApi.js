@@ -11,14 +11,15 @@ export const consultationsApi = apiClient.injectEndpoints({
     /** 🔹 Start (or fetch active) consultation version */
     startConsultation: builder.mutation({
       query: ({ appointmentId, versionType = "student" }) => {
-        const url = startConsultationUrl(appointmentId);
+        // startConsultationUrl is a string, not a function
+        const url = startConsultationUrl;
         console.log("🚀 startConsultation URL:", url);
-        console.log("📦 Request body:", { version_type: versionType });
+        console.log("📦 Request body:", { appointment_id: appointmentId, version_type: versionType });
 
         return {
           url,
           method: "POST",
-          body: { version_type: versionType },
+          body: { appointment_id: appointmentId, version_type: versionType },
         };
       },
       invalidatesTags: ["ConsultationVersions"],
