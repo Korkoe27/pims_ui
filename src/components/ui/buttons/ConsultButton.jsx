@@ -40,6 +40,8 @@ const ConsultButton = ({ appointment }) => {
   }
 
   const handleConsult = async () => {
+    console.log("🟦 CLICK detected, starting consultation for:", appointment.id);
+
     try {
       // 🔹 Determine flow & version type based on access
       let versionType = "student";
@@ -58,14 +60,15 @@ const ConsultButton = ({ appointment }) => {
 
       console.log("🧭 Consultation flow decided:", { versionType, flowType, access });
 
-
       // 🔹 Call backend to start or fetch existing version
       const res = await startConsultation({
         appointmentId: appointment.id,
         versionType,
       }).unwrap();
 
-      // 🔹 Update Redux state for consultation session
+      console.log("✅ Consultation started:", res);
+
+      // 🔹 Update Redux state
       dispatch(
         setCurrentConsultation({
           appointment: appointment.id,
@@ -84,7 +87,7 @@ const ConsultButton = ({ appointment }) => {
 
       showToast("Consultation started successfully!", "success");
 
-      // 🔹 Navigate to consultation workspace (Case History, etc.)
+      // 🔹 Navigate to workspace
       navigate(`/consultation/${appointment.id}?version=${res.version_id || res.id}`);
     } catch (error) {
       console.error("❌ Consultation start failed:", error);

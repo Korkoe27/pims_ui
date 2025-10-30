@@ -1,25 +1,35 @@
+// src/redux/api/features/consultationsApi.js
+
 import { apiClient } from "../api_client/apiClient";
-import { startConsultationUrl, listConsultationVersionsUrl } from "../end_points/endpoints";
+import {
+  startConsultationUrl,
+  listConsultationVersionsUrl,
+} from "../end_points/endpoints";
 
 export const consultationsApi = apiClient.injectEndpoints({
   endpoints: (builder) => ({
     /** 🔹 Start (or fetch active) consultation version */
     startConsultation: builder.mutation({
-      query: ({ appointmentId, versionType = "student" }) => ({
-        url: startConsultationUrl,
-        method: "POST",
-        body: {
-          appointment_id: appointmentId,
-          version_type: versionType,
-        },
-      }),
-      // tag a specific appointment if you want cache invalidation later
+      query: ({ appointmentId, versionType = "student" }) => {
+        const url = startConsultationUrl(appointmentId);
+        console.log("🚀 startConsultation URL:", url);
+        console.log("📦 Request body:", { version_type: versionType });
+
+        return {
+          url,
+          method: "POST",
+          body: { version_type: versionType },
+        };
+      },
       invalidatesTags: ["ConsultationVersions"],
     }),
 
     /** 🔹 List all versions for a given appointment */
     fetchConsultationVersions: builder.query({
-      query: (appointmentId) => listConsultationVersionsUrl(appointmentId),
+      query: (appointmentId) => ({
+        url: listConsultationVersionsUrl(appointmentId),
+        method: "GET",
+      }),
       providesTags: ["ConsultationVersions"],
     }),
   }),
