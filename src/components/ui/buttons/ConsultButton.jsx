@@ -46,12 +46,18 @@ const ConsultButton = ({ appointment }) => {
       let flowType = "student_consulting";
 
       if (access?.canGradeStudents) {
-        versionType = "reviewed";
-        flowType = "lecturer_reviewing";
+        versionType = "reviewing";
+        flowType = "reviewing";
       } else if (access?.canCompleteConsultations) {
         versionType = "direct";
-        flowType = "lecturer_consulting";
+        flowType = "professional_consulting";
+      } else if (access?.canSubmitConsultations) {
+        versionType = "student";
+        flowType = "student_consulting";
       }
+
+      console.log("🧭 Consultation flow decided:", { versionType, flowType, access });
+
 
       // 🔹 Call backend to start or fetch existing version
       const res = await startConsultation({
