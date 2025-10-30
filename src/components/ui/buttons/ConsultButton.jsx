@@ -1,8 +1,16 @@
 import React from "react";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { useStartConsultationMutation } from "../../../redux/api/features/consultationsApi";
+import { setCurrentConsultation } from "../../../redux/slices/consultationSlice";
+import { showToast } from "../../ToasterHelper";
 
-const ConsultButton = ({ appointment, onClick }) => {
+const ConsultButton = ({ appointment }) => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
   const access = useSelector((s) => s.auth?.user?.access || {});
+  const [startConsultation, { isLoading }] = useStartConsultationMutation();
+
   if (!ConsultButton.shouldShow(access, appointment)) return null;
 
   const status = (appointment.status || "").toLowerCase();
@@ -28,20 +36,63 @@ const ConsultButton = ({ appointment, onClick }) => {
     ["submitted for review", "under review"].includes(status) &&
     access?.canGradeStudents
   ) {
-    // Lecturer reviewing a case
     label = "Review Case";
   }
 
+  const handleConsult = async () => {
+    try {
+      // 🔹 Determine flow & version type based on access
+      let versionType = "student";
+      let flowType = "student_consulting";
+
+      if (access?.canGradeStudents) {
+        versionType = "reviewed";
+        flowType = "lecturer_reviewing";
+      } else if (access?.canCompleteConsultations) {
+        versionType = "direct";
+        flowType = "lecturer_consulting";
+      }
+
+      // 🔹 Call backend to start or fetch existing version
+      const res = await startConsultation({
+        appointmentId: appointment.id,
+        versionType,
+      }).unwrap();
+
+      // 🔹 Update Redux state for consultation session
+      dispatch(
+        setCurrentConsultation({
+          appointment: appointment.id,
+          versionId: res.version_id || res.id,
+          versionType: res.version_type || versionType,
+          isFinal: res.is_final || false,
+          flowType,
+          permissions: {
+            can_edit_exams: access?.canEditConsultations,
+            can_submit_for_review: access?.canSubmitConsultations,
+            can_grade: access?.canGradeStudents,
+            can_complete: access?.canCompleteConsultations,
+          },
+        })
+      );
+
+      showToast("Consultation started successfully!", "success");
+
+      // 🔹 Navigate to consultation workspace (Case History, etc.)
+      navigate(`/consultation/${appointment.id}?version=${res.version_id || res.id}`);
+    } catch (error) {
+      console.error("❌ Consultation start failed:", error);
+      showToast("Failed to start consultation", "error");
+    }
+  };
+
   return (
     <button
-      onClick={() =>
-        onClick(appointment, {
-          isReview: ["submitted for review", "under review"].includes(status),
-        })
-      }
-      className="px-4 py-2 bg-[#2f3192] hover:bg-[#24267a] text-white rounded-lg font-medium transition-all"
+      onClick={handleConsult}
+      disabled={isLoading}
+      className="px-4 py-2 bg-[#2f3192] hover:bg-[#24267a] text-white rounded-lg font-medium transition-all disabled:opacity-60"
     >
-      {label}
+      {isLoading ? "Loading..." : label}
     </button>
   );
 };
@@ -58,9 +109,9 @@ ConsultButton.shouldShow = (access, appointment = null) => {
     return true;
   }
 
-  // Student can see consult button if case is editable
+  // Student or Clinician can start/continue consultation
   if (
-    access?.canStartConsultation &&
+    (access?.canStartConsultation || access?.canCompleteConsultations) &&
     ![
       "submitted for review",
       "under review",
