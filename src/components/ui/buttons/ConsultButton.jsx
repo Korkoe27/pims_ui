@@ -1,37 +1,140 @@
-// components/ui/buttons/ConsultButton.jsx
-import { useSelector } from "react-redux";
+// src/components/Consultations/ConsultButton.jsx
 import React from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { useStartConsultationMutation } from "../../../redux/api/features/consultationsApi";
+import { setCurrentConsultation } from "../../../redux/slices/consultationSlice";
+import { showToast } from "../../ToasterHelper";
 
-const ConsultButton = ({ appointment, onClick }) => {
+const ConsultButton = ({ appointment }) => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
   const access = useSelector((s) => s.auth?.user?.access || {});
+  const [startConsultation, { isLoading }] = useStartConsultationMutation();
+
   if (!ConsultButton.shouldShow(access, appointment)) return null;
 
-  const status = appointment.status.toLowerCase();
-  let label = "Start Consultation";
+  const status = (appointment.status || "").toLowerCase();
+  const isLocked = appointment.is_locked;
+  const lockedBy = appointment.locked_by_name || "";
+  const lockedByMe = appointment.locked_by_me || false;
 
-  if (
+  let label = "Start Consultation";
+  let disabled = false;
+  let tooltip = "";
+
+  // 🔹 Handle locked cases
+  if (isLocked) {
+    if (lockedByMe) {
+      label = "Continue Consultation";
+      tooltip = "You have this consultation in progress.";
+      disabled = false; // ✅ active for owner
+    } else {
+      label = "Consultation in Progress";
+      tooltip = `Consultation done by ${lockedBy || "another user"}.`;
+      disabled = true; // ❌ disabled for others
+    }
+  } else if (
     [
       "consultation in progress",
+      "case history recorded",
+      "visual acuity recorded",
       "examinations recorded",
       "diagnosis added",
       "management created",
+      "case management guide created",
+      "returned for changes",
     ].includes(status)
-  ) label = "Continue Consultation";
-  else if (status === "consultation completed") label = "View Consultation";
+  ) {
+    label = "Continue Consultation";
+  } else if (status === "consultation completed") {
+    return null; // hide completely when done
+  } else if (
+    ["submitted for review", "under review"].includes(status) &&
+    access?.canGradeStudents
+  ) {
+    label = "Review Case";
+  }
+
+  // 🔹 Start or continue consultation handler
+  const handleConsult = async () => {
+    try {
+      // If already locked by me → navigate directly
+      if (isLocked && lockedByMe) {
+        navigate(`/consultation/${appointment.id}`);
+        return;
+      }
+
+      let versionType = "student";
+      let flowType = "student_consulting";
+
+      if (access?.canGradeStudents) {
+        versionType = "reviewed";
+        flowType = "lecturer_reviewing";
+      } else if (access?.canCompleteConsultations) {
+        versionType = "professional";
+        flowType = "professional_consulting";
+      }
+
+      const res = await startConsultation({
+        appointmentId: appointment.id,
+        versionType,
+      }).unwrap();
+
+      dispatch(
+        setCurrentConsultation({
+          appointment: appointment.id,
+          versionId: res.version?.id || res.id,
+          versionType: res.version?.version_type || versionType,
+          isFinal: res.version?.is_final || false,
+          flowType,
+        })
+      );
+
+      showToast("Consultation started successfully!", "success");
+      navigate(`/consultation/${appointment.id}?version=${res.version?.id || res.id}`);
+    } catch (error) {
+      const msg =
+        error?.data?.detail ||
+        "Consultation is locked by another user or failed to start.";
+      showToast(msg, "error");
+    }
+  };
 
   return (
     <button
-      onClick={() => onClick(appointment)}
-      className="px-4 py-2 bg-[#2f3192] hover:bg-[#24267a] text-white rounded-lg font-medium transition-all"
+      onClick={handleConsult}
+      disabled={isLoading || disabled}
+      title={tooltip}
+      className={`px-4 py-2 rounded-lg font-medium transition-all ${
+        disabled
+          ? "bg-gray-400 cursor-not-allowed text-white"
+          : "bg-[#2f3192] hover:bg-[#24267a] text-white"
+      }`}
     >
-      {label}
+      {isLoading ? "Loading..." : label}
     </button>
   );
 };
 
-// 🧠 Static helper: tells whether this button is relevant for current user
-ConsultButton.shouldShow = (access, appointment = null) => {
-  return Boolean(access?.canStartConsultation);
+// 🔹 Visibility logic
+ConsultButton.shouldShow = (access, appointment = {}) => {
+  const status = (appointment.status || "").toLowerCase();
+
+  // Lecturer can review
+  if (access?.canGradeStudents && ["submitted for review", "under review"].includes(status)) {
+    return true;
+  }
+
+  // Student / Clinician can start or continue
+  if (
+    (access?.canStartConsultation || access?.canCompleteConsultations) &&
+    !["submitted for review", "under review", "scored", "consultation completed"].includes(status)
+  ) {
+    return true;
+  }
+
+  return false;
 };
 
 export default ConsultButton;
