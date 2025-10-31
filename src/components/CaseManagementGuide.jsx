@@ -1,124 +1,178 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
+import { showToast } from "../components/ToasterHelper";
+import {
+  useGetCaseManagementGuideQuery,
+  useUpdateCaseManagementGuideMutation,
+} from "../redux/api/features/managementApi";
 
-const storageKeyFor = (id) => `cmg-reviewed-${id}`;
-
-const CaseManagementGuide = ({
-  appointmentId,
-  setActiveTab,
-  setTabCompletionStatus,
-  role = "student",
-}) => {
-  const [reviewed, setReviewed] = useState(false);
+const CaseManagementGuide = ({ appointmentId, setActiveTab }) => {
+  const [rows, setRows] = useState([
+    { diagnosis: "", management_plan: "", comments: "" },
+  ]);
   const [saving, setSaving] = useState(false);
-  const nextBtnRef = useRef(null);
 
-  const KEY = useMemo(() => storageKeyFor(appointmentId), [appointmentId]);
+  // ✅ Fetch existing guide
+  const { data: guideData, isLoading } = useGetCaseManagementGuideQuery(appointmentId);
+  const [updateCaseGuide] = useUpdateCaseManagementGuideMutation();
 
-  // Load saved state for this appointment
+  // ✅ Hydrate from backend if existing data present
   useEffect(() => {
-    try {
-      if (typeof window !== "undefined") {
-        const saved = window.localStorage.getItem(KEY);
-        setReviewed(saved === "1");
-      }
-    } catch { /* noop */ }
-  }, [KEY]);
+    if (guideData?.table_rows?.length > 0) {
+      setRows(
+        guideData.table_rows.map((r) => ({
+          id: r.id,
+          diagnosis: r.diagnosis || "",
+          management_plan: r.management_plan || "",
+          comments: r.comments || "",
+        }))
+      );
+    }
+  }, [guideData]);
 
-  // Whenever reviewed changes, persist + notify parent (mark tab complete)
-  useEffect(() => {
-    try {
-      if (typeof window !== "undefined") {
-        window.localStorage.setItem(KEY, reviewed ? "1" : "0");
-      }
-    } catch { /* noop */ }
-    if (reviewed) setTabCompletionStatus?.("case_guide", true);
-  }, [KEY, reviewed, setTabCompletionStatus]);
+  /* ---------------------------------------------------------------------
+     Handlers
+  --------------------------------------------------------------------- */
+  const handleChange = (index, field, value) => {
+    const updated = [...rows];
+    updated[index][field] = value;
+    setRows(updated);
+  };
 
-  const handleToggle = (e) => setReviewed(e.target.checked);
+  const addRow = () => {
+    setRows([...rows, { diagnosis: "", management_plan: "", comments: "" }]);
+  };
 
-  const handleNext = async () => {
-    if (!reviewed || saving) return;
-    setSaving(true);
+  const removeRow = (index) => {
+    const updated = [...rows];
+    updated.splice(index, 1);
+    setRows(updated);
+  };
+
+  const handleSave = async () => {
     try {
-      // Already set as complete in the effect above; this is just navigation.
-      setActiveTab?.("logs");
+      setSaving(true);
+      await updateCaseGuide({
+        appointmentId,
+        data: { table_rows: rows },
+      }).unwrap();
+
+      showToast("Case Management Guide saved successfully.", "success");
+      setActiveTab("logs"); // ✅ Move to Logs tab after saving
+    } catch (err) {
+      console.error(err);
+      showToast("Failed to save Case Management Guide.", "error");
     } finally {
       setSaving(false);
     }
   };
 
-  // Keyboard: Enter advances when checkbox focused & checked
-  const onKeyDown = (e) => {
-    if (e.key === "Enter" && reviewed) {
-      e.preventDefault();
-      nextBtnRef.current?.click();
-    }
-  };
+  /* ---------------------------------------------------------------------
+     Render
+  --------------------------------------------------------------------- */
+  if (isLoading) {
+    return <p className="text-center text-gray-500">Loading guide...</p>;
+  }
 
   return (
-    <div className="max-w-4xl mx-auto p-6 bg-white rounded-md shadow border">
+    <div className="max-w-6xl mx-auto p-6 bg-white rounded-md shadow border">
       <header className="mb-6">
-        <h1 className="text-2xl font-bold text-[#101928]">Case Management Guide</h1>
-        <p className="text-gray-600 mt-1">
-          Appointment: <span className="font-mono">{appointmentId}</span>
-        </p>
+        <h1 className="text-2xl font-bold text-[#101928]">
+          Case Management Guide
+        </h1>
       </header>
 
-      <section className="space-y-4">
-        <p className="text-gray-700 leading-relaxed">
-          Use this guide to review protocols and decision points before finalizing your Management plan.
-        </p>
+      <section className="overflow-x-auto">
+        <table className="min-w-full border border-gray-300 rounded-lg">
+          <thead className="bg-gray-100 text-gray-700 text-sm">
+            <tr>
+              <th className="border p-2 text-left w-1/3">Diagnosis</th>
+              <th className="border p-2 text-left w-1/3">Management Plan</th>
+              <th className="border p-2 text-left w-1/3">Comments</th>
+              <th className="border p-2 text-center w-20">Action</th>
+            </tr>
+          </thead>
 
-        <div className="rounded-lg border bg-gray-50 p-4">
-          <h2 className="font-semibold mb-2">Quick checklist</h2>
-          <ul className="list-disc pl-6 space-y-1 text-gray-800">
-            <li>Confirm selected management options are clinically justified.</li>
-            <li>Verify refractive prescription values (SPH/CYL/AXIS/ADD) and lens details.</li>
-            <li>Ensure medication dosage/frequency/duration are complete.</li>
-            <li>Add necessary counselling/referral/surgery/therapy notes.</li>
-            <li>Cross-check documentation for accuracy and completeness.</li>
-          </ul>
-        </div>
-
-        <label className="flex items-start gap-3 mt-4 cursor-pointer">
-          <input
-            id="cmg-reviewed"
-            type="checkbox"
-            className="mt-1 h-5 w-5"
-            checked={reviewed}
-            onChange={handleToggle}
-            onKeyDown={onKeyDown}
-            aria-describedby="cmg-reviewed-help"
-          />
-          <span className="text-sm text-gray-800" id="cmg-reviewed-help">
-            I have reviewed the Case Management Guide and completed the checklist above.
-          </span>
-        </label>
+          <tbody>
+            {rows.map((row, idx) => (
+              <tr key={idx} className="odd:bg-white even:bg-gray-50">
+                <td className="border p-2">
+                  <textarea
+                    value={row.diagnosis}
+                    onChange={(e) =>
+                      handleChange(idx, "diagnosis", e.target.value)
+                    }
+                    placeholder="Enter diagnosis..."
+                    rows={2}
+                    className="w-full border-gray-300 rounded-md text-sm p-2 focus:ring-[#2f3192] focus:border-[#2f3192]"
+                  />
+                </td>
+                <td className="border p-2">
+                  <textarea
+                    value={row.management_plan}
+                    onChange={(e) =>
+                      handleChange(idx, "management_plan", e.target.value)
+                    }
+                    placeholder="Enter management plan..."
+                    rows={2}
+                    className="w-full border-gray-300 rounded-md text-sm p-2 focus:ring-[#2f3192] focus:border-[#2f3192]"
+                  />
+                </td>
+                <td className="border p-2">
+                  <textarea
+                    value={row.comments}
+                    onChange={(e) =>
+                      handleChange(idx, "comments", e.target.value)
+                    }
+                    placeholder="Enter comments..."
+                    rows={2}
+                    className="w-full border-gray-300 rounded-md text-sm p-2 focus:ring-[#2f3192] focus:border-[#2f3192]"
+                  />
+                </td>
+                <td className="border p-2 text-center">
+                  <button
+                    onClick={() => removeRow(idx)}
+                    className="text-red-500 hover:text-red-700"
+                    disabled={rows.length === 1}
+                  >
+                    ✕
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </section>
 
-      <footer className="mt-6 flex flex-wrap gap-3">
+      <div className="flex justify-between items-center mt-4">
         <button
-          type="button"
-          onClick={() => setActiveTab?.("management")}
-          className="px-4 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50"
+          onClick={addRow}
+          className="px-4 py-2 rounded-md bg-gray-100 text-gray-700 border border-gray-300 hover:bg-gray-200"
         >
-          ← Back to Management
+          + Add Row
         </button>
 
-        <button
-          type="button"
-          ref={nextBtnRef}
-          onClick={handleNext}
-          disabled={!reviewed || saving}
-          className={[
-            "px-4 py-2 rounded-md text-white",
-            reviewed && !saving ? "bg-[#2f3192] hover:opacity-90" : "bg-[#2f3192]/60 cursor-not-allowed",
-          ].join(" ")}
-          aria-disabled={!reviewed || saving}
-        >
-          Next: Logs →
-        </button>
-      </footer>
+        <div className="flex gap-3">
+          <button
+            type="button"
+            onClick={() => setActiveTab("management")}
+            className="px-4 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50"
+          >
+            ← Back to Management
+          </button>
+
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className={`px-4 py-2 rounded-md text-white ${
+              saving
+                ? "bg-[#2f3192]/60 cursor-not-allowed"
+                : "bg-[#2f3192] hover:opacity-90"
+            }`}
+          >
+            {saving ? "Saving..." : "Save & Continue → Logs"}
+          </button>
+        </div>
+      </div>
     </div>
   );
 };

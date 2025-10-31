@@ -1,16 +1,18 @@
 import React, { useState } from "react";
 
-const LogsTab = ({ appointmentId, setActiveTab, role }) => {
+const LogsTab = ({ appointmentId, setActiveTab, onComplete }) => {
   const [logEntry, setLogEntry] = useState("");
   const [logs, setLogs] = useState([]);
 
+  /* ---------------------------------------------------------------------
+     Handlers
+  --------------------------------------------------------------------- */
   const handleAddLog = () => {
     if (logEntry.trim()) {
       const newLog = {
         id: Date.now(),
         entry: logEntry,
         timestamp: new Date().toLocaleString(),
-        user: role || "User",
       };
       setLogs([...logs, newLog]);
       setLogEntry("");
@@ -24,6 +26,18 @@ const LogsTab = ({ appointmentId, setActiveTab, role }) => {
     }
   };
 
+  const handleNext = () => {
+    // ✅ Move to the next logical tab (Submit)
+    if (onComplete) {
+      onComplete();
+    } else {
+      setActiveTab?.("submit");
+    }
+  };
+
+  /* ---------------------------------------------------------------------
+     Render
+  --------------------------------------------------------------------- */
   return (
     <div className="rounded-md border bg-white p-6 w-full max-w-4xl">
       <h3 className="text-lg font-semibold mb-4">Consultation Logs</h3>
@@ -40,9 +54,11 @@ const LogsTab = ({ appointmentId, setActiveTab, role }) => {
               >
                 <div className="flex justify-between items-start mb-1">
                   <span className="text-sm font-medium text-gray-700">
-                    {log.user}
+                    Log Entry
                   </span>
-                  <span className="text-xs text-gray-500">{log.timestamp}</span>
+                  <span className="text-xs text-gray-500">
+                    {log.timestamp}
+                  </span>
                 </div>
                 <p className="text-sm text-gray-800">{log.entry}</p>
               </div>
@@ -89,28 +105,15 @@ const LogsTab = ({ appointmentId, setActiveTab, role }) => {
       <div className="mt-6 pt-4 border-t">
         <div className="flex justify-between items-center">
           <span className="text-sm text-gray-600">
-            Logs help track consultation progress and decisions
+            Logs help track consultation progress and decisions.
           </span>
-          <div className="flex gap-2">
-            {role === "student" && (
-              <button
-                type="button"
-                onClick={() => setActiveTab("submit")}
-                className="px-4 py-2 rounded-md bg-green-600 text-white hover:bg-green-700"
-              >
-                Next: Submit →
-              </button>
-            )}
-            {role !== "student" && (
-              <button
-                type="button"
-                onClick={() => setActiveTab("complete")}
-                className="px-4 py-2 rounded-md bg-green-600 text-white hover:bg-green-700"
-              >
-                Next: Complete →
-              </button>
-            )}
-          </div>
+          <button
+            type="button"
+            onClick={handleNext}
+            className="px-4 py-2 rounded-md bg-green-600 text-white hover:bg-green-700"
+          >
+            Next: Submit →
+          </button>
         </div>
       </div>
     </div>
