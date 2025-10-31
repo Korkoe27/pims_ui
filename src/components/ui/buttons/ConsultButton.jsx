@@ -17,22 +17,23 @@ const ConsultButton = ({ appointment }) => {
   const status = (appointment.status || "").toLowerCase();
   const isLocked = appointment.is_locked;
   const lockedBy = appointment.locked_by_name || "";
-  const lockedByMe = appointment.locked_by_me || false; // ✅ add this line
+  const lockedByMe = appointment.locked_by_me || false;
 
   let label = "Start Consultation";
   let disabled = false;
   let tooltip = "";
 
-  // 🔹 Adjust label & state based on conditions
+  // 🔹 Handle locked cases
   if (isLocked) {
     if (lockedByMe) {
-      label = "Consultation in Progress";
-      tooltip = "You already have this consultation locked.";
+      label = "Continue Consultation";
+      tooltip = "You have this consultation in progress.";
+      disabled = false; // ✅ active for owner
     } else {
-      label = `Locked by ${lockedBy}`;
-      tooltip = "This consultation is currently in progress by another user.";
+      label = "Consultation in Progress";
+      tooltip = `Consultation done by ${lockedBy || "another user"}.`;
+      disabled = true; // ❌ disabled for others
     }
-    disabled = true;
   } else if (
     [
       "consultation in progress",
@@ -55,9 +56,15 @@ const ConsultButton = ({ appointment }) => {
     label = "Review Case";
   }
 
-  // 🔹 Start consultation handler
+  // 🔹 Start or continue consultation handler
   const handleConsult = async () => {
     try {
+      // If already locked by me → navigate directly
+      if (isLocked && lockedByMe) {
+        navigate(`/consultation/${appointment.id}`);
+        return;
+      }
+
       let versionType = "student";
       let flowType = "student_consulting";
 
