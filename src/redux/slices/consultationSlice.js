@@ -1,34 +1,64 @@
 import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
-  // Current consultation data
+  // 🔹 Core consultation context
   currentConsultation: null,
-
-  // Flow type identification
-  // 'lecturer_consulting' | 'student_consulting' | 'lecturer_reviewing'
+  versionId: null,
+  versionType: null,
   flowType: null,
+  isFinal: false,
 
-  // Flow state management
-  flowState: null, // e.g. "Consultation In Progress"
-  nextAllowedStates: [],
-
-  // Permission flags
+  // 🔹 Permissions (full frontend keys)
   permissions: {
-    can_edit_exams: false,
-    can_edit_diagnosis: false,
-    can_edit_management: false,
-    can_submit_for_review: false,
-    can_grade: false,
-    can_complete: false,
-    can_override: false,
+    canCreateAppointment: false,
+    canViewAppointments: false,
+    canUpdateAppointment: false,
+    canDeleteAppointment: false,
+
+    canViewClinicSchedule: false,
+    canCreateClinicSchedule: false,
+    canUpdateClinicSchedule: false,
+    canDeleteClinicSchedule: false,
+
+    canAddPatient: false,
+    canViewPatients: false,
+    canUpdatePatient: false,
+    canDeletePatient: false,
+
+    canStartConsultation: false,
+    canViewConsultations: false,
+    canEditConsultations: false,
+    canSubmitConsultations: false,
+    canCompleteConsultations: false,
+    canGradeStudents: false,
+
+    canViewGrades: false,
+    canCreateAbsentRequest: false,
+    canViewAbsentRequests: false,
+    canUpdateAbsentRequests: false,
+    canApproveAbsentRequests: false,
+
+    canGenerateReports: false,
+    canViewReports: false,
+    canExportReports: false,
+
+    canManageUsers: false,
+    canViewAuditLogs: false,
   },
 
-  // UI state
+  // 🔹 Derived role flags
+  derivedAccess: {
+    isStudent: false,
+    isLecturer: false,
+    isClinician: false,
+  },
+
+  // 🔹 Transition and loading states
   isTransitioning: false,
   transitionError: null,
   transitionSuccess: null,
 
-  // Loading state
+  // 🔹 General loading/error
   isLoading: false,
   error: null,
 };
@@ -38,148 +68,89 @@ const consultationSlice = createSlice({
   initialState,
   reducers: {
     // ========================================================
-    // 🔹 Set or refresh the current consultation
+    // 🔹 Set the active consultation (called after /start/)
     // ========================================================
     setCurrentConsultation: (state, action) => {
       const payload = action.payload || {};
-
       state.currentConsultation = payload;
-      state.flowState = payload.flowState || payload.status || null;
-      state.nextAllowedStates =
-        payload.nextAllowedStates || payload.next_allowed_states || [];
-
-      // ✅ flowType is now determined by the frontend (Consultation.jsx)
+      state.versionId = payload.versionId || payload.version_id || null;
+      state.versionType = payload.versionType || payload.version_type || null;
       state.flowType = payload.flowType || null;
+      state.isFinal = payload.isFinal || false;
 
-      // ✅ Permissions are provided by useConsultationData
       if (payload.permissions) {
         state.permissions = { ...state.permissions, ...payload.permissions };
+        state.derivedAccess.isLecturer = payload.permissions.canGradeStudents || false;
+        state.derivedAccess.isClinician = payload.permissions.canCompleteConsultations || false;
+        state.derivedAccess.isStudent =
+          payload.permissions.canStartConsultation &&
+          !state.derivedAccess.isLecturer &&
+          !state.derivedAccess.isClinician;
       }
     },
 
     // ========================================================
-    // 🔹 Flow and permission updates
+    // 🔹 Flow type & permissions
     // ========================================================
-    setFlowState: (state, action) => {
-      state.flowState = action.payload;
+    setFlowType: (state, action) => {
+      state.flowType = action.payload;
     },
-
-    setNextAllowedStates: (state, action) => {
-      state.nextAllowedStates = action.payload;
-    },
-
     setPermissions: (state, action) => {
       state.permissions = { ...state.permissions, ...action.payload };
+      state.derivedAccess.isLecturer = state.permissions.canGradeStudents || false;
+      state.derivedAccess.isClinician = state.permissions.canCompleteConsultations || false;
+      state.derivedAccess.isStudent =
+        state.permissions.canStartConsultation &&
+        !state.derivedAccess.isLecturer &&
+        !state.derivedAccess.isClinician;
     },
 
     // ========================================================
-    // 🔹 Transition handling (success, error, loading)
+    // 🔹 Transition Handling (for useConsultationData.js)
     // ========================================================
     setTransitioning: (state, action) => {
       state.isTransitioning = action.payload;
     },
-
     setTransitionError: (state, action) => {
-      const payload = action.payload;
-      if (!payload) {
-        state.transitionError = null;
-      } else if (typeof payload === "string") {
-        state.transitionError = payload;
-      } else if (typeof payload === "object") {
-        if (typeof payload.detail === "string") {
-          state.transitionError = payload.detail;
-        } else if (payload.error && typeof payload.error === "string") {
-          state.transitionError = payload.error;
-        } else if (payload.message && typeof payload.message === "string") {
-          state.transitionError = payload.message;
-        } else {
-          try {
-            state.transitionError = JSON.stringify(payload);
-          } catch {
-            state.transitionError = String(payload);
-          }
-        }
-      } else {
-        state.transitionError = String(payload);
-      }
+      state.transitionError = typeof action.payload === "string"
+        ? action.payload
+        : JSON.stringify(action.payload);
       state.isTransitioning = false;
     },
-
     setTransitionSuccess: (state, action) => {
-      const payload = action.payload;
-      if (!payload) {
-        state.transitionSuccess = null;
-      } else if (typeof payload === "string") {
-        state.transitionSuccess = payload;
-      } else if (typeof payload === "object") {
-        if (typeof payload.detail === "string") {
-          state.transitionSuccess = payload.detail;
-        } else if (payload.message && typeof payload.message === "string") {
-          state.transitionSuccess = payload.message;
-        } else {
-          try {
-            state.transitionSuccess = JSON.stringify(payload);
-          } catch {
-            state.transitionSuccess = String(payload);
-          }
-        }
-      } else {
-        state.transitionSuccess = String(payload);
-      }
+      state.transitionSuccess = typeof action.payload === "string"
+        ? action.payload
+        : JSON.stringify(action.payload);
       state.isTransitioning = false;
     },
-
     clearTransitionMessages: (state) => {
       state.transitionError = null;
       state.transitionSuccess = null;
     },
 
     // ========================================================
-    // 🔹 Loading and general error states
+    // 🔹 General loading/error
     // ========================================================
     setLoading: (state, action) => {
       state.isLoading = action.payload;
     },
-
     setError: (state, action) => {
       state.error = action.payload;
-      state.isLoading = false;
     },
-
     clearError: (state) => {
       state.error = null;
     },
 
     // ========================================================
-    // 🔹 Reset consultation state (on exit or logout)
+    // 🔹 Reset all
     // ========================================================
-    resetConsultation: (state) => {
-      state.currentConsultation = null;
-      state.flowType = null;
-      state.flowState = null;
-      state.nextAllowedStates = [];
-      state.permissions = {
-        can_edit_exams: false,
-        can_edit_diagnosis: false,
-        can_edit_management: false,
-        can_submit_for_review: false,
-        can_grade: false,
-        can_complete: false,
-        can_override: false,
-      };
-      state.isTransitioning = false;
-      state.transitionError = null;
-      state.transitionSuccess = null;
-      state.isLoading = false;
-      state.error = null;
-    },
+    resetConsultation: () => initialState,
   },
 });
 
 export const {
   setCurrentConsultation,
-  setFlowState,
-  setNextAllowedStates,
+  setFlowType,
   setPermissions,
   setTransitioning,
   setTransitionError,

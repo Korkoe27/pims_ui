@@ -13,7 +13,7 @@ import { dashboardApi } from "../api/features/dashboardApi";
 import { appointmentsApi } from "../api/features/appointmentsApi";
 import { absentRequestApi } from "../api/features/absentRequestApi";
 import { gradingApi } from "../api/features/gradingApi";
-import { consultationApi } from "../api/features/consultationApi";
+import { consultationsApi } from "../api/features/consultationsApi";
 import { reportsApi } from "../api/features/reportsApi";
 
 
@@ -48,7 +48,7 @@ const apiMiddlewares = [
   appointmentsApi.middleware,
   absentRequestApi.middleware,
   gradingApi.middleware,
-  consultationApi.middleware,
+  consultationsApi.middleware,
   reportsApi.middleware,
 ];
 const uniqueApiMiddlewares = Array.from(new Set(apiMiddlewares));
@@ -76,7 +76,7 @@ export const store = configureStore({
     [appointmentsApi.reducerPath]: appointmentsApi.reducer,
     [absentRequestApi.reducerPath]: absentRequestApi.reducer,
     [gradingApi.reducerPath]: gradingApi.reducer,
-    [consultationApi.reducerPath]: consultationApi.reducer,
+  [consultationsApi.reducerPath]: consultationsApi.reducer,
     [reportsApi.reducerPath]: reportsApi.reducer,
 
   },
