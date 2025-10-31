@@ -12,14 +12,28 @@ const ConsultButton = ({ appointment }) => {
   const access = useSelector((s) => s.auth?.user?.access || {});
   const [startConsultation, { isLoading }] = useStartConsultationMutation();
 
-  // 🔹 Hide button if user doesn’t have permission
   if (!ConsultButton.shouldShow(access, appointment)) return null;
 
   const status = (appointment.status || "").toLowerCase();
-  let label = "Start Consultation";
+  const isLocked = appointment.is_locked;
+  const lockedBy = appointment.locked_by_name || "";
+  const lockedByMe = appointment.locked_by_me || false; // ✅ add this line
 
-  // 🔹 Adjust label based on appointment status
-  if (
+  let label = "Start Consultation";
+  let disabled = false;
+  let tooltip = "";
+
+  // 🔹 Adjust label & state based on conditions
+  if (isLocked) {
+    if (lockedByMe) {
+      label = "Consultation in Progress";
+      tooltip = "You already have this consultation locked.";
+    } else {
+      label = `Locked by ${lockedBy}`;
+      tooltip = "This consultation is currently in progress by another user.";
+    }
+    disabled = true;
+  } else if (
     [
       "consultation in progress",
       "case history recorded",
@@ -33,7 +47,7 @@ const ConsultButton = ({ appointment }) => {
   ) {
     label = "Continue Consultation";
   } else if (status === "consultation completed") {
-    label = "View Consultation";
+    return null; // hide completely when done
   } else if (
     ["submitted for review", "under review"].includes(status) &&
     access?.canGradeStudents
@@ -43,9 +57,7 @@ const ConsultButton = ({ appointment }) => {
 
   // 🔹 Start consultation handler
   const handleConsult = async () => {
-    console.log("🟦 Starting consultation for:", appointment.id);
     try {
-      // ✅ Determine version type (aligned with backend enums)
       let versionType = "student";
       let flowType = "student_consulting";
 
@@ -57,42 +69,41 @@ const ConsultButton = ({ appointment }) => {
         flowType = "professional_consulting";
       }
 
-      console.log("🧭 Consultation flow decided:", { versionType, flowType });
-
-      // 🔹 Call backend to start or fetch existing version
       const res = await startConsultation({
         appointmentId: appointment.id,
         versionType,
       }).unwrap();
 
-      console.log("✅ Consultation started:", res);
-
-      // 🔹 Update Redux state
       dispatch(
         setCurrentConsultation({
           appointment: appointment.id,
-          versionId: res.version_id || res.id,
-          versionType: res.version_type || versionType,
-          isFinal: res.is_final || false,
+          versionId: res.version?.id || res.id,
+          versionType: res.version?.version_type || versionType,
+          isFinal: res.version?.is_final || false,
           flowType,
         })
       );
 
       showToast("Consultation started successfully!", "success");
-
-      // 🔹 Navigate to workspace
-      navigate(`/consultation/${appointment.id}?version=${res.version_id || res.id}`);
+      navigate(`/consultation/${appointment.id}?version=${res.version?.id || res.id}`);
     } catch (error) {
-      console.error("❌ Consultation start failed:", error);
-      showToast("Failed to start consultation", "error");
+      const msg =
+        error?.data?.detail ||
+        "Consultation is locked by another user or failed to start.";
+      showToast(msg, "error");
     }
   };
 
   return (
     <button
       onClick={handleConsult}
-      disabled={isLoading}
-      className="px-4 py-2 bg-[#2f3192] hover:bg-[#24267a] text-white rounded-lg font-medium transition-all disabled:opacity-60"
+      disabled={isLoading || disabled}
+      title={tooltip}
+      className={`px-4 py-2 rounded-lg font-medium transition-all ${
+        disabled
+          ? "bg-gray-400 cursor-not-allowed text-white"
+          : "bg-[#2f3192] hover:bg-[#24267a] text-white"
+      }`}
     >
       {isLoading ? "Loading..." : label}
     </button>
@@ -103,23 +114,15 @@ const ConsultButton = ({ appointment }) => {
 ConsultButton.shouldShow = (access, appointment = {}) => {
   const status = (appointment.status || "").toLowerCase();
 
-  // Lecturer: can review cases
-  if (
-    access?.canGradeStudents &&
-    ["submitted for review", "under review"].includes(status)
-  ) {
+  // Lecturer can review
+  if (access?.canGradeStudents && ["submitted for review", "under review"].includes(status)) {
     return true;
   }
 
-  // Student / Clinician: can start or continue consultation
+  // Student / Clinician can start or continue
   if (
     (access?.canStartConsultation || access?.canCompleteConsultations) &&
-    ![
-      "submitted for review",
-      "under review",
-      "scored",
-      "consultation completed",
-    ].includes(status)
+    !["submitted for review", "under review", "scored", "consultation completed"].includes(status)
   ) {
     return true;
   }
