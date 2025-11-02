@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { useStartConsultationMutation } from "../../../redux/api/features/consultationsApi";
 import { setCurrentConsultation } from "../../../redux/slices/consultationSlice";
 import { showToast } from "../../ToasterHelper";
+import { store } from "../../../redux/store/store"; // ✅ added for version lookup when continuing
 
 const ConsultButton = ({ appointment }) => {
   const dispatch = useDispatch();
@@ -59,12 +60,17 @@ const ConsultButton = ({ appointment }) => {
   // 🔹 Start or continue consultation handler
   const handleConsult = async () => {
     try {
-      // If already locked by me → navigate directly
+      // ✅ Case 1: Already locked by me → just continue with versionId from Redux
       if (isLocked && lockedByMe) {
-        navigate(`/consultation/${appointment.id}`);
+        const versionId = store.getState()?.consultation?.versionId;
+        const targetUrl = versionId
+          ? `/consultation/${appointment.id}?version=${versionId}`
+          : `/consultation/${appointment.id}`;
+        navigate(targetUrl);
         return;
       }
 
+      // ✅ Case 2: Starting or resuming consultation
       let versionType = "student";
       let flowType = "student_consulting";
 
@@ -81,6 +87,7 @@ const ConsultButton = ({ appointment }) => {
         versionType,
       }).unwrap();
 
+      // ✅ Dispatch to Redux for persistence
       dispatch(
         setCurrentConsultation({
           appointment: appointment.id,
@@ -91,8 +98,11 @@ const ConsultButton = ({ appointment }) => {
         })
       );
 
+      // ✅ Navigate with version query
+      const versionParam = res.version?.id || res.id;
+      navigate(`/consultation/${appointment.id}?version=${versionParam}`);
+
       showToast("Consultation started successfully!", "success");
-      navigate(`/consultation/${appointment.id}?version=${res.version?.id || res.id}`);
     } catch (error) {
       const msg =
         error?.data?.detail ||
@@ -122,14 +132,22 @@ ConsultButton.shouldShow = (access, appointment = {}) => {
   const status = (appointment.status || "").toLowerCase();
 
   // Lecturer can review
-  if (access?.canGradeStudents && ["submitted for review", "under review"].includes(status)) {
+  if (
+    access?.canGradeStudents &&
+    ["submitted for review", "under review"].includes(status)
+  ) {
     return true;
   }
 
   // Student / Clinician can start or continue
   if (
     (access?.canStartConsultation || access?.canCompleteConsultations) &&
-    !["submitted for review", "under review", "scored", "consultation completed"].includes(status)
+    ![
+      "submitted for review",
+      "under review",
+      "scored",
+      "consultation completed",
+    ].includes(status)
   ) {
     return true;
   }
