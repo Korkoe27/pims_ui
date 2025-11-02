@@ -18,7 +18,6 @@ const Dashboard = () => {
   const { user } = useSelector((state) => state.auth);
   const access = user?.access || {};
 
-  // ✅ Fetch dashboard data
   const {
     data: dashboardData,
     isLoading,
@@ -32,7 +31,6 @@ const Dashboard = () => {
     }
   }, [error, dispatch]);
 
-  // ✅ Extract nested data safely
   const summary = dashboardData?.summary || {};
   const appointments = dashboardData?.appointments || {};
 
@@ -41,9 +39,6 @@ const Dashboard = () => {
   const completedAppointments = appointments?.completed?.count || 0;
   const scheduledAppointments = appointments?.scheduled?.data || [];
   const pendingReviewAppointments = appointments?.pending_reviews?.data || [];
-
-  // ✅ Determine if Action column should appear
-  const showActionColumn = ConsultButton.shouldShow(access);
 
   return (
     <PageContainer>
@@ -75,135 +70,116 @@ const Dashboard = () => {
       </div>
 
       {/* 🔹 Upcoming Appointments */}
-      <div className="mt-10">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="font-bold text-xl">Upcoming Appointments</h2>
-          <CanAccess accessKeys={["canViewAppointments"]}>
-            <Link
-              to="/appointments"
-              className="text-[#2f3192] font-semibold hover:underline"
-            >
-              See all
-            </Link>
-          </CanAccess>
-        </div>
-
-        {isLoading ? (
-          <div className="flex justify-center items-center">
-            <LoadingSpinner />
-          </div>
-        ) : scheduledAppointments.length > 0 ? (
-          <table className="w-full border border-gray-200 rounded-md overflow-hidden">
-            <thead className="text-black uppercase text-left bg-[#f0f2f5]">
-              <tr>
-                <th className="px-3 py-3">Date</th>
-                <th className="px-3 py-3">Patient ID</th>
-                <th className="px-3 py-3">Name</th>
-                <th className="px-3 py-3">Appointment Type</th>
-                {showActionColumn && (
-                  <th className="px-3 py-3 text-center">Action</th>
-                )}
-              </tr>
-            </thead>
-
-            <tbody>
-              {scheduledAppointments.slice(0, 5).map((appointment) => (
-                <tr key={appointment.id} className="bg-white border-b">
-                  <td className="px-3 py-3">{appointment.appointment_date}</td>
-                  <td className="px-3 py-3">{appointment.patient_id}</td>
-                  <td className="px-3 py-3">{appointment.patient_name}</td>
-                  <td className="px-3 py-3">
-                    {appointment.appointment_type_name}
-                  </td>
-
-                  {showActionColumn && (
-                    <td className="py-3 flex justify-center">
-                      <ConsultButton
-                        appointment={appointment}
-                        onClick={handleConsult}
-                      />
-                    </td>
-                  )}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        ) : (
-          <p className="text-gray-500 text-center py-6">
-            No scheduled appointments available.
-          </p>
-        )}
-      </div>
+      <AppointmentTable
+        title="Upcoming Appointments"
+        data={scheduledAppointments}
+        isLoading={isLoading}
+        access={access}
+        handleConsult={handleConsult}
+      />
 
       {/* 🔹 Pending Appointments */}
-      <div className="mt-10">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="font-bold text-xl">Pending Appointments</h2>
-          <CanAccess accessKeys={["canViewAppointments"]}>
-            <Link
-              to="/appointments"
-              className="text-[#2f3192] font-semibold hover:underline"
-            >
-              See all
-            </Link>
-          </CanAccess>
-        </div>
-
-        {isLoading ? (
-          <div className="flex justify-center items-center">
-            <LoadingSpinner />
-          </div>
-        ) : pendingReviewAppointments.length > 0 ? (
-          <table className="w-full border border-gray-200 rounded-md overflow-hidden">
-            <thead className="text-black uppercase text-left bg-[#f0f2f5]">
-              <tr>
-                <th className="px-3 py-3">Date</th>
-                <th className="px-3 py-3">Patient ID</th>
-                <th className="px-3 py-3">Name</th>
-                <th className="px-3 py-3">Appointment Type</th>
-                <th className="px-3 py-3">Status</th>
-                {showActionColumn && (
-                  <th className="px-3 py-3 text-center">Action</th>
-                )}
-              </tr>
-            </thead>
-
-            <tbody>
-              {pendingReviewAppointments.slice(0, 5).map((appointment) => (
-                <tr key={appointment.id} className="bg-white border-b">
-                  <td className="px-3 py-3">{appointment.appointment_date}</td>
-                  <td className="px-3 py-3">{appointment.patient_id}</td>
-                  <td className="px-3 py-3">{appointment.patient_name}</td>
-                  <td className="px-3 py-3">
-                    {appointment.appointment_type_name}
-                  </td>
-                  <td className="px-3 py-3">{appointment.status}</td>
-
-                  {showActionColumn && (
-                    <td className="py-3 flex justify-center">
-                      <ConsultButton
-                        appointment={appointment}
-                        onClick={handleConsult}
-                      />
-                    </td>
-                  )}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        ) : (
-          <p className="text-gray-500 text-center py-6">
-            No pending appointments available.
-          </p>
-        )}
-      </div>
+      <AppointmentTable
+        title="Pending Appointments"
+        data={pendingReviewAppointments}
+        isLoading={isLoading}
+        access={access}
+        handleConsult={handleConsult}
+        showStatus
+      />
     </PageContainer>
   );
 };
 
 export default Dashboard;
 
-/* -------------------- 🔹 Subcomponent -------------------- */
+/* -------------------- 🔹 Reusable Table -------------------- */
+const AppointmentTable = ({
+  title,
+  data,
+  isLoading,
+  access,
+  handleConsult,
+  showStatus = false,
+}) => {
+  const hasAnyAction = data.some((a) => ConsultButton.shouldShow(access, a));
+
+  return (
+    <div className="mt-10">
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="font-bold text-xl">{title}</h2>
+        <CanAccess accessKeys={["canViewAppointments"]}>
+          <Link
+            to="/appointments"
+            className="text-[#2f3192] font-semibold hover:underline"
+          >
+            See all
+          </Link>
+        </CanAccess>
+      </div>
+
+      {isLoading ? (
+        <div className="flex justify-center items-center">
+          <LoadingSpinner />
+        </div>
+      ) : data.length > 0 ? (
+        <table className="w-full border border-gray-200 rounded-md overflow-hidden">
+          <thead className="text-black uppercase text-left bg-[#f0f2f5]">
+            <tr>
+              <th className="px-3 py-3">Date</th>
+              <th className="px-3 py-3">Patient ID</th>
+              <th className="px-3 py-3">Name</th>
+              <th className="px-3 py-3">Appointment Type</th>
+              {showStatus && <th className="px-3 py-3">Status</th>}
+              {hasAnyAction && (
+                <th className="px-3 py-3 text-center">Action</th>
+              )}
+            </tr>
+          </thead>
+
+          <tbody>
+            {data.slice(0, 5).map((appointment) => {
+              const canAct = ConsultButton.shouldShow(access, appointment);
+              return (
+                <tr key={appointment.id} className="bg-white border-b">
+                  <td className="px-3 py-3">{appointment.appointment_date}</td>
+                  <td className="px-3 py-3">{appointment.patient_id}</td>
+                  <td className="px-3 py-3">{appointment.patient_name}</td>
+                  <td className="px-3 py-3">
+                    {appointment.appointment_type_name}
+                  </td>
+                  {showStatus && (
+                    <td className="px-3 py-3">{appointment.status}</td>
+                  )}
+                  {hasAnyAction && (
+                    <td className="py-3 flex justify-center">
+                      {canAct ? (
+                        <ConsultButton
+                          appointment={appointment}
+                          onClick={handleConsult}
+                        />
+                      ) : (
+                        <span className="text-gray-400 text-sm italic">
+                          —
+                        </span>
+                      )}
+                    </td>
+                  )}
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      ) : (
+        <p className="text-gray-500 text-center py-6">
+          No {title.toLowerCase()} available.
+        </p>
+      )}
+    </div>
+  );
+};
+
+/* -------------------- 🔹 Card Component -------------------- */
 const DashboardCard = ({ icon, title, color, bg, value }) => (
   <div className={`${bg} p-4 h-36 col-span-4 rounded-xl`}>
     <h3 className="flex items-center text-base gap-[12px] font-normal">
