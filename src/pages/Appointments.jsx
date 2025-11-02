@@ -23,7 +23,7 @@ const Appointments = () => {
   const { data, isLoading, error } = useGetTodaysAppointmentsQuery();
   const appointments = data?.data || [];
 
-  // ✅ Sort by status (Scheduled → Completed → Cancelled)
+  // ✅ Sort by status
   const sortedAppointments = [...appointments].sort((a, b) => {
     const statusOrder = { Scheduled: 1, Completed: 2, Cancelled: 3 };
     return (statusOrder[a.status] || 99) - (statusOrder[b.status] || 99);
@@ -37,8 +37,10 @@ const Appointments = () => {
   const totalPages = Math.ceil(sortedAppointments.length / pageSize);
   const handlePageChange = (page) => setCurrentPage(page);
 
-  // ✅ Determine if Action column should appear (via ConsultButton)
-  const showActionColumn = ConsultButton.shouldShow(access);
+  // ✅ Determine if ANY appointment has an action button
+  const hasAnyAction = paginatedAppointments.some((appt) =>
+    ConsultButton.shouldShow(access, appt)
+  );
 
   const actionColClass = "text-center px-6 py-3 min-w-[10rem]";
 
@@ -61,7 +63,7 @@ const Appointments = () => {
       {/* ✅ Table Display */}
       {!isLoading && paginatedAppointments.length > 0 ? (
         <>
-          <table className="w-full text-base text-left text-gray-500">
+          <table className="w-full text-base text-left text-gray-600 border border-gray-200 rounded-md overflow-hidden">
             <thead className="text-gray-700 uppercase bg-gray-50">
               <tr>
                 <th className="px-6 py-3">Date</th>
@@ -69,42 +71,38 @@ const Appointments = () => {
                 <th className="px-6 py-3">Name</th>
                 <th className="px-6 py-3">Type</th>
                 <th className="px-6 py-3">Status</th>
-                {showActionColumn && (
-                  <th className={actionColClass}>Action</th>
-                )}
+                {hasAnyAction && <th className={actionColClass}>Action</th>}
               </tr>
             </thead>
 
             <tbody>
-              {paginatedAppointments.map((appointment) => (
-                <tr key={appointment.id} className="bg-white border-b">
-                  <td className="px-6 py-4">{appointment?.appointment_date}</td>
-                  <td className="px-6 py-4">{appointment?.patient_id}</td>
-                  <td className="px-6 py-4">{appointment?.patient_name}</td>
-                  <td className="px-6 py-4">
-                    {appointment?.appointment_type_name}
-                  </td>
-                  <td className="w-fit mx-auto">
-                    <span
-                      className={`px-6 rounded-full py-2 text-base font-medium text-white w-5 ${checkStatus(
-                        appointment?.status
-                      )}`}
-                    >
-                      {appointment?.status}
-                    </span>
-                  </td>
-
-                  {/* 🔹 Self-contained ConsultButton (handles its own access logic) */}
-                  {showActionColumn && (
-                    <td className={`${actionColClass} flex justify-center`}>
-                      <ConsultButton
-                        appointment={appointment}
-                        onClick={handleConsult}
-                      />
+              {paginatedAppointments.map((appointment) => {
+                const canAct = ConsultButton.shouldShow(access, appointment);
+                return (
+                  <tr key={appointment.id} className="bg-white border-b">
+                    <td className="px-6 py-4">{appointment?.appointment_date}</td>
+                    <td className="px-6 py-4">{appointment?.patient_id}</td>
+                    <td className="px-6 py-4">{appointment?.patient_name}</td>
+                    <td className="px-6 py-4">
+                      {appointment?.appointment_type_name}
                     </td>
-                  )}
-                </tr>
-              ))}
+                    <td className="px-6 py-4">{appointment?.status}</td>
+
+                    {hasAnyAction && (
+                      <td className={`${actionColClass} flex justify-center`}>
+                        {canAct ? (
+                          <ConsultButton
+                            appointment={appointment}
+                            onClick={handleConsult}
+                          />
+                        ) : (
+                          <span className="text-gray-400 text-sm italic">—</span>
+                        )}
+                      </td>
+                    )}
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
 
@@ -126,17 +124,3 @@ const Appointments = () => {
 };
 
 export default Appointments;
-
-/**
- * 🔹 Returns Tailwind class for appointment status badge color
- */
-const checkStatus = (status) => {
-  switch (status) {
-    case "Consultation Completed":
-      return "bg-green-600";
-    case "Cancelled":
-      return "bg-red-600";
-    default:
-      return "bg-yellow-400";
-  }
-};
