@@ -1,5 +1,6 @@
+// src/pages/Consultation.jsx
 import React, { useState, useEffect, useCallback } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { useGetAppointmentDetailsQuery } from "../redux/api/features/appointmentsApi";
 
@@ -19,20 +20,29 @@ import CaseManagementGuide from "../components/CaseManagementGuide";
 import MedicationDispensing from "../components/MedicationDispensing";
 import BouncingBallsLoader from "../components/BouncingBallsLoader";
 
-// ------------------------------------------------------------
-// 🔹 Main Consultation Component (Access-driven only)
-// ------------------------------------------------------------
+// ---------------------------------------------------------------------
+// 🔹 Main Consultation Page
+// ---------------------------------------------------------------------
 const Consultation = () => {
   const { appointmentId } = useParams();
+  const location = useLocation();
   const navigate = useNavigate();
   const userAccess = useSelector((state) => state.auth.user?.access);
 
-  // Local storage keys
+  // ✅ Extract versionId from query string (?version=<id>)
+  const queryParams = new URLSearchParams(location.search);
+  const versionId = queryParams.get("version");
+
+  // -------------------------------------------------------------------
+  // 🔹 Local storage keys for persistence
+  // -------------------------------------------------------------------
   const LOCAL_TAB_KEY = `consultation-${appointmentId}-activeTab`;
   const LOCAL_FLOW_KEY = `consultation-${appointmentId}-flowStep`;
   const LOCAL_STATUS_KEY = `consultation-${appointmentId}-tabCompletionStatus`;
 
-  // State
+  // -------------------------------------------------------------------
+  // 🔹 Local state
+  // -------------------------------------------------------------------
   const [activeTab, _setActiveTab] = useState(
     localStorage.getItem(LOCAL_TAB_KEY) || "case history"
   );
@@ -48,11 +58,14 @@ const Consultation = () => {
     }
   });
 
-  // Helpers to persist tab + flow state
+  // -------------------------------------------------------------------
+  // 🔹 Helper setters (persisted)
+  // -------------------------------------------------------------------
   const setActiveTab = (tab) => {
     localStorage.setItem(LOCAL_TAB_KEY, tab);
     _setActiveTab(tab);
   };
+
   const setFlowStep = useCallback(
     (step) => {
       localStorage.setItem(LOCAL_FLOW_KEY, step);
@@ -60,6 +73,7 @@ const Consultation = () => {
     },
     [LOCAL_FLOW_KEY]
   );
+
   const setTabCompletionStatus = (updateFnOrObject) => {
     _setTabCompletionStatus((prev) => {
       const update =
@@ -71,14 +85,16 @@ const Consultation = () => {
     });
   };
 
-  // --- Fetch appointment data ---------------------------------
+  // -------------------------------------------------------------------
+  // 🔹 Fetch Appointment Details
+  // -------------------------------------------------------------------
   const {
     data: selectedAppointment,
     error,
     isLoading,
   } = useGetAppointmentDetailsQuery(appointmentId);
 
-  // Determine flow step from appointment status (simplified)
+  // Derive flow step from appointment status
   useEffect(() => {
     if (!selectedAppointment?.status) return;
 
@@ -90,13 +106,14 @@ const Consultation = () => {
       completed: "dispensing",
     };
 
-    const nextStep = stateToFlowStep[
-      selectedAppointment.status.toLowerCase?.()
-    ];
-    if (nextStep) setFlowStep(nextStep);
+    const nextStep =
+      stateToFlowStep[selectedAppointment.status.toLowerCase?.()] || "consultation";
+    setFlowStep(nextStep);
   }, [selectedAppointment?.status, setFlowStep]);
 
-  // Handle loading / error
+  // -------------------------------------------------------------------
+  // 🔹 Handle Loading / Error States
+  // -------------------------------------------------------------------
   if (isLoading)
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-white z-50">
@@ -109,18 +126,20 @@ const Consultation = () => {
     return <p>Redirecting to Dashboard...</p>;
   }
 
-  // ------------------------------------------------------------
-  // 🔹 Render Tab Content
-  // ------------------------------------------------------------
+  const idStr = String(appointmentId);
+
+  // -------------------------------------------------------------------
+  // 🔹 Render Tab Content (for Consultation Flow)
+  // -------------------------------------------------------------------
   const renderTabContent = () => {
     const tab = (activeTab || "").toLowerCase();
-    const idStr = String(appointmentId);
 
     switch (tab) {
       case "case history":
         return (
           <CaseHistory
             appointmentId={idStr}
+            versionId={versionId} // ✅ added
             setActiveTab={setActiveTab}
             setTabCompletionStatus={setTabCompletionStatus}
           />
@@ -131,6 +150,7 @@ const Consultation = () => {
           <PersonalHistory
             patientId={selectedAppointment?.patient}
             appointmentId={idStr}
+            versionId={versionId} // ✅ added
             setActiveTab={setActiveTab}
             setTabCompletionStatus={setTabCompletionStatus}
           />
@@ -139,6 +159,7 @@ const Consultation = () => {
         return (
           <VisualAcuity
             appointmentId={idStr}
+            versionId={versionId} // ✅ added
             setActiveTab={setActiveTab}
             setTabCompletionStatus={setTabCompletionStatus}
           />
@@ -147,6 +168,7 @@ const Consultation = () => {
         return (
           <Externals
             appointmentId={idStr}
+            versionId={versionId} // ✅ added
             setActiveTab={setActiveTab}
             setTabCompletionStatus={setTabCompletionStatus}
           />
@@ -155,6 +177,7 @@ const Consultation = () => {
         return (
           <Internals
             appointmentId={idStr}
+            versionId={versionId} // ✅ added
             setActiveTab={setActiveTab}
             setTabCompletionStatus={setTabCompletionStatus}
           />
@@ -163,6 +186,7 @@ const Consultation = () => {
         return (
           <Refraction
             appointmentId={idStr}
+            versionId={versionId} // ✅ added
             setActiveTab={setActiveTab}
             setTabCompletionStatus={setTabCompletionStatus}
           />
@@ -171,6 +195,7 @@ const Consultation = () => {
         return (
           <ExtraTests
             appointmentId={idStr}
+            versionId={versionId} // ✅ added
             setFlowStep={setFlowStep}
             setActiveTab={setActiveTab}
             setTabCompletionStatus={setTabCompletionStatus}
@@ -180,6 +205,7 @@ const Consultation = () => {
         return (
           <CaseManagementGuide
             appointmentId={idStr}
+            versionId={versionId} // ✅ added
             setActiveTab={setActiveTab}
             setTabCompletionStatus={setTabCompletionStatus}
           />
@@ -189,12 +215,10 @@ const Consultation = () => {
     }
   };
 
-  // ------------------------------------------------------------
-  // 🔹 Render Flow Step (major stages)
-  // ------------------------------------------------------------
+  // -------------------------------------------------------------------
+  // 🔹 Render Flow Step (Consultation → Diagnosis → Management → Dispensing)
+  // -------------------------------------------------------------------
   const renderFlowStep = () => {
-    const idStr = String(appointmentId);
-
     switch (flowStep) {
       case "consultation":
         return (
@@ -211,6 +235,7 @@ const Consultation = () => {
         return (
           <Diagnosis
             appointmentId={idStr}
+            versionId={versionId} // ✅ added
             setFlowStep={setFlowStep}
             setActiveTab={setActiveTab}
           />
@@ -219,6 +244,7 @@ const Consultation = () => {
         return (
           <Management
             appointmentId={idStr}
+            versionId={versionId} // ✅ added
             setFlowStep={setFlowStep}
             setActiveTab={setActiveTab}
           />
@@ -227,6 +253,7 @@ const Consultation = () => {
         return (
           <MedicationDispensing
             appointmentId={idStr}
+            versionId={versionId} // ✅ added
             setFlowStep={setFlowStep}
           />
         );
@@ -235,10 +262,9 @@ const Consultation = () => {
     }
   };
 
-  // ------------------------------------------------------------
-  // 🔹 Main Render
-  // ------------------------------------------------------------
-  const idStr = String(appointmentId);
+  // -------------------------------------------------------------------
+  // 🔹 Final Render
+  // -------------------------------------------------------------------
   const stepMap = {
     consultation: 1,
     diagnosis: 2,

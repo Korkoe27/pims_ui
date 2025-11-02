@@ -8,10 +8,12 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { baseURL } from "../base_url/baseurl";
 import { TAGS } from "../tags/tags";
+import { clearSessionData } from "../../../utils/sessionUtils";
 
 export const apiClient = createApi({
   reducerPath: "apiClient",
   baseQuery: async (args, api, extraOptions) => {
+    // --- Debug logging for consultation endpoints ---
     const debugLogIfConsultation = (request) => {
       try {
         const url = typeof request === "string" ? request : request.url;
@@ -34,24 +36,21 @@ export const apiClient = createApi({
 
     debugLogIfConsultation(args);
 
+    // --- Primary request handler ---
     let result = await fetchBaseQuery({
       baseUrl: baseURL,
       credentials: "include",
       prepareHeaders: (headers) => {
-        // Add CSRF token
+        // CSRF token
         const csrfToken = document.cookie
           .split("; ")
           .find((row) => row.startsWith("csrftoken="))
           ?.split("=")[1];
-        if (csrfToken) {
-          headers.set("X-CSRFToken", csrfToken);
-        }
+        if (csrfToken) headers.set("X-CSRFToken", csrfToken);
 
-        // Add Authorization header
+        // Authorization header
         const accessToken = localStorage.getItem("access_token");
-        if (accessToken) {
-          headers.set("Authorization", `Bearer ${accessToken}`);
-        }
+        if (accessToken) headers.set("Authorization", `Bearer ${accessToken}`);
 
         // ✅ Fix for FormData uploads
         const contentType = headers.get("Content-Type");
@@ -63,9 +62,12 @@ export const apiClient = createApi({
       },
     })(args, api, extraOptions);
 
-    // Handle token refresh if necessary
+    /* ------------------------------------------------------------------
+       🔹 Handle 401 Unauthorized → Try refresh or reset session
+    ------------------------------------------------------------------- */
     if (result?.error?.status === 401) {
       const refreshToken = localStorage.getItem("refresh_token");
+
       if (refreshToken) {
         const refreshResult = await fetchBaseQuery({
           baseUrl: baseURL,
@@ -80,15 +82,22 @@ export const apiClient = createApi({
         );
 
         if (refreshResult?.data) {
+          // ✅ Save new token and retry request
           localStorage.setItem("access_token", refreshResult.data.access);
-          result = await fetchBaseQuery({
-            baseUrl: baseURL,
-          })(args, api, extraOptions);
+          result = await fetchBaseQuery({ baseUrl: baseURL })(
+            args,
+            api,
+            extraOptions
+          );
         } else {
-          localStorage.removeItem("access_token");
-          localStorage.removeItem("refresh_token");
+          // ❌ Refresh failed → clear session and redirect
+          clearSessionData(api);
           window.location.href = "/login";
         }
+      } else {
+        // ❌ No refresh token → clear session and redirect
+        clearSessionData(api);
+        window.location.href = "/login";
       }
     }
 
