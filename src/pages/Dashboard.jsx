@@ -37,8 +37,9 @@ const Dashboard = () => {
   const totalAppointments = summary?.total_appointments || 0;
   const pendingAppointments = summary?.pending_appointments || 0;
   const completedAppointments = appointments?.completed?.count || 0;
-  const scheduledAppointments = appointments?.scheduled?.data || [];
-  const pendingReviewAppointments = appointments?.pending_reviews?.data || [];
+
+  // ✅ Use general appointments for today's list
+  const todaysAppointments = appointments?.general?.data || [];
 
   return (
     <PageContainer>
@@ -69,23 +70,14 @@ const Dashboard = () => {
         />
       </div>
 
-      {/* 🔹 Upcoming Appointments */}
+      {/* 🔹 Today's Appointments */}
       <AppointmentTable
-        title="Upcoming Appointments"
-        data={scheduledAppointments}
+        title="Today's Appointments"
+        data={todaysAppointments}
         isLoading={isLoading}
         access={access}
         handleConsult={handleConsult}
-      />
-
-      {/* 🔹 Pending Appointments */}
-      <AppointmentTable
-        title="Pending Appointments"
-        data={pendingReviewAppointments}
-        isLoading={isLoading}
-        access={access}
-        handleConsult={handleConsult}
-        showStatus
+        showStatus={true} // ✅ Added status column
       />
     </PageContainer>
   );
@@ -138,7 +130,7 @@ const AppointmentTable = ({
           </thead>
 
           <tbody>
-            {data.slice(0, 5).map((appointment) => {
+            {data.slice(0, 10).map((appointment) => {
               const canAct = ConsultButton.shouldShow(access, appointment);
               return (
                 <tr key={appointment.id} className="bg-white border-b">
@@ -159,9 +151,7 @@ const AppointmentTable = ({
                           onClick={handleConsult}
                         />
                       ) : (
-                        <span className="text-gray-400 text-sm italic">
-                          —
-                        </span>
+                        <span className="text-gray-400 text-sm italic">—</span>
                       )}
                     </td>
                   )}
