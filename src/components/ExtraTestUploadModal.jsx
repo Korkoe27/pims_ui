@@ -4,6 +4,7 @@ import { showToast } from "../components/ToasterHelper";
 import { useCreateExtraTestMutation } from "../redux/api/features/extraTestsApi";
 import { baseURL } from "../redux/api/base_url/baseurl";
 import { createExtraTestUrl } from "../redux/api/end_points/endpoints";
+import { useSelector } from "react-redux";
 
 const TEST_OPTIONS = [
   "OCT",
@@ -33,8 +34,21 @@ const ExtraTestUploadModal = ({
   const [iopOs, setIopOs] = useState("");
   const [recordedAt, setRecordedAt] = useState("");
 
+
+  // ✅ Fetch version ID from consultation or appointment as fallback
+  const versionId = useSelector((state) =>
+    state.consultation?.currentVersion?.id ||
+    state.consultation?.versionId ||
+    state.appointments?.selectedAppointment?.latest_version_id ||
+    null
+  );
+
+
   const [createExtraTest, { isLoading }] = useCreateExtraTestMutation();
 
+  // ------------------------------------------------------
+  // 🔹 File Handling
+  // ------------------------------------------------------
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
     setFile(selectedFile);
@@ -50,6 +64,9 @@ const ExtraTestUploadModal = ({
     setPreviewUrl(null);
   };
 
+  // ------------------------------------------------------
+  // 🔹 Submit Upload
+  // ------------------------------------------------------
   const handleSubmit = async (e) => {
     e.preventDefault();
     const isTonometry = testName.toLowerCase().includes("tonometry");
@@ -64,6 +81,13 @@ const ExtraTestUploadModal = ({
     formData.append("notes", notes || "");
     formData.append("appointment", appointmentId);
 
+    // ✅ Include Consultation Version ID
+    if (versionId) {
+      formData.append("consultation_version", versionId);
+    } else {
+      console.warn("⚠️ No consultation version ID found in Redux. Backend may reject this upload.");
+    }
+
     if (file) formData.append("file", file);
     if (isTonometry) {
       formData.append("method", method);
@@ -72,13 +96,13 @@ const ExtraTestUploadModal = ({
       formData.append("recorded_at", recordedAt);
     }
 
-    // 🧠 DEBUG: Log what we’re sending
+    // Debug log
     console.groupCollapsed("🚀 Payload sent to Extra Test endpoint");
     for (const [key, value] of formData.entries()) {
       if (value instanceof File) {
-        console.log(`${key}: [File]`, value.name, value.type, `${(value.size / 1024).toFixed(2)}KB`);
+        console.log(`${key}: [File] ${value.name} (${(value.size / 1024).toFixed(2)} KB)`);
       } else {
-        console.log(`${key}:`, value);
+        console.log(`${key}: ${value}`);
       }
     }
     console.groupEnd();
@@ -118,7 +142,9 @@ const ExtraTestUploadModal = ({
     }
   };
 
-
+  // ------------------------------------------------------
+  // 🔹 Modal UI
+  // ------------------------------------------------------
   if (!isOpen) return null;
 
   return (
@@ -136,6 +162,7 @@ const ExtraTestUploadModal = ({
         </h2>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          {/* Test Selection */}
           <select
             value={testName}
             onChange={(e) => setTestName(e.target.value)}
@@ -193,6 +220,7 @@ const ExtraTestUploadModal = ({
             </>
           )}
 
+          {/* Notes */}
           <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
@@ -201,6 +229,7 @@ const ExtraTestUploadModal = ({
             className="border rounded p-3"
           />
 
+          {/* File Upload */}
           {!testName.toLowerCase().includes("tonometry") && (
             <label className="border rounded p-3 cursor-pointer bg-gray-50 text-sm text-gray-700 hover:bg-gray-100">
               {file ? "Change File" : "Upload File"}
@@ -213,6 +242,7 @@ const ExtraTestUploadModal = ({
             </label>
           )}
 
+          {/* File Preview */}
           {file && (
             <div className="relative border rounded p-3 bg-gray-100 mt-2">
               <button
@@ -234,6 +264,7 @@ const ExtraTestUploadModal = ({
             </div>
           )}
 
+          {/* Progress Bar */}
           {uploadProgress > 0 && (
             <div className="w-full bg-gray-200 rounded-full h-2.5">
               <div
@@ -243,6 +274,7 @@ const ExtraTestUploadModal = ({
             </div>
           )}
 
+          {/* Submit */}
           <button
             type="submit"
             className="bg-[#2f3192] text-white py-2 px-4 rounded hover:bg-[#1e217a]"
