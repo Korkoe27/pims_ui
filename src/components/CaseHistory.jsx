@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import useFetchConditionsData from "../hooks/useFetchConditionsData";
-import { useGetAppointmentDetailsQuery } from "../redux/api/features/appointmentsApi";
 import {
   useCreateCaseHistoryMutation,
   useFetchCaseHistoryQuery,
@@ -19,20 +18,20 @@ import PageContainer from "./PageContainer";
 import SupervisorGradingButton from "./ui/buttons/SupervisorGradingButton";
 import useComponentGrading from "../hooks/useComponentGrading";
 import CanAccess from "./auth/CanAccess";
-import { ROLES } from "../constants/roles";
+import useConsultationContext from "../hooks/useConsultationContext";
 
 const CaseHistory = ({
-  patientId,
   appointmentId,
-  nextTab,
   setActiveTab,
   setTabCompletionStatus,
-  canEdit = true, // Add canEdit prop with default value
+  canEdit = true,
 }) => {
+  // -------------------------------------------------------------------------
+  // 🔹 Fetch version & related data
+  // -------------------------------------------------------------------------
+  const { versionId } = useConsultationContext();
   const { data: caseHistory, isLoading: loadingCaseHistory } =
-    useFetchCaseHistoryQuery(appointmentId, {
-      skip: !appointmentId,
-    });
+    useFetchCaseHistoryQuery(appointmentId, { skip: !appointmentId });
 
   const { directQuestioningConditions, isLoading: loadingConditions } =
     useFetchConditionsData();
@@ -40,89 +39,89 @@ const CaseHistory = ({
   const [createCaseHistory, { isLoading: isSaving }] =
     useCreateCaseHistoryMutation();
 
+  // -------------------------------------------------------------------------
+  // 🔹 Local state
+  // -------------------------------------------------------------------------
   const [chiefComplaint, setChiefComplaint] = useState("");
   const [selectedConditions, setSelectedConditions] = useState([]);
   const [initialPayload, setInitialPayload] = useState(null);
 
-  // Debug toggle to show raw endpoint response
-  const [showDebug, setShowDebug] = useState(false);
-
-  // Use component grading hook
-  const { shouldShowGrading, section, sectionLabel } = useComponentGrading(
+  // Grading info for supervisor
+  const { section, sectionLabel } = useComponentGrading(
     "CASE_HISTORY",
     appointmentId
   );
 
   const isLoading = loadingCaseHistory || loadingConditions;
 
-  const { data: appointment } = useGetAppointmentDetailsQuery(appointmentId, {
-    skip: !appointmentId,
-  });
+  console.log("🩺 Consultation Context:", { appointmentId, versionId });
 
-  // Console print of endpoint response when it arrives
+  // -------------------------------------------------------------------------
+  // 🔹 Populate state when data is fetched
+  // -------------------------------------------------------------------------
   useEffect(() => {
-    if (!loadingConditions) {
-      console.log("▶️ ODQ endpoint response:", directQuestioningConditions);
-    }
-  }, [directQuestioningConditions, loadingConditions]);
+    if (!caseHistory) return;
 
-  useEffect(() => {
-    if (caseHistory) {
-      setChiefComplaint(caseHistory?.chief_complaint || "");
+    setChiefComplaint(caseHistory?.chief_complaint || "");
 
-      const grouped = {};
-      (caseHistory?.condition_details || []).forEach((item) => {
-        const matchedCondition = directQuestioningConditions?.find(
-          (c) => c.id === item.condition
-        );
+    const grouped = {};
+    (caseHistory?.condition_details || []).forEach((item) => {
+      const matchedCondition = directQuestioningConditions?.find(
+        (c) => c.id === item.condition
+      );
 
-        if (!grouped[item.condition]) {
-          grouped[item.condition] = {
-            id: item.condition,
-            name: item.condition_name || "",
-            has_text_per_eye: matchedCondition?.has_text_per_eye || false,
-            has_dropdown: matchedCondition?.has_dropdown || false,
-            has_grading: matchedCondition?.has_grading || false,
-            has_general_notes: matchedCondition?.has_general_notes || false,
-            has_checkbox: matchedCondition?.has_checkbox || false,
-            dropdown_options: matchedCondition?.dropdown_options || [],
-            OD: {},
-            OS: {},
-          };
-        }
+      if (!grouped[item.condition]) {
+        grouped[item.condition] = {
+          id: item.condition,
+          name: item.condition_name || "",
+          has_text_per_eye: matchedCondition?.has_text_per_eye || false,
+          has_dropdown: matchedCondition?.has_dropdown || false,
+          has_grading: matchedCondition?.has_grading || false,
+          has_general_notes: matchedCondition?.has_general_notes || false,
+          has_checkbox: matchedCondition?.has_checkbox || false,
+          dropdown_options: matchedCondition?.dropdown_options || [],
+          OD: {},
+          OS: {},
+        };
+      }
 
-        if (item.affected_eye === "OD" || item.affected_eye === "OS") {
-          grouped[item.condition][item.affected_eye] = {
-            ...(grouped[item.condition][item.affected_eye] || {}),
-            [item.field_type]:
-              item.value === "true"
-                ? true
-                : item.value === "false"
-                ? false
-                : item.value,
-          };
-        } else {
-          grouped[item.condition][item.field_type] = item.value;
-        }
-      });
+      if (["OD", "OS"].includes(item.affected_eye)) {
+        grouped[item.condition][item.affected_eye] = {
+          ...(grouped[item.condition][item.affected_eye] || {}),
+          [item.field_type]:
+            item.value === "true"
+              ? true
+              : item.value === "false"
+              ? false
+              : item.value,
+        };
+      } else {
+        grouped[item.condition][item.field_type] = item.value;
+      }
+    });
 
-      const mapped = Object.values(grouped);
-      setSelectedConditions(mapped);
+    const mapped = Object.values(grouped);
+    setSelectedConditions(mapped);
 
-      setInitialPayload({
-        appointment: appointmentId,
-        chief_complaint: caseHistory?.chief_complaint || "",
-        condition_details: mapped,
-      });
-    }
+    setInitialPayload({
+      appointment: appointmentId,
+      chief_complaint: caseHistory?.chief_complaint || "",
+      condition_details: mapped,
+    });
   }, [caseHistory, appointmentId, directQuestioningConditions]);
 
+  // -------------------------------------------------------------------------
+  // 🔹 Derived options
+  // -------------------------------------------------------------------------
   const formattedODQOptions = (directQuestioningConditions || []).map((c) => ({
     value: c.id,
     label: c.name,
     ...c,
   }));
 
+  // -------------------------------------------------------------------------
+  // 🔹 Handlers
+  // -------------------------------------------------------------------------
   const handleSelect = (option) => {
     if (selectedConditions.some((c) => c.id === option.id)) {
       showToast("This condition is already selected.", "error");
@@ -149,13 +148,7 @@ const CaseHistory = ({
     setSelectedConditions((prev) =>
       prev.map((c) =>
         c.id === conditionId
-          ? {
-              ...c,
-              [eye]: {
-                ...c[eye],
-                [fieldType]: value,
-              },
-            }
+          ? { ...c, [eye]: { ...c[eye], [fieldType]: value } }
           : c
       )
     );
@@ -165,13 +158,17 @@ const CaseHistory = ({
     setSelectedConditions((prev) => prev.filter((c) => c.id !== id));
   };
 
+  // -------------------------------------------------------------------------
+  // 🔹 Save & proceed
+  // -------------------------------------------------------------------------
   const handleSaveAndProceed = async () => {
     if (!chiefComplaint.trim()) {
-      showToast("Chief complaint cannot be empty. 👍", "error");
+      showToast("Chief complaint cannot be empty.", "error");
       return;
     }
 
     const observations = [];
+
     selectedConditions.forEach((entry) => {
       ["OD", "OS"].forEach((eye) => {
         const data = entry[eye] || {};
@@ -202,22 +199,22 @@ const CaseHistory = ({
     });
 
     if (observations.length === 0) {
-      showToast("Please fill at least one condition field. 👍", "error");
+      showToast("Please fill at least one condition field.", "error");
       return;
     }
 
     const payload = {
       appointment: appointmentId,
+      consultation_version: versionId, // ✅ include version ID
       chief_complaint: chiefComplaint,
       condition_details: observations,
     };
 
+    console.log("🧾 Final Case History Payload:", payload);
+
     if (initialPayload && !hasFormChanged(initialPayload, payload)) {
       showToast("No changes detected", "info");
-      setTabCompletionStatus?.((prev) => ({
-        ...prev,
-        "case history": true,
-      }));
+      setTabCompletionStatus?.((prev) => ({ ...prev, "case history": true }));
       setActiveTab("personal history");
       return;
     }
@@ -226,10 +223,7 @@ const CaseHistory = ({
       showToast("Saving case history...", "loading");
       await createCaseHistory(payload).unwrap();
       showToast("Case history saved successfully!", "success");
-      setTabCompletionStatus?.((prev) => ({
-        ...prev,
-        "case history": true,
-      }));
+      setTabCompletionStatus?.((prev) => ({ ...prev, "case history": true }));
       setActiveTab("personal history");
     } catch (error) {
       console.error("❌ Error saving:", error);
@@ -237,17 +231,20 @@ const CaseHistory = ({
     }
   };
 
+  // -------------------------------------------------------------------------
+  // 🔹 Render
+  // -------------------------------------------------------------------------
   return (
-    <CanAccess allowedRoles={[ROLES.STUDENT, ROLES.LECTURER]}>
+    <CanAccess permission="can_view_case_history">
       <PageContainer>
         <div className="bg-white rounded-md shadow p-4">
           <div className="flex justify-between items-center mb-4">
             <h1 className="text-2xl font-bold">Case History</h1>
-              <SupervisorGradingButton
-                appointmentId={appointmentId}
-                section={section}
-                sectionLabel={sectionLabel}
-              />
+            <SupervisorGradingButton
+              appointmentId={appointmentId}
+              section={section}
+              sectionLabel={sectionLabel}
+            />
           </div>
 
           {isLoading ? (
@@ -297,11 +294,6 @@ const CaseHistory = ({
                         key={item.id}
                         className="p-4 bg-gray-50 border rounded space-y-4"
                       >
-                        {console.log(
-                          "🔍 Rendering condition:",
-                          item.name,
-                          item
-                        )}
                         <div className="flex items-center justify-between">
                           <h4 className="font-semibold">{item.name}</h4>
                           <DeleteButton
@@ -338,20 +330,18 @@ const CaseHistory = ({
                         )}
 
                         {item.has_text_per_eye && (
-                          <>
-                            <TextInput
-                              valueOD={item.OD?.text || ""}
-                              valueOS={item.OS?.text || ""}
-                              onChangeOD={(val) =>
-                                handleFieldChange(item.id, "OD", "text", val)
-                              }
-                              onChangeOS={(val) =>
-                                handleFieldChange(item.id, "OS", "text", val)
-                              }
-                              placeholderOD="Enter text for OD"
-                              placeholderOS="Enter text for OS"
-                            />
-                          </>
+                          <TextInput
+                            valueOD={item.OD?.text || ""}
+                            valueOS={item.OS?.text || ""}
+                            onChangeOD={(val) =>
+                              handleFieldChange(item.id, "OD", "text", val)
+                            }
+                            onChangeOS={(val) =>
+                              handleFieldChange(item.id, "OS", "text", val)
+                            }
+                            placeholderOD="Enter text for OD"
+                            placeholderOS="Enter text for OS"
+                          />
                         )}
 
                         {item.has_checkbox && (
@@ -388,7 +378,7 @@ const CaseHistory = ({
               {selectedConditions.length > 0 && (
                 <div className="pt-4">
                   <NavigationButtons
-                    hideBack={true}
+                    hideBack
                     onSave={handleSaveAndProceed}
                     saving={isSaving}
                     saveLabel="Save and Proceed"
