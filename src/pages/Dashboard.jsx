@@ -38,8 +38,10 @@ const Dashboard = () => {
   const pendingAppointments = summary?.pending_appointments || 0;
   const completedAppointments = appointments?.completed?.count || 0;
 
-  // ✅ Use general appointments for today's list
-  const todaysAppointments = appointments?.general?.data || [];
+  // ✅ Use general and special appointments for today's list
+  const generalAppointments = appointments?.general?.data || [];
+  const specialAppointments = appointments?.special?.data || [];
+  const todaysAppointments = [...generalAppointments, ...specialAppointments];
 
   return (
     <PageContainer>
