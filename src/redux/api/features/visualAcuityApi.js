@@ -2,13 +2,25 @@ import { apiClient } from "../api_client/apiClient";
 import {
   createVisualAcuityUrl,
   fetchVisualAcuityUrl,
+  fetchVisualAcuityByVersionUrl,
 } from "../end_points/endpoints";
 
 export const visualAcuityApi = apiClient.injectEndpoints({
   endpoints: (builder) => ({
-    /** ✅ Fetch Visual Acuity for an Appointment */
+    /** ✅ Fetch Visual Acuity for an Appointment (with optional version) */
     fetchVisualAcuity: builder.query({
-      query: (appointmentId) => fetchVisualAcuityUrl(appointmentId),
+      query: ({ appointmentId, versionId } = {}) => {
+        // ✅ Both appointmentId and versionId for version-aware queries
+        if (versionId && appointmentId) {
+          return fetchVisualAcuityByVersionUrl(appointmentId, versionId);
+        }
+        // Fallback to appointmentId only
+        if (appointmentId) {
+          return fetchVisualAcuityUrl(appointmentId);
+        }
+        return { url: "" };
+      },
+      skip: ({ appointmentId } = {}) => !appointmentId,
       providesTags: ["VisualAcuity"],
     }),
 

@@ -3,6 +3,7 @@ import {
   externalUrl,
   createExternalObservationUrl,
   fetchExternalObservationsUrl,
+  fetchExternalObservationsByVersionUrl,
 } from "../end_points/endpoints";
 
 export const externalsApi = apiClient.injectEndpoints({
@@ -13,19 +14,30 @@ export const externalsApi = apiClient.injectEndpoints({
       providesTags: ["ExternalConditions"],
     }),
 
-    /** ✅ Fetch Observations for an Appointment **/
+    /** ✅ Fetch Observations for an Appointment (with optional version) **/
     fetchExternalObservations: builder.query({
-      query: (appointment) => fetchExternalObservationsUrl(appointment),
+      query: ({ appointmentId, versionId } = {}) => {
+        // ✅ Both appointmentId and versionId for version-aware queries
+        if (versionId && appointmentId) {
+          return fetchExternalObservationsByVersionUrl(appointmentId, versionId);
+        }
+        // Fallback to appointmentId only
+        if (appointmentId) {
+          return fetchExternalObservationsUrl(appointmentId);
+        }
+        return { url: "" };
+      },
+      skip: ({ appointmentId } = {}) => !appointmentId,
       providesTags: ["ExternalObservations"],
     }),
 
     /** ✅ Create an External Observation **/
     createExternalObservation: builder.mutation({
-      query: ({ appointment, observations }) => ({
-        url: createExternalObservationUrl(appointment),
+      query: ({ appointmentId, observations }) => ({
+        url: createExternalObservationUrl(appointmentId),
         method: "POST",
         body: {
-          appointment, // ✅ crucial fix
+          appointment: appointmentId,
           observations,
         },
       }),

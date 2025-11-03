@@ -108,12 +108,15 @@ export const fetchDirectQuestioningConditionsUrl =
 /////////////////////////
 // Visual Acuity
 /////////////////////////
+// Visual Acuity
+/////////////////////////
 
 export const createVisualAcuityUrl = "/tests/api/visual-acuity/";
 export const fetchVisualAcuityUrl = (appointmentId) =>
   `/tests/api/visual-acuity/${appointmentId}/`;
-
-
+export const fetchVisualAcuityByVersionUrl = (appointmentId, versionId) =>
+  `/tests/api/visual-acuity/${appointmentId}/?version=${versionId}`;
+// External & Internal Observations
 /////////////////////////
 // External & Internal Observations
 /////////////////////////
@@ -127,11 +130,15 @@ export const createExternalObservationUrl = (appointmentId) =>
   `/tests/api/external-observations/${appointmentId}/`;
 export const fetchExternalObservationsUrl = (appointmentId) =>
   `/tests/api/external-observations/${appointmentId}/`;
+export const fetchExternalObservationsByVersionUrl = (appointmentId, versionId) =>
+  `/tests/api/external-observations/${appointmentId}/?version=${versionId}`;
 
 export const internalUrl =
   fetchInternalExternalExaminationConditionsUrl("internal");
 export const fetchInternalObservationsUrl = (appointmentId) =>
   `/tests/api/internal-observations/${appointmentId}/`;
+export const fetchInternalObservationsByVersionUrl = (appointmentId, versionId) =>
+  `/tests/api/internal-observations/${appointmentId}/?version=${versionId}`;
 export const createInternalsUrl = (appointmentId) =>
   `/tests/api/internal-observations/${appointmentId}/`;
 
@@ -144,6 +151,8 @@ export const createRefractionUrl = (appointmentId) =>
   `/tests/api/refraction/${appointmentId}/`;
 export const fetchRefractionUrl = (appointmentId) =>
   `/tests/api/refraction/${appointmentId}/`;
+export const fetchRefractionByVersionUrl = (appointmentId, versionId) =>
+  `/tests/api/refraction/${appointmentId}/?version=${versionId}`;
 
 
 /////////////////////////
@@ -154,6 +163,8 @@ export const createExtraTestUrl = (appointmentId) =>
   `/tests/extra-tests/${appointmentId}/`;
 export const fetchExtraTestsUrl = (appointmentId) =>
   `/tests/extra-tests/${appointmentId}/`;
+export const fetchExtraTestsByVersionUrl = (appointmentId, versionId) =>
+  `/tests/extra-tests/${appointmentId}/?version=${versionId}`;
 
 
 /////////////////////////
