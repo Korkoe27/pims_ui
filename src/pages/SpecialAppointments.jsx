@@ -19,7 +19,7 @@ const SpecialAppointments = () => {
   const { data, isLoading, error } = useGetTodaysAppointmentsQuery();
   const allAppointments = data?.data || [];
 
-  // ✅ Filter only Special Appointments by category
+  // ✅ Filter only Special Appointments
   const appointments = allAppointments.filter((appt) => {
     const category =
       typeof appt?.appointment_category === "string"
@@ -28,7 +28,7 @@ const SpecialAppointments = () => {
     return category === "special";
   });
 
-  // ✅ Sort by status for consistent display
+  // ✅ Sort by status
   const sortedAppointments = [...appointments].sort((a, b) => {
     const statusOrder = { Scheduled: 1, Completed: 2, Cancelled: 3 };
     return (statusOrder[a.status] || 99) - (statusOrder[b.status] || 99);
@@ -42,8 +42,11 @@ const SpecialAppointments = () => {
   const totalPages = Math.ceil(sortedAppointments.length / pageSize);
   const handlePageChange = (page) => setCurrentPage(page);
 
-  // ✅ Determine if Action column should appear (based on ConsultButton)
-  const showActionColumn = ConsultButton.shouldShow(access);
+  // ✅ Determine if any appointment has an actionable button
+  const hasAnyAction = paginatedAppointments.some((appt) =>
+    ConsultButton.shouldShow(access, appt)
+  );
+
   const actionColClass = "text-center px-6 py-3 min-w-[10rem]";
 
   return (
@@ -65,8 +68,8 @@ const SpecialAppointments = () => {
       {/* ✅ Table Display */}
       {!isLoading && paginatedAppointments.length > 0 ? (
         <>
-          <table className="w-full text-base text-left text-gray-500 border-collapse">
-            <thead className="text-base text-gray-700 uppercase bg-gray-50">
+          <table className="w-full text-base text-left text-gray-600 border border-gray-200 rounded-md overflow-hidden">
+            <thead className="text-gray-700 uppercase bg-gray-50">
               <tr>
                 <th className="px-6 py-3">Date</th>
                 <th className="px-6 py-3">Patient ID</th>
@@ -74,46 +77,42 @@ const SpecialAppointments = () => {
                 <th className="px-6 py-3">Category</th>
                 <th className="px-6 py-3">Type</th>
                 <th className="px-6 py-3">Status</th>
-                {showActionColumn && (
-                  <th className={actionColClass}>Action</th>
-                )}
+                {hasAnyAction && <th className={actionColClass}>Action</th>}
               </tr>
             </thead>
 
             <tbody>
-              {paginatedAppointments.map((appointment) => (
-                <tr key={appointment.id} className="bg-white border-b">
-                  <td className="px-6 py-4">{appointment?.appointment_date}</td>
-                  <td className="px-6 py-4">{appointment?.patient_id}</td>
-                  <td className="px-6 py-4">{appointment?.patient_name}</td>
-                  <td className="px-6 py-4">
-                    {appointment?.appointment_category}
-                  </td>
-                  <td className="px-6 py-4">
-                    {appointment?.appointment_type_name ||
-                      appointment?.appointment_type}
-                  </td>
-                  <td className="px-6 py-4">
-                    <span
-                      className={`px-4 py-2 rounded-full text-white font-medium ${getStatusColor(
-                        appointment?.status
-                      )}`}
-                    >
-                      {appointment?.status}
-                    </span>
-                  </td>
-
-                  {/* 🔹 Self-contained ConsultButton (handles its own access logic) */}
-                  {showActionColumn && (
-                    <td className={`${actionColClass} flex justify-center`}>
-                      <ConsultButton
-                        appointment={appointment}
-                        onClick={handleConsult}
-                      />
+              {paginatedAppointments.map((appointment) => {
+                const canAct = ConsultButton.shouldShow(access, appointment);
+                return (
+                  <tr key={appointment.id} className="bg-white border-b">
+                    <td className="px-6 py-4">{appointment?.appointment_date}</td>
+                    <td className="px-6 py-4">{appointment?.patient_id}</td>
+                    <td className="px-6 py-4">{appointment?.patient_name}</td>
+                    <td className="px-6 py-4">
+                      {appointment?.appointment_category}
                     </td>
-                  )}
-                </tr>
-              ))}
+                    <td className="px-6 py-4">
+                      {appointment?.appointment_type_name ||
+                        appointment?.appointment_type}
+                    </td>
+                    <td className="px-6 py-4">{appointment?.status}</td>
+
+                    {hasAnyAction && (
+                      <td className={`${actionColClass} flex justify-center`}>
+                        {canAct ? (
+                          <ConsultButton
+                            appointment={appointment}
+                            onClick={handleConsult}
+                          />
+                        ) : (
+                          <span className="text-gray-400 text-sm italic">—</span>
+                        )}
+                      </td>
+                    )}
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
 
@@ -135,16 +134,3 @@ const SpecialAppointments = () => {
 };
 
 export default SpecialAppointments;
-
-/* ✅ Utility for status badge color */
-const getStatusColor = (status) => {
-  switch (status) {
-    case "Consultation Completed":
-    case "Completed":
-      return "bg-green-600";
-    case "Cancelled":
-      return "bg-red-600";
-    default:
-      return "bg-yellow-500";
-  }
-};

@@ -1,4 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
+import { consultationsApi } from "../api/features/consultationsApi";
 
 const initialState = {
   // 🔹 Core consultation context
@@ -68,15 +69,15 @@ const consultationSlice = createSlice({
   initialState,
   reducers: {
     // ========================================================
-    // 🔹 Set the active consultation (called after /start/)
+    // 🔹 Set the active consultation (manual)
     // ========================================================
     setCurrentConsultation: (state, action) => {
       const payload = action.payload || {};
       state.currentConsultation = payload;
-      state.versionId = payload.versionId || payload.version_id || null;
+      state.versionId = payload.id || payload.versionId || payload.version_id || null;
       state.versionType = payload.versionType || payload.version_type || null;
       state.flowType = payload.flowType || null;
-      state.isFinal = payload.isFinal || false;
+      state.isFinal = payload.isFinal || payload.is_final || false;
 
       if (payload.permissions) {
         state.permissions = { ...state.permissions, ...payload.permissions };
@@ -106,7 +107,7 @@ const consultationSlice = createSlice({
     },
 
     // ========================================================
-    // 🔹 Transition Handling (for useConsultationData.js)
+    // 🔹 Transition Handling
     // ========================================================
     setTransitioning: (state, action) => {
       state.isTransitioning = action.payload;
@@ -145,6 +146,30 @@ const consultationSlice = createSlice({
     // 🔹 Reset all
     // ========================================================
     resetConsultation: () => initialState,
+  },
+
+  // ============================================================
+  // 🔹 Auto-update consultation state on RTK Query success
+  // ============================================================
+  extraReducers: (builder) => {
+    // When /start/ consultation succeeds
+    builder.addMatcher(
+      consultationsApi.endpoints.startConsultation.matchFulfilled,
+      (state, { payload }) => {
+        state.currentConsultation = payload;
+        state.versionId = payload.id || payload.versionId || payload.version_id || null;
+        state.versionType = payload.versionType || payload.version_type || null;
+        state.isFinal = payload.isFinal || payload.is_final || false;
+      }
+    );
+
+    // When /finalize/ consultation succeeds
+    builder.addMatcher(
+      consultationsApi.endpoints.finalizeConsultation.matchFulfilled,
+      (state, { payload }) => {
+        state.isFinal = true;
+      }
+    );
   },
 });
 
