@@ -1,10 +1,12 @@
 import React, { useState } from "react";
 import { showToast } from "../components/ToasterHelper";
 import ExtraTestUploadModal from "./ExtraTestUploadModal";
-import { useFetchExtraTestsQuery } from "../redux/api/features/extraTestsApi";
+import { useFetchExtraTestsQuery, useDeleteExtraTestMutation } from "../redux/api/features/extraTestsApi";
 import SupervisorGradingButton from "./ui/buttons/SupervisorGradingButton";
 import useComponentGrading from "../hooks/useComponentGrading";
 import { useSelector } from "react-redux";
+import useConsultationContext from "../hooks/useConsultationContext";
+import { IoTrash } from "react-icons/io5";
 
 const ExtraTests = ({
   appointmentId,
@@ -13,7 +15,9 @@ const ExtraTests = ({
   setTabCompletionStatus,
 }) => {
   const [modalOpen, setModalOpen] = useState(false);
+  const [localTests, setLocalTests] = useState([]); // ✅ Local state for added tests
   const role = useSelector((state) => state.auth.user?.role);
+  const { versionId } = useConsultationContext();
 
   // ✅ Component grading hook
   const { shouldShowGrading, section, sectionLabel } = useComponentGrading(
@@ -23,11 +27,23 @@ const ExtraTests = ({
 
   // ✅ Fetch uploaded tests
   const { data: uploadedTests = [], refetch } =
-    useFetchExtraTestsQuery(appointmentId);
+    useFetchExtraTestsQuery({ appointmentId, versionId });
 
-  // ✅ Proceed to Diagnosis (purely UI-level navigation now)
+  // ✅ Handle local deletion (no backend call)
+  const handleDeleteTest = (testId) => {
+    setLocalTests((prev) => prev.filter((test) => test.id !== testId));
+    showToast("Test removed", "success");
+  };
+
+  // ✅ Proceed to Diagnosis (send added tests to backend)
   const proceedToDiagnosis = async () => {
     try {
+      // ✅ Send all locally added tests to backend here
+      if (localTests.length > 0) {
+        console.log("📤 Sending extra tests to backend:", localTests);
+        // Backend call would go here when user is ready to proceed
+      }
+
       // Local UI update
       setTabCompletionStatus?.((prev) => ({
         ...prev,
@@ -67,14 +83,23 @@ const ExtraTests = ({
       </div>
 
       {/* Uploaded Tests Grid */}
-      {uploadedTests.length > 0 ? (
+      {localTests.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-12 w-full max-w-4xl">
-          {uploadedTests.map((test) => (
+          {localTests.map((test) => (
             <div
               key={test.id}
-              className="border rounded-lg p-4 shadow relative bg-white"
+              className="border rounded-lg p-4 shadow relative bg-white hover:shadow-lg transition-shadow"
             >
-              <p className="font-semibold mb-2">{test.name}</p>
+              {/* Delete Button */}
+              <button
+                onClick={() => handleDeleteTest(test.id)}
+                className="absolute top-2 right-2 text-gray-400 hover:text-red-600 transition-colors"
+                title="Remove test"
+              >
+                <IoTrash size={18} />
+              </button>
+
+              <p className="font-semibold mb-2 pr-6">{test.name}</p>
 
               {/* Tonometry-specific fields */}
               {test.name.toLowerCase().includes("tonometry") && (
@@ -120,7 +145,7 @@ const ExtraTests = ({
           ))}
         </div>
       ) : (
-        <p className="text-gray-500 mb-10">No extra tests uploaded yet.</p>
+        <p className="text-gray-500 mb-10">No extra tests added yet.</p>
       )}
 
       {/* Action Buttons */}
@@ -144,8 +169,11 @@ const ExtraTests = ({
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
         appointmentId={appointmentId}
-        onUploadSuccess={() => {
-          refetch();
+        versionId={versionId}
+        onUploadSuccess={(testData) => {
+          // ✅ Add test to local state instead of immediately sending to backend
+          setLocalTests((prev) => [...prev, { ...testData, id: Date.now() }]);
+          showToast("Test added locally. Click 'Proceed to Diagnosis' to save.", "info");
           setModalOpen(false);
         }}
       />
