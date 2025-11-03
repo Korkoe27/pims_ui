@@ -1,8 +1,9 @@
 // src/pages/Consultation.jsx
 import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { useGetAppointmentDetailsQuery } from "../redux/api/features/appointmentsApi";
+import { setCurrentConsultation } from "../redux/slices/consultationSlice";
 
 import Header from "../components/Header";
 import ProgressBar from "../components/ProgressBar";
@@ -27,6 +28,7 @@ const Consultation = () => {
   const { appointmentId } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const userAccess = useSelector((state) => state.auth.user?.access);
 
   // ✅ Extract versionId from query string (?version=<id>)
@@ -110,6 +112,18 @@ const Consultation = () => {
       stateToFlowStep[selectedAppointment.status.toLowerCase?.()] || "consultation";
     setFlowStep(nextStep);
   }, [selectedAppointment?.status, setFlowStep]);
+
+  // ✅ Sync versionId from URL to Redux on mount or when URL changes
+  useEffect(() => {
+    if (appointmentId && versionId) {
+      dispatch(
+        setCurrentConsultation({
+          appointment: appointmentId,
+          versionId: versionId,
+        })
+      );
+    }
+  }, [appointmentId, versionId, dispatch]);
 
   // -------------------------------------------------------------------
   // 🔹 Handle Loading / Error States

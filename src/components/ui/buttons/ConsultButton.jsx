@@ -60,17 +60,30 @@ const ConsultButton = ({ appointment }) => {
   // 🔹 Start or continue consultation handler
   const handleConsult = async () => {
     try {
-      // ✅ Case 1: Already locked by me → just continue with versionId from Redux
+      console.log("🔹 handleConsult called");
+      console.log("🔹 isLocked:", isLocked, "lockedByMe:", lockedByMe);
+
+      // ✅ Case 1: Already locked by me → continue with versionId from Redux or appointment
       if (isLocked && lockedByMe) {
-        const versionId = store.getState()?.consultation?.versionId;
+        console.log("🔹 Case 1: Already locked by me");
+        let versionId = store.getState()?.consultation?.versionId;
+        
+        // If not in Redux, get from appointment's latest_version_id
+        if (!versionId && appointment?.latest_version_id) {
+          versionId = appointment.latest_version_id;
+          console.log("🔹 Using versionId from appointment:", versionId);
+        }
+        
         const targetUrl = versionId
           ? `/consultation/${appointment.id}?version=${versionId}`
           : `/consultation/${appointment.id}`;
+        console.log("🔹 Navigating to:", targetUrl);
         navigate(targetUrl);
         return;
       }
 
       // ✅ Case 2: Starting or resuming consultation
+      console.log("🔹 Case 2: Starting new consultation");
       let versionType = "student";
       let flowType = "student_consulting";
 
@@ -82,10 +95,14 @@ const ConsultButton = ({ appointment }) => {
         flowType = "professional_consulting";
       }
 
+      console.log("🔹 versionType:", versionType, "flowType:", flowType);
+
       const res = await startConsultation({
         appointmentId: appointment.id,
         versionType,
       }).unwrap();
+
+      console.log("🔹 startConsultation response:", res);
 
       // ✅ Dispatch to Redux for persistence
       dispatch(
@@ -100,6 +117,7 @@ const ConsultButton = ({ appointment }) => {
 
       // ✅ Navigate with version query
       const versionParam = res.version?.id || res.id;
+      console.log("🔹 Navigating with versionParam:", versionParam);
       navigate(`/consultation/${appointment.id}?version=${versionParam}`);
 
       showToast("Consultation started successfully!", "success");

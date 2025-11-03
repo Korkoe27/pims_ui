@@ -80,6 +80,8 @@ export const fetchAppointmentTypesUrl = "/clients/appointments/types/";
 export const createOrUpdateCaseHistoryUrl = "/tests/case-history/";
 export const fetchCaseHistoryUrl = (appointmentId) =>
   `/tests/case-history/?appointment=${appointmentId}`;
+export const fetchCaseHistoryByVersionUrl = (appointmentId, versionId) =>
+  `/tests/case-history/?appointment=${appointmentId}&version=${versionId}`;
 
 
 /////////////////////////
