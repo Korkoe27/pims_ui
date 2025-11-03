@@ -25,17 +25,6 @@ const useDiagnosisData = (appointmentId = null) => {
     skip: !appointmentId,
   });
 
-  // Log the fetched appointment diagnosis data
-  console.log(
-    "🔍 useDiagnosisData - Appointment diagnosis data:",
-    appointmentDiagnosis
-  );
-  console.log("🔍 useDiagnosisData - Diagnosis list:", diagnosisList);
-  console.log(
-    "🔍 useDiagnosisData - First few diagnosis items:",
-    diagnosisList?.slice(0, 3)
-  );
-
   // If diagnosis list failed to load but appointment diagnosis has data, try to refetch
   useEffect(() => {
     if (
