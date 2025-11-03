@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import { showToast } from "../components/ToasterHelper";
 import useManagementData from "../hooks/useManagementData";
@@ -7,10 +7,12 @@ import {
   useSubmitAppointmentForReviewMutation,
   useMarkAppointmentCompletedMutation,
 } from "../redux/api/features/appointmentsApi";
+import { setCurrentConsultation } from "../redux/slices/consultationSlice";
 import { ManagementForm, SubmitTab, CompleteTab, LogsTab } from "./Management/";
 import CaseManagementGuide from "./CaseManagementGuide";
 
 const Management = ({ setFlowStep, appointmentId }) => {
+  const dispatch = useDispatch();
   const navigate = useNavigate();
   const { appointmentId: paramId } = useParams();
   const apptId = appointmentId ?? paramId;
@@ -18,6 +20,32 @@ const Management = ({ setFlowStep, appointmentId }) => {
   const [activeTab, setActiveTab] = useState("management");
   const user = useSelector((state) => state.auth?.user);
   const permissions = user?.access || {};
+  const selectedAppointment = useSelector(
+    (s) => s.appointments?.selectedAppointment
+  );
+
+  // ✅ Current consultation version from Redux
+  const versionId = useSelector((s) => s.consultation.versionId);
+  console.log("📝 Current versionId from Redux:", versionId);
+
+  // ✅ Hydrate versionId automatically if null
+  useEffect(() => {
+    if (!versionId && selectedAppointment?.latest_version_id) {
+      dispatch(
+        setCurrentConsultation({
+          appointment: selectedAppointment.id,
+          versionId: selectedAppointment.latest_version_id,
+          versionType: "professional",
+          flowType: "resume",
+          isFinal: false,
+        })
+      );
+      console.log(
+        "♻️ Hydrated versionId from appointment:",
+        selectedAppointment.latest_version_id
+      );
+    }
+  }, [dispatch, versionId, selectedAppointment]);
 
   // ✅ Management Data
   const [selectedTypeId, setSelectedTypeId] = useState(null);
@@ -58,7 +86,7 @@ const Management = ({ setFlowStep, appointmentId }) => {
     [selectedTypeId, filteredMedications, medications]
   );
 
-  // ✅ Hydrate data for editing existing Management Plan
+  // ✅ Hydrate management form when editing
   useEffect(() => {
     if (managementPlan) {
       setCheckboxes({
@@ -121,15 +149,7 @@ const Management = ({ setFlowStep, appointmentId }) => {
   ------------------------------------------------------------------ */
   const onSaveAndNext = async () => {
     try {
-      const anySelected =
-        checkboxes.refractiveCorrection ||
-        checkboxes.medications ||
-        checkboxes.counselling ||
-        checkboxes.lowVisionAid ||
-        checkboxes.therapy ||
-        checkboxes.surgery ||
-        checkboxes.referral;
-
+      const anySelected = Object.values(checkboxes).some(Boolean);
       if (!anySelected) {
         showToast("Select at least one management option.", "warning");
         return;
@@ -156,7 +176,6 @@ const Management = ({ setFlowStep, appointmentId }) => {
       };
 
       console.log("📦 Payload being sent:", payload);
-
       await createManagementPlan({ appointmentId: apptId, data: payload }).unwrap();
       showToast("Saved successfully ✅", "success");
 
@@ -281,6 +300,8 @@ const Management = ({ setFlowStep, appointmentId }) => {
 
         {activeTab === "complete" && (
           <CompleteTab
+            appointmentId={apptId}
+            versionId={versionId}
             onComplete={onComplete}
             isCompleting={isCompleting}
             setActiveTab={setActiveTab}

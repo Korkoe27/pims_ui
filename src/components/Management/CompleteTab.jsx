@@ -1,24 +1,63 @@
+// src/components/consultations/CompleteTab.jsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useFinalizeConsultationMutation } from "../../redux/api/features/consultationsApi";
+import { markAppointmentCompletedUrl } from "../../redux/api/end_points/endpoints";
+import { apiClient } from "../../redux/api/api_client/apiClient";
+import { showToast } from "../ToasterHelper";
 
-const CompleteTab = ({ onComplete, isCompleting = false, setActiveTab }) => {
+const CompleteTab = ({
+  appointmentId,
+  versionId,
+  setActiveTab,
+}) => {
   const navigate = useNavigate();
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [isCompleting, setIsCompleting] = useState(false);
+
+  // ✅ Mutation hook for finalizing consultation
+  const [finalizeConsultation] = useFinalizeConsultationMutation();
 
   const handleCompleteClick = () => setShowConfirmModal(true);
+  const handleCancelComplete = () => setShowConfirmModal(false);
+
+  // ✅ Perform the full finalize + complete flow
   const handleConfirmComplete = async () => {
     setShowConfirmModal(false);
-    await onComplete();
+    setIsCompleting(true);
+
+    try {
+      // Step 1️⃣ Finalize consultation version
+      const finalizeRes = await finalizeConsultation(versionId).unwrap();
+      showToast("Consultation finalized successfully!", "success");
+      console.log("✅ Finalized:", finalizeRes);
+
+      // Step 2️⃣ Mark appointment as completed
+      await apiClient.patch(markAppointmentCompletedUrl(appointmentId));
+      showToast("Appointment marked as completed!", "success");
+
+      // Step 3️⃣ Redirect to completion confirmation screen
+      navigate(`/consultations/${appointmentId}/completed`);
+    } catch (error) {
+      console.error("❌ Completion failed:", error);
+      showToast(
+        error?.data?.detail ||
+          "Failed to finalize and complete consultation.",
+        "error"
+      );
+    } finally {
+      setIsCompleting(false);
+    }
   };
-  const handleCancelComplete = () => setShowConfirmModal(false);
 
   return (
     <>
       <div className="rounded-md border bg-white p-6 w-full max-w-xl">
         <h3 className="text-lg font-semibold mb-2">Complete</h3>
         <p className="text-sm text-gray-600 mb-4">
-          Complete the consultation.
+          Finalize and complete this consultation.
         </p>
+
         <div className="flex gap-3">
           <button
             onClick={handleCompleteClick}
@@ -45,6 +84,7 @@ const CompleteTab = ({ onComplete, isCompleting = false, setActiveTab }) => {
           >
             Back to Management
           </button>
+
           <button
             onClick={() => navigate("/")}
             className="px-4 py-2 rounded-md border"
@@ -64,7 +104,8 @@ const CompleteTab = ({ onComplete, isCompleting = false, setActiveTab }) => {
               </h3>
               <p className="text-sm text-gray-600">
                 Are you sure you want to complete this consultation? This action
-                cannot be undone and will finalize all consultation data.
+                will finalize the consultation and mark the appointment as
+                completed.
               </p>
             </div>
 
@@ -75,6 +116,7 @@ const CompleteTab = ({ onComplete, isCompleting = false, setActiveTab }) => {
               >
                 Cancel
               </button>
+
               <button
                 onClick={handleConfirmComplete}
                 disabled={isCompleting}

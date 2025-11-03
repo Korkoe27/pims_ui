@@ -1,11 +1,10 @@
-// src/components/Consultations/ConsultButton.jsx
 import React from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { useStartConsultationMutation } from "../../../redux/api/features/consultationsApi";
 import { setCurrentConsultation } from "../../../redux/slices/consultationSlice";
 import { showToast } from "../../ToasterHelper";
-import { store } from "../../../redux/store/store"; // ✅ added for version lookup when continuing
+import { store } from "../../../redux/store/store";
 
 const ConsultButton = ({ appointment }) => {
   const dispatch = useDispatch();
@@ -15,6 +14,7 @@ const ConsultButton = ({ appointment }) => {
 
   if (!ConsultButton.shouldShow(access, appointment)) return null;
 
+  // 🔹 Extract status & lock info
   const status = (appointment.status || "").toLowerCase();
   const isLocked = appointment.is_locked;
   const lockedBy = appointment.locked_by_name || "";
@@ -24,16 +24,16 @@ const ConsultButton = ({ appointment }) => {
   let disabled = false;
   let tooltip = "";
 
-  // 🔹 Handle locked cases
+  // 🔹 Determine button state based on status and lock
   if (isLocked) {
     if (lockedByMe) {
       label = "Continue Consultation";
       tooltip = "You have this consultation in progress.";
-      disabled = false; // ✅ active for owner
+      disabled = false;
     } else {
       label = "Consultation in Progress";
       tooltip = `Consultation done by ${lockedBy || "another user"}.`;
-      disabled = true; // ❌ disabled for others
+      disabled = true;
     }
   } else if (
     [
@@ -49,7 +49,7 @@ const ConsultButton = ({ appointment }) => {
   ) {
     label = "Continue Consultation";
   } else if (status === "consultation completed") {
-    return null; // hide completely when done
+    return null; // hide button
   } else if (
     ["submitted for review", "under review"].includes(status) &&
     access?.canGradeStudents
@@ -57,20 +57,25 @@ const ConsultButton = ({ appointment }) => {
     label = "Review Case";
   }
 
-  // 🔹 Start or continue consultation handler
+  // 🔹 Handle click
   const handleConsult = async () => {
     try {
-      // ✅ Case 1: Already locked by me → just continue with versionId from Redux
+      // ✅ Case 1: Consultation already locked by me (resume existing)
       if (isLocked && lockedByMe) {
-        const versionId = store.getState()?.consultation?.versionId;
-        const targetUrl = versionId
-          ? `/consultation/${appointment.id}?version=${versionId}`
-          : `/consultation/${appointment.id}`;
-        navigate(targetUrl);
+        const reduxVersionId = store.getState()?.consultation?.versionId;
+        const versionId =
+          reduxVersionId || appointment.latest_version_id || null;
+
+        if (!versionId) {
+          showToast("No active version found to resume.", "warning");
+          return;
+        }
+
+        navigate(`/consultation/${appointment.id}?version=${versionId}`);
         return;
       }
 
-      // ✅ Case 2: Starting or resuming consultation
+      // ✅ Case 2: Starting new consultation
       let versionType = "student";
       let flowType = "student_consulting";
 
@@ -91,19 +96,18 @@ const ConsultButton = ({ appointment }) => {
       dispatch(
         setCurrentConsultation({
           appointment: appointment.id,
-          versionId: res.version?.id || res.id,
-          versionType: res.version?.version_type || versionType,
-          isFinal: res.version?.is_final || false,
+          versionId: res.id, // ✅ backend returns "id"
+          versionType: res.version_type || versionType,
+          isFinal: res.is_final || false,
           flowType,
         })
       );
 
-      // ✅ Navigate with version query
-      const versionParam = res.version?.id || res.id;
-      navigate(`/consultation/${appointment.id}?version=${versionParam}`);
-
+      // ✅ Navigate to consultation flow
+      navigate(`/consultation/${appointment.id}?version=${res.id}`);
       showToast("Consultation started successfully!", "success");
     } catch (error) {
+      console.error("❌ Failed to start consultation:", error);
       const msg =
         error?.data?.detail ||
         "Consultation is locked by another user or failed to start.";
@@ -139,7 +143,7 @@ ConsultButton.shouldShow = (access, appointment = {}) => {
     return true;
   }
 
-  // Student / Clinician can start or continue
+  // Student or clinician can start / continue
   if (
     (access?.canStartConsultation || access?.canCompleteConsultations) &&
     ![
