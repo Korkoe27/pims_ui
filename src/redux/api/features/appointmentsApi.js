@@ -49,7 +49,7 @@ export const appointmentsApi = apiClient.injectEndpoints({
     markAppointmentCompleted: builder.mutation({
       query: (appointmentId) => ({
         url: markAppointmentCompletedUrl(appointmentId),
-        method: "PATCH",
+        method: "POST",
       }),
       invalidatesTags: ["Dashboard"],
     }),

@@ -4,24 +4,42 @@ import {
   listMedicationsUrl,
   filterMedicationsUrl,
   managementPlanUrl,
-  caseManagementGuideUrl,           // → /management/case-guide/create/<id>/
-  updateCaseManagementGuideUrl,     // → /management/case-guide/<id>/
-  deleteCaseManagementGuideUrl,     // → /management/case-guide/<id>/
+  caseManagementGuideUrl,       // → /management/case-guide/create/<id>/
+  updateCaseManagementGuideUrl, // → /management/case-guide/<id>/
+  deleteCaseManagementGuideUrl, // → /management/case-guide/<id>/
 } from "../end_points/endpoints";
 
+/**
+ * RTK Query slice for all Management-related API calls:
+ * - Medication & MedicationType lists
+ * - Management Plan create/fetch
+ * - Case Management Guide CRUD
+ */
 export const managementApi = apiClient.injectEndpoints({
   endpoints: (builder) => ({
-    // ✅ Get all medication types
+    // ============================================================
+    // 🔹 MEDICATION TYPES
+    // ============================================================
     getMedicationTypes: builder.query({
-      query: () => ({ url: listMedicationTypesUrl, method: "GET" }),
+      query: () => ({
+        url: listMedicationTypesUrl,
+        method: "GET",
+      }),
     }),
 
-    // ✅ Get all medications
+    // ============================================================
+    // 🔹 ALL MEDICATIONS
+    // ============================================================
     getAllMedications: builder.query({
-      query: () => ({ url: listMedicationsUrl, method: "GET" }),
+      query: () => ({
+        url: listMedicationsUrl,
+        method: "GET",
+      }),
     }),
 
-    // ✅ Filter medications by type
+    // ============================================================
+    // 🔹 FILTER MEDICATIONS BY TYPE
+    // ============================================================
     filterMedications: builder.query({
       query: (typeId) => ({
         url: filterMedicationsUrl(typeId),
@@ -29,7 +47,9 @@ export const managementApi = apiClient.injectEndpoints({
       }),
     }),
 
-    // ✅ Fetch the management plan for an appointment
+    // ============================================================
+    // 🔹 FETCH MANAGEMENT PLAN (GET)
+    // ============================================================
     getManagementPlan: builder.query({
       query: (appointmentId) => ({
         url: managementPlanUrl(appointmentId),
@@ -37,19 +57,28 @@ export const managementApi = apiClient.injectEndpoints({
       }),
     }),
 
-    // ✅ Create / Update management plan
+    // ============================================================
+    // 🔹 CREATE / UPDATE MANAGEMENT PLAN (POST)
+    // ============================================================
     createManagementPlan: builder.mutation({
-      query: ({ appointmentId, payload }) => ({
+      /**
+       * appointmentId: UUID or ID of appointment
+       * data: the full management plan payload
+       */
+      query: ({ appointmentId, data }) => ({
         url: managementPlanUrl(appointmentId),
         method: "POST",
-        body: payload,
+        body: data, // ✅ must be 'body', not 'data'
+        headers: { "Content-Type": "application/json" },
       }),
     }),
 
-    // ✅ Fetch Case Management Guide (GET)
+    // ============================================================
+    // 🔹 FETCH CASE MANAGEMENT GUIDE (GET)
+    // ============================================================
     getCaseManagementGuide: builder.query({
       query: (appointmentId) => ({
-        url: caseManagementGuideUrl(appointmentId), // 👈 /management/case-guide/create/<id>/
+        url: caseManagementGuideUrl(appointmentId), // /management/case-guide/create/<id>/
         method: "GET",
       }),
       providesTags: (result, error, appointmentId) => [
@@ -57,19 +86,24 @@ export const managementApi = apiClient.injectEndpoints({
       ],
     }),
 
-    // ✅ Update Case Management Guide (PUT or PATCH)
+    // ============================================================
+    // 🔹 UPDATE CASE MANAGEMENT GUIDE (PUT)
+    // ============================================================
     updateCaseManagementGuide: builder.mutation({
-      query: ({ appointmentId, payload }) => ({
-        url: updateCaseManagementGuideUrl(appointmentId), // 👈 /management/case-guide/<id>/
+      query: ({ appointmentId, data }) => ({
+        url: updateCaseManagementGuideUrl(appointmentId), // /management/case-guide/<id>/
         method: "PUT",
-        body: payload,
+        body: data,
+        headers: { "Content-Type": "application/json" },
       }),
       invalidatesTags: (result, error, { appointmentId }) => [
         { type: "CaseManagementGuide", id: appointmentId },
       ],
     }),
 
-    // ✅ Delete Case Management Guide
+    // ============================================================
+    // 🔹 DELETE CASE MANAGEMENT GUIDE (DELETE)
+    // ============================================================
     deleteCaseManagementGuide: builder.mutation({
       query: (appointmentId) => ({
         url: deleteCaseManagementGuideUrl(appointmentId),

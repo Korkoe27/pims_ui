@@ -5,34 +5,29 @@ const CompleteTab = ({ onComplete, isCompleting = false, setActiveTab }) => {
   const navigate = useNavigate();
   const [showConfirmModal, setShowConfirmModal] = useState(false);
 
-  const handleCompleteClick = () => {
-    setShowConfirmModal(true);
-  };
-
+  const handleCompleteClick = () => setShowConfirmModal(true);
   const handleConfirmComplete = async () => {
     setShowConfirmModal(false);
     await onComplete();
   };
-
-  const handleCancelComplete = () => {
-    setShowConfirmModal(false);
-  };
+  const handleCancelComplete = () => setShowConfirmModal(false);
 
   return (
     <>
       <div className="rounded-md border bg-white p-6 w-full max-w-xl">
         <h3 className="text-lg font-semibold mb-2">Complete</h3>
-        <p className="text-sm text-gray-600 mb-4">Complete the consultation.</p>
+        <p className="text-sm text-gray-600 mb-4">
+          Complete the consultation.
+        </p>
         <div className="flex gap-3">
           <button
             onClick={handleCompleteClick}
             disabled={isCompleting}
-            className={[
-              "px-4 py-2 rounded-md text-white",
+            className={`px-4 py-2 rounded-md text-white ${
               isCompleting
                 ? "bg-[#0F973D]/60 cursor-not-allowed"
-                : "bg-[#0F973D]",
-            ].join(" ")}
+                : "bg-[#0F973D]"
+            }`}
           >
             {isCompleting ? (
               <>
@@ -43,6 +38,7 @@ const CompleteTab = ({ onComplete, isCompleting = false, setActiveTab }) => {
               "Complete Consultation"
             )}
           </button>
+
           <button
             onClick={() => setActiveTab?.("management")}
             className="px-4 py-2 rounded-md border"
@@ -58,7 +54,7 @@ const CompleteTab = ({ onComplete, isCompleting = false, setActiveTab }) => {
         </div>
       </div>
 
-      {/* Confirmation Modal */}
+      {/* ✅ Confirmation Modal */}
       {showConfirmModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 shadow-lg">
