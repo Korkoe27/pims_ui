@@ -2,8 +2,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useFinalizeConsultationMutation } from "../../redux/api/features/consultationsApi";
-import { markAppointmentCompletedUrl } from "../../redux/api/end_points/endpoints";
-import { apiClient } from "../../redux/api/api_client/apiClient";
 import { showToast } from "../ToasterHelper";
 
 const CompleteTab = ({
@@ -27,16 +25,12 @@ const CompleteTab = ({
     setIsCompleting(true);
 
     try {
-      // Step 1️⃣ Finalize consultation version
+      // Step 1️⃣ Finalize consultation version (backend also completes the appointment)
       const finalizeRes = await finalizeConsultation(versionId).unwrap();
-      showToast("Consultation finalized successfully!", "success");
+      showToast("Consultation finalized and completed successfully!", "success");
       console.log("✅ Finalized:", finalizeRes);
 
-      // Step 2️⃣ Mark appointment as completed
-      await apiClient.patch(markAppointmentCompletedUrl(appointmentId));
-      showToast("Appointment marked as completed!", "success");
-
-      // Step 3️⃣ Redirect to completion confirmation screen
+      // Step 2️⃣ Redirect to completion confirmation screen
       navigate(`/consultations/${appointmentId}/completed`);
     } catch (error) {
       console.error("❌ Completion failed:", error);
