@@ -4,6 +4,7 @@ import {
   listMedicationsUrl,
   filterMedicationsUrl,
   managementPlanUrl,
+  managementPlanByVersionUrl,
   caseManagementGuideUrl,       // → /management/case-guide/create/<id>/
   updateCaseManagementGuideUrl, // → /management/case-guide/<id>/
   deleteCaseManagementGuideUrl, // → /management/case-guide/<id>/
@@ -51,10 +52,22 @@ export const managementApi = apiClient.injectEndpoints({
     // 🔹 FETCH MANAGEMENT PLAN (GET)
     // ============================================================
     getManagementPlan: builder.query({
-      query: (appointmentId) => ({
-        url: managementPlanUrl(appointmentId),
-        method: "GET",
-      }),
+      query: ({ appointmentId, versionId } = {}) => {
+        if (versionId && appointmentId) {
+          return {
+            url: managementPlanByVersionUrl(appointmentId, versionId),
+            method: "GET",
+          };
+        }
+        if (appointmentId) {
+          return {
+            url: managementPlanUrl(appointmentId),
+            method: "GET",
+          };
+        }
+        return { url: "" };
+      },
+      skip: ({ appointmentId } = {}) => !appointmentId,
     }),
 
     // ============================================================
@@ -63,12 +76,16 @@ export const managementApi = apiClient.injectEndpoints({
     createManagementPlan: builder.mutation({
       /**
        * appointmentId: UUID or ID of appointment
+       * versionId: consultation version ID
        * data: the full management plan payload
        */
-      query: ({ appointmentId, data }) => ({
+      query: ({ appointmentId, versionId, data }) => ({
         url: managementPlanUrl(appointmentId),
         method: "POST",
-        body: data, // ✅ must be 'body', not 'data'
+        body: {
+          ...data,
+          consultation_version: versionId,
+        },
         headers: { "Content-Type": "application/json" },
       }),
     }),

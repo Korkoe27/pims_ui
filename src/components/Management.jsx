@@ -59,7 +59,7 @@ const Management = ({ setFlowStep, appointmentId }) => {
     isFilteringMedications,
     createManagementPlan,
     isCreatingManagementPlan,
-  } = useManagementData(apptId, selectedTypeId);
+  } = useManagementData(apptId, selectedTypeId, versionId);
 
   // ✅ Mutations
   const [submitAppointmentForReview, { isLoading: isSubmittingForReview }] =
@@ -176,7 +176,7 @@ const Management = ({ setFlowStep, appointmentId }) => {
       };
 
       console.log("📦 Payload being sent:", payload);
-      await createManagementPlan({ appointmentId: apptId, data: payload }).unwrap();
+      await createManagementPlan({ appointmentId: apptId, versionId, data: payload }).unwrap();
       showToast("Saved successfully ✅", "success");
 
       if (permissions.canCompleteConsultations) setActiveTab("complete");
