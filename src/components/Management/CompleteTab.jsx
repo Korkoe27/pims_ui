@@ -30,8 +30,8 @@ const CompleteTab = ({
       showToast("Consultation finalized and completed successfully!", "success");
       console.log("✅ Finalized:", finalizeRes);
 
-      // Step 2️⃣ Redirect to completion confirmation screen
-      navigate(`/consultations/${appointmentId}/completed`);
+      // Step 2️⃣ Redirect to dashboard
+      navigate("/");
     } catch (error) {
       console.error("❌ Completion failed:", error);
       showToast(
