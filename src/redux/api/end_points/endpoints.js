@@ -117,7 +117,7 @@ export const fetchVisualAcuityUrl = (appointmentId) =>
 /////////////////////////
 
 const fetchInternalExternalExaminationConditionsUrl = (type) =>
-  `tests/api/conditions?type=${type}`;
+  `/tests/api/conditions?type=${type}`;
 
 export const externalUrl =
   fetchInternalExternalExaminationConditionsUrl("external");
@@ -149,7 +149,7 @@ export const fetchRefractionUrl = (appointmentId) =>
 /////////////////////////
 
 export const createExtraTestUrl = (appointmentId) =>
-  `tests/extra-tests/${appointmentId}/`;
+  `/tests/extra-tests/${appointmentId}/`;
 export const fetchExtraTestsUrl = (appointmentId) =>
   `/tests/extra-tests/${appointmentId}/`;
 
