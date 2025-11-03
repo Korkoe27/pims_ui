@@ -5,11 +5,11 @@ import {
 } from "../redux/api/features/externalsApi";
 import useApiData from "./useApiData";
 
-const useExternalObservationData = (appointmentId) => {
-  // Fetch observations by appointment ID
+const useExternalObservationData = (appointmentId, versionId) => {
+  // Fetch observations by appointment ID and optionally version
   const { data: externals, isLoading: loadingExternals } = useApiData(
     useFetchExternalObservationsQuery,
-    appointmentId,
+    { appointmentId, versionId },
     { skip: !appointmentId }
   );
 

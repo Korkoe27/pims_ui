@@ -33,14 +33,19 @@ export const externalsApi = apiClient.injectEndpoints({
 
     /** ✅ Create an External Observation **/
     createExternalObservation: builder.mutation({
-      query: ({ appointmentId, observations }) => ({
-        url: createExternalObservationUrl(appointmentId),
-        method: "POST",
-        body: {
+      query: ({ appointmentId, observations, consultation_version }) => {
+        const body = {
           appointment: appointmentId,
           observations,
-        },
-      }),
+          consultation_version,
+        };
+        console.log("🔹 externalsApi mutation body:", body);
+        return {
+          url: createExternalObservationUrl(appointmentId),
+          method: "POST",
+          body,
+        };
+      },
       invalidatesTags: ["ExternalObservations"],
     }),
   }),
