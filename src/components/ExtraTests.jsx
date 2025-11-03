@@ -82,23 +82,15 @@ const ExtraTests = ({
         </button>
       </div>
 
-      {/* Uploaded Tests Grid */}
-      {localTests.length > 0 ? (
+      {/* Uploaded Tests Grid - Display Both Fetched and Locally Added Tests */}
+      {uploadedTests.length > 0 || localTests.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-12 w-full max-w-4xl">
-          {localTests.map((test) => (
+          {/* Show fetched tests from backend */}
+          {uploadedTests.map((test) => (
             <div
               key={test.id}
               className="border rounded-lg p-4 shadow relative bg-white hover:shadow-lg transition-shadow"
             >
-              {/* Delete Button */}
-              <button
-                onClick={() => handleDeleteTest(test.id)}
-                className="absolute top-2 right-2 text-gray-400 hover:text-red-600 transition-colors"
-                title="Remove test"
-              >
-                <IoTrash size={18} />
-              </button>
-
               <p className="font-semibold mb-2 pr-6">{test.name}</p>
 
               {/* Tonometry-specific fields */}
@@ -124,16 +116,93 @@ const ExtraTests = ({
 
               {/* File display */}
               {test.file?.includes(".pdf") ? (
-                <p className="text-sm text-gray-600 truncate">{test.file}</p>
+                <a
+                  href={test.file_url || test.file}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-blue-600 hover:underline truncate block"
+                >
+                  📄 View PDF
+                </a>
               ) : (
                 test.file && (
+                  <img
+                    src={test.file_url || test.file}
+                    alt={test.name}
+                    className="w-full h-40 object-cover rounded"
+                  />
+                )
+              )}
+
+              {/* Notes */}
+              {test.notes && (
+                <p className="text-sm mt-2 text-gray-700 italic">
+                  {test.notes}
+                </p>
+              )}
+            </div>
+          ))}
+
+          {/* Show locally added tests (not yet saved to backend) */}
+          {localTests.map((test) => (
+            <div
+              key={test.id}
+              className="border rounded-lg p-4 shadow relative bg-yellow-50 hover:shadow-lg transition-shadow border-yellow-300"
+            >
+              {/* Delete Button */}
+              <button
+                onClick={() => handleDeleteTest(test.id)}
+                className="absolute top-2 right-2 text-gray-400 hover:text-red-600 transition-colors"
+                title="Remove test"
+              >
+                <IoTrash size={18} />
+              </button>
+
+              <p className="font-semibold mb-1 pr-6 text-sm text-yellow-700">
+                ⚠️ Not Yet Saved
+              </p>
+              <p className="font-semibold mb-2 pr-6">{test.name}</p>
+
+              {/* Tonometry-specific fields */}
+              {test.name.toLowerCase().includes("tonometry") && (
+                <div className="text-sm text-gray-700 mb-2 space-y-1">
+                  <p>
+                    <strong>Method:</strong> {test.method || "N/A"}
+                  </p>
+                  <p>
+                    <strong>IOP OD:</strong> {test.iop_od ?? "N/A"}
+                  </p>
+                  <p>
+                    <strong>IOP OS:</strong> {test.iop_os ?? "N/A"}
+                  </p>
+                  <p>
+                    <strong>Recorded At:</strong>{" "}
+                    {test.recorded_at
+                      ? new Date(test.recorded_at).toLocaleString()
+                      : "N/A"}
+                  </p>
+                </div>
+              )}
+
+              {/* File display */}
+              {test.file && typeof test.file === "string" ? (
+                test.file.includes(".pdf") ? (
+                  <a
+                    href={test.file}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm text-blue-600 hover:underline truncate block"
+                  >
+                    📄 View PDF
+                  </a>
+                ) : (
                   <img
                     src={test.file}
                     alt={test.name}
                     className="w-full h-40 object-cover rounded"
                   />
                 )
-              )}
+              ) : null}
 
               {/* Notes */}
               {test.notes && (
