@@ -5,11 +5,11 @@ import {
 } from "../redux/api/features/internalsApi";
 import useApiData from "./useApiData";
 
-const useInternalObservationData = (appointmentId) => {
-  // Fetch observations by appointment ID
+const useInternalObservationData = (appointmentId, versionId) => {
+  // Fetch observations by appointment ID and optionally version
   const { data: internals, isLoading: loadingInternals } = useApiData(
     useFetchInternalObservationsQuery,
-    appointmentId,
+    { appointmentId, versionId },
     { skip: !appointmentId }
   );
 

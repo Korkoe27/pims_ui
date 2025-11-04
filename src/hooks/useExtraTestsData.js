@@ -4,13 +4,13 @@ import {
     useCreateExtraTestMutation,
   } from "../redux/api/features/extraTestsApi";
   
-  const useExtraTestsData = (appointmentId) => {
+  const useExtraTestsData = (appointmentId, versionId) => {
     const {
       data: extraTests = [],
       isLoading: loadingExtraTests,
       error: fetchError,
       refetch,
-    } = useFetchExtraTestsQuery(appointmentId, {
+    } = useFetchExtraTestsQuery({ appointmentId, versionId }, {
       skip: !appointmentId,
     });
   
@@ -29,7 +29,7 @@ import {
       formData.append("file", file);
       formData.append("notes", notes || "");
   
-      return await createExtraTest({ appointmentId, formData }).unwrap();
+      return await createExtraTest({ appointmentId, versionId, formData }).unwrap();
     };
   
     return {

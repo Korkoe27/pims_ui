@@ -1,10 +1,10 @@
 import { useFetchVisualAcuityQuery, useCreateVisualAcuityMutation } from "../redux/api/features/visualAcuityApi";
 import useApiData from "./useApiData";
 
-const useVisualAcuityData = (appointmentId) => {
+const useVisualAcuityData = (appointmentId, versionId) => {
   const { data: visualAcuity, isLoading: loadingVA } = useApiData(
     useFetchVisualAcuityQuery,
-    appointmentId,
+    { appointmentId, versionId },
     { skip: !appointmentId }
   );
 

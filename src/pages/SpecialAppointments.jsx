@@ -6,6 +6,7 @@ import useHandleConsult from "../hooks/useHandleConsult";
 import PageContainer from "../components/PageContainer";
 import { useGetTodaysAppointmentsQuery } from "../redux/api/features/appointmentsApi";
 import ConsultButton from "../components/ui/buttons/ConsultButton";
+import ReviewButton from "../components/ui/buttons/ReviewButton";
 
 const SpecialAppointments = () => {
   const { user } = useSelector((state) => state.auth || {});
@@ -43,8 +44,10 @@ const SpecialAppointments = () => {
   const handlePageChange = (page) => setCurrentPage(page);
 
   // ✅ Determine if any appointment has an actionable button
-  const hasAnyAction = paginatedAppointments.some((appt) =>
-    ConsultButton.shouldShow(access, appt)
+  const hasAnyAction = paginatedAppointments.some(
+    (appt) =>
+      ConsultButton.shouldShow(access, appt) ||
+      ReviewButton.shouldShow(access, appt)
   );
 
   const actionColClass = "text-center px-6 py-3 min-w-[10rem]";
@@ -83,7 +86,8 @@ const SpecialAppointments = () => {
 
             <tbody>
               {paginatedAppointments.map((appointment) => {
-                const canAct = ConsultButton.shouldShow(access, appointment);
+                const canConsult = ConsultButton.shouldShow(access, appointment);
+                const canReview = ReviewButton.shouldShow(access, appointment);
                 return (
                   <tr key={appointment.id} className="bg-white border-b">
                     <td className="px-6 py-4">{appointment?.appointment_date}</td>
@@ -99,13 +103,17 @@ const SpecialAppointments = () => {
                     <td className="px-6 py-4">{appointment?.status}</td>
 
                     {hasAnyAction && (
-                      <td className={`${actionColClass} flex justify-center`}>
-                        {canAct ? (
+                      <td className={`${actionColClass} flex justify-center gap-2`}>
+                        {canConsult && (
                           <ConsultButton
                             appointment={appointment}
                             onClick={handleConsult}
                           />
-                        ) : (
+                        )}
+                        {canReview && (
+                          <ReviewButton appointment={appointment} />
+                        )}
+                        {!canConsult && !canReview && (
                           <span className="text-gray-400 text-sm italic">—</span>
                         )}
                       </td>

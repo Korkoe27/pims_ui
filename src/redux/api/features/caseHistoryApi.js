@@ -1,14 +1,27 @@
 import { apiClient } from "../api_client/apiClient";
 import {
-  createOrUpdateCaseHistoryUrl,   // <- use this
+  createOrUpdateCaseHistoryUrl,
   fetchCaseHistoryUrl,
+  fetchCaseHistoryByVersionUrl,
 } from "../end_points/endpoints";
 
 export const caseHistoryApi = apiClient.injectEndpoints({
   endpoints: (builder) => ({
-    /** ✅ Fetch latest Case History for an appointment */
+    /** ✅ Fetch Case History by Consultation Version (version_awareness) */
     fetchCaseHistory: builder.query({
-      query: (appointmentId) => fetchCaseHistoryUrl(appointmentId),
+      query: ({ appointmentId, versionId } = {}) => {
+        // ✅ BOTH appointmentId and versionId are required for version-aware queries
+        if (versionId && appointmentId) {
+          return fetchCaseHistoryByVersionUrl(appointmentId, versionId);
+        }
+        // Fallback to appointmentId only if versionId not available
+        if (appointmentId) {
+          return fetchCaseHistoryUrl(appointmentId);
+        }
+        // If no appointmentId, skip the query
+        return { url: "" };
+      },
+      skip: ({ appointmentId } = {}) => !appointmentId,
       providesTags: ["CaseHistory"],
     }),
 

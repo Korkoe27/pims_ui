@@ -1,13 +1,17 @@
 import React from "react";
+import { useSelector } from "react-redux";
 import PageContainer from "../components/PageContainer";
 import { useGetDashboardDataQuery } from "../redux/api/features/dashboardApi";
 import LoadingSpinner from "../components/LoadingSpinner";
 import ConsultButton from "../components/ui/buttons/ConsultButton";
+import ReviewButton from "../components/ui/buttons/ReviewButton";
 import useHandleConsult from "../hooks/useHandleConsult";
 
 const PendingReviews = () => {
   const { data: dashboardData, isLoading, error } = useGetDashboardDataQuery();
   const { handleConsult } = useHandleConsult();
+  const { user } = useSelector((state) => state.auth || {});
+  const access = user?.access || {};
 
   // ✅ Extract pending review data safely
   const pendingReviews =
@@ -49,11 +53,16 @@ const PendingReviews = () => {
                 <td className="px-3 py-3">
                   {appointment.appointment_type_name || "—"}
                 </td>
-                <td className="py-3 flex justify-center">
-                  <ConsultButton
-                    appointment={appointment}
-                    onClick={handleConsult}
-                  />
+                <td className="py-3 flex justify-center gap-2">
+                  {ConsultButton.shouldShow(access, appointment) && (
+                    <ConsultButton
+                      appointment={appointment}
+                      onClick={handleConsult}
+                    />
+                  )}
+                  {ReviewButton.shouldShow(access, appointment) && (
+                    <ReviewButton appointment={appointment} />
+                  )}
                 </td>
               </tr>
             ))}

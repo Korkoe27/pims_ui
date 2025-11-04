@@ -2,6 +2,7 @@ import { apiClient } from "../api_client/apiClient";
 import {
   startConsultationUrl,
   listConsultationVersionsUrl,
+  initiateReviewUrl,
   finalizeConsultationVersionUrl,
 } from "../end_points/endpoints";
 
@@ -29,6 +30,15 @@ export const consultationsApi = apiClient.injectEndpoints({
       providesTags: ["ConsultationVersions"],
     }),
 
+    /** 🔹 Initiate review: Clone student version to reviewed version */
+    initiateReview: builder.mutation({
+      query: (versionId) => ({
+        url: initiateReviewUrl(versionId),
+        method: "POST",
+      }),
+      invalidatesTags: ["ConsultationVersions"],
+    }),
+
     /** 🔹 Finalize a specific consultation version */
     finalizeConsultation: builder.mutation({
       query: (versionId) => ({
@@ -43,5 +53,6 @@ export const consultationsApi = apiClient.injectEndpoints({
 export const {
   useStartConsultationMutation,
   useFetchConsultationVersionsQuery,
+  useInitiateReviewMutation,
   useFinalizeConsultationMutation,
 } = consultationsApi;

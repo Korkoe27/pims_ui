@@ -4,11 +4,11 @@ import {
   } from "../redux/api/features/refractionApi";
   import useApiData from "./useApiData";
   
-  const useRefractionData = (appointmentId) => {
+  const useRefractionData = (appointmentId, versionId) => {
     // Fetch existing refraction data
     const { data: refraction, isLoading: loadingRefraction } = useApiData(
       useFetchRefractionQuery,
-      appointmentId,
+      { appointmentId, versionId },
       { skip: !appointmentId }
     );
   

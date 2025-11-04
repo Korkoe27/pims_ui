@@ -53,13 +53,26 @@ const CreateAppointment = () => {
       return;
     }
 
+    if (!formData.appointment_type || formData.appointment_type === "") {
+      showToast("Please select an appointment type.", "error");
+      return;
+    }
+
+    if (!formData.appointment_date) {
+      showToast("Please select an appointment date.", "error");
+      return;
+    }
+
     const payload = {
       patient: patient.id,
       appointment_date: formData.appointment_date,
-      appointment_type: Number(formData.appointment_type),
+      appointment_type: formData.appointment_type,
       status: formData.status,
       notes: formData.notes,
     };
+
+    console.log("Form Data:", formData);
+    console.log("Payload being sent:", payload);
 
     try {
       const response = await createAppointment(payload).unwrap();
