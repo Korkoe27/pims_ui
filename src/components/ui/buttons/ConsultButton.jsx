@@ -50,11 +50,8 @@ const ConsultButton = ({ appointment }) => {
     label = "Continue Consultation";
   } else if (status === "consultation completed") {
     return null; // hide completely when done
-  } else if (
-    ["submitted for review", "under review"].includes(status) &&
-    access?.canGradeStudents
-  ) {
-    label = "Review Case";
+  } else if (["submitted for review", "under review"].includes(status)) {
+    return null; // 🔹 ReviewButton handles review flow, not ConsultButton
   }
 
   // 🔹 Start or continue consultation handler
@@ -149,23 +146,16 @@ const ConsultButton = ({ appointment }) => {
 ConsultButton.shouldShow = (access, appointment = {}) => {
   const status = (appointment.status || "").toLowerCase();
 
-  // Lecturer can review
-  if (
-    access?.canGradeStudents &&
-    ["submitted for review", "under review"].includes(status)
-  ) {
-    return true;
+  // 🔹 ReviewButton handles review flow (lecturer review)
+  // Don't show ConsultButton when appointment is submitted/under review
+  if (["submitted for review", "under review"].includes(status)) {
+    return false;
   }
 
   // Student / Clinician can start or continue
   if (
     (access?.canStartConsultation || access?.canCompleteConsultations) &&
-    ![
-      "submitted for review",
-      "under review",
-      "scored",
-      "consultation completed",
-    ].includes(status)
+    !["scored", "consultation completed"].includes(status)
   ) {
     return true;
   }

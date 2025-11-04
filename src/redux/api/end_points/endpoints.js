@@ -300,6 +300,15 @@ export const getConsultationVersionUrl = (versionId) =>
   `consultations/versions/view/${versionId}/`; // ✅ no leading slash
 
 /**
+ * Initiate review: Clone student version to reviewed version
+ * Example: POST consultations/versions/<version_id>/initiate-review/
+ * Only works for submitted student consultations
+ * Creates new reviewed version with cloned data
+ */
+export const initiateReviewUrl = (versionId) =>
+  `consultations/versions/${versionId}/initiate-review/`; // ✅ no leading slash
+
+/**
  * Mark a version as final (optional administrative endpoint)
  * Example: POST consultations/versions/<version_id>/finalize/
  */
