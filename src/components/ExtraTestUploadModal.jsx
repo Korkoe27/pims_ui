@@ -65,7 +65,7 @@ const ExtraTestUploadModal = ({
     const testData = {
       name: testName,
       notes: notes || "",
-      file: file ? URL.createObjectURL(file) : null, // Preview URL for local display
+      file: file, // 🔧 Store actual File object, not URL
       appointment: appointmentId,
       consultation_version: versionId,
     };

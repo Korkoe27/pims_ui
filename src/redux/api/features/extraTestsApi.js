@@ -25,6 +25,7 @@ export const extraTestApi = apiClient.injectEndpoints({
     /** ✅ Create new Extra Test with FormData upload **/
     createExtraTest: builder.mutation({
       query: ({ appointmentId, versionId, formData }) => {
+        formData.append("appointment", appointmentId);
         formData.append("consultation_version", versionId);
         return {
           url: createExtraTestUrl(appointmentId),

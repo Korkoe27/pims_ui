@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { showToast } from "../components/ToasterHelper";
 import ExtraTestUploadModal from "./ExtraTestUploadModal";
-import { useFetchExtraTestsQuery, useDeleteExtraTestMutation } from "../redux/api/features/extraTestsApi";
+import { useFetchExtraTestsQuery, useDeleteExtraTestMutation, useCreateExtraTestMutation } from "../redux/api/features/extraTestsApi";
 import SupervisorGradingButton from "./ui/buttons/SupervisorGradingButton";
 import useComponentGrading from "../hooks/useComponentGrading";
 import { useSelector } from "react-redux";
@@ -29,6 +29,9 @@ const ExtraTests = ({
   const { data: uploadedTests = [], refetch } =
     useFetchExtraTestsQuery({ appointmentId, versionId });
 
+  // ✅ Create extra test mutation
+  const [createExtraTest] = useCreateExtraTestMutation();
+
   // ✅ Handle local deletion (no backend call)
   const handleDeleteTest = (testId) => {
     setLocalTests((prev) => prev.filter((test) => test.id !== testId));
@@ -38,10 +41,34 @@ const ExtraTests = ({
   // ✅ Proceed to Diagnosis (send added tests to backend)
   const proceedToDiagnosis = async () => {
     try {
-      // ✅ Send all locally added tests to backend here
+      // ✅ Send all locally added tests to backend
       if (localTests.length > 0) {
         console.log("📤 Sending extra tests to backend:", localTests);
-        // Backend call would go here when user is ready to proceed
+        
+        // Create FormData for each test and send
+        for (const test of localTests) {
+          const formData = new FormData();
+          formData.append("name", test.name);
+          formData.append("file", test.file); // Blob object
+          formData.append("notes", test.notes || "");
+          
+          try {
+            await createExtraTest({
+              appointmentId,
+              versionId,
+              formData,
+            }).unwrap();
+            console.log(`✅ Test "${test.name}" uploaded successfully`);
+          } catch (err) {
+            console.error(`❌ Failed to upload test "${test.name}":`, err);
+            showToast(`Failed to upload ${test.name}`, "error");
+            return; // Stop if any upload fails
+          }
+        }
+        
+        showToast(`${localTests.length} test(s) uploaded successfully!`, "success");
+        setLocalTests([]); // Clear local tests after successful upload
+        await refetch(); // Refresh the list
       }
 
       // Local UI update
