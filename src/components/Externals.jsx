@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { FaChevronDown, FaChevronUp } from "react-icons/fa";
-import { useParams } from "react-router-dom";
 import useExternalObservationData from "../hooks/useExternalObservationData";
 import useComponentGrading from "../hooks/useComponentGrading";
+import useConsultationContext from "../hooks/useConsultationContext";
 import {
   showToast,
   formatErrorMessage,
@@ -16,8 +16,8 @@ import NotesTextArea from "./NotesTextArea";
 import NavigationButtons from "../components/NavigationButtons";
 import SupervisorGradingButton from "./ui/buttons/SupervisorGradingButton";
 
-const Externals = ({ setActiveTab, setTabCompletionStatus }) => {
-  const { appointmentId } = useParams();
+const Externals = ({ appointmentId, setActiveTab, setTabCompletionStatus }) => {
+  const { versionId } = useConsultationContext();
 
   const [formData, setFormData] = useState({});
   const [mainOpen, setMainOpen] = useState({});
@@ -30,7 +30,7 @@ const Externals = ({ setActiveTab, setTabCompletionStatus }) => {
     conditions: rawConditions,
     existingObservations,
     createExternalObservation,
-  } = useExternalObservationData(appointmentId);
+  } = useExternalObservationData(appointmentId, versionId);
 
   const { section, sectionLabel } = useComponentGrading(
     "EXTERNAL_OBSERVATION",
@@ -206,14 +206,21 @@ const Externals = ({ setActiveTab, setTabCompletionStatus }) => {
     });
 
     try {
-      await createExternalObservation({
-        appointment: appointmentId,
+      console.log("🔹 Saving externals with payload:", {
+        appointmentId: appointmentId,
         observations: payload,
+        consultation_version: versionId,
+      });
+      await createExternalObservation({
+        appointmentId: appointmentId,
+        observations: payload,
+        consultation_version: versionId,
       });
       showToast("External observations saved successfully!", "success");
       setTabCompletionStatus?.((prev) => ({ ...prev, externals: true }));
       setActiveTab("internals");
     } catch (err) {
+      console.error("❌ Error saving externals:", err);
       showToast(formatErrorMessage(err?.data), "error");
     } finally {
       setSaving(false);

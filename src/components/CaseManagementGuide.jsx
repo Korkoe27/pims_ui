@@ -4,15 +4,17 @@ import {
   useGetCaseManagementGuideQuery,
   useUpdateCaseManagementGuideMutation,
 } from "../redux/api/features/managementApi";
+import useConsultationContext from "../hooks/useConsultationContext";
 
 const CaseManagementGuide = ({ appointmentId, setActiveTab }) => {
   const [rows, setRows] = useState([
     { diagnosis: "", management_plan: "", comments: "" },
   ]);
   const [saving, setSaving] = useState(false);
+  const { versionId } = useConsultationContext();
 
   // ✅ Fetch existing guide
-  const { data: guideData, isLoading } = useGetCaseManagementGuideQuery(appointmentId);
+  const { data: guideData, isLoading } = useGetCaseManagementGuideQuery({ appointmentId, versionId });
   const [updateCaseGuide] = useUpdateCaseManagementGuideMutation();
 
   // ✅ Hydrate from backend if existing data present
@@ -53,6 +55,7 @@ const CaseManagementGuide = ({ appointmentId, setActiveTab }) => {
       setSaving(true);
       await updateCaseGuide({
         appointmentId,
+        versionId,
         data: { table_rows: rows },
       }).unwrap();
 

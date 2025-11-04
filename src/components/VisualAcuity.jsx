@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import useVisualAcuityData from "../hooks/useVisualAcuityData";
+import useConsultationContext from "../hooks/useConsultationContext";
 import VisualAcuitySection, { validateVASection } from "./VisualAcuitySection";
 import NearVisualAcuitySection from "./NearVisualAcuitySection";
 import PrescriptionSection from "./PrescriptionSection";
@@ -22,12 +23,13 @@ export default function VisualAcuityForm({
   setActiveTab,
   setTabCompletionStatus,
 }) {
+  const { versionId } = useConsultationContext();
   const {
     visualAcuity,
     loadingVA,
     createVisualAcuity,
     createVASubmissionStatus,
-  } = useVisualAcuityData(appointmentId);
+  } = useVisualAcuityData(appointmentId, versionId);
 
   const { data: appointmentDetails } = useGetAppointmentDetailsQuery(
     appointmentId,
@@ -152,6 +154,7 @@ export default function VisualAcuityForm({
 
     const payload = {
       appointment: appointmentId,
+      consultation_version: versionId,
       va_chart_used: vaChart,
       distance_unaided_od: distanceVA.OD.unaided,
       distance_ph_od: distanceVA.OD.ph,

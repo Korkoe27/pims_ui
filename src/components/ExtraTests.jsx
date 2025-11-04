@@ -1,10 +1,12 @@
 import React, { useState } from "react";
 import { showToast } from "../components/ToasterHelper";
 import ExtraTestUploadModal from "./ExtraTestUploadModal";
-import { useFetchExtraTestsQuery } from "../redux/api/features/extraTestsApi";
+import { useFetchExtraTestsQuery, useDeleteExtraTestMutation, useCreateExtraTestMutation } from "../redux/api/features/extraTestsApi";
 import SupervisorGradingButton from "./ui/buttons/SupervisorGradingButton";
 import useComponentGrading from "../hooks/useComponentGrading";
 import { useSelector } from "react-redux";
+import useConsultationContext from "../hooks/useConsultationContext";
+import { IoTrash } from "react-icons/io5";
 
 const ExtraTests = ({
   appointmentId,
@@ -13,7 +15,9 @@ const ExtraTests = ({
   setTabCompletionStatus,
 }) => {
   const [modalOpen, setModalOpen] = useState(false);
+  const [localTests, setLocalTests] = useState([]); // ✅ Local state for added tests
   const role = useSelector((state) => state.auth.user?.role);
+  const { versionId } = useConsultationContext();
 
   // ✅ Component grading hook
   const { shouldShowGrading, section, sectionLabel } = useComponentGrading(
@@ -23,11 +27,50 @@ const ExtraTests = ({
 
   // ✅ Fetch uploaded tests
   const { data: uploadedTests = [], refetch } =
-    useFetchExtraTestsQuery(appointmentId);
+    useFetchExtraTestsQuery({ appointmentId, versionId });
 
-  // ✅ Proceed to Diagnosis (purely UI-level navigation now)
+  // ✅ Create extra test mutation
+  const [createExtraTest] = useCreateExtraTestMutation();
+
+  // ✅ Handle local deletion (no backend call)
+  const handleDeleteTest = (testId) => {
+    setLocalTests((prev) => prev.filter((test) => test.id !== testId));
+    showToast("Test removed", "success");
+  };
+
+  // ✅ Proceed to Diagnosis (send added tests to backend)
   const proceedToDiagnosis = async () => {
     try {
+      // ✅ Send all locally added tests to backend
+      if (localTests.length > 0) {
+        console.log("📤 Sending extra tests to backend:", localTests);
+        
+        // Create FormData for each test and send
+        for (const test of localTests) {
+          const formData = new FormData();
+          formData.append("name", test.name);
+          formData.append("file", test.file); // Blob object
+          formData.append("notes", test.notes || "");
+          
+          try {
+            await createExtraTest({
+              appointmentId,
+              versionId,
+              formData,
+            }).unwrap();
+            console.log(`✅ Test "${test.name}" uploaded successfully`);
+          } catch (err) {
+            console.error(`❌ Failed to upload test "${test.name}":`, err);
+            showToast(`Failed to upload ${test.name}`, "error");
+            return; // Stop if any upload fails
+          }
+        }
+        
+        showToast(`${localTests.length} test(s) uploaded successfully!`, "success");
+        setLocalTests([]); // Clear local tests after successful upload
+        await refetch(); // Refresh the list
+      }
+
       // Local UI update
       setTabCompletionStatus?.((prev) => ({
         ...prev,
@@ -66,15 +109,16 @@ const ExtraTests = ({
         </button>
       </div>
 
-      {/* Uploaded Tests Grid */}
-      {uploadedTests.length > 0 ? (
+      {/* Uploaded Tests Grid - Display Both Fetched and Locally Added Tests */}
+      {uploadedTests.length > 0 || localTests.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-12 w-full max-w-4xl">
+          {/* Show fetched tests from backend */}
           {uploadedTests.map((test) => (
             <div
               key={test.id}
-              className="border rounded-lg p-4 shadow relative bg-white"
+              className="border rounded-lg p-4 shadow relative bg-white hover:shadow-lg transition-shadow"
             >
-              <p className="font-semibold mb-2">{test.name}</p>
+              <p className="font-semibold mb-2 pr-6">{test.name}</p>
 
               {/* Tonometry-specific fields */}
               {test.name.toLowerCase().includes("tonometry") && (
@@ -99,11 +143,18 @@ const ExtraTests = ({
 
               {/* File display */}
               {test.file?.includes(".pdf") ? (
-                <p className="text-sm text-gray-600 truncate">{test.file}</p>
+                <a
+                  href={test.file_url || test.file}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-blue-600 hover:underline truncate block"
+                >
+                  📄 View PDF
+                </a>
               ) : (
                 test.file && (
                   <img
-                    src={test.file}
+                    src={test.file_url || test.file}
                     alt={test.name}
                     className="w-full h-40 object-cover rounded"
                   />
@@ -118,9 +169,79 @@ const ExtraTests = ({
               )}
             </div>
           ))}
+
+          {/* Show locally added tests (not yet saved to backend) */}
+          {localTests.map((test) => (
+            <div
+              key={test.id}
+              className="border rounded-lg p-4 shadow relative bg-yellow-50 hover:shadow-lg transition-shadow border-yellow-300"
+            >
+              {/* Delete Button */}
+              <button
+                onClick={() => handleDeleteTest(test.id)}
+                className="absolute top-2 right-2 text-gray-400 hover:text-red-600 transition-colors"
+                title="Remove test"
+              >
+                <IoTrash size={18} />
+              </button>
+
+              <p className="font-semibold mb-1 pr-6 text-sm text-yellow-700">
+                ⚠️ Not Yet Saved
+              </p>
+              <p className="font-semibold mb-2 pr-6">{test.name}</p>
+
+              {/* Tonometry-specific fields */}
+              {test.name.toLowerCase().includes("tonometry") && (
+                <div className="text-sm text-gray-700 mb-2 space-y-1">
+                  <p>
+                    <strong>Method:</strong> {test.method || "N/A"}
+                  </p>
+                  <p>
+                    <strong>IOP OD:</strong> {test.iop_od ?? "N/A"}
+                  </p>
+                  <p>
+                    <strong>IOP OS:</strong> {test.iop_os ?? "N/A"}
+                  </p>
+                  <p>
+                    <strong>Recorded At:</strong>{" "}
+                    {test.recorded_at
+                      ? new Date(test.recorded_at).toLocaleString()
+                      : "N/A"}
+                  </p>
+                </div>
+              )}
+
+              {/* File display */}
+              {test.file && typeof test.file === "string" ? (
+                test.file.includes(".pdf") ? (
+                  <a
+                    href={test.file}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm text-blue-600 hover:underline truncate block"
+                  >
+                    📄 View PDF
+                  </a>
+                ) : (
+                  <img
+                    src={test.file}
+                    alt={test.name}
+                    className="w-full h-40 object-cover rounded"
+                  />
+                )
+              ) : null}
+
+              {/* Notes */}
+              {test.notes && (
+                <p className="text-sm mt-2 text-gray-700 italic">
+                  {test.notes}
+                </p>
+              )}
+            </div>
+          ))}
         </div>
       ) : (
-        <p className="text-gray-500 mb-10">No extra tests uploaded yet.</p>
+        <p className="text-gray-500 mb-10">No extra tests added yet.</p>
       )}
 
       {/* Action Buttons */}
@@ -144,8 +265,11 @@ const ExtraTests = ({
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
         appointmentId={appointmentId}
-        onUploadSuccess={() => {
-          refetch();
+        versionId={versionId}
+        onUploadSuccess={(testData) => {
+          // ✅ Add test to local state instead of immediately sending to backend
+          setLocalTests((prev) => [...prev, { ...testData, id: Date.now() }]);
+          showToast("Test added locally. Click 'Proceed to Diagnosis' to save.", "info");
           setModalOpen(false);
         }}
       />

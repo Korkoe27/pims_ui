@@ -6,7 +6,7 @@ import {
   useCreateManagementPlanMutation,
 } from "../redux/api/features/managementApi";
 
-const useManagementData = (appointmentId = null, typeId = null) => {
+const useManagementData = (appointmentId = null, typeId = null, versionId = null) => {
   // Fetch all medications
   const {
     data: medications = [],
@@ -43,7 +43,7 @@ const useManagementData = (appointmentId = null, typeId = null) => {
     isError: isManagementPlanError,
     error: managementPlanError,
     refetch: refetchManagementPlan,
-  } = useGetManagementPlanQuery(appointmentId, {
+  } = useGetManagementPlanQuery({ appointmentId, versionId }, {
     skip: !appointmentId,
   });
 

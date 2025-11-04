@@ -163,11 +163,31 @@ const consultationSlice = createSlice({
       }
     );
 
+    // When /initiate-review/ consultation succeeds
+    // Update state to reflect the new reviewed version
+    builder.addMatcher(
+      consultationsApi.endpoints.initiateReview.matchFulfilled,
+      (state, { payload }) => {
+        // payload should contain the new reviewed version
+        const newVersion = payload.version || payload;
+        state.currentConsultation = newVersion;
+        state.versionId = newVersion.id || newVersion.versionId || newVersion.version_id || null;
+        state.versionType = newVersion.version_type || newVersion.versionType || "reviewed";
+        state.isFinal = newVersion.is_final || newVersion.isFinal || false;
+      }
+    );
+
     // When /finalize/ consultation succeeds
     builder.addMatcher(
       consultationsApi.endpoints.finalizeConsultation.matchFulfilled,
       (state, { payload }) => {
         state.isFinal = true;
+        // Update current consultation with finalized payload if provided
+        if (payload.version) {
+          state.currentConsultation = payload.version;
+          state.versionId = payload.version.id || state.versionId;
+          state.versionType = payload.version.version_type || state.versionType;
+        }
       }
     );
   },

@@ -1,10 +1,6 @@
 import React, { useState } from "react";
 import { IoClose } from "react-icons/io5";
 import { showToast } from "../components/ToasterHelper";
-import { useCreateExtraTestMutation } from "../redux/api/features/extraTestsApi";
-import { baseURL } from "../redux/api/base_url/baseurl";
-import { createExtraTestUrl } from "../redux/api/end_points/endpoints";
-import { useSelector } from "react-redux";
 
 const TEST_OPTIONS = [
   "OCT",
@@ -20,6 +16,7 @@ const ExtraTestUploadModal = ({
   isOpen,
   onClose,
   appointmentId,
+  versionId,
   onUploadSuccess,
 }) => {
   const [testName, setTestName] = useState("");
@@ -33,18 +30,6 @@ const ExtraTestUploadModal = ({
   const [iopOd, setIopOd] = useState("");
   const [iopOs, setIopOs] = useState("");
   const [recordedAt, setRecordedAt] = useState("");
-
-
-  // ✅ Fetch version ID from consultation or appointment as fallback
-  const versionId = useSelector((state) =>
-    state.consultation?.currentVersion?.id ||
-    state.consultation?.versionId ||
-    state.appointments?.selectedAppointment?.latest_version_id ||
-    null
-  );
-
-
-  const [createExtraTest, { isLoading }] = useCreateExtraTestMutation();
 
   // ------------------------------------------------------
   // 🔹 File Handling
@@ -76,70 +61,39 @@ const ExtraTestUploadModal = ({
       return;
     }
 
-    const formData = new FormData();
-    formData.append("name", testName);
-    formData.append("notes", notes || "");
-    formData.append("appointment", appointmentId);
+    // ✅ Build test data object (no backend call yet)
+    const testData = {
+      name: testName,
+      notes: notes || "",
+      file: file, // 🔧 Store actual File object, not URL
+      appointment: appointmentId,
+      consultation_version: versionId,
+    };
 
-    // ✅ Include Consultation Version ID
-    if (versionId) {
-      formData.append("consultation_version", versionId);
-    } else {
-      console.warn("⚠️ No consultation version ID found in Redux. Backend may reject this upload.");
-    }
-
-    if (file) formData.append("file", file);
     if (isTonometry) {
-      formData.append("method", method);
-      formData.append("iop_od", iopOd);
-      formData.append("iop_os", iopOs);
-      formData.append("recorded_at", recordedAt);
+      testData.method = method;
+      testData.iop_od = iopOd;
+      testData.iop_os = iopOs;
+      testData.recorded_at = recordedAt;
     }
 
-    // Debug log
-    console.groupCollapsed("🚀 Payload sent to Extra Test endpoint");
-    for (const [key, value] of formData.entries()) {
-      if (value instanceof File) {
-        console.log(`${key}: [File] ${value.name} (${(value.size / 1024).toFixed(2)} KB)`);
-      } else {
-        console.log(`${key}: ${value}`);
-      }
-    }
+    console.groupCollapsed("� Test data added to local state");
+    console.log(testData);
     console.groupEnd();
 
-    try {
-      const uploadUrl = `${baseURL}${createExtraTestUrl(appointmentId)}`;
-      const xhr = new XMLHttpRequest();
-      xhr.open("POST", uploadUrl);
-      xhr.setRequestHeader(
-        "Authorization",
-        `Bearer ${localStorage.getItem("access_token")}`
-      );
+    // ✅ Return test data to parent component (no backend call)
+    onUploadSuccess?.(testData);
 
-      xhr.upload.onprogress = (event) => {
-        if (event.lengthComputable) {
-          const progress = Math.round((event.loaded / event.total) * 100);
-          setUploadProgress(progress);
-        }
-      };
-
-      xhr.onload = () => {
-        if (xhr.status >= 200 && xhr.status < 300) {
-          showToast("Extra test uploaded successfully!", "success");
-          onUploadSuccess?.();
-          onClose();
-        } else {
-          console.error("❌ Server error:", xhr.status, xhr.responseText);
-          showToast("Failed to upload test.", "error");
-        }
-      };
-
-      xhr.onerror = () => showToast("Network error during upload.", "error");
-      xhr.send(formData);
-    } catch (error) {
-      console.error("❌ Upload failed:", error);
-      showToast("Failed to upload test.", "error");
-    }
+    // Reset form
+    setTestName("");
+    setNotes("");
+    setFile(null);
+    setPreviewUrl(null);
+    setMethod("");
+    setIopOd("");
+    setIopOs("");
+    setRecordedAt("");
+    setUploadProgress(0);
   };
 
   // ------------------------------------------------------
@@ -278,11 +232,8 @@ const ExtraTestUploadModal = ({
           <button
             type="submit"
             className="bg-[#2f3192] text-white py-2 px-4 rounded hover:bg-[#1e217a]"
-            disabled={isLoading}
           >
-            {uploadProgress > 0
-              ? `Uploading... ${uploadProgress}%`
-              : "Upload"}
+            Add Test
           </button>
         </form>
       </div>

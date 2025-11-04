@@ -80,6 +80,8 @@ export const fetchAppointmentTypesUrl = "/clients/appointments/types/";
 export const createOrUpdateCaseHistoryUrl = "/tests/case-history/";
 export const fetchCaseHistoryUrl = (appointmentId) =>
   `/tests/case-history/?appointment=${appointmentId}`;
+export const fetchCaseHistoryByVersionUrl = (appointmentId, versionId) =>
+  `/tests/case-history/?appointment=${appointmentId}&consultation_version=${versionId}`;
 
 
 /////////////////////////
@@ -106,18 +108,21 @@ export const fetchDirectQuestioningConditionsUrl =
 /////////////////////////
 // Visual Acuity
 /////////////////////////
+// Visual Acuity
+/////////////////////////
 
 export const createVisualAcuityUrl = "/tests/api/visual-acuity/";
 export const fetchVisualAcuityUrl = (appointmentId) =>
   `/tests/api/visual-acuity/${appointmentId}/`;
-
-
+export const fetchVisualAcuityByVersionUrl = (appointmentId, versionId) =>
+  `/tests/api/visual-acuity/${appointmentId}/?consultation_version=${versionId}`;
+// External & Internal Observations
 /////////////////////////
 // External & Internal Observations
 /////////////////////////
 
 const fetchInternalExternalExaminationConditionsUrl = (type) =>
-  `tests/api/conditions?type=${type}`;
+  `/tests/api/conditions?type=${type}`;
 
 export const externalUrl =
   fetchInternalExternalExaminationConditionsUrl("external");
@@ -125,11 +130,15 @@ export const createExternalObservationUrl = (appointmentId) =>
   `/tests/api/external-observations/${appointmentId}/`;
 export const fetchExternalObservationsUrl = (appointmentId) =>
   `/tests/api/external-observations/${appointmentId}/`;
+export const fetchExternalObservationsByVersionUrl = (appointmentId, versionId) =>
+  `/tests/api/external-observations/${appointmentId}/?consultation_version=${versionId}`;
 
 export const internalUrl =
   fetchInternalExternalExaminationConditionsUrl("internal");
 export const fetchInternalObservationsUrl = (appointmentId) =>
   `/tests/api/internal-observations/${appointmentId}/`;
+export const fetchInternalObservationsByVersionUrl = (appointmentId, versionId) =>
+  `/tests/api/internal-observations/${appointmentId}/?consultation_version=${versionId}`;
 export const createInternalsUrl = (appointmentId) =>
   `/tests/api/internal-observations/${appointmentId}/`;
 
@@ -142,6 +151,8 @@ export const createRefractionUrl = (appointmentId) =>
   `/tests/api/refraction/${appointmentId}/`;
 export const fetchRefractionUrl = (appointmentId) =>
   `/tests/api/refraction/${appointmentId}/`;
+export const fetchRefractionByVersionUrl = (appointmentId, versionId) =>
+  `/tests/api/refraction/${appointmentId}/?consultation_version=${versionId}`;
 
 
 /////////////////////////
@@ -149,9 +160,11 @@ export const fetchRefractionUrl = (appointmentId) =>
 /////////////////////////
 
 export const createExtraTestUrl = (appointmentId) =>
-  `tests/extra-tests/${appointmentId}/`;
+  `/tests/extra-tests/${appointmentId}/`;
 export const fetchExtraTestsUrl = (appointmentId) =>
   `/tests/extra-tests/${appointmentId}/`;
+export const fetchExtraTestsByVersionUrl = (appointmentId, versionId) =>
+  `/tests/extra-tests/${appointmentId}/?consultation_version=${versionId}`;
 
 
 /////////////////////////
@@ -165,6 +178,8 @@ export const updateDiagnosisUrl = (appointmentId) =>
 export const listAllDiagnosesUrl = "/diagnosis/codes/";
 export const fetchAppointmentDiagnosesUrl = (appointmentId) =>
   `/diagnosis/${appointmentId}/view/`;
+export const fetchAppointmentDiagnosesByVersionUrl = (appointmentId, versionId) =>
+  `/diagnosis/${appointmentId}/view/?consultation_version=${versionId}`;
 
 
 /////////////////////////
@@ -183,6 +198,8 @@ export const filterMedicationsUrl = (typeId) =>
 
 export const managementPlanUrl = (appointmentId) =>
   `/management/${appointmentId}/`;
+export const managementPlanByVersionUrl = (appointmentId, versionId) =>
+  `/management/${appointmentId}/?consultation_version=${versionId}`;
 
 
 /////////////////////////
@@ -191,8 +208,12 @@ export const managementPlanUrl = (appointmentId) =>
 
 export const caseManagementGuideUrl = (appointmentId) =>
   `/management/case-guide/create/${appointmentId}/`;
+export const caseManagementGuideByVersionUrl = (appointmentId, versionId) =>
+  `/management/case-guide/create/${appointmentId}/?consultation_version=${versionId}`;
 export const updateCaseManagementGuideUrl = (appointmentId) =>
   `/management/case-guide/${appointmentId}/`;
+export const updateCaseManagementGuideByVersionUrl = (appointmentId, versionId) =>
+  `/management/case-guide/${appointmentId}/?consultation_version=${versionId}`;
 export const deleteCaseManagementGuideUrl = (appointmentId) =>
   `/management/case-guide/${appointmentId}/`;
 
@@ -277,6 +298,15 @@ export const listConsultationVersionsUrl = (appointmentId) =>
  */
 export const getConsultationVersionUrl = (versionId) =>
   `consultations/versions/view/${versionId}/`; // ✅ no leading slash
+
+/**
+ * Initiate review: Clone student version to reviewed version
+ * Example: POST consultations/versions/<version_id>/initiate-review/
+ * Only works for submitted student consultations
+ * Creates new reviewed version with cloned data
+ */
+export const initiateReviewUrl = (versionId) =>
+  `consultations/versions/${versionId}/initiate-review/`; // ✅ no leading slash
 
 /**
  * Mark a version as final (optional administrative endpoint)
