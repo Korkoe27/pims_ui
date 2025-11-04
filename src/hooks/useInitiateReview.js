@@ -91,6 +91,10 @@ const useInitiateReview = (appointmentId) => {
           })
         );
 
+        // 🔹 Clear cached flow step for review mode so it starts at "consultation"
+        const LOCAL_FLOW_KEY = `consultation-${appointmentId}-flowStep`;
+        localStorage.removeItem(LOCAL_FLOW_KEY);
+
         // Navigate to review editor
         navigate(`/consultation/${appointmentId}?version=${reviewVersion.id}`);
 
