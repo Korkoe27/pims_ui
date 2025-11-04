@@ -4,8 +4,11 @@ import {
   listMedicationsUrl,
   filterMedicationsUrl,
   managementPlanUrl,
+  managementPlanByVersionUrl,
   caseManagementGuideUrl,       // → /management/case-guide/create/<id>/
+  caseManagementGuideByVersionUrl, // → /management/case-guide/create/<id>/?consultation_version=<versionId>/
   updateCaseManagementGuideUrl, // → /management/case-guide/<id>/
+  updateCaseManagementGuideByVersionUrl, // → /management/case-guide/<id>/?consultation_version=<versionId>/
   deleteCaseManagementGuideUrl, // → /management/case-guide/<id>/
 } from "../end_points/endpoints";
 
@@ -51,10 +54,22 @@ export const managementApi = apiClient.injectEndpoints({
     // 🔹 FETCH MANAGEMENT PLAN (GET)
     // ============================================================
     getManagementPlan: builder.query({
-      query: (appointmentId) => ({
-        url: managementPlanUrl(appointmentId),
-        method: "GET",
-      }),
+      query: ({ appointmentId, versionId } = {}) => {
+        if (versionId && appointmentId) {
+          return {
+            url: managementPlanByVersionUrl(appointmentId, versionId),
+            method: "GET",
+          };
+        }
+        if (appointmentId) {
+          return {
+            url: managementPlanUrl(appointmentId),
+            method: "GET",
+          };
+        }
+        return { url: "" };
+      },
+      skip: ({ appointmentId } = {}) => !appointmentId,
     }),
 
     // ============================================================
@@ -63,12 +78,16 @@ export const managementApi = apiClient.injectEndpoints({
     createManagementPlan: builder.mutation({
       /**
        * appointmentId: UUID or ID of appointment
+       * versionId: consultation version ID
        * data: the full management plan payload
        */
-      query: ({ appointmentId, data }) => ({
+      query: ({ appointmentId, versionId, data }) => ({
         url: managementPlanUrl(appointmentId),
         method: "POST",
-        body: data, // ✅ must be 'body', not 'data'
+        body: {
+          ...data,
+          consultation_version: versionId,
+        },
         headers: { "Content-Type": "application/json" },
       }),
     }),
@@ -77,11 +96,23 @@ export const managementApi = apiClient.injectEndpoints({
     // 🔹 FETCH CASE MANAGEMENT GUIDE (GET)
     // ============================================================
     getCaseManagementGuide: builder.query({
-      query: (appointmentId) => ({
-        url: caseManagementGuideUrl(appointmentId), // /management/case-guide/create/<id>/
-        method: "GET",
-      }),
-      providesTags: (result, error, appointmentId) => [
+      query: ({ appointmentId, versionId } = {}) => {
+        if (versionId && appointmentId) {
+          return {
+            url: caseManagementGuideByVersionUrl(appointmentId, versionId),
+            method: "GET",
+          };
+        }
+        if (appointmentId) {
+          return {
+            url: caseManagementGuideUrl(appointmentId),
+            method: "GET",
+          };
+        }
+        return { url: "" };
+      },
+      skip: ({ appointmentId } = {}) => !appointmentId,
+      providesTags: (result, error, { appointmentId }) => [
         { type: "CaseManagementGuide", id: appointmentId },
       ],
     }),
@@ -90,12 +121,20 @@ export const managementApi = apiClient.injectEndpoints({
     // 🔹 UPDATE CASE MANAGEMENT GUIDE (PUT)
     // ============================================================
     updateCaseManagementGuide: builder.mutation({
-      query: ({ appointmentId, data }) => ({
-        url: updateCaseManagementGuideUrl(appointmentId), // /management/case-guide/<id>/
-        method: "PUT",
-        body: data,
-        headers: { "Content-Type": "application/json" },
-      }),
+      query: ({ appointmentId, versionId, data }) => {
+        const url = versionId 
+          ? updateCaseManagementGuideByVersionUrl(appointmentId, versionId)
+          : updateCaseManagementGuideUrl(appointmentId);
+        return {
+          url,
+          method: "PUT",
+          body: {
+            ...data,
+            consultation_version: versionId,
+          },
+          headers: { "Content-Type": "application/json" },
+        };
+      },
       invalidatesTags: (result, error, { appointmentId }) => [
         { type: "CaseManagementGuide", id: appointmentId },
       ],

@@ -8,8 +8,10 @@ import ManagementPlanSection from "./ManagementPlanSection";
 import useDiagnosisData from "../hooks/useDiagnosisData";
 import SupervisorGradingButton from "./ui/buttons/SupervisorGradingButton";
 import useComponentGrading from "../hooks/useComponentGrading";
+import useConsultationContext from "../hooks/useConsultationContext";
 
 const Diagnosis = ({ appointmentId, setFlowStep, setActiveTab, canEdit = true }) => {
+  const { versionId } = useConsultationContext();
   const {
     appointmentDiagnosis,
     diagnosisList,
@@ -20,7 +22,7 @@ const Diagnosis = ({ appointmentId, setFlowStep, setActiveTab, canEdit = true })
     isAppointmentDiagnosisLoading,
     isDiagnosisLoading,
     refetchDiagnosis,
-  } = useDiagnosisData(appointmentId);
+  } = useDiagnosisData(appointmentId, versionId);
 
   const { section, sectionLabel } = useComponentGrading("DIAGNOSIS", appointmentId);
 
@@ -31,27 +33,37 @@ const Diagnosis = ({ appointmentId, setFlowStep, setActiveTab, canEdit = true })
   useEffect(() => {
     if (!appointmentDiagnosis) return;
 
-    setDifferentialDiagnosis(appointmentDiagnosis.differential_diagnosis || "");
+    console.log("📥 Appointment Diagnosis data received:", appointmentDiagnosis);
 
-    if (Array.isArray(appointmentDiagnosis.final_diagnoses_info)) {
-      setFinalDiagnosisEntries(
-        appointmentDiagnosis.final_diagnoses_info.map((d) => {
-          const diagnosisInfo = diagnosisList?.find((diag) => diag.id === d.code?.id);
-          return {
-            id: d.code?.id,
-            name:
-              diagnosisInfo?.diagnosis ||
-              `Code: ${d.code?.id}` ||
-              "Unnamed diagnosis",
-            affected_eye: d.affected_eye || "",
-            notes: d.notes || "",
-            queries: d.queries?.map((q) => ({ query: q })) || [{ query: "" }],
-            management_plan: d.management_plan || "",
-          };
-        })
-      );
-    } else {
-      setFinalDiagnosisEntries([]);
+    // Handle both array and object responses
+    const diagnosisData = Array.isArray(appointmentDiagnosis) 
+      ? appointmentDiagnosis[0] 
+      : appointmentDiagnosis;
+
+    if (diagnosisData) {
+      setDifferentialDiagnosis(diagnosisData.differential_diagnosis || "");
+      console.log("✅ Differential diagnosis set to:", diagnosisData.differential_diagnosis);
+
+      if (Array.isArray(diagnosisData.final_diagnoses_info)) {
+        setFinalDiagnosisEntries(
+          diagnosisData.final_diagnoses_info.map((d) => {
+            const diagnosisInfo = diagnosisList?.find((diag) => diag.id === d.code?.id);
+            return {
+              id: d.code?.id,
+              name:
+                diagnosisInfo?.diagnosis ||
+                `Code: ${d.code?.id}` ||
+                "Unnamed diagnosis",
+              affected_eye: d.affected_eye || "",
+              notes: d.notes || "",
+              queries: d.queries?.map((q) => ({ query: q })) || [{ query: "" }],
+              management_plan: d.management_plan || "",
+            };
+          })
+        );
+      } else {
+        setFinalDiagnosisEntries([]);
+      }
     }
   }, [appointmentDiagnosis, diagnosisList]);
 
@@ -78,10 +90,10 @@ const Diagnosis = ({ appointmentId, setFlowStep, setActiveTab, canEdit = true })
       const hasExisting = appointmentDiagnosis && appointmentDiagnosis.id;
 
       if (hasExisting) {
-        await updateDiagnosis({ appointmentId, data: payload }).unwrap();
+        await updateDiagnosis({ appointmentId, versionId, data: payload }).unwrap();
         showToast("Diagnosis updated successfully ✅", "success");
       } else {
-        await createDiagnosis({ appointmentId, data: payload }).unwrap();
+        await createDiagnosis({ appointmentId, versionId, data: payload }).unwrap();
         showToast("Diagnosis saved successfully ✅", "success");
       }
 
@@ -187,10 +199,13 @@ const Diagnosis = ({ appointmentId, setFlowStep, setActiveTab, canEdit = true })
             </label>
             <textarea
               value={differentialDiagnosis}
-              onChange={(e) => setDifferentialDiagnosis(e.target.value)}
-              className="w-full border p-3 rounded-md"
+              onChange={(e) => {
+                console.log("📝 Differential diagnosis changed to:", e.target.value);
+                setDifferentialDiagnosis(e.target.value);
+              }}
+              className="w-full border p-3 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
               placeholder="Enter differential diagnosis..."
-              disabled={!canEdit}
+              rows={4}
             />
           </div>
 
@@ -220,7 +235,6 @@ const Diagnosis = ({ appointmentId, setFlowStep, setActiveTab, canEdit = true })
               onSelect={handleAddFinalDiagnosis}
               conditionKey="value"
               conditionNameKey="label"
-              disabled={!canEdit}
             />
 
             {finalDiagnosisEntries.length > 0 && (
@@ -232,7 +246,6 @@ const Diagnosis = ({ appointmentId, setFlowStep, setActiveTab, canEdit = true })
                       <button
                         onClick={() => handleRemoveDiagnosis(d.id)}
                         className="text-sm text-red-600 hover:underline"
-                        disabled={!canEdit}
                       >
                         Remove
                       </button>
@@ -245,7 +258,6 @@ const Diagnosis = ({ appointmentId, setFlowStep, setActiveTab, canEdit = true })
                       onChange={(index, value) =>
                         updateDiagnosisQuery(d.id, index, value)
                       }
-                      disabled={!canEdit}
                     />
 
                     <ManagementPlanSection
@@ -253,7 +265,6 @@ const Diagnosis = ({ appointmentId, setFlowStep, setActiveTab, canEdit = true })
                       onChange={(val) =>
                         updateDiagnosisField(d.id, "management_plan", val)
                       }
-                      disabled={!canEdit}
                     />
 
                     <AffectedEyeSelect
@@ -261,7 +272,6 @@ const Diagnosis = ({ appointmentId, setFlowStep, setActiveTab, canEdit = true })
                       onChange={(val) =>
                         updateDiagnosisField(d.id, "affected_eye", val)
                       }
-                      disabled={!canEdit}
                     />
 
                     <NotesTextArea
@@ -269,7 +279,6 @@ const Diagnosis = ({ appointmentId, setFlowStep, setActiveTab, canEdit = true })
                       onChange={(val) =>
                         updateDiagnosisField(d.id, "notes", val)
                       }
-                      disabled={!canEdit}
                     />
                   </div>
                 ))}
@@ -291,7 +300,7 @@ const Diagnosis = ({ appointmentId, setFlowStep, setActiveTab, canEdit = true })
             <button
               onClick={handleSubmit}
               className="px-6 py-2 text-white bg-indigo-700 hover:bg-indigo-800 rounded-lg"
-              disabled={!canEdit || isCreatingDiagnosis || isUpdatingDiagnosis}
+              disabled={isCreatingDiagnosis || isUpdatingDiagnosis}
             >
               {isCreatingDiagnosis || isUpdatingDiagnosis
                 ? "Saving..."

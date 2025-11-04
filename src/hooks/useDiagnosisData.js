@@ -6,7 +6,7 @@ import {
   useGetAppointmentDiagnosisQuery,
 } from "../redux/api/features/diagnosisApi";
 
-const useDiagnosisData = (appointmentId = null) => {
+const useDiagnosisData = (appointmentId = null, versionId = null) => {
   const {
     data: diagnosisList = [],
     isLoading: isDiagnosisLoading,
@@ -16,12 +16,12 @@ const useDiagnosisData = (appointmentId = null) => {
   } = useGetAllDiagnosisQuery();
 
   const {
-    data: appointmentDiagnosis = [],
+    data: appointmentDiagnosis = null,
     isLoading: isAppointmentDiagnosisLoading,
     isError: isAppointmentDiagnosisError,
     error: appointmentDiagnosisError,
     refetch: refetchAppointmentDiagnosis,
-  } = useGetAppointmentDiagnosisQuery(appointmentId, {
+  } = useGetAppointmentDiagnosisQuery({ appointmentId, versionId }, {
     skip: !appointmentId,
   });
 

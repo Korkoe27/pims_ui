@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { FaChevronDown, FaChevronUp } from "react-icons/fa";
-import { useParams } from "react-router-dom";
 import useInternalObservationData from "../hooks/useInternalObservationData";
 import useComponentGrading from "../hooks/useComponentGrading";
+import useConsultationContext from "../hooks/useConsultationContext";
 import {
   showToast,
   formatErrorMessage,
@@ -16,8 +16,8 @@ import NotesTextArea from "./NotesTextArea";
 import NavigationButtons from "../components/NavigationButtons";
 import SupervisorGradingButton from "./ui/buttons/SupervisorGradingButton";
 
-const Internals = ({ setActiveTab, setTabCompletionStatus }) => {
-  const { appointmentId } = useParams();
+const Internals = ({ appointmentId, setActiveTab, setTabCompletionStatus }) => {
+  const { versionId } = useConsultationContext();
 
   const [formData, setFormData] = useState({});
   const [mainOpen, setMainOpen] = useState({});
@@ -29,7 +29,7 @@ const Internals = ({ setActiveTab, setTabCompletionStatus }) => {
     conditions: rawConditions,
     existingObservations,
     createInternalObservation,
-  } = useInternalObservationData(appointmentId);
+  } = useInternalObservationData(appointmentId, versionId);
 
   const { section, sectionLabel } = useComponentGrading(
     "INTERNAL_OBSERVATION",
@@ -208,15 +208,22 @@ const Internals = ({ setActiveTab, setTabCompletionStatus }) => {
     });
 
     try {
-      await createInternalObservation({
-        appointment: appointmentId,
+      console.log("🔹 Saving internals with payload:", {
+        appointmentId: appointmentId,
         observations: payload,
+        consultation_version: versionId,
+      });
+      await createInternalObservation({
+        appointmentId: appointmentId,
+        observations: payload,
+        consultation_version: versionId,
       }).unwrap();
 
       showToast("Internal Observations Saved", "success");
       setTabCompletionStatus?.((prev) => ({ ...prev, internals: true }));
       setActiveTab("refraction");
     } catch (err) {
+      console.error("❌ Error saving internals:", err);
       showToast(formatErrorMessage(err?.data), "error");
     }
   };

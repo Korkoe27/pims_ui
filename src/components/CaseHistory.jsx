@@ -31,7 +31,10 @@ const CaseHistory = ({
   // -------------------------------------------------------------------------
   const { versionId } = useConsultationContext();
   const { data: caseHistory, isLoading: loadingCaseHistory } =
-    useFetchCaseHistoryQuery(appointmentId, { skip: !appointmentId });
+    useFetchCaseHistoryQuery(
+      { appointmentId, versionId },
+      { skip: !appointmentId || !versionId }
+    );
 
   const { directQuestioningConditions, isLoading: loadingConditions } =
     useFetchConditionsData();

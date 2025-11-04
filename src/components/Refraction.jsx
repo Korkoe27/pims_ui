@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { GrAdd } from "react-icons/gr";
-import { useParams } from "react-router-dom";
 import useRefractionData from "../hooks/useRefractionData";
+import useConsultationContext from "../hooks/useConsultationContext";
 import { showToast } from "../components/ToasterHelper";
 import { hasFormChanged } from "../utils/deepCompare";
 import SPHValidator from "./validators/SPHValidator";
@@ -27,9 +27,9 @@ const FIELDS = {
   va_0_4m: VAValidator,
 };
 
-const Refraction = ({ setActiveTab, setTabCompletionStatus }) => {
-  const { appointmentId } = useParams();
-  const { refraction, createRefraction } = useRefractionData(appointmentId);
+const Refraction = ({ appointmentId, setActiveTab, setTabCompletionStatus }) => {
+  const { versionId } = useConsultationContext();
+  const { refraction, createRefraction } = useRefractionData(appointmentId, versionId);
   const { section, sectionLabel } = useComponentGrading("REFRACTION", appointmentId);
 
   const [formData, setFormData] = useState({
@@ -158,11 +158,21 @@ const Refraction = ({ setActiveTab, setTabCompletionStatus }) => {
     }
 
     try {
-      await createRefraction({ appointmentId, ...payload }).unwrap();
+      console.log("🔹 Saving refraction with payload:", {
+        appointmentId,
+        consultation_version: versionId,
+        ...payload,
+      });
+      await createRefraction({
+        appointmentId,
+        consultation_version: versionId,
+        ...payload,
+      }).unwrap();
       showToast("Refraction saved successfully!", "success");
       setTabCompletionStatus?.((p) => ({ ...p, refraction: true }));
       setActiveTab("extra tests");
     } catch (error) {
+      console.error("❌ Error saving refraction:", error);
       showToast("Failed to save refraction. Please try again.", "error");
     }
   };
