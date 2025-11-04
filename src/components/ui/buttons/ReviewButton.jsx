@@ -1,37 +1,45 @@
 // src/components/ui/buttons/ReviewButton.jsx
 import React, { useState } from "react";
 import { useSelector } from "react-redux";
+import { useFetchConsultationVersionsQuery } from "../../../redux/api/features/consultationsApi";
 import ReviewModal from "../../ReviewModal";
 
 /**
- * ReviewButton Component (Simplified)
+ * ReviewButton Component (Dynamic)
  *
  * Single button that:
  * 1. Shows for lecturers on "submitted for review" / "under review" appointments
- * 2. Opens unified ReviewModal
- * 3. Modal handles: check existing → create if needed → navigate
- *
- * Much simpler than before - delegates all logic to ReviewModal
+ * 2. Checks if review version exists
+ * 3. Shows "Continue Review" if exists, "Start Review" if not
+ * 4. Opens unified ReviewModal
+ * 5. Modal handles: check existing → create if needed → navigate
  */
 
 const ReviewButton = ({ appointment }) => {
   const access = useSelector((s) => s.auth?.user?.access || {});
   const [showModal, setShowModal] = useState(false);
 
+  // 🔹 Fetch consultation versions to check for existing review
+  const { data: versions = [] } = useFetchConsultationVersionsQuery(
+    appointment?.id,
+    { skip: !appointment?.id }
+  );
+
   // 🔹 Show only for lecturers on submitted/under-review appointments
   if (!ReviewButton.shouldShow(access, appointment)) return null;
 
-  const status = (appointment.status || "").toLowerCase();
+  // 🔹 Check if review version already exists
+  const hasReview = versions.some(
+    (v) => v.version_type === "review" && !v.is_final
+  );
 
-  let label = "Review Case";
-  let tooltip = "";
+  // 🔹 Determine button label based on review existence
+  let label = "Start Review";
+  let tooltip = "Initiate review of this consultation";
 
-  if (status === "under review") {
+  if (hasReview) {
     label = "Continue Review";
     tooltip = "Review and finalize this case";
-  } else if (status === "submitted for review") {
-    label = "Start Review";
-    tooltip = "Initiate review of this consultation";
   }
 
   return (
