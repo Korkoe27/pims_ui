@@ -26,7 +26,11 @@ const Management = ({ setFlowStep, appointmentId }) => {
 
   // ✅ Current consultation version from Redux
   const versionId = useSelector((s) => s.consultation.versionId);
+  const versionType = useSelector((s) => s.consultation.versionType);
+  const isReviewMode = versionType === "review"; // 🔹 Detect if we're in review mode
   console.log("📝 Current versionId from Redux:", versionId);
+  console.log("📝 Current versionType from Redux:", versionType);
+  console.log("📝 Is Review Mode:", isReviewMode);
 
   // ✅ Hydrate versionId automatically if null
   useEffect(() => {
@@ -129,16 +133,29 @@ const Management = ({ setFlowStep, appointmentId }) => {
   // ✅ Tabs visibility
   const ALL_TABS = [
     { key: "management", label: "Management" },
-    { key: "case_guide", label: "Case Management Guide" },
+    { key: "case_guide", label: "Management Plan" },
     { key: "logs", label: "Logs" },
     { key: "submit", label: "Submit" },
     { key: "complete", label: "Complete" },
   ];
 
   let visibleTabs = [];
-  if (permissions.canSubmitConsultations) {
+  
+  if (isReviewMode) {
+    // 🔹 In review mode: Show Management, Management Plan, Logs, Complete (no Submit)
+    visibleTabs = ALL_TABS.filter(
+      (tab) => ["management", "case_guide", "logs", "complete"].includes(tab.key)
+    );
+  } else if (permissions.canSubmitConsultations) {
+    // 🔹 Student: Show all except Complete
     visibleTabs = ALL_TABS.filter((tab) => tab.key !== "complete");
+  } else if (permissions.canGradeStudents) {
+    // 🔹 Reviewer: Show Management, Management Plan, Logs, Complete (no Submit)
+    visibleTabs = ALL_TABS.filter(
+      (tab) => ["management", "case_guide", "logs", "complete"].includes(tab.key)
+    );
   } else if (permissions.canCompleteConsultations) {
+    // 🔹 Clinician: Show only Management and Complete
     visibleTabs = ALL_TABS.filter(
       (tab) => tab.key === "management" || tab.key === "complete"
     );
