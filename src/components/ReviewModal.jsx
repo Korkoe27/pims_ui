@@ -3,10 +3,10 @@ import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import {
   useFetchConsultationVersionsQuery,
-  useInitiateReviewMutation,
 } from "../redux/api/features/consultationsApi";
 import { setCurrentConsultation } from "../redux/slices/consultationSlice";
 import { showToast } from "./ToasterHelper";
+import useInitiateReview from "../hooks/useInitiateReview";
 
 /**
  * ReviewModal Component (Unified)
@@ -18,15 +18,20 @@ import { showToast } from "./ToasterHelper";
  * 4. If not → Initiate review (create new reviewed version)
  * 5. Auto-navigates to reviewed version
  *
+ * Uses new endpoint: POST /consultations/versions/{version_id}/initiate-review/
+ * Handles both 200 OK (review exists) and 201 CREATED (review created)
+ * 
  * Error Handling:
  * - Shows clear steps: "Checking... → Creating/Fetching... → Navigating..."
  * - Handles already-initiated reviews gracefully
+ * - Shows cloned records count on successful creation
  */
 
 const ReviewModal = ({ appointmentId, studentVersionId, onClose, onSuccess }) => {
   const [step, setStep] = useState("checking"); // checking → processing → navigating
   const [error, setError] = useState(null);
   const [reviewedVersion, setReviewedVersion] = useState(null);
+  const [recordsCloned, setRecordsCloned] = useState(0);
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -37,8 +42,9 @@ const ReviewModal = ({ appointmentId, studentVersionId, onClose, onSuccess }) =>
       skip: !appointmentId,
     });
 
-  const [initiateReview, { isLoading: initiating }] =
-    useInitiateReviewMutation();
+  // 🔹 Use new review initiation hook
+  const { initiateReview, isLoading: initiating } =
+    useInitiateReview(appointmentId);
 
   // 🔹 Auto-start the review process when modal opens
   useEffect(() => {
@@ -49,60 +55,50 @@ const ReviewModal = ({ appointmentId, studentVersionId, onClose, onSuccess }) =>
 
         // 1️⃣ Check if reviewed version already exists
         const existingReviewed = versions.find(
-          (v) => v.version_type === "reviewed" && !v.is_final
+          (v) => v.version_type === "review" && !v.is_final
         );
 
         if (existingReviewed) {
-          console.log("✅ Found existing reviewed version:", existingReviewed.id);
+          console.log("✅ Found existing review version:", existingReviewed.id);
           setReviewedVersion(existingReviewed);
           setStep("navigating");
           handleNavigateToReviewed(existingReviewed);
           return;
         }
 
-        // 2️⃣ If not, initiate review to create new reviewed version
-        console.log("📋 No reviewed version found, initiating review...");
+        // 2️⃣ If not, initiate review to create new review version
+        console.log("📋 No review version found, initiating review...");
         setStep("processing");
 
-        const result = await initiateReview(studentVersionId).unwrap();
+        const result = await initiateReview(studentVersionId);
+
+        if (!result.success) {
+          throw new Error(result.error);
+        }
 
         console.log("✅ Review initiated successfully:", result.version);
         setReviewedVersion(result.version);
+        if (result.recordsCloned) {
+          setRecordsCloned(result.recordsCloned);
+        }
         setStep("navigating");
 
-        showToast("Review version created successfully!", "success");
-        handleNavigateToReviewed(result.version);
+        // Auto-navigate (initiateReview hook already handles navigation)
+        // Just close the modal
+        onSuccess?.();
+        onClose?.();
       } catch (err) {
         console.error("❌ Error processing review:", err);
-
-        // Check if error is because review already exists
-        const errorMsg = err.data?.detail || err.message || "Failed to process review";
-
-        if (errorMsg.includes("already been initiated")) {
-          // Extract version ID from error if available
-          const match = errorMsg.match(/Review version:\s*([a-f0-9\-]+)/i);
-          const reviewVersionId = match ? match[1] : null;
-
-          if (reviewVersionId) {
-            console.log("📍 Review already exists, navigating to it:", reviewVersionId);
-            setReviewedVersion({ id: reviewVersionId });
-            setStep("navigating");
-            handleNavigateToReviewed({ id: reviewVersionId });
-            showToast("Review already initiated. Navigating to it...", "info");
-            return;
-          }
-        }
-
+        const errorMsg = err.message || "Failed to process review";
         setError(errorMsg);
         setStep("error");
-        showToast(errorMsg, "error");
       }
     };
 
     if (versions.length > 0 || !loadingVersions) {
       processReview();
     }
-  }, [versions, loadingVersions, studentVersionId, initiateReview]);
+  }, [versions, loadingVersions, studentVersionId, initiateReview, onSuccess, onClose]);
 
   const handleNavigateToReviewed = (version) => {
     try {
@@ -111,9 +107,10 @@ const ReviewModal = ({ appointmentId, studentVersionId, onClose, onSuccess }) =>
         setCurrentConsultation({
           id: version.id,
           versionId: version.id,
-          version_type: version.version_type || "reviewed",
+          version_type: version.version_type || "review",
           is_final: version.is_final || false,
           flowType: "lecturer_reviewing",
+          appointmentId,
         })
       );
 
@@ -124,7 +121,7 @@ const ReviewModal = ({ appointmentId, studentVersionId, onClose, onSuccess }) =>
       onClose?.();
     } catch (err) {
       console.error("Navigation error:", err);
-      setError("Failed to navigate to reviewed version");
+      setError("Failed to navigate to review version");
       setStep("error");
     }
   };
@@ -148,15 +145,15 @@ const ReviewModal = ({ appointmentId, studentVersionId, onClose, onSuccess }) =>
                 <p className="text-sm text-gray-700 font-semibold">
                   {step === "checking"
                     ? "Checking for existing review..."
-                    : "Creating reviewed version..."}
+                    : "Creating review version..."}
                 </p>
               </div>
 
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <ul className="text-xs text-blue-800 space-y-1 list-disc list-inside">
-                  <li>Checking for existing reviewed version</li>
+                  <li>Checking for existing review version</li>
                   <li>If found: Will fetch and open it</li>
-                  <li>If not: Will create new reviewed version</li>
+                  <li>If not: Will create new review version</li>
                   <li>Auto-navigating to review view...</li>
                 </ul>
               </div>
@@ -170,7 +167,7 @@ const ReviewModal = ({ appointmentId, studentVersionId, onClose, onSuccess }) =>
                 <div className="inline-block text-4xl">✅</div>
               </div>
               <p className="text-sm text-gray-700 font-semibold">
-                Review ready! Navigating to reviewed version...
+                Review ready! Navigating to review editor...
               </p>
             </div>
           )}
