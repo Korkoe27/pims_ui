@@ -208,8 +208,12 @@ export const managementPlanByVersionUrl = (appointmentId, versionId) =>
 
 export const caseManagementGuideUrl = (appointmentId) =>
   `/management/case-guide/create/${appointmentId}/`;
+export const caseManagementGuideByVersionUrl = (appointmentId, versionId) =>
+  `/management/case-guide/create/${appointmentId}/?consultation_version=${versionId}`;
 export const updateCaseManagementGuideUrl = (appointmentId) =>
   `/management/case-guide/${appointmentId}/`;
+export const updateCaseManagementGuideByVersionUrl = (appointmentId, versionId) =>
+  `/management/case-guide/${appointmentId}/?consultation_version=${versionId}`;
 export const deleteCaseManagementGuideUrl = (appointmentId) =>
   `/management/case-guide/${appointmentId}/`;
 
