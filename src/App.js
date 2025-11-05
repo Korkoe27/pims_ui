@@ -31,6 +31,7 @@ import {
   MyCases,
   MyScores,
   PharmacyOrder,
+  Documentation,
 } from "./pages";
 
 import Layout from "./pages/Layout";
@@ -220,6 +221,9 @@ const App = () => {
             <Route path="inventory" element={<Inventory />} />
             <Route path="my-cases" element={<MyCases />} />
             <Route path="patients/search" element={<PatientSearchResults />} />
+
+            {/* 📚 Documentation */}
+            <Route path="documentation" element={<Documentation />} />
           </Route>
         </Routes>
       </BrowserRouter>
