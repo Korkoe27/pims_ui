@@ -2,7 +2,7 @@ import { RxDashboard } from "react-icons/rx";
 import { IoCalendarClearOutline } from "react-icons/io5";
 import { LuUsers } from "react-icons/lu";
 import { MdOutlineSchedule, MdOutlineLogout } from "react-icons/md";
-import { HiOutlineClipboardList, HiOutlineDocumentReport } from "react-icons/hi";
+import { HiOutlineClipboardList, HiOutlineDocumentReport, HiOutlineQuestionMarkCircle } from "react-icons/hi";
 
 // Each link is now controlled by backend access keys (e.g., canViewAppointments)
 export const Sidebar_links = [
@@ -47,6 +47,12 @@ export const Sidebar_links = [
     icon: <HiOutlineDocumentReport className="text-xl font-bold" />,
     path: "/reports",
     permissionKey: "canViewReports",
+  },
+  {
+    name: "documentation",
+    icon: <HiOutlineQuestionMarkCircle className="text-xl font-bold" />,
+    path: "/documentation",
+    // Available to all users
   },
 ];
 
