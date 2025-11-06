@@ -108,60 +108,6 @@ const ClinicSchedule = () => {
         </CanAccess>
       </div>
 
-      {/* Schedule Table */}
-      <Card className="p-4">
-        {scheduleLoading ? (
-          <p>Loading schedules...</p>
-        ) : scheduleData.length > 0 ? (
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-sm text-left text-gray-500 border">
-              <thead className="bg-gray-100 text-gray-700 uppercase text-xs">
-                <tr>
-                  <th className="px-6 py-3 font-semibold">Date</th>
-                  <th className="px-6 py-3 font-semibold">Staff</th>
-                  <th className="px-6 py-3 font-semibold">Start Time</th>
-                  <th className="px-6 py-3 font-semibold">End Time</th>
-                  {hasActionAccess && (
-                    <th className="px-6 py-3 font-semibold text-center">
-                      Actions
-                    </th>
-                  )}
-                </tr>
-              </thead>
-              <tbody>
-                {scheduleData.map((schedule) => (
-                  <tr key={schedule.id} className="bg-white border-b">
-                    <td className="px-6 py-4">{schedule.date}</td>
-                    <td className="px-6 py-4">
-                      {schedule.staff_names?.join(", ") || "—"}
-                    </td>
-                    <td className="px-6 py-4">{schedule.start_time}</td>
-                    <td className="px-6 py-4">{schedule.end_time}</td>
-
-                    {hasActionAccess && (
-                      <td className="px-6 py-4 text-center">
-                        <div className="flex gap-2 justify-center">
-                          <EditClinicScheduleButton
-                            onClick={() => handleEdit(schedule)}
-                          />
-                          <DeleteClinicScheduleButton
-                            onClick={() => handleDelete(schedule.id)}
-                          />
-                        </div>
-                      </td>
-                    )}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <p className="text-gray-500 text-sm text-center py-4">
-            No schedules available.
-          </p>
-        )}
-      </Card>
-
       {/* Calendar View */}
       <div className="mt-8">
         <Card className="p-4">
