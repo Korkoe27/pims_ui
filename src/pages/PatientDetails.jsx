@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useLocation } from "react-router-dom";
+import { useSelector } from "react-redux";
 import { useGetPatientAppointmentsQuery } from "../redux/api/features/patientApi";
 import CaseHistoryView from "../components/CaseHistoryView";
 import PersonalHistoryView from "../components/PersonalHistoryView";
@@ -11,6 +12,7 @@ import ExtraTestsView from "../components/ExtraTestsView";
 import DiagnosisView from "../components/DiagnosisView";
 import ManagementView from "../components/ManagementView";
 import PageContainer from "../components/PageContainer";
+import ViewAppointmentButton from "../components/ui/buttons/ViewAppointmentButton";
 
 const TabButton = ({ label, value, active, onClick }) => (
   <button
@@ -188,44 +190,53 @@ const PatientInfoSection = ({ patient }) => (
   </div>
 );
 
-const AppointmentSection = ({ appointments, isLoading, error, onView }) => (
-  <div className="bg-gray-50 p-6 rounded shadow">
-    <h3 className="text-xl font-bold text-[#2f3192] mb-4">Appointments</h3>
-    {isLoading && <p>Loading appointments...</p>}
-    {error && <p className="text-red-500">Error fetching appointments.</p>}
-    {!isLoading && appointments?.length === 0 && (
-      <p className="text-gray-500">No appointments available.</p>
-    )}
-    {!isLoading && appointments?.length > 0 && (
-      <table className="w-full text-sm text-left">
-        <thead className="text-xs text-gray-700 uppercase bg-gray-100">
-          <tr>
-            <th className="px-6 py-3">Date</th>
-            <th className="px-6 py-3">Type</th>
-            <th className="px-6 py-3">Status</th>
-            <th className="px-6 py-3">Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          {appointments.map((appt) => (
-            <tr key={appt.id} className="bg-white border-b">
-              <td className="px-6 py-4">{appt.appointment_date}</td>
-              <td className="px-6 py-4">{appt.appointment_type_name}</td>
-              <td className="px-6 py-4">{appt.status}</td>
-              <td className="px-6 py-4">
-                <button
-                  onClick={() => onView(appt)}
-                  className="bg-[#2f3192] text-white px-4 py-2 rounded hover:bg-[#1e226d]"
-                >
-                  View More
-                </button>
-              </td>
+const AppointmentSection = ({ appointments, isLoading, error, onView }) => {
+  const access = useSelector((s) => s.auth?.user?.access || {});
+  
+  // Check if user has permission to view appointment details
+  const hasActionAccess = ViewAppointmentButton.shouldShow(access);
+
+  return (
+    <div className="bg-gray-50 p-6 rounded shadow">
+      <h3 className="text-xl font-bold text-[#2f3192] mb-4">Appointments</h3>
+      {isLoading && <p>Loading appointments...</p>}
+      {error && <p className="text-red-500">Error fetching appointments.</p>}
+      {!isLoading && appointments?.length === 0 && (
+        <p className="text-gray-500">No appointments available.</p>
+      )}
+      {!isLoading && appointments?.length > 0 && (
+        <table className="w-full text-sm text-left">
+          <thead className="text-xs text-gray-700 uppercase bg-gray-100">
+            <tr>
+              <th className="px-6 py-3">Date</th>
+              <th className="px-6 py-3">Type</th>
+              <th className="px-6 py-3">Status</th>
+              {hasActionAccess && (
+                <th className="px-6 py-3">Action</th>
+              )}
             </tr>
-          ))}
-        </tbody>
-      </table>
-    )}
-  </div>
-);
+          </thead>
+          <tbody>
+            {appointments.map((appt) => (
+              <tr key={appt.id} className="bg-white border-b">
+                <td className="px-6 py-4">{appt.appointment_date}</td>
+                <td className="px-6 py-4">{appt.appointment_type_name}</td>
+                <td className="px-6 py-4">{appt.status}</td>
+                {hasActionAccess && (
+                  <td className="px-6 py-4">
+                    <ViewAppointmentButton
+                      appointment={appt}
+                      onView={() => onView(appt)}
+                    />
+                  </td>
+                )}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </div>
+  );
+};
 
 export default PatientDetails;
