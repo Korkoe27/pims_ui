@@ -26,11 +26,36 @@ const CustomEvent = ({ event }) => {
 const ClinicScheduleCalendar = () => {
   const { data: scheduleData = [], isLoading } = useGetClinicSchedulesQuery();
 
-  const events = scheduleData.map((item) => ({
-    title: item.staff?.name || "Staff",
-    start: new Date(`${item.date}T${item.start_time}`),
-    end: new Date(`${item.date}T${item.end_time}`),
-  }));
+  const events = scheduleData.map((item) => {
+    // Handle different response structures for staff names
+    let staffDisplay = "Staff";
+    
+    if (Array.isArray(item.staff_names) && item.staff_names.length > 0) {
+      // Array of staff names
+      staffDisplay = item.staff_names.join(", ");
+    } else if (typeof item.staff_names === "string" && item.staff_names) {
+      // Single staff name as string
+      staffDisplay = item.staff_names;
+    } else if (item.staff?.first_name && item.staff?.last_name) {
+      // Nested staff object with first_name and last_name
+      staffDisplay = `${item.staff.first_name} ${item.staff.last_name}`;
+    } else if (item.staff?.username) {
+      // Fallback to username
+      staffDisplay = item.staff.username;
+    } else if (item.staff_member?.first_name && item.staff_member?.last_name) {
+      // Alternative nested structure with first/last name
+      staffDisplay = `${item.staff_member.first_name} ${item.staff_member.last_name}`;
+    } else if (item.staff_member?.username) {
+      // Alternative nested structure with username
+      staffDisplay = item.staff_member.username;
+    }
+
+    return {
+      title: staffDisplay,
+      start: new Date(`${item.date}T${item.start_time}`),
+      end: new Date(`${item.date}T${item.end_time}`),
+    };
+  });
 
   const eventStyleGetter = () => {
     return {
