@@ -18,57 +18,99 @@ const localizer = dateFnsLocalizer({
   locales,
 });
 
+// ✅ Color palette for different time slots
+const COLORS = [
+  { bg: "#2563eb", border: "#1e40af" },      // Blue
+  { bg: "#7c3aed", border: "#6d28d9" },      // Violet
+  { bg: "#059669", border: "#047857" },      // Green
+  { bg: "#dc2626", border: "#991b1b" },      // Red
+  { bg: "#ea580c", border: "#c2410c" },      // Orange
+  { bg: "#0891b2", border: "#0e7490" },      // Cyan
+  { bg: "#d946ef", border: "#c026d3" },      // Magenta
+  { bg: "#f59e0b", border: "#d97706" },      // Amber
+];
+
 // ✅ Custom rendering: remove time from top of block
 const CustomEvent = ({ event }) => {
-  return <span className="whitespace-pre-wrap">{event.title}</span>;
+  return <span className="whitespace-pre-wrap text-sm font-semibold">{event.title}</span>;
 };
 
 const ClinicScheduleCalendar = () => {
   const { data: scheduleData = [], isLoading } = useGetClinicSchedulesQuery();
 
-  const events = scheduleData.map((item) => {
-    // Handle different response structures for staff names
-    let staffDisplay = "Staff";
+  // Group schedules by date and time, combining staff with same time
+  const groupedSchedules = scheduleData.reduce((acc, item) => {
+    const key = `${item.date}T${item.start_time}T${item.end_time}`;
     
-    if (Array.isArray(item.staff_names) && item.staff_names.length > 0) {
-      // Array of staff names
-      staffDisplay = item.staff_names.join(", ");
-    } else if (typeof item.staff_names === "string" && item.staff_names) {
-      // Single staff name as string
-      staffDisplay = item.staff_names;
-    } else if (item.staff?.first_name && item.staff?.last_name) {
-      // Nested staff object with first_name and last_name
-      staffDisplay = `${item.staff.first_name} ${item.staff.last_name}`;
-    } else if (item.staff?.username) {
-      // Fallback to username
-      staffDisplay = item.staff.username;
-    } else if (item.staff_member?.first_name && item.staff_member?.last_name) {
-      // Alternative nested structure with first/last name
-      staffDisplay = `${item.staff_member.first_name} ${item.staff_member.last_name}`;
-    } else if (item.staff_member?.username) {
-      // Alternative nested structure with username
-      staffDisplay = item.staff_member.username;
+    if (!acc[key]) {
+      acc[key] = {
+        date: item.date,
+        start_time: item.start_time,
+        end_time: item.end_time,
+        staffNames: [],
+      };
     }
+    
+    // Add staff name to the list
+    if (item.staff?.first_name && item.staff?.last_name) {
+      acc[key].staffNames.push(`${item.staff.first_name} ${item.staff.last_name}`);
+    } else if (item.staff?.username) {
+      acc[key].staffNames.push(item.staff.username);
+    }
+    
+    return acc;
+  }, {});
+
+  // Group by date to detect overlapping slots
+  const schedulesByDate = {};
+  Object.values(groupedSchedules).forEach((schedule) => {
+    if (!schedulesByDate[schedule.date]) {
+      schedulesByDate[schedule.date] = [];
+    }
+    schedulesByDate[schedule.date].push(schedule);
+  });
+
+  // Assign colors based on time slot overlap
+  const timeSlotColors = {};
+  Object.entries(schedulesByDate).forEach(([date, daySchedules]) => {
+    // Sort by start time
+    const sorted = daySchedules.sort((a, b) => a.start_time.localeCompare(b.start_time));
+    
+    sorted.forEach((schedule, index) => {
+      const key = `${schedule.date}T${schedule.start_time}T${schedule.end_time}`;
+      timeSlotColors[key] = COLORS[index % COLORS.length];
+    });
+  });
+
+  const events = Object.values(groupedSchedules).map((item) => {
+    // Join all staff names with line breaks for better display
+    const staffDisplay = item.staffNames.length > 0 
+      ? item.staffNames.join("\n") 
+      : "Staff";
+
+    const key = `${item.date}T${item.start_time}T${item.end_time}`;
 
     return {
       title: staffDisplay,
       start: new Date(`${item.date}T${item.start_time}`),
       end: new Date(`${item.date}T${item.end_time}`),
+      colorKey: key,
     };
   });
 
-  const eventStyleGetter = () => {
+  const eventStyleGetter = (event) => {
+    const color = timeSlotColors[event.colorKey] || COLORS[0];
     return {
       style: {
-        backgroundColor: "#2563eb", // Tailwind blue-600
+        backgroundColor: color.bg,
+        borderLeft: `4px solid ${color.border}`,
         borderRadius: "6px",
-        padding: "4px 8px",
+        padding: "6px 8px",
         color: "#fff",
         border: "none",
-        display: "flex",
-        alignItems: "center",
         fontWeight: 600,
         fontSize: "0.85rem",
+        boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
       },
     };
   };
