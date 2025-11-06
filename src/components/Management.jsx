@@ -172,6 +172,18 @@ const Management = ({ setFlowStep, appointmentId }) => {
         return;
       }
 
+      // ✅ VALIDATE MEDICATIONS if enabled
+      if (checkboxes.medications && selectedMedications.length > 0) {
+        const invalidMeds = selectedMedications.filter(
+          (med) => !med.name?.trim() || !med.eye || !med.dosage?.trim()
+        );
+        
+        if (invalidMeds.length > 0) {
+          showToast("Please complete all medication fields (name, eye, dosage).", "error");
+          return;
+        }
+      }
+
       const payload = {
         appointment: apptId,
         refractive_correction: !!checkboxes.refractiveCorrection,
@@ -188,7 +200,11 @@ const Management = ({ setFlowStep, appointmentId }) => {
         surgery_details: details.surgery_details || null,
         referral_details: details.referral_details || null,
         medication_instructions: checkboxes.medications
-          ? selectedMedications
+          ? selectedMedications.map((med) => ({
+              medication_name: med.name,
+              medication_eye: med.eye,
+              medication_dosage: med.dosage,
+            }))
           : [],
       };
 
