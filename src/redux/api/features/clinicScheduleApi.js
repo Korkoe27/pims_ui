@@ -4,6 +4,7 @@ import {
   clinicScheduleUrl,
   listScheduleStaffUrl,
   fetchClinicScheduleByDateUrl,
+  availableStaffUrl,
 } from "../end_points/endpoints";
 
 export const clinicScheduleApi = apiClient.injectEndpoints({
@@ -16,10 +17,18 @@ export const clinicScheduleApi = apiClient.injectEndpoints({
       }),
     }),
 
-    // GET: List of staff
+    // GET: List of ALL staff (no filtering)
     getScheduleStaff: builder.query({
       query: () => ({
         url: listScheduleStaffUrl,
+        method: "GET",
+      }),
+    }),
+
+    // GET: List of AVAILABLE staff (excluding those on approved absence)
+    getAvailableStaff: builder.query({
+      query: (date = null) => ({
+        url: availableStaffUrl(date),
         method: "GET",
       }),
     }),
@@ -38,5 +47,6 @@ export const clinicScheduleApi = apiClient.injectEndpoints({
 export const {
   useGetClinicSchedulesQuery,
   useGetScheduleStaffQuery,
+  useGetAvailableStaffQuery,
   useCreateClinicScheduleMutation,
 } = clinicScheduleApi;

@@ -235,6 +235,8 @@ export const clinicScheduleUrl = "/clinic-schedule/schedules/";
 export const fetchClinicScheduleByDateUrl = (date) =>
   `/clinic-schedule/schedules/?date=${date}`;
 export const listScheduleStaffUrl = "/clinic-schedule/staff/";
+export const availableStaffUrl = (date = null) =>
+  date ? `/clinic-schedule/available-staff/?date=${date}` : "/clinic-schedule/available-staff/";
 
 
 /////////////////////////

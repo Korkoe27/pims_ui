@@ -2,9 +2,10 @@ import React, { useEffect, useState } from "react";
 import { useFetchCaseHistoryQuery } from "../redux/api/features/caseHistoryApi";
 
 const CaseHistoryView = ({ appointmentId }) => {
-  const { data: caseHistory, isLoading, error } = useFetchCaseHistoryQuery(appointmentId, {
-    skip: !appointmentId,
-  });
+  const { data: caseHistory, isLoading, error } = useFetchCaseHistoryQuery(
+    { appointmentId },
+    { skip: !appointmentId }
+  );
 
   const [conditions, setConditions] = useState([]);
 
