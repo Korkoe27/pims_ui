@@ -210,7 +210,7 @@ const AppointmentSection = ({ appointments, isLoading, error, onView }) => (
           {appointments.map((appt) => (
             <tr key={appt.id} className="bg-white border-b">
               <td className="px-6 py-4">{appt.appointment_date}</td>
-              <td className="px-6 py-4">{appt.appointment_type}</td>
+              <td className="px-6 py-4">{appt.appointment_type_name}</td>
               <td className="px-6 py-4">{appt.status}</td>
               <td className="px-6 py-4">
                 <button
