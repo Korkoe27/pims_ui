@@ -49,7 +49,12 @@ const PersonalHistoryView = ({ patientId, appointmentId }) => {
                 <p className="text-sm">Eye: {c.affected_eye}</p>
               )}
               {c.value && (
-                <p className="text-sm">Value: {c.value}</p>
+                <p className="text-sm">
+                  {c.field_type ? 
+                    `${c.field_type.charAt(0).toUpperCase() + c.field_type.slice(1)}: ${c.value}` 
+                    : `Value: ${c.value}`
+                  }
+                </p>
               )}
               {c.grading && <p className="text-sm">Grading: {c.grading}</p>}
               {c.notes && <p className="text-sm">Notes: {c.notes}</p>}
