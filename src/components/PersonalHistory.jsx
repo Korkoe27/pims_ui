@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState, Fragment } from "react";
 import usePersonalHistoryData from "../hooks/usePersonalHistoryData";
 import useFetchConditionsData from "../hooks/useFetchConditionsData";
 import GradingSelect from "./GradingSelect";
-import NotesTextArea from "./NotesTextArea"; // kept (used before; not used now for general notes)
 import DeleteButton from "./DeleteButton";
 import { showToast } from "../components/ToasterHelper";
 import { hasFormChanged } from "../utils/deepCompare";
@@ -537,13 +536,6 @@ export default function PersonalHistory({
 
   // Derived loading state
   const isLoadingData = loadingPersonalHistory;
-  const isLoadingOptions =
-    !Array.isArray(medicalConditions) ||
-    !Array.isArray(ocularConditions) ||
-    medicalConditions.length === 0 ||
-    ocularConditions.length === 0;
-
-  const isLoading = (!isFirstVisit && !personalHistory) || isLoadingOptions;
 
   // Hydrate from server once available
   useEffect(() => {
@@ -743,11 +735,11 @@ export default function PersonalHistory({
   // Memoized options
   const medicalOptions = useMemo(
     () => med.formatOptions(medicalConditions),
-    [medicalConditions]
+    [medicalConditions, med]
   );
   const ocularOptions = useMemo(
     () => ocu.formatOptions(ocularConditions),
-    [ocularConditions]
+    [ocularConditions, ocu]
   );
 
   return (

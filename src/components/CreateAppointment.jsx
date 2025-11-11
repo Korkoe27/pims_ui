@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom"; // ✅ import navigate
 import { useDispatch } from "react-redux";
 import {
@@ -48,14 +48,7 @@ const CreateAppointment = () => {
     }
   }, [appointmentTypes, isTypesLoading, isTypesError]);
 
-  // Fetch patient insurances when component mounts
-  useEffect(() => {
-    if (patient?.id) {
-      loadPatientInsurances();
-    }
-  }, [patient]);
-
-  const loadPatientInsurances = () => {
+  const loadPatientInsurances = useCallback(() => {
     if (patient?.id) {
       fetchPatientInsurances({ patientId: patient.id, activeOnly: true })
         .unwrap()
@@ -67,7 +60,14 @@ const CreateAppointment = () => {
           setPatientInsurances([]);
         });
     }
-  };
+  }, [patient?.id, fetchPatientInsurances]);
+
+  // Fetch patient insurances when component mounts
+  useEffect(() => {
+    if (patient?.id) {
+      loadPatientInsurances();
+    }
+  }, [patient?.id, loadPatientInsurances]);
 
   const handleInsuranceAdded = (newInsurance) => {
     // Refresh insurance list

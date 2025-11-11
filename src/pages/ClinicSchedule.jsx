@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { useSelector } from "react-redux";
 import PageContainer from "../components/PageContainer";
 import Card from "../components/ui/card";
 import ClinicScheduleCalendar from "../components/ClinicScheduleCalendar";
@@ -10,8 +9,6 @@ import {
 } from "../redux/api/features/clinicScheduleApi";
 import { toast } from "react-hot-toast";
 import CanAccess from "../components/auth/CanAccess";
-import EditClinicScheduleButton from "../components/ui/buttons/EditClinicScheduleButton";
-import DeleteClinicScheduleButton from "../components/ui/buttons/DeleteClinicScheduleButton";
 
 const ClinicSchedule = () => {
   const [showModal, setShowModal] = useState(false);
@@ -32,13 +29,6 @@ const ClinicSchedule = () => {
   
   const [createSchedule, { isLoading: creating }] =
     useCreateClinicScheduleMutation();
-
-  const { user } = useSelector((state) => state.auth || {});
-  const access = user?.access || {};
-
-  // ✅ Helper: determine if Action column should show
-  const hasActionAccess =
-    access.canUpdateClinicSchedule || access.canDeleteClinicSchedule;
 
   const handleCheckboxChange = (staffId) => {
     setSelectedStaff((prev) =>
@@ -80,16 +70,6 @@ const ClinicSchedule = () => {
       toast.dismiss();
       toast.error("Failed to create schedule.");
     }
-  };
-
-  const handleEdit = (schedule) => {
-    toast(`Editing schedule for ${schedule.date}`, { icon: "📝" });
-    // Future: open edit modal prefilled with schedule data
-  };
-
-  const handleDelete = (scheduleId) => {
-    toast(`Deleting schedule ${scheduleId}...`, { icon: "🗑️" });
-    // Future: trigger delete mutation with confirmation modal
   };
 
   return (

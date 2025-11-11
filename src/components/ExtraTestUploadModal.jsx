@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { IoClose } from "react-icons/io5";
 import { showToast } from "../components/ToasterHelper";
+import { useGetTonometryMethodsQuery } from "../redux/api/features/extraTestsApi";
 
 const TEST_OPTIONS = [
   "OCT",
@@ -30,6 +31,9 @@ const ExtraTestUploadModal = ({
   const [iopOd, setIopOd] = useState("");
   const [iopOs, setIopOs] = useState("");
   const [recordedAt, setRecordedAt] = useState("");
+
+  // Fetch tonometry methods from backend
+  const { data: tonometryData, isLoading: isLoadingMethods } = useGetTonometryMethodsQuery();
 
   // ------------------------------------------------------
   // 🔹 File Handling
@@ -139,12 +143,16 @@ const ExtraTestUploadModal = ({
                 onChange={(e) => setMethod(e.target.value)}
                 className="border rounded p-3"
                 required
+                disabled={isLoadingMethods}
               >
-                <option value="">Select Tonometry Method</option>
-                <option value="Applanation">Applanation</option>
-                <option value="Tonopen">Tonopen</option>
-                <option value="Non-Contact">Non-Contact</option>
-                <option value="Other">Other</option>
+                <option value="">
+                  {isLoadingMethods ? "Loading methods..." : "Select Tonometry Method"}
+                </option>
+                {tonometryData?.tonometry_methods?.map((methodOption) => (
+                  <option key={methodOption.value} value={methodOption.value}>
+                    {methodOption.label}
+                  </option>
+                ))}
               </select>
               <div className="flex gap-2">
                 <input
