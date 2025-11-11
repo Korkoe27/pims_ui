@@ -9,9 +9,15 @@ const AddInsuranceModal = ({ isOpen, onClose, patientId, onInsuranceAdded }) => 
   const [createInsurance, { isLoading }] = useCreateInsuranceMutation();
   const { data: insuranceOptions, isLoading: isLoadingOptions } = useGetInsuranceOptionsQuery();
 
+  // Set default values based on loaded insurance options
+  const defaultInsuranceType = insuranceOptions?.insurance_types?.[0]?.value || "";
+  const defaultProvider = insuranceOptions?.insurance_providers?.find(
+    p => p.insurance_type_id === defaultInsuranceType
+  )?.value || "";
+
   const [formData, setFormData] = useState({
-    insurance_type: "National",
-    insurance_provider: "NHIS",
+    insurance_type: defaultInsuranceType,
+    insurance_provider: defaultProvider,
     insurance_number: "",
     is_active: true,
     is_primary: false,
@@ -20,12 +26,43 @@ const AddInsuranceModal = ({ isOpen, onClose, patientId, onInsuranceAdded }) => 
 
   const [errors, setErrors] = useState({});
 
+  // Update formData when insurance options are loaded
+  React.useEffect(() => {
+    if (insuranceOptions && !formData.insurance_type) {
+      const defaultType = insuranceOptions.insurance_types?.[0]?.value || "";
+      const defaultProv = insuranceOptions.insurance_providers?.find(
+        p => p.insurance_type_id === defaultType
+      )?.value || "";
+      
+      setFormData(prev => ({
+        ...prev,
+        insurance_type: defaultType,
+        insurance_provider: defaultProv,
+      }));
+    }
+  }, [insuranceOptions]);
+
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }));
+    
+    // If insurance_type changes, reset insurance_provider to first matching provider
+    if (name === "insurance_type") {
+      const firstProvider = insuranceOptions?.insurance_providers?.find(
+        p => p.insurance_type_id === value
+      )?.value || "";
+      
+      setFormData((prev) => ({
+        ...prev,
+        insurance_type: value,
+        insurance_provider: firstProvider,
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: type === "checkbox" ? checked : value,
+      }));
+    }
+    
     // Clear error for this field
     setErrors((prev) => ({ ...prev, [name]: "" }));
   };
@@ -54,9 +91,14 @@ const AddInsuranceModal = ({ isOpen, onClose, patientId, onInsuranceAdded }) => 
       showToast("✅ Insurance added successfully!", "success");
       
       // Reset form
+      const defaultType = insuranceOptions?.insurance_types?.[0]?.value || "";
+      const defaultProv = insuranceOptions?.insurance_providers?.find(
+        p => p.insurance_type_id === defaultType
+      )?.value || "";
+      
       setFormData({
-        insurance_type: "National",
-        insurance_provider: "NHIS",
+        insurance_type: defaultType,
+        insurance_provider: defaultProv,
         insurance_number: "",
         is_active: true,
         is_primary: false,

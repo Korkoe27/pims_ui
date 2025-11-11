@@ -69,6 +69,27 @@ const PersonalInfo = () => {
     }
   }, [selectedClinic]);
 
+  // Initialize insurance with proper IDs when options load
+  useEffect(() => {
+    if (insuranceOptions && insurances[0]?.insurance_type === "National") {
+      const defaultType = insuranceOptions.insurance_types?.[0]?.value || "";
+      const defaultProvider = insuranceOptions.insurance_providers?.find(
+        p => p.insurance_type_id === defaultType
+      )?.value || "";
+      
+      if (defaultType) {
+        setInsurances([{
+          insurance_type: defaultType,
+          insurance_provider: defaultProvider,
+          insurance_number: "",
+          is_active: true,
+          is_primary: true,
+          expiry_date: "",
+        }]);
+      }
+    }
+  }, [insuranceOptions]);
+
   useEffect(() => {
     if (!selectedClinic) setIsModalOpen(true);
   }, [selectedClinic]);
@@ -98,6 +119,14 @@ const PersonalInfo = () => {
       const updated = [...prev];
       updated[index] = { ...updated[index], [field]: value };
       
+      // If insurance_type changes, reset provider to first matching one
+      if (field === "insurance_type") {
+        const firstProvider = insuranceOptions?.insurance_providers?.find(
+          p => p.insurance_type_id === value
+        )?.value || "";
+        updated[index].insurance_provider = firstProvider;
+      }
+      
       // If setting as primary, unset others
       if (field === "is_primary" && value === true) {
         updated.forEach((ins, i) => {
@@ -110,11 +139,16 @@ const PersonalInfo = () => {
   };
 
   const addInsurance = () => {
+    const defaultType = insuranceOptions?.insurance_types?.[0]?.value || "";
+    const defaultProvider = insuranceOptions?.insurance_providers?.find(
+      p => p.insurance_type_id === defaultType
+    )?.value || "";
+    
     setInsurances((prev) => [
       ...prev,
       {
-        insurance_type: "National",
-        insurance_provider: "NHIS",
+        insurance_type: defaultType,
+        insurance_provider: defaultProvider,
         insurance_number: "",
         is_active: true,
         is_primary: false,
