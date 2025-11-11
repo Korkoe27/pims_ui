@@ -55,7 +55,7 @@ const PersonalInfo = () => {
   ]);
 
   const [errors, setErrors] = useState({});
-  const [createPatient] = useCreatePatientMutation();
+  const [createPatient, { isLoading: isCreatingPatient }] = useCreatePatientMutation();
   const { data: insuranceOptions, isLoading: isLoadingOptions } = useGetInsuranceOptionsQuery();
 
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -105,8 +105,41 @@ const PersonalInfo = () => {
     if (
       ["primary_phone", "alternate_phone", "emergency_contact_number"].includes(name)
     ) {
-      if (!/^(02|05)\d{8}$/.test(value)) {
+      if (value && !/^(02|05)\d{8}$/.test(value)) {
         error = "Must start with 02** or 05** and be 10 digits";
+      }
+      
+      // Check for duplicate phone numbers
+      if (value && value.length === 10) {
+        const phoneNumbers = {
+          primary_phone: formData.primary_phone,
+          alternate_phone: formData.alternate_phone,
+          emergency_contact_number: formData.emergency_contact_number,
+          [name]: value, // Update with current value
+        };
+        
+        // Check if alternate_phone matches primary_phone
+        if (name === "alternate_phone" && value === phoneNumbers.primary_phone) {
+          error = "Alternate number cannot be the same as primary number";
+        }
+        
+        // Check if emergency_contact_number matches primary_phone or alternate_phone
+        if (name === "emergency_contact_number") {
+          if (value === phoneNumbers.primary_phone) {
+            error = "Emergency contact cannot be the same as primary number";
+          } else if (value === phoneNumbers.alternate_phone) {
+            error = "Emergency contact cannot be the same as alternate number";
+          }
+        }
+        
+        // Check if primary_phone matches alternate_phone or emergency_contact_number
+        if (name === "primary_phone") {
+          if (value === phoneNumbers.alternate_phone) {
+            error = "Primary number cannot be the same as alternate number";
+          } else if (value === phoneNumbers.emergency_contact_number) {
+            error = "Primary number cannot be the same as emergency contact";
+          }
+        }
       }
     }
 
@@ -188,8 +221,45 @@ const PersonalInfo = () => {
       if (!formData[field]) validationErrors[field] = "Required";
     });
 
+    // Validate phone number format
+    const phoneFields = ["primary_phone", "alternate_phone", "emergency_contact_number"];
+    phoneFields.forEach((field) => {
+      if (formData[field] && !/^(02|05)\d{8}$/.test(formData[field])) {
+        validationErrors[field] = "Must start with 02** or 05** and be 10 digits";
+      }
+    });
+
+    // Validate phone numbers are unique
+    const phoneNumbers = [
+      { field: "primary_phone", value: formData.primary_phone },
+      { field: "alternate_phone", value: formData.alternate_phone },
+      { field: "emergency_contact_number", value: formData.emergency_contact_number },
+    ].filter((p) => p.value); // Only check filled numbers
+
+    // Check for duplicates
+    if (formData.alternate_phone && formData.alternate_phone === formData.primary_phone) {
+      validationErrors.alternate_phone = "Alternate number cannot be the same as primary number";
+    }
+    if (formData.emergency_contact_number) {
+      if (formData.emergency_contact_number === formData.primary_phone) {
+        validationErrors.emergency_contact_number = "Emergency contact cannot be the same as primary number";
+      } else if (formData.emergency_contact_number === formData.alternate_phone) {
+        validationErrors.emergency_contact_number = "Emergency contact cannot be the same as alternate number";
+      }
+    }
+
     setErrors(validationErrors);
-    if (Object.keys(validationErrors).length) return;
+    if (Object.keys(validationErrors).length) {
+      showToast("Please fix validation errors before submitting", "error");
+      // Scroll to first error
+      const firstErrorField = Object.keys(validationErrors)[0];
+      const element = document.querySelector(`[name="${firstErrorField}"]`);
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth", block: "center" });
+        element.focus();
+      }
+      return;
+    }
 
     // Validate insurance entries - at least one should have insurance_number if provided
     const validInsurances = insurances.filter((ins) => ins.insurance_number.trim() !== "");
@@ -434,6 +504,7 @@ const PersonalInfo = () => {
                 value={formData.alternate_phone}
                 onChange={handleChange}
                 placeholder="0555555555"
+                error={errors.alternate_phone}
                 icon={<IoPhonePortraitOutline />}
               />
               <InputField
@@ -598,8 +669,8 @@ const PersonalInfo = () => {
 
           {/* ---------- Actions ---------- */}
           <div className="flex gap-8 justify-center my-16">
-            <AddPatientFormButton onClick={handleAddPatient} />
-            <ScheduleAppointmentButton onClick={handleScheduleAppointment} />
+            <AddPatientFormButton onClick={handleAddPatient} isLoading={isCreatingPatient} />
+            <ScheduleAppointmentButton onClick={handleScheduleAppointment} isLoading={isCreatingPatient} />
           </div>
         </form>
       )}
