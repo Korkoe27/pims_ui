@@ -271,6 +271,26 @@ export const upsertPharmacyOrderUrl = (appointmentId) =>
 
 
 /////////////////////////
+// Billing & Payments
+/////////////////////////
+
+// Pharmacy Bills
+export const pharmacyBillsUrl = "/billing/bills/";
+export const pharmacyBillDetailUrl = (billId) => `/billing/bills/${billId}/`;
+export const appointmentBillsUrl = (appointmentId) =>
+  `/billing/bills/appointment/${appointmentId}/`;
+export const pendingBillsUrl = "/billing/bills/pending/";
+
+// Payments
+export const paymentsUrl = "/billing/payments/";
+export const paymentDetailUrl = (paymentId) => `/billing/payments/${paymentId}/`;
+export const billPaymentsUrl = (billId) =>
+  `/billing/payments/bill/${billId}/`;
+export const billPaymentSummaryUrl = (billId) =>
+  `/billing/payments/bill/${billId}/summary/`;
+
+
+/////////////////////////
 // Grading
 /////////////////////////
 

@@ -33,6 +33,7 @@ import {
   PharmacyOrder,
   Documentation,
   StudentPortal,
+  Finance,
 } from "./pages";
 
 import Layout from "./pages/Layout";
@@ -228,6 +229,16 @@ const App = () => {
 
             {/* 🎓 Student Portal */}
             <Route path="student-portal" element={<StudentPortal />} />
+
+            {/* 💰 Finance */}
+            <Route
+              path="finance"
+              element={
+                <ProtectedRoute accessKeys={["canViewConsultations"]}>
+                  <Finance />
+                </ProtectedRoute>
+              }
+            />
           </Route>
         </Routes>
       </BrowserRouter>
