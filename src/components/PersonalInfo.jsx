@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { setPatientId } from "../redux/slices/patientSlice";
 import { useCreatePatientMutation } from "../redux/api/features/patientApi";
+import { useGetInsuranceOptionsQuery } from "../redux/api/features/insuranceApi";
 import SelectClinicModal from "../components/SelectClinicModal";
 import ConfirmSaveModal from "./ConfirmSaveModal";
 import { showToast } from "../components/ToasterHelper";
@@ -39,12 +40,23 @@ const PersonalInfo = () => {
     emergency_contact_number: "",
     hospitalId: "",
     dateOfFirstVisit: "",
-    healthInsuranceProvider: "",
-    healthInsuranceNumber: "",
   });
+
+  // Separate state for insurance records
+  const [insurances, setInsurances] = useState([
+    {
+      insurance_type: "National",
+      insurance_provider: "NHIS",
+      insurance_number: "",
+      is_active: true,
+      is_primary: true,
+      expiry_date: "",
+    },
+  ]);
 
   const [errors, setErrors] = useState({});
   const [createPatient] = useCreatePatientMutation();
+  const { data: insuranceOptions, isLoading: isLoadingOptions } = useGetInsuranceOptionsQuery();
 
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [confirmMessage, setConfirmMessage] = useState("");
@@ -56,6 +68,27 @@ const PersonalInfo = () => {
       setFormData((prev) => ({ ...prev, clinic: selectedClinic }));
     }
   }, [selectedClinic]);
+
+  // Initialize insurance with proper IDs when options load
+  useEffect(() => {
+    if (insuranceOptions && insurances[0]?.insurance_type === "National") {
+      const defaultType = insuranceOptions.insurance_types?.[0]?.value || "";
+      const defaultProvider = insuranceOptions.insurance_providers?.find(
+        p => p.insurance_type_id === defaultType
+      )?.value || "";
+      
+      if (defaultType) {
+        setInsurances([{
+          insurance_type: defaultType,
+          insurance_provider: defaultProvider,
+          insurance_number: "",
+          is_active: true,
+          is_primary: true,
+          expiry_date: "",
+        }]);
+      }
+    }
+  }, [insuranceOptions]);
 
   useEffect(() => {
     if (!selectedClinic) setIsModalOpen(true);
@@ -76,12 +109,60 @@ const PersonalInfo = () => {
         error = "Must start with 02** or 05** and be 10 digits";
       }
     }
-    if (name === "healthInsuranceNumber" && value.length > 20) {
-      error = "Max 20 characters";
-    }
 
     setFormData((prev) => ({ ...prev, [name]: value }));
     setErrors((prev) => ({ ...prev, [name]: error }));
+  };
+
+  const handleInsuranceChange = (index, field, value) => {
+    setInsurances((prev) => {
+      const updated = [...prev];
+      updated[index] = { ...updated[index], [field]: value };
+      
+      // If insurance_type changes, reset provider to first matching one
+      if (field === "insurance_type") {
+        const firstProvider = insuranceOptions?.insurance_providers?.find(
+          p => p.insurance_type_id === value
+        )?.value || "";
+        updated[index].insurance_provider = firstProvider;
+      }
+      
+      // If setting as primary, unset others
+      if (field === "is_primary" && value === true) {
+        updated.forEach((ins, i) => {
+          if (i !== index) ins.is_primary = false;
+        });
+      }
+      
+      return updated;
+    });
+  };
+
+  const addInsurance = () => {
+    const defaultType = insuranceOptions?.insurance_types?.[0]?.value || "";
+    const defaultProvider = insuranceOptions?.insurance_providers?.find(
+      p => p.insurance_type_id === defaultType
+    )?.value || "";
+    
+    setInsurances((prev) => [
+      ...prev,
+      {
+        insurance_type: defaultType,
+        insurance_provider: defaultProvider,
+        insurance_number: "",
+        is_active: true,
+        is_primary: false,
+        expiry_date: "",
+      },
+    ]);
+  };
+
+  const removeInsurance = (index) => {
+    if (insurances.length === 1) {
+      showToast("At least one insurance entry is required", "warning");
+      return;
+    }
+    setInsurances((prev) => prev.filter((_, i) => i !== index));
   };
 
   const createPatientHandler = async (onSuccess, confirmSave = false) => {
@@ -110,12 +191,22 @@ const PersonalInfo = () => {
     setErrors(validationErrors);
     if (Object.keys(validationErrors).length) return;
 
+    // Validate insurance entries - at least one should have insurance_number if provided
+    const validInsurances = insurances.filter((ins) => ins.insurance_number.trim() !== "");
+    
     try {
       showToast("Creating patient...", "info");
-      const response = await createPatient({
+      const payload = {
         ...formData,
         confirm_save: confirmSave ? true : undefined,
-      }).unwrap();
+      };
+      
+      // Add insurance data if any valid entries exist
+      if (validInsurances.length > 0) {
+        payload.insurance_data = validInsurances;
+      }
+      
+      const response = await createPatient(payload).unwrap();
 
       dispatch(setPatientId(response.id));
       showToast("✅ Patient created successfully.", "success");
@@ -376,20 +467,133 @@ const PersonalInfo = () => {
                 onChange={handleChange}
                 type="date"
               />
-              <SelectField
-                label="Insurance Provider"
-                name="healthInsuranceProvider"
-                value={formData.healthInsuranceProvider}
-                onChange={handleChange}
-                options={["NHIS", "Private"]}
-              />
-              <InputField
-                label="Insurance Number"
-                name="healthInsuranceNumber"
-                value={formData.healthInsuranceNumber}
-                onChange={handleChange}
-              />
             </aside>
+          </section>
+
+          {/* ---------- Section 3: Insurance ---------- */}
+          <section className="pt-16 border-t border-[#d9d9d9]">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-semibold">Health Insurance Information</h2>
+              <button
+                type="button"
+                onClick={addInsurance}
+                className="px-4 py-2 bg-[#2f3192] text-white rounded-lg hover:bg-[#1f2170] transition"
+              >
+                + Add Insurance
+              </button>
+            </div>
+
+            <div className="space-y-8">
+              {insurances.map((insurance, index) => (
+                <div
+                  key={index}
+                  className="p-6 border border-[#d0d5dd] rounded-lg bg-gray-50 relative"
+                >
+                  {insurances.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => removeInsurance(index)}
+                      className="absolute top-4 right-4 text-red-500 hover:text-red-700"
+                      title="Remove insurance"
+                    >
+                      ✕
+                    </button>
+                  )}
+
+                  <div className="grid grid-cols-2 gap-6">
+                    <SelectField
+                      label="Insurance Type"
+                      name={`insurance_type_${index}`}
+                      value={insurance.insurance_type}
+                      onChange={(e) =>
+                        handleInsuranceChange(index, "insurance_type", e.target.value)
+                      }
+                      options={
+                        isLoadingOptions
+                          ? ["Loading..."]
+                          : insuranceOptions?.insurance_types?.map((t) => t.value) || ["National", "Private"]
+                      }
+                      optionLabels={
+                        insuranceOptions?.insurance_types?.reduce((acc, t) => {
+                          acc[t.value] = t.label;
+                          return acc;
+                        }, {})
+                      }
+                    />
+
+                    <SelectField
+                      label="Insurance Provider"
+                      name={`insurance_provider_${index}`}
+                      value={insurance.insurance_provider}
+                      onChange={(e) =>
+                        handleInsuranceChange(index, "insurance_provider", e.target.value)
+                      }
+                      options={
+                        isLoadingOptions
+                          ? ["Loading..."]
+                          : insuranceOptions?.insurance_providers
+                              ?.filter(p => p.insurance_type_id === insurance.insurance_type)
+                              ?.map((p) => p.value) || ["NHIS"]
+                      }
+                      optionLabels={
+                        insuranceOptions?.insurance_providers
+                          ?.filter(p => p.insurance_type_id === insurance.insurance_type)
+                          ?.reduce((acc, p) => {
+                            acc[p.value] = p.label;
+                            return acc;
+                          }, {})
+                      }
+                    />
+
+                    <InputField
+                      label="Insurance Number"
+                      name={`insurance_number_${index}`}
+                      value={insurance.insurance_number}
+                      onChange={(e) =>
+                        handleInsuranceChange(index, "insurance_number", e.target.value)
+                      }
+                      placeholder="Enter insurance number"
+                    />
+
+                    <InputField
+                      label="Expiry Date (Optional)"
+                      name={`expiry_date_${index}`}
+                      type="date"
+                      value={insurance.expiry_date}
+                      onChange={(e) =>
+                        handleInsuranceChange(index, "expiry_date", e.target.value)
+                      }
+                    />
+
+                    <div className="flex items-center gap-4">
+                      <label className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={insurance.is_active}
+                          onChange={(e) =>
+                            handleInsuranceChange(index, "is_active", e.target.checked)
+                          }
+                          className="w-4 h-4"
+                        />
+                        <span className="text-[#101928]">Active</span>
+                      </label>
+
+                      <label className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={insurance.is_primary}
+                          onChange={(e) =>
+                            handleInsuranceChange(index, "is_primary", e.target.checked)
+                          }
+                          className="w-4 h-4"
+                        />
+                        <span className="text-[#101928]">Primary Insurance</span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </section>
 
           {/* ---------- Actions ---------- */}
@@ -462,7 +666,7 @@ const InputField = ({
   </div>
 );
 
-const SelectField = ({ label, name, value, onChange, options, error }) => (
+const SelectField = ({ label, name, value, onChange, options, optionLabels, error }) => (
   <div className="flex flex-col gap-2">
     <label htmlFor={name} className="text-[#101928]">
       {label}{" "}
@@ -481,7 +685,7 @@ const SelectField = ({ label, name, value, onChange, options, error }) => (
       <option value="">Select an option</option>
       {options.map((option, idx) => (
         <option key={idx} value={option}>
-          {option}
+          {optionLabels ? optionLabels[option] || option : option}
         </option>
       ))}
     </select>

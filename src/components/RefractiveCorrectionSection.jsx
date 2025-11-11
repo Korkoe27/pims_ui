@@ -111,7 +111,7 @@ const RefractiveCorrectionSection = ({ prescription, handleInputChange }) => {
 
       {/* --- PD, Segment Height, Fitting Cross Height --- */}
       <div className="flex gap-10 w-fit">
-        {["pd", "segment_height", "fitting_cross_height"].map((key) => (
+        {["PD", "segment_height", "fitting_cross_height"].map((key) => (
           <label key={key} className="flex flex-col gap-1">
             {key.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())}
             <input

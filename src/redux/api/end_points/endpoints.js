@@ -41,6 +41,17 @@ export const searchPatientsUrl = (searchQuery) =>
 export const fetchPatientAppointmentsUrl = (patientId) =>
   `/clients/${patientId}/appointments/`;
 
+// Fetch all insurances for a patient
+export const fetchPatientInsurancesUrl = (patientId) =>
+  `/clients/${patientId}/insurances/`;
+
+// Create a new insurance for a patient
+export const createInsuranceUrl = (patientId) =>
+  `/clients/${patientId}/insurances/create/`;
+
+// Fetch insurance options (types and providers)
+export const fetchInsuranceOptionsUrl = "/clients/insurance/options/";
+
 
 /////////////////////////
 // Appointments
@@ -235,6 +246,8 @@ export const clinicScheduleUrl = "/clinic-schedule/schedules/";
 export const fetchClinicScheduleByDateUrl = (date) =>
   `/clinic-schedule/schedules/?date=${date}`;
 export const listScheduleStaffUrl = "/clinic-schedule/staff/";
+export const availableStaffUrl = (date = null) =>
+  date ? `/clinic-schedule/available-staff/?date=${date}` : "/clinic-schedule/available-staff/";
 
 
 /////////////////////////

@@ -3,6 +3,7 @@ import { IoCalendarClearOutline } from "react-icons/io5";
 import { LuUsers } from "react-icons/lu";
 import { MdOutlineSchedule, MdOutlineLogout } from "react-icons/md";
 import { HiOutlineClipboardList, HiOutlineDocumentReport, HiOutlineQuestionMarkCircle } from "react-icons/hi";
+import { FaUserGraduate } from "react-icons/fa";
 
 // Each link is now controlled by backend access keys (e.g., canViewAppointments)
 export const Sidebar_links = [
@@ -35,6 +36,11 @@ export const Sidebar_links = [
     icon: <HiOutlineClipboardList className="text-xl font-bold" />,
     path: "/pending-reviews",
     permissionKey: "canGradeStudents", // students & lecturers get this if allowed
+  },
+  {
+    name: "Student Portal",
+    icon: <FaUserGraduate className="text-xl font-bold" />,
+    path: "/student-portal",
   },
   {
     name: "absent request",

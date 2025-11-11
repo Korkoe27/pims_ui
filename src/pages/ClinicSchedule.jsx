@@ -4,7 +4,7 @@ import PageContainer from "../components/PageContainer";
 import Card from "../components/ui/card";
 import ClinicScheduleCalendar from "../components/ClinicScheduleCalendar";
 import {
-  useGetScheduleStaffQuery,
+  useGetAvailableStaffQuery,
   useCreateClinicScheduleMutation,
   useGetClinicSchedulesQuery,
 } from "../redux/api/features/clinicScheduleApi";
@@ -22,8 +22,14 @@ const ClinicSchedule = () => {
 
   const { data: scheduleData = [], isLoading: scheduleLoading } =
     useGetClinicSchedulesQuery();
-  const { data: staff = [], isLoading: staffLoading } =
-    useGetScheduleStaffQuery();
+  
+  // 🔹 Fetch AVAILABLE staff for the selected date (excludes staff on approved absence)
+  const { data: staffResponse = [], isLoading: staffLoading } =
+    useGetAvailableStaffQuery(selectedDate || null);
+  
+  // 🔹 Extract staff array and handle response structure
+  const staff = Array.isArray(staffResponse) ? staffResponse : staffResponse.results || [];
+  
   const [createSchedule, { isLoading: creating }] =
     useCreateClinicScheduleMutation();
 
@@ -40,6 +46,11 @@ const ClinicSchedule = () => {
         ? prev.filter((id) => id !== staffId)
         : [...prev, staffId]
     );
+  };
+
+  const handleDateChange = (date) => {
+    setSelectedDate(date);
+    setSelectedStaff([]); // Reset selected staff when date changes
   };
 
   const handleSubmit = async (e) => {
@@ -97,60 +108,6 @@ const ClinicSchedule = () => {
         </CanAccess>
       </div>
 
-      {/* Schedule Table */}
-      <Card className="p-4">
-        {scheduleLoading ? (
-          <p>Loading schedules...</p>
-        ) : scheduleData.length > 0 ? (
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-sm text-left text-gray-500 border">
-              <thead className="bg-gray-100 text-gray-700 uppercase text-xs">
-                <tr>
-                  <th className="px-6 py-3 font-semibold">Date</th>
-                  <th className="px-6 py-3 font-semibold">Staff</th>
-                  <th className="px-6 py-3 font-semibold">Start Time</th>
-                  <th className="px-6 py-3 font-semibold">End Time</th>
-                  {hasActionAccess && (
-                    <th className="px-6 py-3 font-semibold text-center">
-                      Actions
-                    </th>
-                  )}
-                </tr>
-              </thead>
-              <tbody>
-                {scheduleData.map((schedule) => (
-                  <tr key={schedule.id} className="bg-white border-b">
-                    <td className="px-6 py-4">{schedule.date}</td>
-                    <td className="px-6 py-4">
-                      {schedule.staff_names?.join(", ") || "—"}
-                    </td>
-                    <td className="px-6 py-4">{schedule.start_time}</td>
-                    <td className="px-6 py-4">{schedule.end_time}</td>
-
-                    {hasActionAccess && (
-                      <td className="px-6 py-4 text-center">
-                        <div className="flex gap-2 justify-center">
-                          <EditClinicScheduleButton
-                            onClick={() => handleEdit(schedule)}
-                          />
-                          <DeleteClinicScheduleButton
-                            onClick={() => handleDelete(schedule.id)}
-                          />
-                        </div>
-                      </td>
-                    )}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <p className="text-gray-500 text-sm text-center py-4">
-            No schedules available.
-          </p>
-        )}
-      </Card>
-
       {/* Calendar View */}
       <div className="mt-8">
         <Card className="p-4">
@@ -172,14 +129,19 @@ const ClinicSchedule = () => {
             <form onSubmit={handleSubmit} className="space-y-4">
               {/* Date */}
               <div>
-                <label className="block mb-1 font-medium">Date</label>
+                <label className="block mb-1 font-medium">Date *</label>
                 <input
                   type="date"
                   value={selectedDate}
-                  onChange={(e) => setSelectedDate(e.target.value)}
+                  onChange={(e) => handleDateChange(e.target.value)}
                   required
                   className="w-full border px-3 py-2 rounded"
                 />
+                {selectedDate && !staffLoading && staff.length === 0 && (
+                  <p className="text-xs text-amber-600 mt-1">
+                    ℹ️ No staff available for this date (all on absence)
+                  </p>
+                )}
               </div>
 
               {/* Time range */}
@@ -206,29 +168,38 @@ const ClinicSchedule = () => {
                 </div>
               </div>
 
-              {/* Staff list */}
+              {/* Staff list - Now shows AVAILABLE staff only */}
               <div>
-                <label className="block mb-2 font-medium">Select Staff</label>
+                <label className="block mb-2 font-medium">
+                  Select Staff {selectedDate && <span className="text-xs text-gray-500">(Available for {selectedDate})</span>}
+                </label>
                 <div className="max-h-48 overflow-y-auto border rounded p-2">
                   {staffLoading ? (
                     <p className="text-gray-500 text-sm px-2 py-1">
-                      Loading staff...
+                      Loading available staff...
                     </p>
                   ) : staff.length > 0 ? (
-                    staff.map((person) => (
-                      <label key={person.id} className="block">
-                        <input
-                          type="checkbox"
-                          checked={selectedStaff.includes(person.id)}
-                          onChange={() => handleCheckboxChange(person.id)}
-                          className="mr-2"
-                        />
-                        {person.name}
-                      </label>
-                    ))
+                    staff.map((person) => {
+                      // Staff response has first_name, last_name, username as fallback
+                      const displayName = 
+                        (person.first_name && person.last_name) 
+                          ? `${person.first_name} ${person.last_name}`
+                          : person.username || person.email || `Staff #${person.id}`;
+                      return (
+                        <label key={person.id} className="block cursor-pointer hover:bg-gray-50 p-1 rounded">
+                          <input
+                            type="checkbox"
+                            checked={selectedStaff.includes(person.id)}
+                            onChange={() => handleCheckboxChange(person.id)}
+                            className="mr-2"
+                          />
+                          <span>{displayName}</span>
+                        </label>
+                      );
+                    })
                   ) : (
                     <p className="text-gray-500 text-sm px-2 py-1">
-                      No staff available.
+                      {selectedDate ? "No staff available for this date." : "Select a date to see available staff."}
                     </p>
                   )}
                 </div>

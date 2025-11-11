@@ -1,18 +1,37 @@
 import React from "react";
 import usePersonalHistoryData from "../hooks/usePersonalHistoryData";
+import useFetchConditionsData from "../hooks/useFetchConditionsData";
 
 const PersonalHistoryView = ({ patientId, appointmentId }) => {
   const { personalHistory, isLoading, error } = usePersonalHistoryData(
     patientId,
     appointmentId
   );
+  const { medicalConditions, ocularConditions } = useFetchConditionsData();
 
   if (isLoading)
     return <p className="text-gray-500">Loading Oculo-Medical History...</p>;
   if (error || !personalHistory)
     return <p className="text-red-500">No Oculo-Medical History found.</p>;
 
-  const renderConditionBlock = (title, conditions) => (
+  // Create ID -> Name maps for lookup
+  const medicalConditionMap = {};
+  const ocularConditionMap = {};
+  
+  (medicalConditions || []).forEach((c) => {
+    medicalConditionMap[c.id] = c.name;
+  });
+  
+  (ocularConditions || []).forEach((c) => {
+    ocularConditionMap[c.id] = c.name;
+  });
+
+  const getConditionName = (conditionId, isMedical = true) => {
+    const map = isMedical ? medicalConditionMap : ocularConditionMap;
+    return map[conditionId] || "Unnamed Condition";
+  };
+
+  const renderConditionBlock = (title, conditions, isMedical = true) => (
     <div className="mt-4">
       <h4 className="font-semibold text-gray-700 mb-2">{title}</h4>
       {conditions.length === 0 ? (
@@ -23,14 +42,19 @@ const PersonalHistoryView = ({ patientId, appointmentId }) => {
             <div key={idx} className="bg-gray-50 p-3 border rounded">
               <p>
                 <strong>
-                  {c.name ||
-                    c.medical_condition_name ||
-                    c.ocular_condition_name ||
-                    "Unnamed Condition"}
+                  {getConditionName(c.condition, isMedical)}
                 </strong>
               </p>
               {c.affected_eye && (
                 <p className="text-sm">Eye: {c.affected_eye}</p>
+              )}
+              {c.value && (
+                <p className="text-sm">
+                  {c.field_type ? 
+                    `${c.field_type.charAt(0).toUpperCase() + c.field_type.slice(1)}: ${c.value}` 
+                    : `Value: ${c.value}`
+                  }
+                </p>
               )}
               {c.grading && <p className="text-sm">Grading: {c.grading}</p>}
               {c.notes && <p className="text-sm">Notes: {c.notes}</p>}
@@ -93,19 +117,23 @@ const PersonalHistoryView = ({ patientId, appointmentId }) => {
       <div className="grid md:grid-cols-2 gap-6">
         {renderConditionBlock(
           "Medical History",
-          personalHistory.medical_history || []
+          personalHistory.medical_history || [],
+          true
         )}
         {renderConditionBlock(
           "Ocular History",
-          personalHistory.ocular_history || []
+          personalHistory.ocular_history || [],
+          false
         )}
         {renderConditionBlock(
           "Family Medical History",
-          personalHistory.family_medical_history || []
+          personalHistory.family_medical_history || [],
+          true
         )}
         {renderConditionBlock(
           "Family Ocular History",
-          personalHistory.family_ocular_history || []
+          personalHistory.family_ocular_history || [],
+          false
         )}
       </div>
     </div>
