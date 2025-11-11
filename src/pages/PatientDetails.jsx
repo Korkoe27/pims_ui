@@ -42,6 +42,7 @@ const PatientDetails = () => {
 
   const tabs = [
     { label: "More Info", value: "info" },
+    { label: "Health Insurance", value: "insurance" },
     { label: "Appointments", value: "appointments" },
   ];
 
@@ -93,6 +94,7 @@ const PatientDetails = () => {
 
         {/* Tab Content */}
         {activeTab === "info" && <PatientInfoSection patient={patient} />}
+        {activeTab === "insurance" && <InsuranceSection patient={patient} />}
         {activeTab === "appointments" && (
           <AppointmentSection
             appointments={appointments}
@@ -168,39 +170,160 @@ const Detail = ({ label, value }) => (
   </div>
 );
 
-const PatientInfoSection = ({ patient }) => (
-  <div className="space-y-6">
-    {/* Patient Information */}
-    <div className="bg-gray-50 p-6 rounded shadow">
-      <h3 className="text-xl font-bold text-[#2f3192] mb-4">Patient Information</h3>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-        <Detail label="ID Type" value={patient.id_type} />
-        <Detail label="ID Number" value={patient.id_number} />
-        <Detail label="Primary Phone" value={patient.primary_phone} />
-        <Detail label="Alternate Phone" value={patient.alternate_phone} />
-        <Detail label="Address" value={patient.address} />
-        <Detail label="Landmark" value={patient.landmark} />
-        <Detail label="Region" value={patient.region} />
-        <Detail label="Emergency Contact" value={patient.emergency_contact_name} />
-        <Detail label="Emergency Number" value={patient.emergency_contact_number} />
-        <Detail label="Date of First Visit" value={patient.date_of_first_visit} />
-        <Detail label="Registration Date" value={patient.registration_date} />
+const AccordionSection = ({ title, isOpen, onToggle, children }) => (
+  <div className="border border-gray-200 rounded-lg overflow-hidden">
+    <button
+      onClick={onToggle}
+      className="w-full px-6 py-4 bg-white hover:bg-gray-50 flex justify-between items-center transition-colors"
+    >
+      <h3 className="text-lg font-semibold text-[#2f3192]">{title}</h3>
+      <svg
+        className={`w-5 h-5 text-[#2f3192] transform transition-transform ${
+          isOpen ? "rotate-180" : ""
+        }`}
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M19 9l-7 7-7-7"
+        />
+      </svg>
+    </button>
+    {isOpen && (
+      <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
+        {children}
       </div>
-    </div>
+    )}
+  </div>
+);
 
-    {/* Insurance Section */}
-    <div className="bg-gray-50 p-6 rounded shadow">
-      <h3 className="text-xl font-bold text-[#2f3192] mb-4">Insurance Information</h3>
-      {patient.insurances && patient.insurances.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {patient.insurances.map((insurance) => (
-            <InsuranceCard key={insurance.id} insurance={insurance} />
-          ))}
+const PatientInfoSection = ({ patient }) => {
+  const [openSections, setOpenSections] = React.useState({
+    personal: true,
+    identification: false,
+    contact: false,
+    address: false,
+    occupation: false,
+    emergency: false,
+    dates: false,
+  });
+
+  const toggleSection = (section) => {
+    setOpenSections((prev) => ({
+      ...prev,
+      [section]: !prev[section],
+    }));
+  };
+
+  return (
+    <div className="space-y-3">
+      {/* Personal Information */}
+      <AccordionSection
+        title="Personal Information"
+        isOpen={openSections.personal}
+        onToggle={() => toggleSection("personal")}
+      >
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+          <Detail label="Other Names" value={patient.other_names} />
+          <Detail label="Patient Type" value={patient.patient_type} />
+          <Detail label="Clinic" value={patient.clinic} />
         </div>
-      ) : (
-        <p className="text-gray-500">No insurance records available.</p>
-      )}
+      </AccordionSection>
+
+      {/* Identification */}
+      <AccordionSection
+        title="Identification"
+        isOpen={openSections.identification}
+        onToggle={() => toggleSection("identification")}
+      >
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+          <Detail label="ID Type" value={patient.id_type} />
+          <Detail label="ID Number" value={patient.id_number} />
+        </div>
+      </AccordionSection>
+
+      {/* Contact Information */}
+      <AccordionSection
+        title="Contact Information"
+        isOpen={openSections.contact}
+        onToggle={() => toggleSection("contact")}
+      >
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+          <Detail label="Primary Phone" value={patient.primary_phone} />
+          <Detail label="Alternate Phone" value={patient.alternate_phone} />
+          <Detail label="Email Address" value={patient.email} />
+        </div>
+      </AccordionSection>
+
+      {/* Address & Location */}
+      <AccordionSection
+        title="Address & Location"
+        isOpen={openSections.address}
+        onToggle={() => toggleSection("address")}
+      >
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+          <Detail label="Address" value={patient.address} />
+          <Detail label="Landmark" value={patient.landmark} />
+          <Detail label="Hometown" value={patient.hometown} />
+          <Detail label="Region" value={patient.region} />
+        </div>
+      </AccordionSection>
+
+      {/* Occupation */}
+      <AccordionSection
+        title="Occupation"
+        isOpen={openSections.occupation}
+        onToggle={() => toggleSection("occupation")}
+      >
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+          <Detail label="Occupation Category" value={patient.occupation_category} />
+          <Detail label="Occupation" value={patient.occupation} />
+        </div>
+      </AccordionSection>
+
+      {/* Emergency Contact */}
+      <AccordionSection
+        title="Emergency Contact"
+        isOpen={openSections.emergency}
+        onToggle={() => toggleSection("emergency")}
+      >
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+          <Detail label="Contact Name" value={patient.emergency_contact_name} />
+          <Detail label="Contact Number" value={patient.emergency_contact_number} />
+        </div>
+      </AccordionSection>
+
+      {/* Important Dates */}
+      <AccordionSection
+        title="Important Dates"
+        isOpen={openSections.dates}
+        onToggle={() => toggleSection("dates")}
+      >
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+          <Detail label="Date of First Visit" value={patient.date_of_first_visit} />
+          <Detail label="Registration Date" value={patient.registration_date} />
+        </div>
+      </AccordionSection>
     </div>
+  );
+};
+
+const InsuranceSection = ({ patient }) => (
+  <div className="bg-gray-50 p-6 rounded shadow">
+    <h3 className="text-xl font-bold text-[#2f3192] mb-4">Health Insurance Information</h3>
+    {patient.insurances && patient.insurances.length > 0 ? (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {patient.insurances.map((insurance) => (
+          <InsuranceCard key={insurance.id} insurance={insurance} />
+        ))}
+      </div>
+    ) : (
+      <p className="text-gray-500">No insurance records available.</p>
+    )}
   </div>
 );
 
