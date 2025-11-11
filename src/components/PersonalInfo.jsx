@@ -290,12 +290,61 @@ const PersonalInfo = () => {
         setShowConfirmModal(true);
         setRetryAction(() => () => createPatientHandler(onSuccess, true));
       } else {
+        // Handle insurance-specific errors
+        if (error.data?.insurance_data) {
+          const insuranceErrors = error.data.insurance_data;
+          let errorMessages = [];
+          
+          insuranceErrors.forEach((insError, index) => {
+            if (insError) {
+              Object.keys(insError).forEach((field) => {
+                const fieldName = field.replace(/_/g, ' ');
+                const message = Array.isArray(insError[field]) 
+                  ? insError[field][0] 
+                  : insError[field];
+                errorMessages.push(`Insurance ${index + 1} - ${fieldName}: ${message}`);
+              });
+            }
+          });
+          
+          if (errorMessages.length > 0) {
+            const errorText = errorMessages.join('\n');
+            setGeneralError(errorText);
+            showToast("❌ Insurance validation errors. Please check the form.", "error");
+            return;
+          }
+        }
+        
+        // Handle field-specific errors
         setErrors(error.data || {});
-        setGeneralError(
-          error.data?.detail ||
-            error.data?.non_field_errors?.[0] ||
-            "An unexpected error occurred."
-        );
+        
+        // Build general error message
+        let generalErrorMsg = "";
+        if (error.data?.detail) {
+          generalErrorMsg = error.data.detail;
+        } else if (error.data?.non_field_errors) {
+          generalErrorMsg = Array.isArray(error.data.non_field_errors)
+            ? error.data.non_field_errors[0]
+            : error.data.non_field_errors;
+        } else {
+          // Check for other field errors
+          const fieldErrors = Object.keys(error.data || {})
+            .filter(key => key !== 'insurance_data')
+            .map(key => {
+              const msg = Array.isArray(error.data[key]) 
+                ? error.data[key][0] 
+                : error.data[key];
+              return `${key.replace(/_/g, ' ')}: ${msg}`;
+            });
+          
+          if (fieldErrors.length > 0) {
+            generalErrorMsg = fieldErrors.join('; ');
+          } else {
+            generalErrorMsg = "An unexpected error occurred.";
+          }
+        }
+        
+        setGeneralError(generalErrorMsg);
         showToast("❌ Failed to create patient.", "error");
       }
     }
@@ -331,7 +380,7 @@ const PersonalInfo = () => {
       {selectedClinic && (
         <form className="px-8 w-fit">
           {generalError && (
-            <div className="mb-4 p-4 border border-red-500 bg-red-100 text-red-700 rounded">
+            <div className="mb-4 p-4 border border-red-500 bg-red-100 text-red-700 rounded whitespace-pre-line">
               {generalError}
             </div>
           )}
