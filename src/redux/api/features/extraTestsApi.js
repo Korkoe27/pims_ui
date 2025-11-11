@@ -3,10 +3,21 @@ import {
   createExtraTestUrl,
   fetchExtraTestsUrl,
   fetchExtraTestsByVersionUrl,
+  fetchTonometryMethodsUrl,
 } from "../end_points/endpoints";
 
 export const extraTestApi = apiClient.injectEndpoints({
   endpoints: (builder) => ({
+    /** ✅ Fetch tonometry methods from database **/
+    getTonometryMethods: builder.query({
+      query: () => ({
+        url: fetchTonometryMethodsUrl,
+        method: "GET",
+      }),
+      // Cache for 1 hour since options rarely change
+      keepUnusedDataFor: 3600,
+    }),
+
     /** ✅ Fetch all Extra Tests for a specific appointment **/
     fetchExtraTests: builder.query({
       query: ({ appointmentId, versionId } = {}) => {
@@ -48,6 +59,7 @@ export const extraTestApi = apiClient.injectEndpoints({
 });
 
 export const { 
+  useGetTonometryMethodsQuery,
   useFetchExtraTestsQuery, 
   useCreateExtraTestMutation,
   useDeleteExtraTestMutation,

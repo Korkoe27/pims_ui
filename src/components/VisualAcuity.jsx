@@ -8,7 +8,6 @@ import { showToast } from "../components/ToasterHelper";
 import { hasFormChanged } from "../utils/deepCompare";
 import NavigationButtons from "../components/NavigationButtons";
 import SupervisorGradingButton from "./ui/buttons/SupervisorGradingButton";
-import { useGetAppointmentDetailsQuery } from "../redux/api/features/appointmentsApi";
 import useComponentGrading from "../hooks/useComponentGrading";
 
 const CHART_OPTIONS = [
@@ -30,11 +29,6 @@ export default function VisualAcuityForm({
     createVisualAcuity,
     createVASubmissionStatus,
   } = useVisualAcuityData(appointmentId, versionId);
-
-  const { data: appointmentDetails } = useGetAppointmentDetailsQuery(
-    appointmentId,
-    { skip: !appointmentId }
-  );
 
   const { section, sectionLabel } = useComponentGrading(
     "VISUAL_ACUITY",

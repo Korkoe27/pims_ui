@@ -40,7 +40,7 @@ const AddInsuranceModal = ({ isOpen, onClose, patientId, onInsuranceAdded }) => 
         insurance_provider: defaultProv,
       }));
     }
-  }, [insuranceOptions]);
+  }, [insuranceOptions, formData.insurance_type]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
