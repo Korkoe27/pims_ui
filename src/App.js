@@ -32,6 +32,7 @@ import {
   MyScores,
   PharmacyOrder,
   Documentation,
+  StudentPortal,
 } from "./pages";
 
 import Layout from "./pages/Layout";
@@ -224,6 +225,9 @@ const App = () => {
 
             {/* 📚 Documentation */}
             <Route path="documentation" element={<Documentation />} />
+
+            {/* 🎓 Student Portal */}
+            <Route path="student-portal" element={<StudentPortal />} />
           </Route>
         </Routes>
       </BrowserRouter>

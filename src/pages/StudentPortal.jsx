@@ -1,0 +1,402 @@
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
+import PageContainer from "../components/PageContainer";
+import Card from "../components/ui/card";
+
+const StudentPortal = () => {
+  const [activeTab, setActiveTab] = useState("appointments");
+  const [semester, setSemester] = useState("Semester 1");
+  const navigate = useNavigate();
+  const user = useSelector((state) => state.auth.user);
+
+  // TODO: Replace with actual API calls
+  const appointments = [
+    {
+      date: "2025-03-11",
+      patient: "Alan Mccray",
+      patientId: "OST/002/25",
+      clinic: "General",
+      status: "In Progress",
+      semester: "Semester 1",
+      appointmentId: "apt-001",
+    },
+    {
+      date: "2025-05-12",
+      patient: "Grace Mensah",
+      patientId: "OST/003/25",
+      clinic: "Low Vision",
+      status: "Completed",
+      semester: "Semester 1",
+      appointmentId: "apt-002",
+    },
+    {
+      date: "2025-09-08",
+      patient: "John Doe",
+      patientId: "OST/004/25",
+      clinic: "Pediatric",
+      status: "Submitted",
+      semester: "Semester 2",
+      appointmentId: "apt-003",
+    },
+    {
+      date: "2025-10-10",
+      patient: "Jane Smith",
+      patientId: "OST/005/25",
+      clinic: "Contact Lens",
+      status: "Completed",
+      semester: "Semester 2",
+      appointmentId: "apt-004",
+    },
+  ];
+
+  const grades = [
+    {
+      date: "2025-03-12",
+      patient: "Grace Mensah",
+      type: "Reviewed",
+      score: 88,
+      grade: "A",
+      feedback: "Excellent case handling.",
+      semester: "Semester 1",
+    },
+    {
+      date: "2025-04-20",
+      patient: "Alan Mccray",
+      type: "Reviewed",
+      score: 79,
+      grade: "B+",
+      feedback: "Good understanding, improve documentation.",
+      semester: "Semester 1",
+    },
+    {
+      date: "2025-09-15",
+      patient: "John Doe",
+      type: "Reviewed",
+      score: 72,
+      grade: "B",
+      feedback: "Good but needs detail in refraction notes.",
+      semester: "Semester 2",
+    },
+    {
+      date: "2025-10-02",
+      patient: "Jane Smith",
+      type: "Reviewed",
+      score: 91,
+      grade: "A",
+      feedback: "Excellent work, thorough and clear.",
+      semester: "Semester 2",
+    },
+  ];
+
+  const filteredAppointments = appointments.filter(
+    (a) => a.semester === semester
+  );
+  const filteredGrades = grades.filter((g) => g.semester === semester);
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case "Completed":
+        return "bg-green-100 text-green-700";
+      case "Submitted":
+        return "bg-blue-100 text-blue-700";
+      case "In Progress":
+        return "bg-yellow-100 text-yellow-700";
+      default:
+        return "bg-gray-100 text-gray-700";
+    }
+  };
+
+  const getGradeColor = (score) => {
+    if (score >= 80) return "text-green-600 font-semibold";
+    if (score >= 70) return "text-blue-600 font-semibold";
+    if (score >= 60) return "text-yellow-600 font-semibold";
+    return "text-red-600 font-semibold";
+  };
+
+  const handleViewAppointment = (appointment) => {
+    if (appointment.status === "In Progress") {
+      navigate(`/consultation/${appointment.appointmentId}`);
+    } else {
+      // Navigate to read-only view
+      navigate(`/consultation/${appointment.appointmentId}?view=readonly`);
+    }
+  };
+
+  return (
+    <PageContainer>
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+          <svg
+            className="w-8 h-8 text-[#2f3192]"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 14l9-5-9-5-9 5 9 5z M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"
+            />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14zm-4 6v-7.5l4-2.222"
+            />
+          </svg>
+          Student Portal
+        </h1>
+        <select
+          className="border border-gray-300 rounded-lg px-4 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-[#2f3192]"
+          value={semester}
+          onChange={(e) => setSemester(e.target.value)}
+        >
+          <option value="Semester 1">Semester 1</option>
+          <option value="Semester 2">Semester 2</option>
+        </select>
+      </div>
+
+      {/* Tabs */}
+      <div className="mb-6">
+        <div className="border-b border-gray-200">
+          <div className="flex gap-8">
+            <button
+              onClick={() => setActiveTab("appointments")}
+              className={`pb-3 px-1 font-medium text-sm transition-colors ${
+                activeTab === "appointments"
+                  ? "border-b-2 border-[#2f3192] text-[#2f3192]"
+                  : "text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              <span className="flex items-center gap-2">
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  />
+                </svg>
+                My Appointments
+              </span>
+            </button>
+            <button
+              onClick={() => setActiveTab("grades")}
+              className={`pb-3 px-1 font-medium text-sm transition-colors ${
+                activeTab === "grades"
+                  ? "border-b-2 border-[#2f3192] text-[#2f3192]"
+                  : "text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              <span className="flex items-center gap-2">
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                  />
+                </svg>
+                My Grades
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Appointments Tab */}
+      {activeTab === "appointments" && (
+        <Card>
+          <div className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-gray-800">
+                My Appointments — {semester}
+              </h2>
+              <p className="text-sm text-gray-500">
+                Showing {filteredAppointments.length} record(s)
+              </p>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-200">
+                    <th className="text-left py-3 px-4 font-semibold text-gray-700">
+                      Date
+                    </th>
+                    <th className="text-left py-3 px-4 font-semibold text-gray-700">
+                      Patient
+                    </th>
+                    <th className="text-left py-3 px-4 font-semibold text-gray-700">
+                      Patient ID
+                    </th>
+                    <th className="text-left py-3 px-4 font-semibold text-gray-700">
+                      Clinic Type
+                    </th>
+                    <th className="text-left py-3 px-4 font-semibold text-gray-700">
+                      Status
+                    </th>
+                    <th className="text-center py-3 px-4 font-semibold text-gray-700">
+                      Action
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredAppointments.length > 0 ? (
+                    filteredAppointments.map((appointment, index) => (
+                      <tr
+                        key={index}
+                        className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
+                      >
+                        <td className="py-3 px-4 text-gray-700">
+                          {appointment.date}
+                        </td>
+                        <td className="py-3 px-4 text-gray-700">
+                          {appointment.patient}
+                        </td>
+                        <td className="py-3 px-4 text-gray-700">
+                          {appointment.patientId}
+                        </td>
+                        <td className="py-3 px-4 text-gray-700">
+                          {appointment.clinic}
+                        </td>
+                        <td className="py-3 px-4">
+                          <span
+                            className={`px-2 py-1 rounded text-xs font-semibold ${getStatusColor(
+                              appointment.status
+                            )}`}
+                          >
+                            {appointment.status}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4 text-center">
+                          <button
+                            onClick={() => handleViewAppointment(appointment)}
+                            className="px-4 py-2 text-sm font-medium text-[#2f3192] border border-[#2f3192] rounded-lg hover:bg-[#2f3192] hover:text-white transition-colors"
+                          >
+                            {appointment.status === "In Progress"
+                              ? "Continue"
+                              : "View"}
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td
+                        colSpan="6"
+                        className="py-8 px-4 text-center text-gray-500"
+                      >
+                        No appointments found for {semester}
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </Card>
+      )}
+
+      {/* Grades Tab */}
+      {activeTab === "grades" && (
+        <Card>
+          <div className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-gray-800">
+                My Grades — {semester}
+              </h2>
+              <p className="text-sm text-gray-500">
+                Showing {filteredGrades.length} record(s)
+              </p>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-200">
+                    <th className="text-left py-3 px-4 font-semibold text-gray-700">
+                      Date
+                    </th>
+                    <th className="text-left py-3 px-4 font-semibold text-gray-700">
+                      Patient
+                    </th>
+                    <th className="text-left py-3 px-4 font-semibold text-gray-700">
+                      Type
+                    </th>
+                    <th className="text-left py-3 px-4 font-semibold text-gray-700">
+                      Score (%)
+                    </th>
+                    <th className="text-left py-3 px-4 font-semibold text-gray-700">
+                      Grade
+                    </th>
+                    <th className="text-left py-3 px-4 font-semibold text-gray-700">
+                      Feedback
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredGrades.length > 0 ? (
+                    filteredGrades.map((grade, index) => (
+                      <tr
+                        key={index}
+                        className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
+                      >
+                        <td className="py-3 px-4 text-gray-700">
+                          {grade.date}
+                        </td>
+                        <td className="py-3 px-4 text-gray-700">
+                          {grade.patient}
+                        </td>
+                        <td className="py-3 px-4 text-gray-700">
+                          {grade.type}
+                        </td>
+                        <td className="py-3 px-4">
+                          <span className={getGradeColor(grade.score)}>
+                            {grade.score}%
+                          </span>
+                        </td>
+                        <td className="py-3 px-4">
+                          <span className={getGradeColor(grade.score)}>
+                            {grade.grade}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4 text-gray-700">
+                          {grade.feedback}
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td
+                        colSpan="6"
+                        className="py-8 px-4 text-center text-gray-500"
+                      >
+                        No grades found for {semester}
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </Card>
+      )}
+    </PageContainer>
+  );
+};
+
+export default StudentPortal;
