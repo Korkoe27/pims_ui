@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { setPatientId } from "../redux/slices/patientSlice";
 import { useCreatePatientMutation } from "../redux/api/features/patientApi";
+import { useGetInsuranceOptionsQuery } from "../redux/api/features/insuranceApi";
 import SelectClinicModal from "../components/SelectClinicModal";
 import ConfirmSaveModal from "./ConfirmSaveModal";
 import { showToast } from "../components/ToasterHelper";
@@ -55,6 +56,7 @@ const PersonalInfo = () => {
 
   const [errors, setErrors] = useState({});
   const [createPatient] = useCreatePatientMutation();
+  const { data: insuranceOptions, isLoading: isLoadingOptions } = useGetInsuranceOptionsQuery();
 
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [confirmMessage, setConfirmMessage] = useState("");
@@ -472,7 +474,17 @@ const PersonalInfo = () => {
                       onChange={(e) =>
                         handleInsuranceChange(index, "insurance_type", e.target.value)
                       }
-                      options={["National", "Private"]}
+                      options={
+                        isLoadingOptions
+                          ? ["Loading..."]
+                          : insuranceOptions?.insurance_types?.map((t) => t.value) || ["National", "Private"]
+                      }
+                      optionLabels={
+                        insuranceOptions?.insurance_types?.reduce((acc, t) => {
+                          acc[t.value] = t.label;
+                          return acc;
+                        }, {})
+                      }
                     />
 
                     <SelectField
@@ -482,7 +494,17 @@ const PersonalInfo = () => {
                       onChange={(e) =>
                         handleInsuranceChange(index, "insurance_provider", e.target.value)
                       }
-                      options={["NHIS"]}
+                      options={
+                        isLoadingOptions
+                          ? ["Loading..."]
+                          : insuranceOptions?.insurance_providers?.map((p) => p.value) || ["NHIS"]
+                      }
+                      optionLabels={
+                        insuranceOptions?.insurance_providers?.reduce((acc, p) => {
+                          acc[p.value] = p.label;
+                          return acc;
+                        }, {})
+                      }
                     />
 
                     <InputField
@@ -606,7 +628,7 @@ const InputField = ({
   </div>
 );
 
-const SelectField = ({ label, name, value, onChange, options, error }) => (
+const SelectField = ({ label, name, value, onChange, options, optionLabels, error }) => (
   <div className="flex flex-col gap-2">
     <label htmlFor={name} className="text-[#101928]">
       {label}{" "}
@@ -625,7 +647,7 @@ const SelectField = ({ label, name, value, onChange, options, error }) => (
       <option value="">Select an option</option>
       {options.map((option, idx) => (
         <option key={idx} value={option}>
-          {option}
+          {optionLabels ? optionLabels[option] || option : option}
         </option>
       ))}
     </select>

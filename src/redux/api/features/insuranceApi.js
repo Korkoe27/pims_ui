@@ -5,10 +5,24 @@
  */
 
 import { apiClient } from "../api_client/apiClient";
-import { fetchPatientInsurancesUrl, createInsuranceUrl } from "../end_points/endpoints";
+import { 
+  fetchPatientInsurancesUrl, 
+  createInsuranceUrl,
+  fetchInsuranceOptionsUrl 
+} from "../end_points/endpoints";
 
 export const insuranceApi = apiClient.injectEndpoints({
   endpoints: (builder) => ({
+    // Fetch insurance options (types and providers)
+    getInsuranceOptions: builder.query({
+      query: () => ({
+        url: fetchInsuranceOptionsUrl,
+        method: "GET",
+      }),
+      // Cache for 1 hour since options rarely change
+      keepUnusedDataFor: 3600,
+    }),
+
     // Fetch all active insurances for a patient
     getPatientInsurances: builder.query({
       query: ({ patientId, activeOnly = true }) => ({
@@ -38,6 +52,7 @@ export const insuranceApi = apiClient.injectEndpoints({
 });
 
 export const {
+  useGetInsuranceOptionsQuery,
   useGetPatientInsurancesQuery,
   useLazyGetPatientInsurancesQuery,
   useCreateInsuranceMutation,

@@ -1,9 +1,13 @@
 import React, { useState } from "react";
-import { useCreateInsuranceMutation } from "../redux/api/features/insuranceApi";
+import { 
+  useCreateInsuranceMutation, 
+  useGetInsuranceOptionsQuery 
+} from "../redux/api/features/insuranceApi";
 import { showToast } from "./ToasterHelper";
 
 const AddInsuranceModal = ({ isOpen, onClose, patientId, onInsuranceAdded }) => {
   const [createInsurance, { isLoading }] = useCreateInsuranceMutation();
+  const { data: insuranceOptions, isLoading: isLoadingOptions } = useGetInsuranceOptionsQuery();
 
   const [formData, setFormData] = useState({
     insurance_type: "National",
@@ -108,10 +112,17 @@ const AddInsuranceModal = ({ isOpen, onClose, patientId, onInsuranceAdded }) => 
               value={formData.insurance_type}
               onChange={handleChange}
               className="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              disabled={isLoading}
+              disabled={isLoading || isLoadingOptions}
             >
-              <option value="National">National</option>
-              <option value="Private">Private</option>
+              {isLoadingOptions ? (
+                <option>Loading...</option>
+              ) : (
+                insuranceOptions?.insurance_types?.map((type) => (
+                  <option key={type.value} value={type.value}>
+                    {type.label}
+                  </option>
+                )) || <option value="National">National</option>
+              )}
             </select>
           </div>
 
@@ -126,9 +137,17 @@ const AddInsuranceModal = ({ isOpen, onClose, patientId, onInsuranceAdded }) => 
               value={formData.insurance_provider}
               onChange={handleChange}
               className="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              disabled={isLoading}
+              disabled={isLoading || isLoadingOptions}
             >
-              <option value="NHIS">NHIS</option>
+              {isLoadingOptions ? (
+                <option>Loading...</option>
+              ) : (
+                insuranceOptions?.insurance_providers?.map((provider) => (
+                  <option key={provider.value} value={provider.value}>
+                    {provider.label}
+                  </option>
+                )) || <option value="NHIS">NHIS</option>
+              )}
             </select>
           </div>
 

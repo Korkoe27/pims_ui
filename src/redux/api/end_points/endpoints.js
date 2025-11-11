@@ -49,6 +49,9 @@ export const fetchPatientInsurancesUrl = (patientId) =>
 export const createInsuranceUrl = (patientId) =>
   `/clients/${patientId}/insurances/create/`;
 
+// Fetch insurance options (types and providers)
+export const fetchInsuranceOptionsUrl = "/clients/insurance/options/";
+
 
 /////////////////////////
 // Appointments
