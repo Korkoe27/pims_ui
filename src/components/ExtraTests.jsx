@@ -1,10 +1,9 @@
 import React, { useState } from "react";
 import { showToast } from "../components/ToasterHelper";
 import ExtraTestUploadModal from "./ExtraTestUploadModal";
-import { useFetchExtraTestsQuery, useDeleteExtraTestMutation, useCreateExtraTestMutation } from "../redux/api/features/extraTestsApi";
+import { useFetchExtraTestsQuery, useCreateExtraTestMutation } from "../redux/api/features/extraTestsApi";
 import SupervisorGradingButton from "./ui/buttons/SupervisorGradingButton";
 import useComponentGrading from "../hooks/useComponentGrading";
-import { useSelector } from "react-redux";
 import useConsultationContext from "../hooks/useConsultationContext";
 import { IoTrash } from "react-icons/io5";
 
@@ -16,7 +15,6 @@ const ExtraTests = ({
 }) => {
   const [modalOpen, setModalOpen] = useState(false);
   const [localTests, setLocalTests] = useState([]); // ✅ Local state for added tests
-  const role = useSelector((state) => state.auth.user?.role);
   const { versionId } = useConsultationContext();
 
   // ✅ Component grading hook

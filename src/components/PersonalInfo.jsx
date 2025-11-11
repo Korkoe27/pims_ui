@@ -88,7 +88,7 @@ const PersonalInfo = () => {
         }]);
       }
     }
-  }, [insuranceOptions]);
+  }, [insuranceOptions, insurances]);
 
   useEffect(() => {
     if (!selectedClinic) setIsModalOpen(true);
@@ -228,13 +228,6 @@ const PersonalInfo = () => {
         validationErrors[field] = "Must start with 02** or 05** and be 10 digits";
       }
     });
-
-    // Validate phone numbers are unique
-    const phoneNumbers = [
-      { field: "primary_phone", value: formData.primary_phone },
-      { field: "alternate_phone", value: formData.alternate_phone },
-      { field: "emergency_contact_number", value: formData.emergency_contact_number },
-    ].filter((p) => p.value); // Only check filled numbers
 
     // Check for duplicates
     if (formData.alternate_phone && formData.alternate_phone === formData.primary_phone) {

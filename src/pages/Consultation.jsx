@@ -1,7 +1,7 @@
 // src/pages/Consultation.jsx
 import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
-import { useSelector, useDispatch } from "react-redux";
+import { useDispatch } from "react-redux";
 import { useGetAppointmentDetailsQuery } from "../redux/api/features/appointmentsApi";
 import { setCurrentConsultation } from "../redux/slices/consultationSlice";
 
@@ -29,7 +29,6 @@ const Consultation = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const userAccess = useSelector((state) => state.auth.user?.access);
 
   // ✅ Extract versionId from query string (?version=<id>)
   const queryParams = new URLSearchParams(location.search);
