@@ -497,13 +497,17 @@ const PersonalInfo = () => {
                       options={
                         isLoadingOptions
                           ? ["Loading..."]
-                          : insuranceOptions?.insurance_providers?.map((p) => p.value) || ["NHIS"]
+                          : insuranceOptions?.insurance_providers
+                              ?.filter(p => p.insurance_type_id === insurance.insurance_type)
+                              ?.map((p) => p.value) || ["NHIS"]
                       }
                       optionLabels={
-                        insuranceOptions?.insurance_providers?.reduce((acc, p) => {
-                          acc[p.value] = p.label;
-                          return acc;
-                        }, {})
+                        insuranceOptions?.insurance_providers
+                          ?.filter(p => p.insurance_type_id === insurance.insurance_type)
+                          ?.reduce((acc, p) => {
+                            acc[p.value] = p.label;
+                            return acc;
+                          }, {})
                       }
                     />
 

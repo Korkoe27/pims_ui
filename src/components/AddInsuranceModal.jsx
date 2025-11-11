@@ -142,11 +142,13 @@ const AddInsuranceModal = ({ isOpen, onClose, patientId, onInsuranceAdded }) => 
               {isLoadingOptions ? (
                 <option>Loading...</option>
               ) : (
-                insuranceOptions?.insurance_providers?.map((provider) => (
-                  <option key={provider.value} value={provider.value}>
-                    {provider.label}
-                  </option>
-                )) || <option value="NHIS">NHIS</option>
+                insuranceOptions?.insurance_providers
+                  ?.filter(provider => provider.insurance_type_id === formData.insurance_type)
+                  ?.map((provider) => (
+                    <option key={provider.value} value={provider.value}>
+                      {provider.label}
+                    </option>
+                  )) || <option value="NHIS">NHIS</option>
               )}
             </select>
           </div>
