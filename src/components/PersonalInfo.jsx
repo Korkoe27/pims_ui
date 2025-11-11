@@ -39,9 +39,19 @@ const PersonalInfo = () => {
     emergency_contact_number: "",
     hospitalId: "",
     dateOfFirstVisit: "",
-    healthInsuranceProvider: "",
-    healthInsuranceNumber: "",
   });
+
+  // Separate state for insurance records
+  const [insurances, setInsurances] = useState([
+    {
+      insurance_type: "National",
+      insurance_provider: "NHIS",
+      insurance_number: "",
+      is_active: true,
+      is_primary: true,
+      expiry_date: "",
+    },
+  ]);
 
   const [errors, setErrors] = useState({});
   const [createPatient] = useCreatePatientMutation();
