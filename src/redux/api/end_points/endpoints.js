@@ -52,6 +52,15 @@ export const createInsuranceUrl = (patientId) =>
 // Fetch insurance options (types and providers)
 export const fetchInsuranceOptionsUrl = "/clients/insurance/options/";
 
+// Fetch patient registration options (regions and occupation categories)
+export const fetchPatientOptionsUrl = "/clients/options/";
+
+// Fetch regions
+export const fetchRegionsUrl = "/clients/regions/";
+
+// Fetch occupation categories
+export const fetchOccupationCategoriesUrl = "/clients/occupation-categories/";
+
 
 /////////////////////////
 // Appointments

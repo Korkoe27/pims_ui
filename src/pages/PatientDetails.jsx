@@ -269,7 +269,7 @@ const PatientInfoSection = ({ patient }) => {
           <Detail label="Address" value={patient.address} />
           <Detail label="Landmark" value={patient.landmark} />
           <Detail label="Hometown" value={patient.hometown} />
-          <Detail label="Region" value={patient.region} />
+          <Detail label="Region" value={patient.region_name || patient.region} />
         </div>
       </AccordionSection>
 
@@ -280,7 +280,7 @@ const PatientInfoSection = ({ patient }) => {
         onToggle={() => toggleSection("occupation")}
       >
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-          <Detail label="Occupation Category" value={patient.occupation_category} />
+          <Detail label="Occupation Category" value={patient.occupation_category_name || patient.occupation_category} />
           <Detail label="Occupation" value={patient.occupation} />
         </div>
       </AccordionSection>

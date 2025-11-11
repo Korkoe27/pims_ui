@@ -12,6 +12,9 @@ import {
   listAllPatientsUrl,
   createNewPatientUrl,
   fetchPatientAppointmentsUrl,
+  fetchPatientOptionsUrl,
+  fetchRegionsUrl,
+  fetchOccupationCategoriesUrl,
 } from "../end_points/endpoints";
 
 export const patientApi = apiClient.injectEndpoints({
@@ -77,6 +80,30 @@ export const patientApi = apiClient.injectEndpoints({
         method: "GET",
       }),
     }),
+
+    // Fetch Patient Options (regions and occupation categories)
+    getPatientOptions: builder.query({
+      query: () => ({
+        url: fetchPatientOptionsUrl,
+        method: "GET",
+      }),
+    }),
+
+    // Fetch Regions
+    getRegions: builder.query({
+      query: () => ({
+        url: fetchRegionsUrl,
+        method: "GET",
+      }),
+    }),
+
+    // Fetch Occupation Categories
+    getOccupationCategories: builder.query({
+      query: () => ({
+        url: fetchOccupationCategoriesUrl,
+        method: "GET",
+      }),
+    }),
   }),
 });
 
@@ -88,4 +115,7 @@ export const {
   useUpdatePatientDetailsMutation,
   useCreatePatientMutation,
   useGetPatientAppointmentsQuery,
+  useGetPatientOptionsQuery,
+  useGetRegionsQuery,
+  useGetOccupationCategoriesQuery,
 } = patientApi;
