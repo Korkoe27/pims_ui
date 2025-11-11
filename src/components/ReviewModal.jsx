@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import {
   useFetchConsultationVersionsQuery,
 } from "../redux/api/features/consultationsApi";
 import { setCurrentConsultation } from "../redux/slices/consultationSlice";
-import { showToast } from "./ToasterHelper";
 import useInitiateReview from "../hooks/useInitiateReview";
 
 /**
@@ -30,8 +29,6 @@ import useInitiateReview from "../hooks/useInitiateReview";
 const ReviewModal = ({ appointmentId, studentVersionId, onClose, onSuccess }) => {
   const [step, setStep] = useState("checking"); // checking → processing → navigating
   const [error, setError] = useState(null);
-  const [reviewedVersion, setReviewedVersion] = useState(null);
-  const [recordsCloned, setRecordsCloned] = useState(0);
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -43,64 +40,11 @@ const ReviewModal = ({ appointmentId, studentVersionId, onClose, onSuccess }) =>
     });
 
   // 🔹 Use new review initiation hook
-  const { initiateReview, isLoading: initiating } =
+  const { initiateReview } =
     useInitiateReview(appointmentId);
 
-  // 🔹 Auto-start the review process when modal opens
-  useEffect(() => {
-    const processReview = async () => {
-      try {
-        setStep("checking");
-        setError(null);
-
-        // 1️⃣ Check if reviewed version already exists
-        const existingReviewed = versions.find(
-          (v) => v.version_type === "review" && !v.is_final
-        );
-
-        if (existingReviewed) {
-          console.log("✅ Found existing review version:", existingReviewed.id);
-          setReviewedVersion(existingReviewed);
-          setStep("navigating");
-          handleNavigateToReviewed(existingReviewed);
-          return;
-        }
-
-        // 2️⃣ If not, initiate review to create new review version
-        console.log("📋 No review version found, initiating review...");
-        setStep("processing");
-
-        const result = await initiateReview(studentVersionId);
-
-        if (!result.success) {
-          throw new Error(result.error);
-        }
-
-        console.log("✅ Review initiated successfully:", result.version);
-        setReviewedVersion(result.version);
-        if (result.recordsCloned) {
-          setRecordsCloned(result.recordsCloned);
-        }
-        setStep("navigating");
-
-        // Auto-navigate (initiateReview hook already handles navigation)
-        // Just close the modal
-        onSuccess?.();
-        onClose?.();
-      } catch (err) {
-        console.error("❌ Error processing review:", err);
-        const errorMsg = err.message || "Failed to process review";
-        setError(errorMsg);
-        setStep("error");
-      }
-    };
-
-    if (versions.length > 0 || !loadingVersions) {
-      processReview();
-    }
-  }, [versions, loadingVersions, studentVersionId, initiateReview, onSuccess, onClose]);
-
-  const handleNavigateToReviewed = (version) => {
+  // 🔹 Handler to navigate to reviewed version
+  const handleNavigateToReviewed = useCallback((version) => {
     try {
       // Dispatch to Redux
       dispatch(
@@ -124,7 +68,56 @@ const ReviewModal = ({ appointmentId, studentVersionId, onClose, onSuccess }) =>
       setError("Failed to navigate to review version");
       setStep("error");
     }
-  };
+  }, [dispatch, navigate, appointmentId, onSuccess, onClose]);
+
+  // 🔹 Auto-start the review process when modal opens
+  useEffect(() => {
+    const processReview = async () => {
+      try {
+        setStep("checking");
+        setError(null);
+
+        // 1️⃣ Check if reviewed version already exists
+        const existingReviewed = versions.find(
+          (v) => v.version_type === "review" && !v.is_final
+        );
+
+        if (existingReviewed) {
+          console.log("✅ Found existing review version:", existingReviewed.id);
+          setStep("navigating");
+          handleNavigateToReviewed(existingReviewed);
+          return;
+        }
+
+        // 2️⃣ If not, initiate review to create new review version
+        console.log("📋 No review version found, initiating review...");
+        setStep("processing");
+
+        const result = await initiateReview(studentVersionId);
+
+        if (!result.success) {
+          throw new Error(result.error);
+        }
+
+        console.log("✅ Review initiated successfully:", result.version);
+        setStep("navigating");
+
+        // Auto-navigate (initiateReview hook already handles navigation)
+        // Just close the modal
+        onSuccess?.();
+        onClose?.();
+      } catch (err) {
+        console.error("❌ Error processing review:", err);
+        const errorMsg = err.message || "Failed to process review";
+        setError(errorMsg);
+        setStep("error");
+      }
+    };
+
+    if (versions.length > 0 || !loadingVersions) {
+      processReview();
+    }
+  }, [versions, loadingVersions, studentVersionId, initiateReview, onSuccess, onClose, handleNavigateToReviewed]);
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">

@@ -170,6 +170,7 @@ export const fetchRefractionByVersionUrl = (appointmentId, versionId) =>
 // Extra Tests
 /////////////////////////
 
+export const fetchTonometryMethodsUrl = "/tests/extra-tests/tonometry-methods/";
 export const createExtraTestUrl = (appointmentId) =>
   `/tests/extra-tests/${appointmentId}/`;
 export const fetchExtraTestsUrl = (appointmentId) =>

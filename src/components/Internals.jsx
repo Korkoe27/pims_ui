@@ -113,7 +113,7 @@ const Internals = ({ appointmentId, setActiveTab, setTabCompletionStatus }) => {
     setFormData(hydrated);
     setMainOpen(openMains);
     setSubOpen(openSubs);
-  }, [existingObservations, rawConditions]);
+  }, [existingObservations, rawConditions, loadingConditions, loadingInternals]);
 
   // 🔄 UI toggles
   const toggleMain = (main) =>
