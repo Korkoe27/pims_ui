@@ -124,7 +124,7 @@ const ExtraTests = ({
               {test.name.toLowerCase().includes("tonometry") && (
                 <div className="text-sm text-gray-700 mb-2 space-y-1">
                   <p>
-                    <strong>Method:</strong> {test.method || "N/A"}
+                    <strong>Method:</strong> {test.method_name || test.method || "N/A"}
                   </p>
                   <p>
                     <strong>IOP OD:</strong> {test.iop_od ?? "N/A"}
@@ -194,7 +194,7 @@ const ExtraTests = ({
               {test.name.toLowerCase().includes("tonometry") && (
                 <div className="text-sm text-gray-700 mb-2 space-y-1">
                   <p>
-                    <strong>Method:</strong> {test.method || "N/A"}
+                    <strong>Method:</strong> {test.method_name || test.method || "N/A"}
                   </p>
                   <p>
                     <strong>IOP OD:</strong> {test.iop_od ?? "N/A"}
