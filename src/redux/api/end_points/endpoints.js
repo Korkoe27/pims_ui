@@ -41,6 +41,14 @@ export const searchPatientsUrl = (searchQuery) =>
 export const fetchPatientAppointmentsUrl = (patientId) =>
   `/clients/${patientId}/appointments/`;
 
+// Fetch all insurances for a patient
+export const fetchPatientInsurancesUrl = (patientId) =>
+  `/clients/${patientId}/insurances/`;
+
+// Create a new insurance for a patient
+export const createInsuranceUrl = (patientId) =>
+  `/clients/${patientId}/insurances/create/`;
+
 
 /////////////////////////
 // Appointments

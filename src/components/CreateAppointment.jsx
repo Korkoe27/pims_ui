@@ -5,8 +5,10 @@ import {
   useCreateAppointmentMutation,
   useFetchAppointmentTypesQuery,
 } from "../redux/api/features/appointmentsApi";
+import { useLazyGetPatientInsurancesQuery } from "../redux/api/features/insuranceApi";
 import { showToast, formatErrorMessage } from "../components/ToasterHelper";
 import { addNewAppointment } from "../redux/slices/dashboardSlice";
+import AddInsuranceModal from "./AddInsuranceModal";
 
 const CreateAppointment = () => {
   const { state } = useLocation();
@@ -24,7 +26,14 @@ const CreateAppointment = () => {
     appointment_type: "",
     status: "scheduled",
     notes: "",
+    mode_of_payment: "Cash",
+    insurance: "",
   });
+
+  const [patientInsurances, setPatientInsurances] = useState([]);
+  const [isInsuranceModalOpen, setIsInsuranceModalOpen] = useState(false);
+  const [fetchPatientInsurances, { isLoading: isLoadingInsurances }] =
+    useLazyGetPatientInsurancesQuery();
 
   useEffect(() => {
     if (!isTypesLoading && !isTypesError && appointmentTypes.length === 1) {
@@ -38,6 +47,35 @@ const CreateAppointment = () => {
       setFormData((prev) => ({ ...prev, appointment_type: "" }));
     }
   }, [appointmentTypes, isTypesLoading, isTypesError]);
+
+  // Fetch patient insurances when component mounts
+  useEffect(() => {
+    if (patient?.id) {
+      loadPatientInsurances();
+    }
+  }, [patient]);
+
+  const loadPatientInsurances = () => {
+    if (patient?.id) {
+      fetchPatientInsurances({ patientId: patient.id, activeOnly: true })
+        .unwrap()
+        .then((insurances) => {
+          setPatientInsurances(insurances || []);
+        })
+        .catch((err) => {
+          console.error("Failed to fetch patient insurances:", err);
+          setPatientInsurances([]);
+        });
+    }
+  };
+
+  const handleInsuranceAdded = (newInsurance) => {
+    // Refresh insurance list
+    loadPatientInsurances();
+    // Auto-select the newly added insurance
+    setFormData((prev) => ({ ...prev, insurance: newInsurance.id }));
+    showToast("Insurance added and selected!", "success");
+  };
 
 
   const handleChange = (e) => {
@@ -63,13 +101,27 @@ const CreateAppointment = () => {
       return;
     }
 
+    // Validate insurance selection when payment mode is Health Insurance
+    if (formData.mode_of_payment === "Health Insurance") {
+      if (!formData.insurance) {
+        showToast("Please select an insurance when using Health Insurance payment mode.", "error");
+        return;
+      }
+    }
+
     const payload = {
       patient: patient.id,
       appointment_date: formData.appointment_date,
       appointment_type: formData.appointment_type,
       status: formData.status,
       notes: formData.notes,
+      mode_of_payment: formData.mode_of_payment,
     };
+
+    // Add insurance only if payment mode is Health Insurance
+    if (formData.mode_of_payment === "Health Insurance" && formData.insurance) {
+      payload.insurance = formData.insurance;
+    }
 
     console.log("Form Data:", formData);
     console.log("Payload being sent:", payload);
@@ -192,6 +244,69 @@ const CreateAppointment = () => {
                 )
               )}
 
+              {/* Payment Mode */}
+              <div className="flex flex-col gap-2">
+                <label htmlFor="mode_of_payment" className="font-medium text-base">
+                  Payment Mode <span className="text-red-500">*</span>
+                </label>
+                <select
+                  name="mode_of_payment"
+                  id="mode_of_payment"
+                  className="p-4 border border-[#d0d5dd] h-14 rounded-lg"
+                  value={formData.mode_of_payment}
+                  onChange={handleChange}
+                  required
+                >
+                  <option value="Cash">Cash</option>
+                  <option value="Health Insurance">Health Insurance</option>
+                </select>
+              </div>
+
+              {/* Insurance Selection - Only show if Health Insurance is selected */}
+              {formData.mode_of_payment === "Health Insurance" && (
+                <div className="flex flex-col gap-2">
+                  <div className="flex justify-between items-center">
+                    <label htmlFor="insurance" className="font-medium text-base">
+                      Select Insurance <span className="text-red-500">*</span>
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setIsInsuranceModalOpen(true)}
+                      className="text-sm text-[#2f3192] hover:underline font-medium"
+                    >
+                      + Add New Insurance
+                    </button>
+                  </div>
+                  <select
+                    name="insurance"
+                    id="insurance"
+                    className="p-4 border border-[#d0d5dd] h-14 rounded-lg"
+                    value={formData.insurance}
+                    onChange={handleChange}
+                    required
+                    disabled={isLoadingInsurances}
+                  >
+                    <option value="">
+                      {isLoadingInsurances
+                        ? "Loading insurances..."
+                        : patientInsurances.length === 0
+                        ? "No active insurance found"
+                        : "Select Insurance"}
+                    </option>
+                    {patientInsurances.map((ins) => (
+                      <option key={ins.id} value={ins.id}>
+                        {ins.insurance_provider} - {ins.insurance_number}
+                        {ins.is_primary ? " (Primary)" : ""}
+                      </option>
+                    ))}
+                  </select>
+                  {patientInsurances.length === 0 && !isLoadingInsurances && (
+                    <p className="text-sm text-amber-600">
+                      No active insurance found. Click "Add New Insurance" to add one.
+                    </p>
+                  )}
+                </div>
+              )}
 
               {/* Notes */}
               <div className="col-span-2 flex flex-col gap-2">
@@ -222,6 +337,14 @@ const CreateAppointment = () => {
           </>
         )}
       </div>
+
+      {/* Add Insurance Modal */}
+      <AddInsuranceModal
+        isOpen={isInsuranceModalOpen}
+        onClose={() => setIsInsuranceModalOpen(false)}
+        patientId={patient?.id}
+        onInsuranceAdded={handleInsuranceAdded}
+      />
     </div>
   );
 };
