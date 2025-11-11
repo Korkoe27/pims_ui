@@ -17,12 +17,14 @@ export default function Pharmacy() {
   // Fetch all appointments (we'll filter for completed ones)
   const { data: appointmentsData, isLoading } = useGetAppointmentsQuery({
     page,
-    page_size: 10,
+    page_size: 50, // Increase to see more appointments
   });
 
   // Filter completed consultations
   const completedConsultations = appointmentsData?.results?.filter(
-    (appointment) => appointment.status === "completed"
+    (appointment) => {
+      return appointment.status === "Consultation Completed";
+    }
   ) || [];
 
   const handleAddBill = (appointment) => {
@@ -191,41 +193,95 @@ function ConsultationCard({ appointment, onAddBill }) {
             <div className="space-y-3">
               <h4 className="font-semibold text-gray-800">Management Plan:</h4>
               
+              {/* Refractive Correction */}
+              {managementPlan.refractive_correction && (
+                <div className="bg-blue-50 p-3 rounded">
+                  <p className="font-medium text-gray-700 mb-2">Refractive Correction:</p>
+                  <p className="text-sm text-gray-600">
+                    Type: {managementPlan.type_of_refractive_correction || "N/A"}
+                  </p>
+                  {managementPlan.type_of_lens && (
+                    <p className="text-sm text-gray-600">Lens Type: {managementPlan.type_of_lens}</p>
+                  )}
+                  {managementPlan.pd && (
+                    <p className="text-sm text-gray-600">PD: {managementPlan.pd}</p>
+                  )}
+                  <div className="grid grid-cols-2 gap-2 mt-2">
+                    {managementPlan.od_sph && (
+                      <div className="text-xs">
+                        <span className="font-medium">OD:</span> SPH {managementPlan.od_sph}
+                        {managementPlan.od_cyl && ` CYL ${managementPlan.od_cyl}`}
+                        {managementPlan.od_axis && ` AXIS ${managementPlan.od_axis}`}
+                        {managementPlan.od_add && ` ADD ${managementPlan.od_add}`}
+                      </div>
+                    )}
+                    {managementPlan.os_sph && (
+                      <div className="text-xs">
+                        <span className="font-medium">OS:</span> SPH {managementPlan.os_sph}
+                        {managementPlan.os_cyl && ` CYL ${managementPlan.os_cyl}`}
+                        {managementPlan.os_axis && ` AXIS ${managementPlan.os_axis}`}
+                        {managementPlan.os_add && ` ADD ${managementPlan.os_add}`}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {/* Medications */}
-              {managementPlan.medications && managementPlan.medications.length > 0 && (
-                <div>
+              {managementPlan.medications && managementPlan.medication_instructions && 
+               managementPlan.medication_instructions.length > 0 && (
+                <div className="bg-green-50 p-3 rounded">
                   <p className="font-medium text-gray-700 mb-2">Medications:</p>
                   <div className="space-y-2">
-                    {managementPlan.medications.map((med, idx) => (
-                      <div key={idx} className="bg-gray-50 p-3 rounded">
-                        <p className="font-medium">{med.medication_name || "N/A"}</p>
-                        <p className="text-sm text-gray-600">
-                          Dosage: {med.dosage || "N/A"} | Frequency: {med.frequency || "N/A"}
+                    {managementPlan.medication_instructions.map((med, idx) => (
+                      <div key={idx} className="bg-white p-2 rounded border border-green-200">
+                        <p className="font-medium text-sm">{med.medication_name || "N/A"}</p>
+                        <p className="text-xs text-gray-600">
+                          Eye: {med.medication_eye || "N/A"} | Dosage: {med.medication_dosage || "N/A"}
                         </p>
-                        {med.duration && (
-                          <p className="text-sm text-gray-600">Duration: {med.duration}</p>
-                        )}
                       </div>
                     ))}
                   </div>
                 </div>
               )}
 
-              {/* Other Instructions */}
-              {managementPlan.other_instructions && (
-                <div>
-                  <p className="font-medium text-gray-700">Other Instructions:</p>
-                  <p className="text-gray-600 text-sm">{managementPlan.other_instructions}</p>
+              {/* Counselling */}
+              {managementPlan.counselling && managementPlan.counselling_details && (
+                <div className="bg-yellow-50 p-3 rounded">
+                  <p className="font-medium text-gray-700 mb-1">Counselling:</p>
+                  <p className="text-sm text-gray-600">{managementPlan.counselling_details}</p>
                 </div>
               )}
 
-              {/* Follow-up */}
-              {managementPlan.follow_up_date && (
-                <div>
-                  <p className="font-medium text-gray-700">Follow-up Date:</p>
-                  <p className="text-gray-600 text-sm">
-                    {new Date(managementPlan.follow_up_date).toLocaleDateString()}
-                  </p>
+              {/* Low Vision Aid */}
+              {managementPlan.low_vision_aid && managementPlan.low_vision_aid_details && (
+                <div className="bg-purple-50 p-3 rounded">
+                  <p className="font-medium text-gray-700 mb-1">Low Vision Aid:</p>
+                  <p className="text-sm text-gray-600">{managementPlan.low_vision_aid_details}</p>
+                </div>
+              )}
+
+              {/* Therapy */}
+              {managementPlan.therapy && managementPlan.therapy_details && (
+                <div className="bg-pink-50 p-3 rounded">
+                  <p className="font-medium text-gray-700 mb-1">Therapy:</p>
+                  <p className="text-sm text-gray-600">{managementPlan.therapy_details}</p>
+                </div>
+              )}
+
+              {/* Surgery */}
+              {managementPlan.surgery && managementPlan.surgery_details && (
+                <div className="bg-red-50 p-3 rounded">
+                  <p className="font-medium text-gray-700 mb-1">Surgery:</p>
+                  <p className="text-sm text-gray-600">{managementPlan.surgery_details}</p>
+                </div>
+              )}
+
+              {/* Referral */}
+              {managementPlan.referral && managementPlan.referral_details && (
+                <div className="bg-orange-50 p-3 rounded">
+                  <p className="font-medium text-gray-700 mb-1">Referral:</p>
+                  <p className="text-sm text-gray-600">{managementPlan.referral_details}</p>
                 </div>
               )}
             </div>
