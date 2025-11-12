@@ -85,7 +85,7 @@ const Management = ({ setFlowStep, appointmentId }) => {
   const [details, setDetails] = useState({});
   const [selectedMedications, setSelectedMedications] = useState([]);
   const [selectedRefractiveCorrectionTypes, setSelectedRefractiveCorrectionTypes] = useState([]);
-  const [selectedLensType, setSelectedLensType] = useState(null);
+  const [selectedLensTypes, setSelectedLensTypes] = useState([]);
 
   const medsList = useMemo(
     () => (selectedTypeId ? filteredMedications : medications) ?? [],
@@ -200,7 +200,7 @@ const Management = ({ setFlowStep, appointmentId }) => {
         referral: !!checkboxes.referral,
         ...prescriptionFields,
         refractive_correction_types: selectedRefractiveCorrectionTypes,
-        type_of_lens: selectedLensType || null,
+        lens_types: selectedLensTypes,
         counselling_details: details.counselling_details || null,
         low_vision_aid_details: details.low_vision_aid_details || null,
         therapy_details: details.therapy_details || null,

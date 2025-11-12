@@ -120,8 +120,8 @@ const ManagementForm = ({
               }
               selectedTypes={selectedRefractiveCorrectionTypes}
               setSelectedTypes={setSelectedRefractiveCorrectionTypes}
-              selectedLensType={selectedLensType}
-              setSelectedLensType={setSelectedLensType}
+              selectedLensTypes={selectedLensTypes}
+              setSelectedLensTypes={setSelectedLensTypes}
             />
           )}
 
