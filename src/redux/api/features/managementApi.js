@@ -3,6 +3,8 @@ import {
   listMedicationTypesUrl,
   listMedicationsUrl,
   filterMedicationsUrl,
+  listRefractiveCorrectionTypesUrl,
+  listLensTypesUrl,
   managementPlanUrl,
   managementPlanByVersionUrl,
   caseManagementGuideUrl,       // → /management/case-guide/create/<id>/
@@ -46,6 +48,26 @@ export const managementApi = apiClient.injectEndpoints({
     filterMedications: builder.query({
       query: (typeId) => ({
         url: filterMedicationsUrl(typeId),
+        method: "GET",
+      }),
+    }),
+
+    // ============================================================
+    // 🔹 REFRACTIVE CORRECTION TYPES
+    // ============================================================
+    getRefractiveCorrectionTypes: builder.query({
+      query: () => ({
+        url: listRefractiveCorrectionTypesUrl,
+        method: "GET",
+      }),
+    }),
+
+    // ============================================================
+    // 🔹 LENS TYPES
+    // ============================================================
+    getLensTypes: builder.query({
+      query: () => ({
+        url: listLensTypesUrl,
         method: "GET",
       }),
     }),
@@ -159,6 +181,8 @@ export const {
   useGetMedicationTypesQuery,
   useGetAllMedicationsQuery,
   useFilterMedicationsQuery,
+  useGetRefractiveCorrectionTypesQuery,
+  useGetLensTypesQuery,
   useGetManagementPlanQuery,
   useCreateManagementPlanMutation,
   useGetCaseManagementGuideQuery,

@@ -52,6 +52,15 @@ export const createInsuranceUrl = (patientId) =>
 // Fetch insurance options (types and providers)
 export const fetchInsuranceOptionsUrl = "/clients/insurance/options/";
 
+// Fetch patient registration options (regions and occupation categories)
+export const fetchPatientOptionsUrl = "/clients/options/";
+
+// Fetch regions
+export const fetchRegionsUrl = "/clients/regions/";
+
+// Fetch occupation categories
+export const fetchOccupationCategoriesUrl = "/clients/occupation-categories/";
+
 
 /////////////////////////
 // Appointments
@@ -208,6 +217,8 @@ export const filterMedicationsUrl = (typeId) =>
 // Management Plan
 /////////////////////////
 
+export const listRefractiveCorrectionTypesUrl = "/management/refractive-correction-types/";
+export const listLensTypesUrl = "/management/lens-types/";
 export const managementPlanUrl = (appointmentId) =>
   `/management/${appointmentId}/`;
 export const managementPlanByVersionUrl = (appointmentId, versionId) =>
@@ -259,6 +270,26 @@ export const getPharmacyOrderUrl = (appointmentId) =>
   `/pharmacy/api/orders/${appointmentId}/`;
 export const upsertPharmacyOrderUrl = (appointmentId) =>
   `/pharmacy/api/orders/${appointmentId}/`;
+
+
+/////////////////////////
+// Billing & Payments
+/////////////////////////
+
+// Pharmacy Bills
+export const pharmacyBillsUrl = "/billing/bills/";
+export const pharmacyBillDetailUrl = (billId) => `/billing/bills/${billId}/`;
+export const appointmentBillsUrl = (appointmentId) =>
+  `/billing/bills/appointment/${appointmentId}/`;
+export const pendingBillsUrl = "/billing/bills/pending/";
+
+// Payments
+export const paymentsUrl = "/billing/payments/";
+export const paymentDetailUrl = (paymentId) => `/billing/payments/${paymentId}/`;
+export const billPaymentsUrl = (billId) =>
+  `/billing/payments/bill/${billId}/`;
+export const billPaymentSummaryUrl = (billId) =>
+  `/billing/payments/bill/${billId}/summary/`;
 
 
 /////////////////////////

@@ -84,6 +84,8 @@ const Management = ({ setFlowStep, appointmentId }) => {
   const [prescription, setPrescription] = useState({});
   const [details, setDetails] = useState({});
   const [selectedMedications, setSelectedMedications] = useState([]);
+  const [selectedRefractiveCorrectionTypes, setSelectedRefractiveCorrectionTypes] = useState([]);
+  const [selectedLensTypes, setSelectedLensTypes] = useState([]);
 
   const medsList = useMemo(
     () => (selectedTypeId ? filteredMedications : medications) ?? [],
@@ -184,6 +186,9 @@ const Management = ({ setFlowStep, appointmentId }) => {
         }
       }
 
+      // Extract type_of_lens from prescription to avoid conflicts
+      const { type_of_lens, ...prescriptionFields } = prescription;
+
       const payload = {
         appointment: apptId,
         refractive_correction: !!checkboxes.refractiveCorrection,
@@ -193,7 +198,9 @@ const Management = ({ setFlowStep, appointmentId }) => {
         therapy: !!checkboxes.therapy,
         surgery: !!checkboxes.surgery,
         referral: !!checkboxes.referral,
-        ...prescription,
+        ...prescriptionFields,
+        refractive_correction_types: selectedRefractiveCorrectionTypes,
+        lens_types: selectedLensTypes,
         counselling_details: details.counselling_details || null,
         low_vision_aid_details: details.low_vision_aid_details || null,
         therapy_details: details.therapy_details || null,
@@ -283,6 +290,10 @@ const Management = ({ setFlowStep, appointmentId }) => {
             setDetails={setDetails}
             selectedMedications={selectedMedications}
             setSelectedMedications={setSelectedMedications}
+            selectedRefractiveCorrectionTypes={selectedRefractiveCorrectionTypes}
+            setSelectedRefractiveCorrectionTypes={setSelectedRefractiveCorrectionTypes}
+            selectedLensTypes={selectedLensTypes}
+            setSelectedLensTypes={setSelectedLensTypes}
             medsList={medsList}
             medicationTypes={medicationTypes}
             selectedTypeId={selectedTypeId}

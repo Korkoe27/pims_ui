@@ -19,4 +19,5 @@ export { default as MyCases } from "./MyCases";
 export { default as MyScores } from "./MyScores";
 export { default as PharmacyOrder } from "./PharmacyOrder";
 export { default as Documentation } from "./Documentation";
-
+export { default as StudentPortal } from "./StudentPortal";
+export { default as Finance } from "./Finance";

@@ -12,9 +12,7 @@ const DiagnosisView = ({ appointmentId }) => {
       setDiagnosisData({
         differential_diagnosis:
           appointmentDiagnosis.differential_diagnosis || "",
-        management_plan: appointmentDiagnosis.management_plan || "",
         final_diagnoses_info: appointmentDiagnosis.final_diagnoses_info || [],
-        queries: appointmentDiagnosis.queries || [],
       });
     }
   }, [appointmentDiagnosis]);
@@ -36,7 +34,7 @@ const DiagnosisView = ({ appointmentId }) => {
       </div>
 
       <div>
-        <h4 className="font-semibold text-gray-700 mb-2">Final Diagnoses:</h4>
+        <h4 className="font-semibold text-gray-700 mb-2">Diagnoses:</h4>
         {diagnosisData.final_diagnoses_info.length === 0 ? (
           <p className="text-gray-600">None recorded.</p>
         ) : (
@@ -44,39 +42,42 @@ const DiagnosisView = ({ appointmentId }) => {
             {diagnosisData.final_diagnoses_info.map((d) => (
               <div
                 key={d.id}
-                className="bg-gray-50 p-3 border rounded space-y-1"
+                className={`p-3 border rounded space-y-1 ${
+                  d.is_query ? 'bg-yellow-50 border-yellow-300' : 'bg-green-50 border-green-300'
+                }`}
               >
-                <p>
-                  <strong>{d.name}</strong>
-                </p>
+                <div className="flex items-center justify-between">
+                  <p>
+                    <strong>{d.code?.diagnosis || d.name}</strong>
+                    {d.code?.icd_code && (
+                      <span className="text-sm text-gray-600 ml-2">
+                        ({d.code.icd_code})
+                      </span>
+                    )}
+                  </p>
+                  <span className={`text-xs px-2 py-1 rounded ${
+                    d.is_query 
+                      ? 'bg-yellow-200 text-yellow-800' 
+                      : 'bg-green-200 text-green-800'
+                  }`}>
+                    {d.is_query ? 'Query' : 'Final'}
+                  </span>
+                </div>
                 {d.affected_eye && (
-                  <p className="text-sm">Eye: {d.affected_eye}</p>
+                  <p className="text-sm text-gray-700">Eye: {d.affected_eye}</p>
                 )}
-                {d.notes && <p className="text-sm">Notes: {d.notes}</p>}
+                {d.management_plan && (
+                  <p className="text-sm text-gray-700">
+                    Management: {d.management_plan}
+                  </p>
+                )}
+                {d.notes && (
+                  <p className="text-sm text-gray-600">Notes: {d.notes}</p>
+                )}
               </div>
             ))}
           </div>
         )}
-      </div>
-
-      <div>
-        <h4 className="font-semibold text-gray-700 mb-2">Queries:</h4>
-        {diagnosisData.queries.length === 0 ? (
-          <p className="text-gray-600">None recorded.</p>
-        ) : (
-          <ul className="list-disc list-inside text-gray-600 space-y-1">
-            {diagnosisData.queries.map((q, idx) => (
-              <li key={idx}>{q.query}</li>
-            ))}
-          </ul>
-        )}
-      </div>
-
-      <div>
-        <h4 className="font-semibold text-gray-700">Management Plan:</h4>
-        <p className="text-gray-600 whitespace-pre-wrap">
-          {diagnosisData.management_plan || "N/A"}
-        </p>
       </div>
     </div>
   );
