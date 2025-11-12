@@ -101,18 +101,17 @@ const StudentPortal = () => {
     },
   ];
 
-  // Filter appointments by semester AND date range
+  // Filter appointments by date range only
   const filteredAppointments = appointments.filter((a) => {
-    const matchesSemester = a.semester === semester;
     const appointmentDate = new Date(a.date);
     
     const matchesStartDate = startDate ? appointmentDate >= new Date(startDate) : true;
     const matchesEndDate = endDate ? appointmentDate <= new Date(endDate) : true;
     
-    return matchesSemester && matchesStartDate && matchesEndDate;
+    return matchesStartDate && matchesEndDate;
   });
   
-  const filteredGrades = grades.filter((g) => g.semester === semester);
+  const filteredGrades = grades;
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -179,14 +178,6 @@ const StudentPortal = () => {
           </svg>
           Student Portal
         </h1>
-        <select
-          className="border border-gray-300 rounded-lg px-4 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-[#2f3192]"
-          value={semester}
-          onChange={(e) => setSemester(e.target.value)}
-        >
-          <option value="Semester 1">Semester 1</option>
-          <option value="Semester 2">Semester 2</option>
-        </select>
       </div>
 
       {/* Tabs */}
@@ -253,7 +244,7 @@ const StudentPortal = () => {
           <div className="p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-gray-800">
-                My Appointments — {semester}
+                My Appointments
               </h2>
               <p className="text-sm text-gray-500">
                 Showing {filteredAppointments.length} record(s)
@@ -383,7 +374,7 @@ const StudentPortal = () => {
                         colSpan="6"
                         className="py-8 px-4 text-center text-gray-500"
                       >
-                        No appointments found for {semester}
+                        No appointments found
                         {(startDate || endDate) && " with selected date range"}
                       </td>
                     </tr>
@@ -401,7 +392,7 @@ const StudentPortal = () => {
           <div className="p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-gray-800">
-                My Grades — {semester}
+                My Grades
               </h2>
               <p className="text-sm text-gray-500">
                 Showing {filteredGrades.length} record(s)
@@ -469,7 +460,7 @@ const StudentPortal = () => {
                         colSpan="6"
                         className="py-8 px-4 text-center text-gray-500"
                       >
-                        No grades found for {semester}
+                        No grades found
                       </td>
                     </tr>
                   )}
