@@ -2,12 +2,13 @@ import React from "react";
 import { Outlet } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 
 const Layout = () => {
   return (
-    <div className="flex">
+    <div className="flex min-h-screen">
       {/* Sidebar */}
-      <div className="w-72 min-h-screen">
+      <div className="w-72">
         <Sidebar />
       </div>
 
@@ -19,9 +20,12 @@ const Layout = () => {
         </div>
 
         {/* Page content */}
-        <div className="bg-[#f9fafb] min-h-screen">
+        <div className="bg-[#f9fafb] flex-1">
           <Outlet />
         </div>
+
+        {/* Footer */}
+        <Footer />
       </div>
     </div>
   );
