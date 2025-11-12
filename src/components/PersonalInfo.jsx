@@ -3,7 +3,7 @@ import { IoPhonePortraitOutline } from "react-icons/io5";
 import { useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { setPatientId } from "../redux/slices/patientSlice";
-import { useCreatePatientMutation } from "../redux/api/features/patientApi";
+import { useCreatePatientMutation, useGetRegionsQuery, useGetOccupationCategoriesQuery } from "../redux/api/features/patientApi";
 import { useGetInsuranceOptionsQuery } from "../redux/api/features/insuranceApi";
 import SelectClinicModal from "../components/SelectClinicModal";
 import ConfirmSaveModal from "./ConfirmSaveModal";
@@ -57,6 +57,8 @@ const PersonalInfo = () => {
   const [errors, setErrors] = useState({});
   const [createPatient, { isLoading: isCreatingPatient }] = useCreatePatientMutation();
   const { data: insuranceOptions, isLoading: isLoadingOptions } = useGetInsuranceOptionsQuery();
+  const { data: regions, isLoading: isLoadingRegions } = useGetRegionsQuery();
+  const { data: occupationCategories, isLoading: isLoadingOccupations } = useGetOccupationCategoriesQuery();
 
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [confirmMessage, setConfirmMessage] = useState("");
@@ -288,12 +290,61 @@ const PersonalInfo = () => {
         setShowConfirmModal(true);
         setRetryAction(() => () => createPatientHandler(onSuccess, true));
       } else {
+        // Handle insurance-specific errors
+        if (error.data?.insurance_data) {
+          const insuranceErrors = error.data.insurance_data;
+          let errorMessages = [];
+          
+          insuranceErrors.forEach((insError, index) => {
+            if (insError) {
+              Object.keys(insError).forEach((field) => {
+                const fieldName = field.replace(/_/g, ' ');
+                const message = Array.isArray(insError[field]) 
+                  ? insError[field][0] 
+                  : insError[field];
+                errorMessages.push(`Insurance ${index + 1} - ${fieldName}: ${message}`);
+              });
+            }
+          });
+          
+          if (errorMessages.length > 0) {
+            const errorText = errorMessages.join('\n');
+            setGeneralError(errorText);
+            showToast("❌ Insurance validation errors. Please check the form.", "error");
+            return;
+          }
+        }
+        
+        // Handle field-specific errors
         setErrors(error.data || {});
-        setGeneralError(
-          error.data?.detail ||
-            error.data?.non_field_errors?.[0] ||
-            "An unexpected error occurred."
-        );
+        
+        // Build general error message
+        let generalErrorMsg = "";
+        if (error.data?.detail) {
+          generalErrorMsg = error.data.detail;
+        } else if (error.data?.non_field_errors) {
+          generalErrorMsg = Array.isArray(error.data.non_field_errors)
+            ? error.data.non_field_errors[0]
+            : error.data.non_field_errors;
+        } else {
+          // Check for other field errors
+          const fieldErrors = Object.keys(error.data || {})
+            .filter(key => key !== 'insurance_data')
+            .map(key => {
+              const msg = Array.isArray(error.data[key]) 
+                ? error.data[key][0] 
+                : error.data[key];
+              return `${key.replace(/_/g, ' ')}: ${msg}`;
+            });
+          
+          if (fieldErrors.length > 0) {
+            generalErrorMsg = fieldErrors.join('; ');
+          } else {
+            generalErrorMsg = "An unexpected error occurred.";
+          }
+        }
+        
+        setGeneralError(generalErrorMsg);
         showToast("❌ Failed to create patient.", "error");
       }
     }
@@ -329,7 +380,7 @@ const PersonalInfo = () => {
       {selectedClinic && (
         <form className="px-8 w-fit">
           {generalError && (
-            <div className="mb-4 p-4 border border-red-500 bg-red-100 text-red-700 rounded">
+            <div className="mb-4 p-4 border border-red-500 bg-red-100 text-red-700 rounded whitespace-pre-line">
               {generalError}
             </div>
           )}
@@ -399,22 +450,11 @@ const PersonalInfo = () => {
                 name="occupation_category"
                 value={formData.occupation_category}
                 onChange={handleChange}
-                options={[
-                  "Agriculture & Farming",
-                  "Automotive & Mechanical",
-                  "Business & Finance",
-                  "Construction & Manual Labor",
-                  "Education & Training",
-                  "Health & Medical Services",
-                  "Hospitality & Food Services",
-                  "IT & Technology",
-                  "Legal & Judicial",
-                  "Public Service & Administration",
-                  "Religious & Spiritual",
-                  "Retired & Not Working",
-                  "Technical & Engineering",
-                  "Miscellaneous & Others",
-                ]}
+                options={occupationCategories?.map(cat => ({
+                  value: cat.id,
+                  label: cat.name
+                })) || []}
+                isLoading={isLoadingOccupations}
                 error={errors.occupation_category}
               />
               <InputField
@@ -442,24 +482,11 @@ const PersonalInfo = () => {
                 name="region"
                 value={formData.region}
                 onChange={handleChange}
-                options={[
-                  "Ahafo",
-                  "Ashanti",
-                  "Bono",
-                  "Bono East",
-                  "Central",
-                  "Eastern",
-                  "Greater Accra",
-                  "North East",
-                  "Northern",
-                  "Oti",
-                  "Savannah",
-                  "Upper East",
-                  "Upper West",
-                  "Volta",
-                  "Western",
-                  "Western North",
-                ]}
+                options={regions?.map(reg => ({
+                  value: reg.id,
+                  label: reg.name
+                })) || []}
+                isLoading={isLoadingRegions}
                 error={errors.region}
               />
               <InputField
@@ -730,7 +757,7 @@ const InputField = ({
   </div>
 );
 
-const SelectField = ({ label, name, value, onChange, options, optionLabels, error }) => (
+const SelectField = ({ label, name, value, onChange, options, optionLabels, error, isLoading }) => (
   <div className="flex flex-col gap-2">
     <label htmlFor={name} className="text-[#101928]">
       {label}{" "}
@@ -742,16 +769,24 @@ const SelectField = ({ label, name, value, onChange, options, optionLabels, erro
       name={name}
       value={value}
       onChange={onChange}
+      disabled={isLoading}
       className={`p-4 w-full border h-14 rounded-lg text-[#98a2b3] ${
         error ? "border-red-500" : "border-[#d0d5dd]"
-      }`}
+      } ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
     >
-      <option value="">Select an option</option>
-      {options.map((option, idx) => (
-        <option key={idx} value={option}>
-          {optionLabels ? optionLabels[option] || option : option}
-        </option>
-      ))}
+      <option value="">{isLoading ? "Loading..." : "Select an option"}</option>
+      {options.map((option, idx) => {
+        // Handle both string arrays and object arrays { value, label }
+        const optionValue = typeof option === "object" ? option.value : option;
+        const optionLabel = typeof option === "object" ? option.label : 
+                           (optionLabels ? optionLabels[option] || option : option);
+        
+        return (
+          <option key={idx} value={optionValue}>
+            {optionLabel}
+          </option>
+        );
+      })}
     </select>
     {error && <span className="text-red-500 text-sm">{error}</span>}
   </div>
