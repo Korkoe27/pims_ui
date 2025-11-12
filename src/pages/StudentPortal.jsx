@@ -6,7 +6,6 @@ import Card from "../components/ui/card";
 
 const StudentPortal = () => {
   const [activeTab, setActiveTab] = useState("appointments");
-  const [semester, setSemester] = useState("Semester 1");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [showChangesModal, setShowChangesModal] = useState(false);
