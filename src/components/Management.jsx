@@ -292,8 +292,8 @@ const Management = ({ setFlowStep, appointmentId }) => {
             setSelectedMedications={setSelectedMedications}
             selectedRefractiveCorrectionTypes={selectedRefractiveCorrectionTypes}
             setSelectedRefractiveCorrectionTypes={setSelectedRefractiveCorrectionTypes}
-            selectedLensType={selectedLensType}
-            setSelectedLensType={setSelectedLensType}
+            selectedLensTypes={selectedLensTypes}
+            setSelectedLensTypes={setSelectedLensTypes}
             medsList={medsList}
             medicationTypes={medicationTypes}
             selectedTypeId={selectedTypeId}
