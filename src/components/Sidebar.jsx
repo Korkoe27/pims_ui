@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link, NavLink } from "react-router-dom";
 import { HiUser } from "react-icons/hi2";
+import { FaChevronDown, FaChevronRight } from "react-icons/fa6";
 import Logo from "./Logo";
 import { Sidebar_links } from "../extras/data.js";
 import { useSelector } from "react-redux";
@@ -12,6 +13,7 @@ const Sidebar = () => {
   const access = user?.access || {};
   const role = user?.role_name?.toLowerCase();
   const { handleLogout } = useLogout();
+  const [isAppointmentsOpen, setIsAppointmentsOpen] = useState(true);
 
   const { data: dashboardData, isLoading: isDashboardLoading } =
     useGetDashboardDataQuery();
@@ -65,34 +67,39 @@ const Sidebar = () => {
             if (item.name.toLowerCase() === "appointments") {
               return (
                 <div key="appointments" className="mb-2">
-                  <NavLink
-                    to={item.path}
-                    className={({ isActive }) =>
-                      isActive ? activeLink : normalLink
-                    }
+                  <div
+                    onClick={() => setIsAppointmentsOpen(!isAppointmentsOpen)}
+                    className="flex items-center gap-4 pl-4 py-2.5 rounded text-gray-800 font-medium text-md hover:bg-[#f5f8ff] transition-colors my-0.5 cursor-pointer"
                   >
                     {item.icon}
                     <span className="capitalize">{item.name}</span>
                     <span className={badgeClass}>
                       {isDashboardLoading ? "--" : totalAppointments}
                     </span>
-                  </NavLink>
+                    {isAppointmentsOpen ? (
+                      <FaChevronDown className="text-gray-500 text-xs ml-auto" />
+                    ) : (
+                      <FaChevronRight className="text-gray-500 text-xs ml-auto" />
+                    )}
+                  </div>
 
                   {/* Sub-links */}
-                  <div className="mt-1">
-                    {CLINIC_LINKS.map((clinic) => (
-                      <NavLink
-                        key={clinic.path}
-                        to={clinic.path}
-                        className={({ isActive }) =>
-                          isActive ? subLinkActive : subLinkNormal
-                        }
-                      >
-                        <span>{clinic.label}</span>
-                        {clinicBadge(clinic.count)}
-                      </NavLink>
-                    ))}
-                  </div>
+                  {isAppointmentsOpen && (
+                    <div className="mt-1">
+                      {CLINIC_LINKS.map((clinic) => (
+                        <NavLink
+                          key={clinic.path}
+                          to={clinic.path}
+                          className={({ isActive }) =>
+                            isActive ? subLinkActive : subLinkNormal
+                          }
+                        >
+                          <span>{clinic.label}</span>
+                          {clinicBadge(clinic.count)}
+                        </NavLink>
+                      ))}
+                    </div>
+                  )}
                 </div>
               );
             }
@@ -121,19 +128,14 @@ const Sidebar = () => {
       </div>
 
       {/* User + Logout */}
-      <div className="p-4 border-t border-gray-100 flex items-center justify-between">
+      <div className="border-t border-gray-200 py-3 px-4 flex items-center justify-between bg-white">
         <div className="flex items-center gap-3">
           <div className="rounded-full bg-[#eef2ff] w-10 h-10 flex items-center justify-center">
             <HiUser className="text-blue-700 text-lg" />
           </div>
-          <div>
-            <h4 className="text-sm font-semibold text-[#101928]">
-              {user?.first_name || "User"}
-            </h4>
-            <p className="text-xs text-gray-500 capitalize">
-              {role || "user"}
-            </p>
-          </div>
+          <p className="text-sm text-gray-600 capitalize">
+            {role || "Loading..."}
+          </p>
         </div>
         <button
           onClick={handleLogout}
