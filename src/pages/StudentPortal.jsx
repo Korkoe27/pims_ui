@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import PageContainer from "../components/PageContainer";
 import Card from "../components/ui/card";
+import { useGetMyStudentAppointmentsQuery } from "../redux/api/features/appointmentsApi";
+import BouncingBallsLoader from "../components/BouncingBallsLoader";
 
 const StudentPortal = () => {
   const [activeTab, setActiveTab] = useState("appointments");
@@ -13,55 +15,16 @@ const StudentPortal = () => {
   const navigate = useNavigate();
   const user = useSelector((state) => state.auth.user);
 
-  // TODO: Replace with actual API calls
-  const appointments = [
-    {
-      date: "2025-03-11",
-      patient: "Alan Mccray",
-      patientId: "OST/002/25",
-      clinic: "General",
-      status: "In Progress",
-      semester: "Semester 1",
-      appointmentId: "apt-001",
-    },
-    {
-      date: "2025-05-12",
-      patient: "Grace Mensah",
-      patientId: "OST/003/25",
-      clinic: "Low Vision",
-      status: "Completed",
-      semester: "Semester 1",
-      appointmentId: "apt-002",
-    },
-    {
-      date: "2025-09-08",
-      patient: "John Doe",
-      patientId: "OST/004/25",
-      clinic: "Pediatric",
-      status: "Submitted",
-      semester: "Semester 2",
-      appointmentId: "apt-003",
-      reviewed: true,
-      reviewedBy: "Dr. Kwame Asante",
-      reviewDate: "2025-09-10",
-      changes: [
-        { section: "Case History", field: "Chief Complaint", original: "Blurry vision", reviewed: "Blurry vision (distance only)" },
-        { section: "Visual Acuity", field: "OD Unaided", original: "6/12", reviewed: "6/18" },
-        { section: "Management", field: "Prescription OD SPH", original: "-2.00", reviewed: "-2.25" },
-      ]
-    },
-    {
-      date: "2025-10-10",
-      patient: "Jane Smith",
-      patientId: "OST/005/25",
-      clinic: "Contact Lens",
-      status: "Completed",
-      semester: "Semester 2",
-      appointmentId: "apt-004",
-      reviewed: false,
-    },
-  ];
+  // ✅ Fetch student's own appointments from API
+  const { data, isLoading, isError, error } = useGetMyStudentAppointmentsQuery({
+    startDate,
+    endDate,
+  });
 
+  const appointments = data?.results || [];
+  const appointmentsCount = data?.count || 0;
+
+  // TODO: Replace with actual API for grades
   const grades = [
     {
       date: "2025-03-12",
@@ -70,7 +33,6 @@ const StudentPortal = () => {
       score: 88,
       grade: "A",
       feedback: "Excellent case handling.",
-      semester: "Semester 1",
     },
     {
       date: "2025-04-20",
@@ -79,7 +41,6 @@ const StudentPortal = () => {
       score: 79,
       grade: "B+",
       feedback: "Good understanding, improve documentation.",
-      semester: "Semester 1",
     },
     {
       date: "2025-09-15",
@@ -88,7 +49,6 @@ const StudentPortal = () => {
       score: 72,
       grade: "B",
       feedback: "Good but needs detail in refraction notes.",
-      semester: "Semester 2",
     },
     {
       date: "2025-10-02",
@@ -97,30 +57,29 @@ const StudentPortal = () => {
       score: 91,
       grade: "A",
       feedback: "Excellent work, thorough and clear.",
-      semester: "Semester 2",
     },
   ];
 
-  // Filter appointments by date range only
-  const filteredAppointments = appointments.filter((a) => {
-    const appointmentDate = new Date(a.date);
-    
-    const matchesStartDate = startDate ? appointmentDate >= new Date(startDate) : true;
-    const matchesEndDate = endDate ? appointmentDate <= new Date(endDate) : true;
-    
-    return matchesStartDate && matchesEndDate;
-  });
-  
   const filteredGrades = grades;
 
   const getStatusColor = (status) => {
-    switch (status) {
-      case "Completed":
+    if (!status) return "bg-gray-100 text-gray-700";
+    
+    const normalizedStatus = status.toLowerCase();
+    
+    switch (normalizedStatus) {
+      case "completed":
         return "bg-green-100 text-green-700";
-      case "Submitted":
+      case "submitted":
+      case "submitted_for_review":
         return "bg-blue-100 text-blue-700";
-      case "In Progress":
+      case "in_progress":
+      case "in progress":
         return "bg-yellow-100 text-yellow-700";
+      case "scheduled":
+        return "bg-purple-100 text-purple-700";
+      case "cancelled":
+        return "bg-red-100 text-red-700";
       default:
         return "bg-gray-100 text-gray-700";
     }
@@ -134,11 +93,14 @@ const StudentPortal = () => {
   };
 
   const handleViewAppointment = (appointment) => {
-    if (appointment.status === "In Progress") {
-      navigate(`/consultation/${appointment.appointmentId}`);
+    // Use appointment.id (UUID from backend) instead of appointmentId
+    const appointmentId = appointment.id;
+    
+    if (appointment.status === "in_progress") {
+      navigate(`/consultation/${appointmentId}`);
     } else {
       // Navigate to read-only view
-      navigate(`/consultation/${appointment.appointmentId}?view=readonly`);
+      navigate(`/consultation/${appointmentId}?view=readonly`);
     }
   };
 
@@ -150,6 +112,17 @@ const StudentPortal = () => {
   const clearDateFilters = () => {
     setStartDate("");
     setEndDate("");
+  };
+
+  // Format date for display
+  const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
   };
 
   return (
@@ -247,7 +220,7 @@ const StudentPortal = () => {
                 My Appointments
               </h2>
               <p className="text-sm text-gray-500">
-                Showing {filteredAppointments.length} record(s)
+                Showing {appointmentsCount} record(s)
               </p>
             </div>
 
@@ -287,101 +260,113 @@ const StudentPortal = () => {
               </div>
             </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-gray-200">
-                    <th className="text-left py-3 px-4 font-semibold text-gray-700">
-                      Date
-                    </th>
-                    <th className="text-left py-3 px-4 font-semibold text-gray-700">
-                      Patient
-                    </th>
-                    <th className="text-left py-3 px-4 font-semibold text-gray-700">
-                      Patient ID
-                    </th>
-                    <th className="text-left py-3 px-4 font-semibold text-gray-700">
-                      Clinic Type
-                    </th>
-                    <th className="text-left py-3 px-4 font-semibold text-gray-700">
-                      Status
-                    </th>
-                    <th className="text-center py-3 px-4 font-semibold text-gray-700">
-                      Action
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredAppointments.length > 0 ? (
-                    filteredAppointments.map((appointment, index) => (
-                      <tr
-                        key={index}
-                        className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
-                      >
-                        <td className="py-3 px-4 text-gray-700">
-                          {appointment.date}
-                        </td>
-                        <td className="py-3 px-4 text-gray-700">
-                          {appointment.patient}
-                        </td>
-                        <td className="py-3 px-4 text-gray-700">
-                          {appointment.patientId}
-                        </td>
-                        <td className="py-3 px-4 text-gray-700">
-                          {appointment.clinic}
-                        </td>
-                        <td className="py-3 px-4">
-                          <div className="flex flex-col gap-1">
-                            <span
-                              className={`px-2 py-1 rounded text-xs font-semibold w-fit ${getStatusColor(
-                                appointment.status
-                              )}`}
-                            >
-                              {appointment.status}
-                            </span>
-                            {appointment.reviewed && (
-                              <span className="text-xs text-purple-600 font-medium">
-                                ✓ Reviewed
-                              </span>
-                            )}
-                          </div>
-                        </td>
-                        <td className="py-3 px-4">
-                          <div className="flex gap-2 justify-center">
-                            <button
-                              onClick={() => handleViewAppointment(appointment)}
-                              className="px-4 py-2 text-sm font-medium text-[#2f3192] border border-[#2f3192] rounded-lg hover:bg-[#2f3192] hover:text-white transition-colors"
-                            >
-                              {appointment.status === "In Progress"
-                                ? "Continue"
-                                : "View"}
-                            </button>
-                            {appointment.reviewed && (
-                              <button
-                                onClick={() => handleViewChanges(appointment)}
-                                className="px-4 py-2 text-sm font-medium text-purple-600 border border-purple-600 rounded-lg hover:bg-purple-600 hover:text-white transition-colors"
+            {/* Loading State */}
+            {isLoading && (
+              <div className="flex justify-center items-center py-12">
+                <BouncingBallsLoader />
+              </div>
+            )}
+
+            {/* Error State */}
+            {isError && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+                <p className="text-red-800 text-sm">
+                  {error?.data?.error || "Failed to load appointments. Please try again."}
+                </p>
+              </div>
+            )}
+
+            {/* Appointments Table */}
+            {!isLoading && !isError && (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-gray-200">
+                      <th className="text-left py-3 px-4 font-semibold text-gray-700">
+                        Date
+                      </th>
+                      <th className="text-left py-3 px-4 font-semibold text-gray-700">
+                        Patient
+                      </th>
+                      <th className="text-left py-3 px-4 font-semibold text-gray-700">
+                        Patient ID
+                      </th>
+                      <th className="text-left py-3 px-4 font-semibold text-gray-700">
+                        Clinic Type
+                      </th>
+                      <th className="text-left py-3 px-4 font-semibold text-gray-700">
+                        Status
+                      </th>
+                      <th className="text-center py-3 px-4 font-semibold text-gray-700">
+                        Action
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {appointments.length > 0 ? (
+                      appointments.map((appointment) => (
+                        <tr
+                          key={appointment.id}
+                          className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
+                        >
+                          <td className="py-3 px-4 text-gray-700">
+                            {formatDate(appointment.appointment_date)}
+                          </td>
+                          <td className="py-3 px-4 text-gray-700">
+                            {appointment.patient_name || "N/A"}
+                          </td>
+                          <td className="py-3 px-4 text-gray-700">
+                            {appointment.patient_id || "N/A"}
+                          </td>
+                          <td className="py-3 px-4 text-gray-700">
+                            {appointment.appointment_type_name || "General"}
+                          </td>
+                          <td className="py-3 px-4">
+                            <div className="flex flex-col gap-1">
+                              <span
+                                className={`px-2 py-1 rounded text-xs font-semibold w-fit ${getStatusColor(
+                                  appointment.status
+                                )}`}
                               >
-                                View Changes
+                                {appointment.status.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase())}
+                              </span>
+                              {appointment.is_submitted_for_review && (
+                                <span className="text-xs text-purple-600 font-medium">
+                                  ✓ Submitted for Review
+                                </span>
+                              )}
+                            </div>
+                          </td>
+                          <td className="py-3 px-4">
+                            <div className="flex gap-2 justify-center">
+                              <button
+                                onClick={() => handleViewAppointment(appointment)}
+                                className="px-4 py-2 text-sm font-medium text-[#2f3192] border border-[#2f3192] rounded-lg hover:bg-[#2f3192] hover:text-white transition-colors"
+                              >
+                                {appointment.status === "in_progress"
+                                  ? "Continue"
+                                  : "View"}
                               </button>
-                            )}
-                          </div>
+                              {/* TODO: Add View Changes button when review system is implemented */}
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td
+                          colSpan="6"
+                          className="py-8 px-4 text-center text-gray-500"
+                        >
+                          No appointments found
+                          {(startDate || endDate) && " with selected date range"}
                         </td>
                       </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td
-                        colSpan="6"
-                        className="py-8 px-4 text-center text-gray-500"
-                      >
-                        No appointments found
-                        {(startDate || endDate) && " with selected date range"}
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         </Card>
       )}

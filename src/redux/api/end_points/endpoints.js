@@ -70,6 +70,9 @@ export const fetchOccupationCategoriesUrl = "/clients/occupation-categories/";
 export const createNewAppointmentUrl = "/clients/appointments/";
 export const fetchAppointmentsUrl = "/clients/appointments/";
 
+// Student Portal - My Appointments
+export const fetchMyStudentAppointmentsUrl = "/clients/appointments/my-appointments/";
+
 // Retrieve, update, or delete appointment
 export const getAppointmentsDetailsUrl = (appointmentId) =>
   `/clients/appointments/${appointmentId}/`;

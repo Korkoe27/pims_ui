@@ -2,6 +2,7 @@ import { apiClient } from "../api_client/apiClient";
 import {
   createNewAppointmentUrl,
   fetchAppointmentsUrl,
+  fetchMyStudentAppointmentsUrl,
   getAppointmentsDetailsUrl,
   markAppointmentCompletedUrl,
   getTodaysAppointmentUrl,
@@ -25,6 +26,22 @@ export const appointmentsApi = apiClient.injectEndpoints({
         method: "GET",
         params: { page, page_size },
       }),
+    }),
+
+    // ✅ Fetch student's own appointments (Student Portal)
+    getMyStudentAppointments: builder.query({
+      query: ({ startDate, endDate } = {}) => {
+        const params = {};
+        if (startDate) params.start_date = startDate;
+        if (endDate) params.end_date = endDate;
+        
+        return {
+          url: fetchMyStudentAppointmentsUrl,
+          method: "GET",
+          params,
+        };
+      },
+      providesTags: ["StudentAppointments"],
     }),
 
     // Fetch single appointment details
@@ -108,6 +125,7 @@ export const appointmentsApi = apiClient.injectEndpoints({
 export const {
   // Appointments
   useGetAppointmentsQuery,
+  useGetMyStudentAppointmentsQuery,
   useGetAppointmentDetailsQuery,
   useGetTodaysAppointmentsQuery,
   useCreateAppointmentMutation,

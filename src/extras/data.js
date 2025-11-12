@@ -41,6 +41,7 @@ export const Sidebar_links = [
     name: "Student Portal",
     icon: <FaUserGraduate className="text-xl font-bold" />,
     path: "/student-portal",
+    permissionKey: "canAccessStudentPortal", // ✅ Only students can access
   },
   {
     name: "pharmacy",

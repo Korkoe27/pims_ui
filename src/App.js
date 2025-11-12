@@ -228,7 +228,14 @@ const App = () => {
             <Route path="documentation" element={<Documentation />} />
 
             {/* 🎓 Student Portal */}
-            <Route path="student-portal" element={<StudentPortal />} />
+            <Route
+              path="student-portal"
+              element={
+                <ProtectedRoute accessKeys={["canAccessStudentPortal"]}>
+                  <StudentPortal />
+                </ProtectedRoute>
+              }
+            />
 
             {/* 💰 Finance */}
             <Route
