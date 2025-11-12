@@ -11,6 +11,10 @@ const ManagementForm = ({
   setDetails,
   selectedMedications,
   setSelectedMedications,
+  selectedRefractiveCorrectionTypes,
+  setSelectedRefractiveCorrectionTypes,
+  selectedLensType,
+  setSelectedLensType,
   medsList,
   medicationTypes,
   selectedTypeId,
@@ -44,13 +48,23 @@ const ManagementForm = ({
         os_cyl: managementPlan.os_cyl || "",
         os_axis: managementPlan.os_axis || "",
         os_add: managementPlan.os_add || "",
-        type_of_lens: managementPlan.type_of_lens || "",
-        type_of_refractive_correction:
-          managementPlan.type_of_refractive_correction || "",
+        type_of_lens: managementPlan.type_of_lens?.name || "",
         pd: managementPlan.pd || "",
         segment_height: managementPlan.segment_height || "",
         fitting_cross_height: managementPlan.fitting_cross_height || "",
       });
+
+      // ✅ Hydrate selected refractive correction types
+      if (managementPlan.refractive_correction_types) {
+        setSelectedRefractiveCorrectionTypes(
+          managementPlan.refractive_correction_types.map((type) => type.id)
+        );
+      }
+
+      // ✅ Hydrate selected lens type
+      if (managementPlan.type_of_lens?.id) {
+        setSelectedLensType(managementPlan.type_of_lens.id);
+      }
 
       setDetails({
         counselling_details: managementPlan.counselling_details || "",
@@ -60,7 +74,7 @@ const ManagementForm = ({
         referral_details: managementPlan.referral_details || "",
       });
     }
-  }, [managementPlan, setCheckboxes, setPrescription, setDetails]);
+  }, [managementPlan, setCheckboxes, setPrescription, setDetails, setSelectedRefractiveCorrectionTypes, setSelectedLensType]);
 
   return (
     <form className="flex flex-col gap-5 w-fit">
@@ -102,6 +116,10 @@ const ManagementForm = ({
                   [e.target.name]: e.target.value,
                 }))
               }
+              selectedTypes={selectedRefractiveCorrectionTypes}
+              setSelectedTypes={setSelectedRefractiveCorrectionTypes}
+              selectedLensType={selectedLensType}
+              setSelectedLensType={setSelectedLensType}
             />
           )}
 

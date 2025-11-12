@@ -52,10 +52,24 @@ const ManagementView = ({ appointmentId }) => {
         <div className="space-y-2">
           <h4 className="font-semibold text-gray-700">Spectacle Prescription:</h4>
 
-          {renderPrescriptionField(
-            "Type of Refractive Correction",
-            managementPlan.type_of_refractive_correction
+          {/* Refractive Correction Types */}
+          {managementPlan.refractive_correction_types && 
+           managementPlan.refractive_correction_types.length > 0 && (
+            <div className="mb-3">
+              <span className="font-medium text-gray-600">Correction Types: </span>
+              <div className="flex flex-wrap gap-2 mt-1">
+                {managementPlan.refractive_correction_types.map((type) => (
+                  <span 
+                    key={type.id} 
+                    className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm"
+                  >
+                    {type.name}
+                  </span>
+                ))}
+              </div>
+            </div>
           )}
+
           {renderPrescriptionField("OD SPH", managementPlan.od_sph)}
           {renderPrescriptionField("OD CYL", managementPlan.od_cyl)}
           {renderPrescriptionField("OD AXIS", managementPlan.od_axis)}
@@ -64,7 +78,7 @@ const ManagementView = ({ appointmentId }) => {
           {renderPrescriptionField("OS CYL", managementPlan.os_cyl)}
           {renderPrescriptionField("OS AXIS", managementPlan.os_axis)}
           {renderPrescriptionField("OS ADD", managementPlan.os_add)}
-          {renderPrescriptionField("Type of Lens", managementPlan.type_of_lens)}
+          {renderPrescriptionField("Type of Lens", managementPlan.type_of_lens?.name)}
           {renderPrescriptionField("PD", managementPlan.pd)}
           {renderPrescriptionField("Segment Height", managementPlan.segment_height)}
           {renderPrescriptionField("Fitting Cross Height", managementPlan.fitting_cross_height)}

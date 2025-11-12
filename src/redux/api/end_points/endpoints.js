@@ -217,6 +217,8 @@ export const filterMedicationsUrl = (typeId) =>
 // Management Plan
 /////////////////////////
 
+export const listRefractiveCorrectionTypesUrl = "/management/refractive-correction-types/";
+export const listLensTypesUrl = "/management/lens-types/";
 export const managementPlanUrl = (appointmentId) =>
   `/management/${appointmentId}/`;
 export const managementPlanByVersionUrl = (appointmentId, versionId) =>
