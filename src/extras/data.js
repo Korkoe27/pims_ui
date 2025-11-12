@@ -47,13 +47,13 @@ export const Sidebar_links = [
     name: "pharmacy",
     icon: <FaPills className="text-xl font-bold" />,
     path: "/pharmacy",
-    permissionKey: "canViewConsultations",
+    permissionKey: "canViewPharmacy", // ✅ Pharmacy staff permission
   },
   {
     name: "finance",
     icon: <FaMoneyBillWave className="text-xl font-bold" />,
     path: "/finance",
-    permissionKey: "canViewConsultations",
+    permissionKey: "canViewBills", // ✅ Finance/billing permission
   },
   {
     name: "absent request",

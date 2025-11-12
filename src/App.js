@@ -189,7 +189,7 @@ const App = () => {
             <Route
               path="pharmacy"
               element={
-                <ProtectedRoute accessKeys={["canViewConsultations"]}>
+                <ProtectedRoute accessKeys={["canViewPharmacy"]}>
                   <Pharmacy />
                 </ProtectedRoute>
               }
@@ -241,7 +241,7 @@ const App = () => {
             <Route
               path="finance"
               element={
-                <ProtectedRoute accessKeys={["canViewConsultations"]}>
+                <ProtectedRoute accessKeys={["canViewBills"]}>
                   <Finance />
                 </ProtectedRoute>
               }
