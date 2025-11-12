@@ -121,19 +121,14 @@ const Sidebar = () => {
       </div>
 
       {/* User + Logout */}
-      <div className="p-4 border-t border-gray-100 flex items-center justify-between">
+      <div className="border-t border-gray-200 py-3 px-4 flex items-center justify-between bg-white">
         <div className="flex items-center gap-3">
           <div className="rounded-full bg-[#eef2ff] w-10 h-10 flex items-center justify-center">
             <HiUser className="text-blue-700 text-lg" />
           </div>
-          <div>
-            <h4 className="text-sm font-semibold text-[#101928]">
-              {user?.first_name || "User"}
-            </h4>
-            <p className="text-xs text-gray-500 capitalize">
-              {role || "user"}
-            </p>
-          </div>
+          <p className="text-sm text-gray-600 capitalize">
+            {role || "Loading..."}
+          </p>
         </div>
         <button
           onClick={handleLogout}
