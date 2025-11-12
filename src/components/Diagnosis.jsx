@@ -3,7 +3,6 @@ import { showToast } from "../components/ToasterHelper";
 import SearchableSelect from "./SearchableSelect";
 import AffectedEyeSelect from "./AffectedEyeSelect";
 import NotesTextArea from "./NotesTextArea";
-import DiagnosisQuerySection from "./DiagnosisQuerySection";
 import ManagementPlanSection from "./ManagementPlanSection";
 import useDiagnosisData from "../hooks/useDiagnosisData";
 import SupervisorGradingButton from "./ui/buttons/SupervisorGradingButton";
@@ -56,7 +55,7 @@ const Diagnosis = ({ appointmentId, setFlowStep, setActiveTab, canEdit = true })
                 "Unnamed diagnosis",
               affected_eye: d.affected_eye || "",
               notes: d.notes || "",
-              queries: d.queries?.map((q) => ({ query: q })) || [{ query: "" }],
+              is_query: d.is_query || false,
               management_plan: d.management_plan || "",
             };
           })
@@ -69,20 +68,15 @@ const Diagnosis = ({ appointmentId, setFlowStep, setActiveTab, canEdit = true })
 
   // ✅ Submit diagnosis
   const handleSubmit = async () => {
-    if (!differentialDiagnosis.trim()) {
-      showToast("Differential diagnosis cannot be empty.", "error");
-      return;
-    }
-
     const payload = {
       appointment: appointmentId,
-      differential_diagnosis: differentialDiagnosis,
+      differential_diagnosis: differentialDiagnosis || "",
       final_diagnoses: finalDiagnosisEntries.map((d) => ({
         code: d.id,
         management_plan: d.management_plan,
         affected_eye: d.affected_eye,
         notes: d.notes,
-        queries: (d.queries || []).map((q) => ({ query: q.query })),
+        is_query: d.is_query || false,
       })),
     };
 
@@ -121,7 +115,7 @@ const Diagnosis = ({ appointmentId, setFlowStep, setActiveTab, canEdit = true })
         name,
         affected_eye: "",
         notes: "",
-        queries: [{ query: "" }],
+        is_query: false,
         management_plan: "",
       },
     ]);
@@ -130,41 +124,6 @@ const Diagnosis = ({ appointmentId, setFlowStep, setActiveTab, canEdit = true })
   const updateDiagnosisField = (id, field, value) => {
     setFinalDiagnosisEntries((prev) =>
       prev.map((d) => (d.id === id ? { ...d, [field]: value } : d))
-    );
-  };
-
-  const updateDiagnosisQuery = (diagnosisId, index, value) => {
-    setFinalDiagnosisEntries((prev) =>
-      prev.map((d) =>
-        d.id === diagnosisId
-          ? {
-              ...d,
-              queries: d.queries.map((q, i) =>
-                i === index ? { ...q, query: value } : q
-              ),
-            }
-          : d
-      )
-    );
-  };
-
-  const addDiagnosisQuery = (diagnosisId) => {
-    setFinalDiagnosisEntries((prev) =>
-      prev.map((d) =>
-        d.id === diagnosisId
-          ? { ...d, queries: [...(d.queries || []), { query: "" }] }
-          : d
-      )
-    );
-  };
-
-  const removeDiagnosisQuery = (diagnosisId, index) => {
-    setFinalDiagnosisEntries((prev) =>
-      prev.map((d) =>
-        d.id === diagnosisId
-          ? { ...d, queries: d.queries.filter((_, i) => i !== index) }
-          : d
-      )
     );
   };
 
@@ -195,7 +154,7 @@ const Diagnosis = ({ appointmentId, setFlowStep, setActiveTab, canEdit = true })
           {/* Differential Diagnosis */}
           <div className="mb-4">
             <label className="block font-semibold mb-1">
-              Differential Diagnosis <span className="text-red-500">*</span>
+              Differential Diagnosis
             </label>
             <textarea
               value={differentialDiagnosis}
@@ -204,7 +163,7 @@ const Diagnosis = ({ appointmentId, setFlowStep, setActiveTab, canEdit = true })
                 setDifferentialDiagnosis(e.target.value);
               }}
               className="w-full border p-3 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-              placeholder="Enter differential diagnosis..."
+              placeholder="Enter differential diagnosis (optional)..."
               rows={4}
             />
           </div>
@@ -251,14 +210,34 @@ const Diagnosis = ({ appointmentId, setFlowStep, setActiveTab, canEdit = true })
                       </button>
                     </div>
 
-                    <DiagnosisQuerySection
-                      queries={d.queries || []}
-                      onAdd={() => addDiagnosisQuery(d.id)}
-                      onRemove={(index) => removeDiagnosisQuery(d.id, index)}
-                      onChange={(index, value) =>
-                        updateDiagnosisQuery(d.id, index, value)
-                      }
-                    />
+                    {/* Diagnosis Type Radio Buttons */}
+                    <div className="mb-4">
+                      <label className="block font-semibold mb-2 text-gray-700">
+                        Is this a final diagnosis or a query?
+                      </label>
+                      <div className="flex gap-6">
+                        <label className="flex items-center cursor-pointer">
+                          <input
+                            type="radio"
+                            name={`diagnosis-type-${d.id}`}
+                            checked={!d.is_query}
+                            onChange={() => updateDiagnosisField(d.id, "is_query", false)}
+                            className="mr-2 w-4 h-4 text-blue-600 focus:ring-2 focus:ring-blue-500"
+                          />
+                          <span className="text-gray-700">Final Diagnosis</span>
+                        </label>
+                        <label className="flex items-center cursor-pointer">
+                          <input
+                            type="radio"
+                            name={`diagnosis-type-${d.id}`}
+                            checked={d.is_query}
+                            onChange={() => updateDiagnosisField(d.id, "is_query", true)}
+                            className="mr-2 w-4 h-4 text-blue-600 focus:ring-2 focus:ring-blue-500"
+                          />
+                          <span className="text-gray-700">Query/Differential</span>
+                        </label>
+                      </div>
+                    </div>
 
                     <ManagementPlanSection
                       value={d.management_plan}
