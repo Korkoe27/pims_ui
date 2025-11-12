@@ -13,8 +13,8 @@ const ManagementForm = ({
   setSelectedMedications,
   selectedRefractiveCorrectionTypes,
   setSelectedRefractiveCorrectionTypes,
-  selectedLensType,
-  setSelectedLensType,
+  selectedLensTypes,
+  setSelectedLensTypes,
   medsList,
   medicationTypes,
   selectedTypeId,
@@ -61,9 +61,11 @@ const ManagementForm = ({
         );
       }
 
-      // ✅ Hydrate selected lens type
-      if (managementPlan.type_of_lens?.id) {
-        setSelectedLensType(managementPlan.type_of_lens.id);
+      // ✅ Hydrate selected lens types
+      if (managementPlan.lens_types) {
+        setSelectedLensTypes(
+          managementPlan.lens_types.map((type) => type.id)
+        );
       }
 
       setDetails({
@@ -74,7 +76,7 @@ const ManagementForm = ({
         referral_details: managementPlan.referral_details || "",
       });
     }
-  }, [managementPlan, setCheckboxes, setPrescription, setDetails, setSelectedRefractiveCorrectionTypes, setSelectedLensType]);
+  }, [managementPlan, setCheckboxes, setPrescription, setDetails, setSelectedRefractiveCorrectionTypes, setSelectedLensTypes]);
 
   return (
     <form className="flex flex-col gap-5 w-fit">

@@ -5,12 +5,22 @@ import CYLValidator from "./validators/CYLValidator";
 import AXISValidator from "./validators/AXISValidator";
 import ADDValidator from "./validators/ADDValidator";
 
-const RefractiveCorrectionSection = ({ prescription, handleInputChange, selectedTypes, setSelectedTypes, selectedLensType, setSelectedLensType }) => {
+const RefractiveCorrectionSection = ({ prescription, handleInputChange, selectedTypes, setSelectedTypes, selectedLensTypes, setSelectedLensTypes }) => {
   const { data: correctionTypes, isLoading: loadingCorrections } = useGetRefractiveCorrectionTypesQuery();
   const { data: lensTypes, isLoading: loadingLensTypes } = useGetLensTypesQuery();
 
   const handleTypeToggle = (typeId) => {
     setSelectedTypes((prev) => {
+      if (prev.includes(typeId)) {
+        return prev.filter((id) => id !== typeId);
+      } else {
+        return [...prev, typeId];
+      }
+    });
+  };
+
+  const handleLensTypeToggle = (typeId) => {
+    setSelectedLensTypes((prev) => {
       if (prev.includes(typeId)) {
         return prev.filter((id) => id !== typeId);
       } else {
@@ -46,6 +56,28 @@ const RefractiveCorrectionSection = ({ prescription, handleInputChange, selected
         )}
         {selectedTypes.length === 0 && (
           <p className="text-sm text-red-600">Please select at least one correction type.</p>
+        )}
+      </div>
+
+      {/* --- Type of Lens --- */}
+      <div className="flex flex-col gap-2">
+        <label className="text-base font-medium">Type of Lens</label>
+        {loadingLensTypes ? (
+          <p className="text-gray-500">Loading lens types...</p>
+        ) : (
+          <div className="grid grid-cols-2 gap-3">
+            {lensTypes?.map((type) => (
+              <label key={type.id} className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={selectedLensTypes.includes(type.id)}
+                  onChange={() => handleLensTypeToggle(type.id)}
+                  className="h-5 w-5 text-blue-600 focus:ring-2 focus:ring-blue-500"
+                />
+                <span className="text-gray-700">{type.name}</span>
+              </label>
+            ))}
+          </div>
         )}
       </div>
 
@@ -94,28 +126,6 @@ const RefractiveCorrectionSection = ({ prescription, handleInputChange, selected
             );
           })}
         </aside>
-      </div>
-
-      {/* --- Type of Lens --- */}
-      <div className="flex flex-col gap-1">
-        <label className="text-base font-medium">Type of Lens</label>
-        {loadingLensTypes ? (
-          <p className="text-gray-500">Loading lens types...</p>
-        ) : (
-          <select
-            name="type_of_lens"
-            value={selectedLensType || ""}
-            onChange={(e) => setSelectedLensType(e.target.value)}
-            className="h-14 border border-[#d0d5dd] w-[375px] rounded-md text-gray-600"
-          >
-            <option value="">Select an option</option>
-            {lensTypes?.map((type) => (
-              <option key={type.id} value={type.id}>
-                {type.name}
-              </option>
-            ))}
-          </select>
-        )}
       </div>
 
       {/* --- PD, Segment Height, Fitting Cross Height --- */}
