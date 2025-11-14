@@ -21,12 +21,12 @@ export const patientApi = apiClient.injectEndpoints({
   endpoints: (builder) => ({
     // Fetch all patients with pagination support
     getAllPatients: builder.query({
-      query: ({ page = 1, page_size = 5 }) => ({
+      query: ({ page = 1, pageSize = 10 }) => ({
         url: listAllPatientsUrl,
         method: "GET",
         params: {
           page,
-          page_size,
+          page_size: pageSize,
         },
       }),
     }),
