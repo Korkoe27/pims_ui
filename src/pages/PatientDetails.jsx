@@ -29,10 +29,10 @@ const TabButton = ({ label, value, active, onClick }) => (
 
 const PatientDetails = () => {
   const { state } = useLocation();
-  const { patient } = state || {};
-  const [activeTab, setActiveTab] = useState("info");
+  const { patient, selectedAppointment: initialAppointment, openModal } = state || {};
+  const [activeTab, setActiveTab] = useState(openModal ? "appointments" : "info");
   const [modalTab, setModalTab] = useState("casehistory");
-  const [selectedAppointment, setSelectedAppointment] = useState(null);
+  const [selectedAppointment, setSelectedAppointment] = useState(openModal ? initialAppointment : null);
 
   const {
     data: appointments,
