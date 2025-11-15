@@ -1,7 +1,8 @@
 import { useSelector } from "react-redux";
+import { hasAllPermissions } from "../../utils/roleUtils";
 
 /**
- * 🔒 CanAccess — Wrapper for permission-based rendering
+ * 🔒 CanAccess — Wrapper for role-based rendering
  * Example:
  * <CanAccess accessKeys={["canStartConsultation", "canViewConsultations"]}>
  *   <Button>Consult</Button>
@@ -9,9 +10,9 @@ import { useSelector } from "react-redux";
  */
 const CanAccess = ({ children, accessKeys = [] }) => {
   const { user } = useSelector((state) => state.auth);
-  const access = user?.access || {};
+  const roleCodes = user?.role_codes || [];
 
-  const hasPermission = accessKeys.every((key) => access[key]);
+  const hasPermission = hasAllPermissions(roleCodes, accessKeys);
   return hasPermission ? children : null;
 };
 

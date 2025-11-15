@@ -7,9 +7,9 @@ import { useSelector } from "react-redux";
  */
 const ApproveRequestButton = ({ onClick }) => {
   const { user } = useSelector((state) => state.auth);
-  const access = user?.access || {};
+  const roleCodes = user?.role_codes || [];
 
-  if (!ApproveRequestButton.shouldShow(access)) return null;
+  if (!ApproveRequestButton.shouldShow(roleCodes)) return null;
 
   return (
     <button
@@ -21,7 +21,9 @@ const ApproveRequestButton = ({ onClick }) => {
   );
 };
 
-ApproveRequestButton.shouldShow = (access) =>
-  Boolean(access?.canApproveAbsentRequests);
+ApproveRequestButton.shouldShow = (roleCodes) => {
+  const allowedRoles = ["supervisor", "coordinator"];
+  return roleCodes.some((code) => allowedRoles.includes(code));
+};
 
 export default ApproveRequestButton;

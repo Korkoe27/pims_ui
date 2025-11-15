@@ -7,9 +7,9 @@ import { useSelector } from "react-redux";
  */
 const ScheduleAppointmentButton = ({ onClick, isLoading = false }) => {
   const { user } = useSelector((state) => state.auth);
-  const access = user?.access || {};
+  const roleCodes = user?.role_codes || [];
 
-  if (!ScheduleAppointmentButton.shouldShow(access)) return null;
+  if (!ScheduleAppointmentButton.shouldShow(roleCodes)) return null;
 
   return (
     <button
@@ -33,7 +33,9 @@ const ScheduleAppointmentButton = ({ onClick, isLoading = false }) => {
   );
 };
 
-ScheduleAppointmentButton.shouldShow = (access) =>
-  Boolean(access?.canCreateAppointment || access?.canAddPatient);
+ScheduleAppointmentButton.shouldShow = (roleCodes) => {
+  const allowedRoles = ["frontdesk", "supervisor", "coordinator"];
+  return roleCodes.some((code) => allowedRoles.includes(code));
+};
 
 export default ScheduleAppointmentButton;
