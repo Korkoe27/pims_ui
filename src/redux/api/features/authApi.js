@@ -63,8 +63,7 @@ export const authApi = apiClient.injectEndpoints({
       providesTags: ["User"],
       transformResponse: (response) => ({
         authenticated: response.authenticated,
-        user: response.user,
-        access: response.user?.access || {},
+        user: response.user, // User object now includes roles and role_codes
       }),
     }),
   }),

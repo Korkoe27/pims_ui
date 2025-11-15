@@ -6,8 +6,7 @@ import storage from "redux-persist/lib/storage";
 // 🔹 Initial State
 // -----------------------------------------------------
 const initialState = {
-  user: null,        // Full user object (id, name, role, etc.)
-  access: null,      // Access permissions from backend
+  user: null,        // Full user object (id, name, roles, role_codes)
   loading: false,    // For async actions like login/logout
   error: null,       // Holds any error messages
 };
@@ -19,11 +18,10 @@ const authSlice = createSlice({
   name: "auth",
   initialState,
   reducers: {
-    // ✅ Set authenticated user and access data
+    // ✅ Set authenticated user (with roles and role_codes)
     setUser: (state, action) => {
-      const { user, access } = action.payload || {};
+      const { user } = action.payload || {};
       state.user = user || null;
-      state.access = access || null;
       state.loading = false;
       state.error = null;
     },
@@ -31,7 +29,6 @@ const authSlice = createSlice({
     // ✅ Reset auth state (on logout or session expiry)
     resetAuth: (state) => {
       state.user = null;
-      state.access = null;
       state.loading = false;
       state.error = null;
     },
@@ -59,7 +56,7 @@ export const { setUser, resetAuth, setLoading, setError } = authSlice.actions;
 const persistConfig = {
   key: "auth",
   storage,
-  whitelist: ["user", "access"], // Persist both user + access
+  whitelist: ["user"], // Persist user (includes roles and role_codes)
 };
 
 // -----------------------------------------------------
