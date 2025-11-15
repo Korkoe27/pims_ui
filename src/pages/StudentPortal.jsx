@@ -4,6 +4,7 @@ import { useSelector } from "react-redux";
 import PageContainer from "../components/PageContainer";
 import Card from "../components/ui/card";
 import { useGetMyStudentAppointmentsQuery } from "../redux/api/features/appointmentsApi";
+import { useGetMyGradesQuery } from "../redux/api/features/gradingApi";
 import BouncingBallsLoader from "../components/BouncingBallsLoader";
 
 const StudentPortal = () => {
@@ -24,42 +25,14 @@ const StudentPortal = () => {
   const appointments = data?.results || [];
   const appointmentsCount = data?.count || 0;
 
-  // TODO: Replace with actual API for grades
-  const grades = [
-    {
-      date: "2025-03-12",
-      patient: "Grace Mensah",
-      type: "Reviewed",
-      score: 88,
-      grade: "A",
-      feedback: "Excellent case handling.",
-    },
-    {
-      date: "2025-04-20",
-      patient: "Alan Mccray",
-      type: "Reviewed",
-      score: 79,
-      grade: "B+",
-      feedback: "Good understanding, improve documentation.",
-    },
-    {
-      date: "2025-09-15",
-      patient: "John Doe",
-      type: "Reviewed",
-      score: 72,
-      grade: "B",
-      feedback: "Good but needs detail in refraction notes.",
-    },
-    {
-      date: "2025-10-02",
-      patient: "Jane Smith",
-      type: "Reviewed",
-      score: 91,
-      grade: "A",
-      feedback: "Excellent work, thorough and clear.",
-    },
-  ];
+  // ✅ Fetch student's grades from API
+  const {
+    data: gradesData,
+    isLoading: gradesLoading,
+    isError: gradesError,
+  } = useGetMyGradesQuery();
 
+  const grades = gradesData || [];
   const filteredGrades = grades;
 
   const getStatusColor = (status) => {
@@ -409,74 +382,105 @@ const StudentPortal = () => {
               </p>
             </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-gray-200">
-                    <th className="text-left py-3 px-4 font-semibold text-gray-700">
-                      Date
-                    </th>
-                    <th className="text-left py-3 px-4 font-semibold text-gray-700">
-                      Patient
-                    </th>
-                    <th className="text-left py-3 px-4 font-semibold text-gray-700">
-                      Type
-                    </th>
-                    <th className="text-left py-3 px-4 font-semibold text-gray-700">
-                      Score (%)
-                    </th>
-                    <th className="text-left py-3 px-4 font-semibold text-gray-700">
-                      Grade
-                    </th>
-                    <th className="text-left py-3 px-4 font-semibold text-gray-700">
-                      Feedback
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredGrades.length > 0 ? (
-                    filteredGrades.map((grade, index) => (
-                      <tr
-                        key={index}
-                        className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
-                      >
-                        <td className="py-3 px-4 text-gray-700">
-                          {grade.date}
-                        </td>
-                        <td className="py-3 px-4 text-gray-700">
-                          {grade.patient}
-                        </td>
-                        <td className="py-3 px-4 text-gray-700">
-                          {grade.type}
-                        </td>
-                        <td className="py-3 px-4">
-                          <span className={getGradeColor(grade.score)}>
-                            {grade.score}%
-                          </span>
-                        </td>
-                        <td className="py-3 px-4">
-                          <span className={getGradeColor(grade.score)}>
-                            {grade.grade}
-                          </span>
-                        </td>
-                        <td className="py-3 px-4 text-gray-700">
-                          {grade.feedback}
+            {/* Loading State */}
+            {gradesLoading && (
+              <div className="flex justify-center items-center py-12">
+                <BouncingBallsLoader />
+              </div>
+            )}
+
+            {/* Error State */}
+            {gradesError && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+                <p className="text-red-800 text-sm">
+                  Failed to load grades. Please try again.
+                </p>
+              </div>
+            )}
+
+            {/* Grades Table */}
+            {!gradesLoading && !gradesError && (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-gray-200">
+                      <th className="text-left py-3 px-4 font-semibold text-gray-700">
+                        Date
+                      </th>
+                      <th className="text-left py-3 px-4 font-semibold text-gray-700">
+                        Patient
+                      </th>
+                      <th className="text-left py-3 px-4 font-semibold text-gray-700">
+                        Patient ID
+                      </th>
+                      <th className="text-left py-3 px-4 font-semibold text-gray-700">
+                        Type
+                      </th>
+                      <th className="text-left py-3 px-4 font-semibold text-gray-700">
+                        Score (%)
+                      </th>
+                      <th className="text-left py-3 px-4 font-semibold text-gray-700">
+                        Grade
+                      </th>
+                      <th className="text-left py-3 px-4 font-semibold text-gray-700">
+                        Graded By
+                      </th>
+                      <th className="text-left py-3 px-4 font-semibold text-gray-700">
+                        Feedback
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredGrades.length > 0 ? (
+                      filteredGrades.map((grade) => (
+                        <tr
+                          key={grade.id}
+                          className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
+                        >
+                          <td className="py-3 px-4 text-gray-700">
+                            {new Date(grade.graded_at).toLocaleDateString()}
+                          </td>
+                          <td className="py-3 px-4 text-gray-700">
+                            {grade.patient_name} {grade.patient_last_name}
+                          </td>
+                          <td className="py-3 px-4 text-gray-700">
+                            {grade.patient_id}
+                          </td>
+                          <td className="py-3 px-4 text-gray-700">
+                            {grade.appointment_type || "General"}
+                          </td>
+                          <td className="py-3 px-4">
+                            <span className={getGradeColor(grade.total_score)}>
+                              {grade.total_score}%
+                            </span>
+                          </td>
+                          <td className="py-3 px-4">
+                            <span className={`font-semibold ${getGradeColor(grade.total_score)}`}>
+                              {grade.grade_letter}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4 text-gray-700">
+                            {grade.graded_by_name}
+                          </td>
+                          <td className="py-3 px-4 text-gray-700">
+                            {grade.remarks || "No feedback provided"}
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td
+                          colSpan="8"
+                          className="py-8 px-4 text-center text-gray-500"
+                        >
+                          No grades found
                         </td>
                       </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td
-                        colSpan="6"
-                        className="py-8 px-4 text-center text-gray-500"
-                      >
-                        No grades found
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         </Card>
       )}

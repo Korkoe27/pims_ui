@@ -7,9 +7,9 @@ import { useSelector } from "react-redux";
  */
 const ViewPatientButton = ({ onClick }) => {
   const { user } = useSelector((state) => state.auth);
-  const access = user?.access || {};
+  const roleCodes = user?.role_codes || [];
 
-  if (!ViewPatientButton.shouldShow(access)) return null;
+  if (!ViewPatientButton.shouldShow(roleCodes)) return null;
 
   return (
     <button
@@ -23,6 +23,9 @@ const ViewPatientButton = ({ onClick }) => {
   );
 };
 
-ViewPatientButton.shouldShow = (access) => Boolean(access?.canViewPatients);
+ViewPatientButton.shouldShow = (roleCodes) => {
+  // All authenticated users can view patients
+  return roleCodes.length > 0;
+};
 
 export default ViewPatientButton;
