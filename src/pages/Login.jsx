@@ -67,8 +67,8 @@ const Login = () => {
       localStorage.setItem("access_token", accessToken);
       localStorage.setItem("refresh_token", refreshToken);
 
-      const user = await getUser().unwrap();
-      dispatch(setUser(user));
+      const { user } = await getUser().unwrap();
+      dispatch(setUser({ user }));
 
       showToast("Login successful!", "success");
       navigate("/");

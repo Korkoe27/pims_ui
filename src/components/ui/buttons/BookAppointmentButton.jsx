@@ -7,9 +7,9 @@ import { useSelector } from "react-redux";
  */
 const BookAppointmentButton = ({ onClick }) => {
   const { user } = useSelector((state) => state.auth);
-  const access = user?.access || {};
+  const roleCodes = user?.role_codes || [];
 
-  if (!BookAppointmentButton.shouldShow(access)) return null;
+  if (!BookAppointmentButton.shouldShow(roleCodes)) return null;
 
   return (
     <button
@@ -24,6 +24,9 @@ const BookAppointmentButton = ({ onClick }) => {
 };
 
 /* ✅ static helper for table header or conditional UI logic */
-BookAppointmentButton.shouldShow = (access) => Boolean(access?.canCreateAppointment);
+BookAppointmentButton.shouldShow = (roleCodes) => {
+  const allowedRoles = ["frontdesk", "supervisor", "coordinator"];
+  return roleCodes.some((code) => allowedRoles.includes(code));
+};
 
 export default BookAppointmentButton;

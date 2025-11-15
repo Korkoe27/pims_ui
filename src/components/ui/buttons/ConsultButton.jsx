@@ -10,10 +10,11 @@ import { store } from "../../../redux/store/store"; // ✅ added for version loo
 const ConsultButton = ({ appointment }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const access = useSelector((s) => s.auth?.user?.access || {});
+  const { user } = useSelector((s) => s.auth);
+  const roleCodes = user?.role_codes || [];
   const [startConsultation, { isLoading }] = useStartConsultationMutation();
 
-  if (!ConsultButton.shouldShow(access, appointment)) return null;
+  if (!ConsultButton.shouldShow(roleCodes, appointment)) return null;
 
   const status = (appointment.status || "").toLowerCase();
   const isLocked = appointment.is_locked;
@@ -31,8 +32,8 @@ const ConsultButton = ({ appointment }) => {
       tooltip = "You have this consultation in progress.";
       disabled = false; // ✅ active for owner
     } else {
-      label = "Consultation in Progress";
-      tooltip = `Consultation done by ${lockedBy || "another user"}.`;
+      label = "Locked by " + (lockedBy || "Another User");
+      tooltip = `This consultation is currently being worked on by ${lockedBy || "another user"}.`;
       disabled = true; // ❌ disabled for others
     }
   } else if (
@@ -48,10 +49,13 @@ const ConsultButton = ({ appointment }) => {
     ].includes(status)
   ) {
     label = "Continue Consultation";
+    tooltip = "Resume this consultation";
   } else if (status === "consultation completed") {
     return null; // hide completely when done
   } else if (["submitted for review", "under review"].includes(status)) {
     return null; // 🔹 ReviewButton handles review flow, not ConsultButton
+  } else {
+    tooltip = "Start a new consultation";
   }
 
   // 🔹 Start or continue consultation handler
@@ -84,10 +88,10 @@ const ConsultButton = ({ appointment }) => {
       let versionType = "student";
       let flowType = "student_consulting";
 
-      if (access?.canGradeStudents) {
+      if (roleCodes.includes("supervisor")) {
         versionType = "reviewed";
         flowType = "lecturer_reviewing";
-      } else if (access?.canCompleteConsultations) {
+      } else if (roleCodes.includes("clinician")) {
         versionType = "professional";
         flowType = "professional_consulting";
       }
@@ -133,7 +137,7 @@ const ConsultButton = ({ appointment }) => {
       title={tooltip}
       className={`px-4 py-2 rounded-lg font-medium transition-all ${
         disabled
-          ? "bg-gray-400 cursor-not-allowed text-white"
+          ? "bg-gray-300 cursor-not-allowed text-gray-500 opacity-60"
           : "bg-[#2f3192] hover:bg-[#24267a] text-white"
       }`}
     >
@@ -143,7 +147,7 @@ const ConsultButton = ({ appointment }) => {
 };
 
 // 🔹 Visibility logic
-ConsultButton.shouldShow = (access, appointment = {}) => {
+ConsultButton.shouldShow = (roleCodes, appointment = {}) => {
   const status = (appointment.status || "").toLowerCase();
 
   // 🔹 ReviewButton handles review flow (lecturer review)
@@ -153,8 +157,9 @@ ConsultButton.shouldShow = (access, appointment = {}) => {
   }
 
   // Student / Clinician can start or continue
+  const canConsult = roleCodes.some((code) => ["student", "clinician", "supervisor"].includes(code));
   if (
-    (access?.canStartConsultation || access?.canCompleteConsultations) &&
+    canConsult &&
     !["scored", "consultation completed"].includes(status)
   ) {
     return true;

@@ -93,14 +93,39 @@ const StudentPortal = () => {
   };
 
   const handleViewAppointment = (appointment) => {
-    // Use appointment.id (UUID from backend) instead of appointmentId
-    const appointmentId = appointment.id;
-    
-    if (appointment.status === "in_progress") {
-      navigate(`/consultation/${appointmentId}`);
+    // For submitted appointments, navigate to patient details with appointment modal
+    // This shows the read-only view with all appointment details
+    if (appointment.is_submitted_for_review || appointment.status === "submitted_for_review" || appointment.status === "completed") {
+      // Navigate to patient details page with state to open the appointment modal
+      navigate('/patients-details', {
+        state: {
+          patient: {
+            id: appointment.patient_id,
+            first_name: appointment.patient_name?.split(' ')[0] || '',
+            last_name: appointment.patient_name?.split(' ').slice(1).join(' ') || '',
+            patient_id: appointment.patient_id,
+          },
+          selectedAppointment: appointment,
+          openModal: true
+        }
+      });
+    } else if (appointment.status === "in_progress") {
+      // Only in-progress consultations can be edited
+      navigate(`/consultation/${appointment.id}/management`);
     } else {
-      // Navigate to read-only view
-      navigate(`/consultation/${appointmentId}?view=readonly`);
+      // Default: navigate to patient details
+      navigate('/patients-details', {
+        state: {
+          patient: {
+            id: appointment.patient_id,
+            first_name: appointment.patient_name?.split(' ')[0] || '',
+            last_name: appointment.patient_name?.split(' ').slice(1).join(' ') || '',
+            patient_id: appointment.patient_id,
+          },
+          selectedAppointment: appointment,
+          openModal: true
+        }
+      });
     }
   };
 

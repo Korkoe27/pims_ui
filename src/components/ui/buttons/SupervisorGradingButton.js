@@ -13,8 +13,9 @@ const SupervisorGradingButton = ({
   const [remarks, setRemarks] = useState("");
 
   // ✅ Hooks must always come first
-  const userAccess = useSelector((state) => state.auth?.user?.access);
-  const canGradeStudents = userAccess?.canGradeStudents;
+  const { user } = useSelector((state) => state.auth);
+  const roleCodes = user?.role_codes || [];
+  const canGradeStudents = roleCodes.includes("supervisor");
 
   // ✅ Fetch appointment details to check review status
   const { data: appointment, isLoading: loadingAppointment } =
@@ -36,8 +37,8 @@ const SupervisorGradingButton = ({
     }
   }, [existingGrading]);
 
-  // 🚫 Hide button until we have both user access and appointment data
-  if (!userAccess || loadingAppointment) return null;
+  // 🚫 Hide button until we have both user and appointment data
+  if (!user || loadingAppointment) return null;
 
   // 🚫 Show only if BOTH conditions are met
   const isSubmittedForReview =
