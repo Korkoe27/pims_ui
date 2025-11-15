@@ -32,8 +32,8 @@ const ConsultButton = ({ appointment }) => {
       tooltip = "You have this consultation in progress.";
       disabled = false; // ✅ active for owner
     } else {
-      label = "Consultation in Progress";
-      tooltip = `Consultation done by ${lockedBy || "another user"}.`;
+      label = "Locked by " + (lockedBy || "Another User");
+      tooltip = `This consultation is currently being worked on by ${lockedBy || "another user"}.`;
       disabled = true; // ❌ disabled for others
     }
   } else if (
@@ -49,10 +49,13 @@ const ConsultButton = ({ appointment }) => {
     ].includes(status)
   ) {
     label = "Continue Consultation";
+    tooltip = "Resume this consultation";
   } else if (status === "consultation completed") {
     return null; // hide completely when done
   } else if (["submitted for review", "under review"].includes(status)) {
     return null; // 🔹 ReviewButton handles review flow, not ConsultButton
+  } else {
+    tooltip = "Start a new consultation";
   }
 
   // 🔹 Start or continue consultation handler
@@ -134,7 +137,7 @@ const ConsultButton = ({ appointment }) => {
       title={tooltip}
       className={`px-4 py-2 rounded-lg font-medium transition-all ${
         disabled
-          ? "bg-gray-400 cursor-not-allowed text-white"
+          ? "bg-gray-300 cursor-not-allowed text-gray-500 opacity-60"
           : "bg-[#2f3192] hover:bg-[#24267a] text-white"
       }`}
     >
