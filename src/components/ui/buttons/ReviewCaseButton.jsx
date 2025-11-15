@@ -3,10 +3,11 @@ import { useSelector } from "react-redux";
 import useHandleConsult from "../../../hooks/useHandleConsult";
 
 const ReviewCaseButton = ({ appointment }) => {
-  const { access } = useSelector((state) => state.auth);
+  const { user } = useSelector((state) => state.auth);
+  const roleCodes = user?.role_codes || [];
   const { handleConsult } = useHandleConsult();
 
-  if (!access?.canGradeStudents) return null;
+  if (!roleCodes.includes("supervisor")) return null;
 
   return (
     <button
@@ -19,6 +20,6 @@ const ReviewCaseButton = ({ appointment }) => {
 };
 
 // ✅ Export a static helper like in ConsultButton
-ReviewCaseButton.shouldShow = (access) => !!access?.canGradeStudents;
+ReviewCaseButton.shouldShow = (roleCodes) => roleCodes.includes("supervisor");
 
 export default ReviewCaseButton;

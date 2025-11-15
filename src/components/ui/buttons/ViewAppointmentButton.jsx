@@ -2,9 +2,10 @@ import React from "react";
 import { useSelector } from "react-redux";
 
 const ViewAppointmentButton = ({ appointment, onView }) => {
-  const access = useSelector((s) => s.auth?.user?.access || {});
+  const { user } = useSelector((s) => s.auth);
+  const roleCodes = user?.role_codes || [];
 
-  if (!ViewAppointmentButton.shouldShow(access)) return null;
+  if (!ViewAppointmentButton.shouldShow(roleCodes)) return null;
 
   return (
     <button
@@ -17,8 +18,9 @@ const ViewAppointmentButton = ({ appointment, onView }) => {
 };
 
 // 🔹 Visibility logic - show only if user can view appointments
-ViewAppointmentButton.shouldShow = (access = {}) => {
-  return access?.canViewAppointments || access?.canStartConsultation || access?.canCompleteConsultations;
+ViewAppointmentButton.shouldShow = (roleCodes = []) => {
+  const allowedRoles = ["frontdesk", "student", "clinician", "supervisor", "coordinator"];
+  return roleCodes.some((code) => allowedRoles.includes(code));
 };
 
 export default ViewAppointmentButton;

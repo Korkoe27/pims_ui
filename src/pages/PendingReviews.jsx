@@ -11,7 +11,7 @@ const PendingReviews = () => {
   const { data: dashboardData, isLoading, error } = useGetDashboardDataQuery();
   const { handleConsult } = useHandleConsult();
   const { user } = useSelector((state) => state.auth || {});
-  const access = user?.access || {};
+  const roleCodes = user?.role_codes || [];
 
   // ✅ Extract pending review data safely
   const pendingReviews =
@@ -54,13 +54,13 @@ const PendingReviews = () => {
                   {appointment.appointment_type_name || "—"}
                 </td>
                 <td className="py-3 flex justify-center gap-2">
-                  {ConsultButton.shouldShow(access, appointment) && (
+                  {ConsultButton.shouldShow(roleCodes, appointment) && (
                     <ConsultButton
                       appointment={appointment}
                       onClick={handleConsult}
                     />
                   )}
-                  {ReviewButton.shouldShow(access, appointment) && (
+                  {ReviewButton.shouldShow(roleCodes, appointment) && (
                     <ReviewButton appointment={appointment} />
                   )}
                 </td>

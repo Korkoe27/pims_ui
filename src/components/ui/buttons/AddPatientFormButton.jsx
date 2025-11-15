@@ -7,9 +7,9 @@ import { useSelector } from "react-redux";
  */
 const AddPatientFormButton = ({ onClick, isLoading = false }) => {
   const { user } = useSelector((state) => state.auth);
-  const access = user?.access || {};
+  const roleCodes = user?.role_codes || [];
 
-  if (!AddPatientFormButton.shouldShow(access)) return null;
+  if (!AddPatientFormButton.shouldShow(roleCodes)) return null;
 
   return (
     <button
@@ -34,6 +34,9 @@ const AddPatientFormButton = ({ onClick, isLoading = false }) => {
 };
 
 // 🔹 static helper for conditional rendering elsewhere
-AddPatientFormButton.shouldShow = (access) => Boolean(access?.canAddPatient);
+AddPatientFormButton.shouldShow = (roleCodes) => {
+  const allowedRoles = ["frontdesk", "supervisor", "coordinator"];
+  return roleCodes.some((code) => allowedRoles.includes(code));
+};
 
 export default AddPatientFormButton;

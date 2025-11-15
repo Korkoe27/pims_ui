@@ -10,7 +10,7 @@ import ReviewButton from "../components/ui/buttons/ReviewButton";
 
 const SpecialAppointments = () => {
   const { user } = useSelector((state) => state.auth || {});
-  const access = user?.access || {};
+  const roleCodes = user?.role_codes || [];
   const { handleConsult } = useHandleConsult();
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -46,8 +46,8 @@ const SpecialAppointments = () => {
   // ✅ Determine if any appointment has an actionable button
   const hasAnyAction = paginatedAppointments.some(
     (appt) =>
-      ConsultButton.shouldShow(access, appt) ||
-      ReviewButton.shouldShow(access, appt)
+      ConsultButton.shouldShow(roleCodes, appt) ||
+      ReviewButton.shouldShow(roleCodes, appt)
   );
 
   const actionColClass = "text-center px-6 py-3 min-w-[10rem]";
@@ -86,8 +86,8 @@ const SpecialAppointments = () => {
 
             <tbody>
               {paginatedAppointments.map((appointment) => {
-                const canConsult = ConsultButton.shouldShow(access, appointment);
-                const canReview = ReviewButton.shouldShow(access, appointment);
+                const canConsult = ConsultButton.shouldShow(roleCodes, appointment);
+                const canReview = ReviewButton.shouldShow(roleCodes, appointment);
                 return (
                   <tr key={appointment.id} className="bg-white border-b">
                     <td className="px-6 py-4">{appointment?.appointment_date}</td>

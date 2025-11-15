@@ -7,9 +7,9 @@ import { useSelector } from "react-redux";
  */
 const MakeAbsentRequestButton = ({ onClick }) => {
   const { user } = useSelector((state) => state.auth);
-  const access = user?.access || {};
+  const roleCodes = user?.role_codes || [];
 
-  if (!MakeAbsentRequestButton.shouldShow(access)) return null;
+  if (!MakeAbsentRequestButton.shouldShow(roleCodes)) return null;
 
   return (
     <button
@@ -21,7 +21,10 @@ const MakeAbsentRequestButton = ({ onClick }) => {
   );
 };
 
-MakeAbsentRequestButton.shouldShow = (access) =>
-  Boolean(access?.canCreateAbsentRequest);
+MakeAbsentRequestButton.shouldShow = (roleCodes) => {
+  // All staff can create absent requests
+  const allowedRoles = ["student", "clinician", "supervisor", "frontdesk", "coordinator", "pharmacy", "finance"];
+  return roleCodes.some((code) => allowedRoles.includes(code));
+};
 
 export default MakeAbsentRequestButton;

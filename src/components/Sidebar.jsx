@@ -10,8 +10,9 @@ import { useGetDashboardDataQuery } from "../redux/api/features/dashboardApi";
 
 const Sidebar = () => {
   const { user } = useSelector((state) => state.auth);
-  const access = user?.access || {};
-  const role = user?.role_name?.toLowerCase();
+  const roleCodes = user?.role_codes || [];
+  const roles = user?.roles || [];
+  const displayRole = roles[0] || "User"; // Show first role for display
   const { handleLogout } = useLogout();
   const [isAppointmentsOpen, setIsAppointmentsOpen] = useState(true);
 
@@ -46,9 +47,23 @@ const Sidebar = () => {
     { label: "Special Clinic", path: "special-appointments", count: totalSpecial },
   ];
 
+  // Map permission keys to role codes
+  const permissionRoleMap = {
+    canViewAppointments: ["frontdesk", "student", "clinician", "supervisor", "coordinator"],
+    canViewClinicSchedule: ["frontdesk", "student", "clinician", "supervisor", "coordinator"],
+    canViewPatients: ["frontdesk", "student", "clinician", "supervisor"],
+    canGradeStudents: ["supervisor"], // Only supervisors can grade
+    canAccessStudentPortal: ["student"], // Only students
+    canViewPharmacy: ["pharmacy"], // Only pharmacy staff
+    canViewBills: ["finance"], // Only finance staff
+    canViewAbsentRequests: ["supervisor", "coordinator"],
+    canViewReports: ["supervisor", "coordinator", "finance"],
+  };
+
   const canAccess = (permissionKey) => {
-    if (!permissionKey) return true;
-    return Boolean(access?.[permissionKey]);
+    if (!permissionKey) return true; // No permission required
+    const allowedRoles = permissionRoleMap[permissionKey] || [];
+    return roleCodes.some((code) => allowedRoles.includes(code));
   };
 
   return (
@@ -134,7 +149,7 @@ const Sidebar = () => {
             <HiUser className="text-blue-700 text-lg" />
           </div>
           <p className="text-sm text-gray-600 capitalize">
-            {role || "Loading..."}
+            {displayRole || "Loading..."}
           </p>
         </div>
         <button

@@ -13,7 +13,7 @@ import ConsultButton from "../components/ui/buttons/ConsultButton";
  */
 const Appointments = () => {
   const { user } = useSelector((state) => state.auth);
-  const access = user?.access || {};
+  const roleCodes = user?.role_codes || [];
   const { handleConsult } = useHandleConsult();
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -39,7 +39,7 @@ const Appointments = () => {
 
   // ✅ Determine if ANY appointment has an action button
   const hasAnyAction = paginatedAppointments.some((appt) =>
-    ConsultButton.shouldShow(access, appt)
+    ConsultButton.shouldShow(roleCodes, appt)
   );
 
   const actionColClass = "text-center px-6 py-3 min-w-[10rem]";
@@ -77,7 +77,7 @@ const Appointments = () => {
 
             <tbody>
               {paginatedAppointments.map((appointment) => {
-                const canAct = ConsultButton.shouldShow(access, appointment);
+                const canAct = ConsultButton.shouldShow(roleCodes, appointment);
                 return (
                   <tr key={appointment.id} className="bg-white border-b">
                     <td className="px-6 py-4">{appointment?.appointment_date}</td>

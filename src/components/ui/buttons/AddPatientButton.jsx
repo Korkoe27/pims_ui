@@ -4,13 +4,13 @@ import { useSelector } from "react-redux";
 
 /**
  * 🔹 AddPatientButton — Self-contained button for creating patients.
- * It checks backend access dynamically via Redux `user.access`.
+ * It checks user roles dynamically via Redux `user.role_codes`.
  */
 const AddPatientButton = ({ onClick }) => {
   const { user } = useSelector((state) => state.auth);
-  const access = user?.access || {};
+  const roleCodes = user?.role_codes || [];
 
-  if (!AddPatientButton.shouldShow(access)) return null;
+  if (!AddPatientButton.shouldShow(roleCodes)) return null;
 
   return (
     <button
@@ -25,9 +25,11 @@ const AddPatientButton = ({ onClick }) => {
 
 /**
  * 🔹 Static helper: determines if this button should appear.
- * You can call this from other components (like tables or dashboards)
- * without re-implementing access logic.
+ * Only frontdesk, supervisor, and coordinator can add patients.
  */
-AddPatientButton.shouldShow = (access) => Boolean(access?.canAddPatient);
+AddPatientButton.shouldShow = (roleCodes) => {
+  const allowedRoles = ["frontdesk", "supervisor", "coordinator"];
+  return roleCodes.some((code) => allowedRoles.includes(code));
+};
 
 export default AddPatientButton;
