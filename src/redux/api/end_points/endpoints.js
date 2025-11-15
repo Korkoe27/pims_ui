@@ -305,6 +305,7 @@ export const sectionGradingUrl = (appointmentId, section) =>
   `/grading/api/appointments/${appointmentId}/sections/${section}/`;
 export const finalGradingUrl = (appointmentId) =>
   `/grading/api/appointments/${appointmentId}/final/`;
+export const myGradesUrl = "/grading/api/my-grades/";
 
 
 /////////////////////////
@@ -362,20 +363,6 @@ export const initiateReviewUrl = (versionId) =>
  */
 export const finalizeConsultationVersionUrl = (versionId) =>
   `consultations/versions/${versionId}/finalize/`; // ✅ no leading slash
-
-
-
-/////////////////////////
-// Grading
-/////////////////////////
-
-export const gradingUrl = (appointmentId) =>
-  `/grading/api/appointments/${appointmentId}/grades/`;
-export const sectionGradingUrl = (appointmentId, section) =>
-  `/grading/api/appointments/${appointmentId}/sections/${section}/`;
-export const finalGradingUrl = (appointmentId) =>
-  `/grading/api/appointments/${appointmentId}/final/`;
-export const myGradesUrl = "/grading/api/my-grades/";
 
 
 /////////////////////////
