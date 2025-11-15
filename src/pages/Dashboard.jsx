@@ -16,7 +16,7 @@ const Dashboard = () => {
   const dispatch = useDispatch();
   const { handleConsult } = useHandleConsult();
   const { user } = useSelector((state) => state.auth);
-  const access = user?.access || {};
+  const roleCodes = user?.role_codes || [];
 
   const {
     data: dashboardData,
@@ -77,7 +77,7 @@ const Dashboard = () => {
         title="Today's Appointments"
         data={todaysAppointments}
         isLoading={isLoading}
-        access={access}
+        roleCodes={roleCodes}
         handleConsult={handleConsult}
         showStatus={true} // ✅ Added status column
       />
@@ -92,11 +92,11 @@ const AppointmentTable = ({
   title,
   data,
   isLoading,
-  access,
+  roleCodes,
   handleConsult,
   showStatus = false,
 }) => {
-  const hasAnyAction = data.some((a) => ConsultButton.shouldShow(access, a));
+  const hasAnyAction = data.some((a) => ConsultButton.shouldShow(roleCodes, a));
 
   return (
     <div className="mt-10">
@@ -133,7 +133,7 @@ const AppointmentTable = ({
 
           <tbody>
             {data.slice(0, 10).map((appointment) => {
-              const canAct = ConsultButton.shouldShow(access, appointment);
+              const canAct = ConsultButton.shouldShow(roleCodes, appointment);
               return (
                 <tr key={appointment.id} className="bg-white border-b">
                   <td className="px-3 py-3">{appointment.appointment_date}</td>

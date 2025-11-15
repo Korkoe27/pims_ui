@@ -4,6 +4,7 @@ import {
   gradingUrl,
   sectionGradingUrl,
   finalGradingUrl,
+  myGradesUrl,
 } from "../end_points/endpoints";
 
 export const gradingApi = apiClient.injectEndpoints({
@@ -58,6 +59,15 @@ export const gradingApi = apiClient.injectEndpoints({
       }),
       invalidatesTags: ["Grading"],
     }),
+
+    // Get student's own grades
+    getMyGrades: builder.query({
+      query: () => ({
+        url: myGradesUrl,
+        method: "GET",
+      }),
+      providesTags: ["StudentGrades"],
+    }),
   }),
 });
 
@@ -66,4 +76,5 @@ export const {
   useCreateGradingMutation,
   useUpdateSectionGradingMutation,
   useUpdateFinalGradingMutation,
+  useGetMyGradesQuery,
 } = gradingApi;

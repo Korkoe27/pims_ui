@@ -419,10 +419,10 @@ const InsuranceCard = ({ insurance }) => {
 };
 
 const AppointmentSection = ({ appointments, isLoading, error, onView }) => {
-  const access = useSelector((s) => s.auth?.user?.access || {});
+  const roleCodes = useSelector((s) => s.auth?.user?.role_codes || []);
   
   // Check if user has permission to view appointment details
-  const hasActionAccess = ViewAppointmentButton.shouldShow(access);
+  const hasActionAccess = ViewAppointmentButton.shouldShow(roleCodes);
 
   return (
     <div className="bg-gray-50 p-6 rounded shadow">
