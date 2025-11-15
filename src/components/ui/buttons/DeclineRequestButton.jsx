@@ -7,9 +7,9 @@ import { useSelector } from "react-redux";
  */
 const DeclineRequestButton = ({ onClick }) => {
   const { user } = useSelector((state) => state.auth);
-  const access = user?.access || {};
+  const roleCodes = user?.role_codes || [];
 
-  if (!DeclineRequestButton.shouldShow(access)) return null;
+  if (!DeclineRequestButton.shouldShow(roleCodes)) return null;
 
   return (
     <button
@@ -21,7 +21,9 @@ const DeclineRequestButton = ({ onClick }) => {
   );
 };
 
-DeclineRequestButton.shouldShow = (access) =>
-  Boolean(access?.canApproveAbsentRequests);
+DeclineRequestButton.shouldShow = (roleCodes) => {
+  const allowedRoles = ["supervisor", "coordinator"];
+  return roleCodes.some((code) => allowedRoles.includes(code));
+};
 
 export default DeclineRequestButton;

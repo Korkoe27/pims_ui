@@ -16,7 +16,8 @@ import ReviewModal from "../../ReviewModal";
  */
 
 const ReviewButton = ({ appointment }) => {
-  const access = useSelector((s) => s.auth?.user?.access || {});
+  const { user } = useSelector((s) => s.auth);
+  const roleCodes = user?.role_codes || [];
   const [showModal, setShowModal] = useState(false);
 
   // 🔹 Fetch consultation versions to check for existing review
@@ -26,7 +27,7 @@ const ReviewButton = ({ appointment }) => {
   );
 
   // 🔹 Show only for lecturers on submitted/under-review appointments
-  if (!ReviewButton.shouldShow(access, appointment)) return null;
+  if (!ReviewButton.shouldShow(roleCodes, appointment)) return null;
 
   // 🔹 Check if review version already exists
   const hasReview = versions.some(
@@ -68,11 +69,11 @@ const ReviewButton = ({ appointment }) => {
 };
 
 // 🔹 Visibility logic
-ReviewButton.shouldShow = (access, appointment = {}) => {
+ReviewButton.shouldShow = (roleCodes, appointment = {}) => {
   const status = (appointment.status || "").toLowerCase();
 
-  // Only lecturers can review
-  if (!access?.canGradeStudents) {
+  // Only supervisors can review
+  if (!roleCodes.includes("supervisor")) {
     return false;
   }
 
