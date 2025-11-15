@@ -366,6 +366,19 @@ export const finalizeConsultationVersionUrl = (versionId) =>
 
 
 /////////////////////////
+// Grading
+/////////////////////////
+
+export const gradingUrl = (appointmentId) =>
+  `/grading/api/appointments/${appointmentId}/grades/`;
+export const sectionGradingUrl = (appointmentId, section) =>
+  `/grading/api/appointments/${appointmentId}/sections/${section}/`;
+export const finalGradingUrl = (appointmentId) =>
+  `/grading/api/appointments/${appointmentId}/final/`;
+export const myGradesUrl = "/grading/api/my-grades/";
+
+
+/////////////////////////
 // Reports
 /////////////////////////
 
