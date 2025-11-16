@@ -162,9 +162,9 @@ const Management = ({ setFlowStep, appointmentId }) => {
       (tab) => ["management", "case_guide", "submit"].includes(tab.key)
     );
   } else if (roleCodes.includes("lecturer") || roleCodes.includes("supervisor")) {
-    // 🔹 Lecturer/Supervisor: Show Management, Management Plan, Complete (no Logs or Submit)
+    // 🔹 Lecturer/Supervisor (NOT in review mode): Show only Management and Complete (no Management Plan)
     visibleTabs = ALL_TABS.filter(
-      (tab) => ["management", "case_guide", "complete"].includes(tab.key)
+      (tab) => ["management", "complete"].includes(tab.key)
     );
   } else if (roleCodes.includes("clinician")) {
     // 🔹 Clinician: Show only Management and Complete
@@ -236,14 +236,11 @@ const Management = ({ setFlowStep, appointmentId }) => {
       } else if (roleCodes.includes("student")) {
         // 🔹 Student: Navigate to Management Plan
         setActiveTab("case_guide");
-      } else if (roleCodes.includes("clinician")) {
-        // 🔹 Clinician: Skip to Complete (no Management Plan for clinicians)
+      } else if (roleCodes.includes("clinician") || roleCodes.includes("lecturer") || roleCodes.includes("supervisor")) {
+        // 🔹 Clinician/Lecturer/Supervisor (NOT in review mode): Skip to Complete (no Management Plan)
         setActiveTab("complete");
-      } else if (roleCodes.includes("lecturer") || roleCodes.includes("supervisor")) {
-        // 🔹 Lecturer/Supervisor: Go to Management Plan
-        setActiveTab("case_guide");
       } else {
-        setActiveTab("logs");
+        setActiveTab("complete");
       }
     } catch (error) {
       console.error("❌ Save failed:", error);
