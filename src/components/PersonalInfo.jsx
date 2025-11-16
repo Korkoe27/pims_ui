@@ -48,8 +48,8 @@ const PersonalInfo = () => {
   // Separate state for insurance records
   const [insurances, setInsurances] = useState([
     {
-      insurance_type: "National",
-      insurance_provider: "NHIS",
+      insurance_type: "",
+      insurance_provider: "",
       insurance_number: "",
       is_active: true,
       is_primary: true,
@@ -76,7 +76,7 @@ const PersonalInfo = () => {
 
   // Initialize insurance with proper IDs when options load
   useEffect(() => {
-    if (insuranceOptions && insurances[0]?.insurance_type === "National") {
+    if (insuranceOptions && insurances[0]?.insurance_type === "") {
       const defaultType = insuranceOptions.insurance_types?.[0]?.value || "";
       const defaultProvider = insuranceOptions.insurance_providers?.find(
         p => p.insurance_type_id === defaultType
@@ -93,7 +93,7 @@ const PersonalInfo = () => {
         }]);
       }
     }
-  }, [insuranceOptions, insurances]);
+  }, [insuranceOptions]);
 
   useEffect(() => {
     if (!selectedClinic) setIsModalOpen(true);

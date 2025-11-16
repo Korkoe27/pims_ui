@@ -184,7 +184,7 @@ const ExtraTests = ({
               </button>
 
               <p className="font-semibold mb-1 pr-6 text-sm text-yellow-700">
-                ⚠️ Not Yet Saved
+                ⚠️ Click "Proceed to Diagnosis" to Save
               </p>
               <p className="font-semibold mb-2 pr-6">{test.name}</p>
 
