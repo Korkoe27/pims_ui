@@ -60,7 +60,7 @@ const CaseManagementGuide = ({ appointmentId, setActiveTab }) => {
       }).unwrap();
 
       showToast("Case Management Guide saved successfully.", "success");
-      setActiveTab("logs"); // ✅ Move to Logs tab after saving
+      setActiveTab("submit"); // ✅ Move to Submit tab after saving
     } catch (err) {
       console.error(err);
       showToast("Failed to save Case Management Guide.", "error");
@@ -172,7 +172,7 @@ const CaseManagementGuide = ({ appointmentId, setActiveTab }) => {
                 : "bg-[#2f3192] hover:opacity-90"
             }`}
           >
-            {saving ? "Saving..." : "Save & Continue → Logs"}
+            {saving ? "Saving..." : "Save & Continue"}
           </button>
         </div>
       </div>
