@@ -439,9 +439,7 @@ const AppointmentSection = ({ appointments, isLoading, error, onView }) => {
               <th className="px-6 py-3">Date</th>
               <th className="px-6 py-3">Type</th>
               <th className="px-6 py-3">Status</th>
-              {hasActionAccess && (
-                <th className="px-6 py-3">Action</th>
-              )}
+              {hasActionAccess && <th className="px-6 py-3">Action</th>}
             </tr>
           </thead>
           <tbody>
