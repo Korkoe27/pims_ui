@@ -229,9 +229,6 @@ const Management = ({ setFlowStep, appointmentId }) => {
     } catch (error) {
       console.error("❌ Save failed:", error);
       showToast("Save failed ❌", "error");
-    } catch (error) {
-      console.error("❌ Save failed:", error);
-      showToast("Save failed ❌", "error");
     }
   };
 
