@@ -149,8 +149,10 @@ const Management = ({ setFlowStep, appointmentId }) => {
       (tab) => ["management", "case_guide", "logs", "complete"].includes(tab.key)
     );
   } else if (roleCodes.includes("student")) {
-    // 🔹 Student: Show all except Complete
-    visibleTabs = ALL_TABS.filter((tab) => tab.key !== "complete");
+    // 🔹 Student: Show Management, Management Plan, and Submit (no Logs or Complete)
+    visibleTabs = ALL_TABS.filter(
+      (tab) => ["management", "case_guide", "submit"].includes(tab.key)
+    );
   } else if (roleCodes.includes("lecturer") || roleCodes.includes("supervisor")) {
     // 🔹 Lecturer/Supervisor: Show Management, Management Plan, Logs, Complete (no Submit)
     visibleTabs = ALL_TABS.filter(
@@ -222,7 +224,7 @@ const Management = ({ setFlowStep, appointmentId }) => {
       if (roleCodes.includes("clinician") || roleCodes.includes("lecturer") || roleCodes.includes("supervisor")) {
         setActiveTab("complete");
       } else if (roleCodes.includes("student")) {
-        setActiveTab("case_guide");
+        setActiveTab("case_guide"); // Navigate to Management Plan
       } else {
         setActiveTab("logs");
       }
