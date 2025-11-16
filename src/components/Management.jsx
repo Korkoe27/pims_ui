@@ -29,10 +29,11 @@ const Management = ({ setFlowStep, appointmentId }) => {
   // ✅ Current consultation version from Redux
   const versionId = useSelector((s) => s.consultation.versionId);
   const versionType = useSelector((s) => s.consultation.versionType);
-  const isReviewMode = versionType === "review"; // 🔹 Detect if we're in review mode
-  console.log("📝 Current versionId from Redux:", versionId);
-  console.log("📝 Current versionType from Redux:", versionType);
-  console.log("📝 Is Review Mode:", isReviewMode);
+  const isReviewMode = versionType === "reviewed"; // 🔹 Detect if we're in review mode
+  console.log("📝 [Management] Current versionId from Redux:", versionId);
+  console.log("📝 [Management] Current versionType from Redux:", versionType);
+  console.log("📝 [Management] Is Review Mode:", isReviewMode);
+  console.log("📝 [Management] User roleCodes:", roleCodes);
 
   // ✅ Grading sections
   const { section: managementSection, sectionLabel: managementLabel } = 
