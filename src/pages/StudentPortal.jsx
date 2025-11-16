@@ -320,20 +320,13 @@ const StudentPortal = () => {
                             {appointment.appointment_type_name || "General"}
                           </td>
                           <td className="py-3 px-4">
-                            <div className="flex flex-col gap-1">
-                              <span
-                                className={`px-2 py-1 rounded text-xs font-semibold w-fit ${getStatusColor(
-                                  appointment.status
-                                )}`}
-                              >
-                                {appointment.status.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase())}
-                              </span>
-                              {appointment.is_submitted_for_review && (
-                                <span className="text-xs text-purple-600 font-medium">
-                                  ✓ Submitted for Review
-                                </span>
-                              )}
-                            </div>
+                            <span
+                              className={`px-2 py-1 rounded text-xs font-semibold w-fit ${getStatusColor(
+                                appointment.status
+                              )}`}
+                            >
+                              {appointment.status.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase())}
+                            </span>
                           </td>
                           <td className="py-3 px-4">
                             <div className="flex gap-2 justify-center">
@@ -471,9 +464,19 @@ const StudentPortal = () => {
                       <tr>
                         <td
                           colSpan="8"
-                          className="py-8 px-4 text-center text-gray-500"
+                          className="py-8 px-4 text-center"
                         >
-                          No grades found
+                          <div className="flex flex-col items-center gap-3">
+                            <svg className="w-16 h-16 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                            <div>
+                              <p className="text-gray-700 font-medium mb-1">No Grades Available Yet</p>
+                              <p className="text-gray-500 text-sm">
+                                Your submitted consultations are awaiting lecturer review and grading.
+                              </p>
+                            </div>
+                          </div>
                         </td>
                       </tr>
                     )}

@@ -10,6 +10,8 @@ import {
 import { setCurrentConsultation } from "../redux/slices/consultationSlice";
 import { ManagementForm, SubmitTab, CompleteTab, LogsTab } from "./Management/";
 import CaseManagementGuide from "./CaseManagementGuide";
+import SupervisorGradingButton from "./ui/buttons/SupervisorGradingButton";
+import useComponentGrading from "../hooks/useComponentGrading";
 
 const Management = ({ setFlowStep, appointmentId }) => {
   const dispatch = useDispatch();
@@ -31,6 +33,12 @@ const Management = ({ setFlowStep, appointmentId }) => {
   console.log("📝 Current versionId from Redux:", versionId);
   console.log("📝 Current versionType from Redux:", versionType);
   console.log("📝 Is Review Mode:", isReviewMode);
+
+  // ✅ Grading sections
+  const { section: managementSection, sectionLabel: managementLabel } = 
+    useComponentGrading("MANAGEMENT", apptId);
+  const { section: managementGuideSection, sectionLabel: managementGuideLabel } = 
+    useComponentGrading("MANAGEMENT_GUIDE", apptId);
 
   // ✅ Hydrate versionId automatically if null
   useEffect(() => {
@@ -144,9 +152,9 @@ const Management = ({ setFlowStep, appointmentId }) => {
   let visibleTabs = [];
   
   if (isReviewMode) {
-    // 🔹 In review mode: Show Management, Management Plan, Logs, Complete (no Submit)
+    // 🔹 In review mode: Show Management, Management Plan, Complete (no Logs or Submit)
     visibleTabs = ALL_TABS.filter(
-      (tab) => ["management", "case_guide", "logs", "complete"].includes(tab.key)
+      (tab) => ["management", "case_guide", "complete"].includes(tab.key)
     );
   } else if (roleCodes.includes("student")) {
     // 🔹 Student: Show Management, Management Plan, and Submit (no Logs or Complete)
@@ -154,9 +162,9 @@ const Management = ({ setFlowStep, appointmentId }) => {
       (tab) => ["management", "case_guide", "submit"].includes(tab.key)
     );
   } else if (roleCodes.includes("lecturer") || roleCodes.includes("supervisor")) {
-    // 🔹 Lecturer/Supervisor: Show Management, Management Plan, Logs, Complete (no Submit)
+    // 🔹 Lecturer/Supervisor: Show Management, Management Plan, Complete (no Logs or Submit)
     visibleTabs = ALL_TABS.filter(
-      (tab) => ["management", "case_guide", "logs", "complete"].includes(tab.key)
+      (tab) => ["management", "case_guide", "complete"].includes(tab.key)
     );
   } else if (roleCodes.includes("clinician")) {
     // 🔹 Clinician: Show only Management and Complete
@@ -221,10 +229,19 @@ const Management = ({ setFlowStep, appointmentId }) => {
       await createManagementPlan({ appointmentId: apptId, versionId, data: payload }).unwrap();
       showToast("Saved successfully ✅", "success");
 
-      if (roleCodes.includes("clinician") || roleCodes.includes("lecturer") || roleCodes.includes("supervisor")) {
-        setActiveTab("complete");
+      // Navigate to next tab based on role and review mode
+      if (isReviewMode) {
+        // 🔹 In review mode: Always go to Management Plan next
+        setActiveTab("case_guide");
       } else if (roleCodes.includes("student")) {
-        setActiveTab("case_guide"); // Navigate to Management Plan
+        // 🔹 Student: Navigate to Management Plan
+        setActiveTab("case_guide");
+      } else if (roleCodes.includes("clinician")) {
+        // 🔹 Clinician: Skip to Complete (no Management Plan for clinicians)
+        setActiveTab("complete");
+      } else if (roleCodes.includes("lecturer") || roleCodes.includes("supervisor")) {
+        // 🔹 Lecturer/Supervisor: Go to Management Plan
+        setActiveTab("case_guide");
       } else {
         setActiveTab("logs");
       }
@@ -288,6 +305,9 @@ const Management = ({ setFlowStep, appointmentId }) => {
       <div className="w-full max-w-5xl flex justify-center">
         {activeTab === "management" && (
           <ManagementForm
+            appointmentId={apptId}
+            section={managementSection}
+            sectionLabel={managementLabel}
             checkboxes={checkboxes}
             setCheckboxes={setCheckboxes}
             prescription={prescription}
@@ -320,11 +340,11 @@ const Management = ({ setFlowStep, appointmentId }) => {
         {activeTab === "case_guide" && (
           <CaseManagementGuide
             appointmentId={apptId}
+            section={managementGuideSection}
+            sectionLabel={managementGuideLabel}
             setActiveTab={setActiveTab}
-            onComplete={() => {
-              setActiveTab("logs");
-              showToast("Case Management Guide reviewed.", "success");
-            }}
+            isReviewMode={isReviewMode}
+            roleCodes={roleCodes}
           />
         )}
 

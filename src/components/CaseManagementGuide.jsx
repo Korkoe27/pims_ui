@@ -5,8 +5,9 @@ import {
   useUpdateCaseManagementGuideMutation,
 } from "../redux/api/features/managementApi";
 import useConsultationContext from "../hooks/useConsultationContext";
+import SupervisorGradingButton from "./ui/buttons/SupervisorGradingButton";
 
-const CaseManagementGuide = ({ appointmentId, setActiveTab }) => {
+const CaseManagementGuide = ({ appointmentId, section, sectionLabel, setActiveTab, isReviewMode, roleCodes = [] }) => {
   const [rows, setRows] = useState([
     { diagnosis: "", management_plan: "", comments: "" },
   ]);
@@ -60,7 +61,15 @@ const CaseManagementGuide = ({ appointmentId, setActiveTab }) => {
       }).unwrap();
 
       showToast("Case Management Guide saved successfully.", "success");
-      setActiveTab("submit"); // ✅ Move to Submit tab after saving
+      
+      // Navigate to appropriate tab based on role and mode
+      if (isReviewMode || roleCodes.includes("lecturer") || roleCodes.includes("supervisor")) {
+        setActiveTab("complete"); // ✅ Supervisors/Lecturers go to Complete
+      } else if (roleCodes.includes("student")) {
+        setActiveTab("submit"); // ✅ Students go to Submit
+      } else {
+        setActiveTab("complete"); // ✅ Default to Complete
+      }
     } catch (err) {
       console.error(err);
       showToast("Failed to save Case Management Guide.", "error");
@@ -78,10 +87,15 @@ const CaseManagementGuide = ({ appointmentId, setActiveTab }) => {
 
   return (
     <div className="max-w-6xl mx-auto p-6 bg-white rounded-md shadow border">
-      <header className="mb-6">
+      <header className="mb-6 flex justify-between items-center">
         <h1 className="text-2xl font-bold text-[#101928]">
           Case Management Guide
         </h1>
+        <SupervisorGradingButton
+          appointmentId={appointmentId}
+          section={section}
+          sectionLabel={sectionLabel || "Grading: Management Plan"}
+        />
       </header>
 
       <section className="overflow-x-auto">
