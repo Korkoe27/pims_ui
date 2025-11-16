@@ -25,7 +25,7 @@ const BookAppointmentButton = ({ onClick }) => {
 
 /* ✅ static helper for table header or conditional UI logic */
 BookAppointmentButton.shouldShow = (roleCodes) => {
-  const allowedRoles = ["frontdesk", "supervisor", "coordinator"];
+  const allowedRoles = ["frontdesk"];
   return roleCodes.some((code) => allowedRoles.includes(code));
 };
 
