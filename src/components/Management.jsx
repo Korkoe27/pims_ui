@@ -19,7 +19,7 @@ const Management = ({ setFlowStep, appointmentId }) => {
 
   const [activeTab, setActiveTab] = useState("management");
   const user = useSelector((state) => state.auth?.user);
-  const permissions = user?.access || {};
+  const roleCodes = user?.role_codes || [];
   const selectedAppointment = useSelector(
     (s) => s.appointments?.selectedAppointment
   );
@@ -148,15 +148,15 @@ const Management = ({ setFlowStep, appointmentId }) => {
     visibleTabs = ALL_TABS.filter(
       (tab) => ["management", "case_guide", "logs", "complete"].includes(tab.key)
     );
-  } else if (permissions.canSubmitConsultations) {
+  } else if (roleCodes.includes("student")) {
     // 🔹 Student: Show all except Complete
     visibleTabs = ALL_TABS.filter((tab) => tab.key !== "complete");
-  } else if (permissions.canGradeStudents) {
-    // 🔹 Reviewer: Show Management, Management Plan, Logs, Complete (no Submit)
+  } else if (roleCodes.includes("lecturer") || roleCodes.includes("supervisor")) {
+    // 🔹 Lecturer/Supervisor: Show Management, Management Plan, Logs, Complete (no Submit)
     visibleTabs = ALL_TABS.filter(
       (tab) => ["management", "case_guide", "logs", "complete"].includes(tab.key)
     );
-  } else if (permissions.canCompleteConsultations) {
+  } else if (roleCodes.includes("clinician")) {
     // 🔹 Clinician: Show only Management and Complete
     visibleTabs = ALL_TABS.filter(
       (tab) => tab.key === "management" || tab.key === "complete"
@@ -219,9 +219,16 @@ const Management = ({ setFlowStep, appointmentId }) => {
       await createManagementPlan({ appointmentId: apptId, versionId, data: payload }).unwrap();
       showToast("Saved successfully ✅", "success");
 
-      if (permissions.canCompleteConsultations) setActiveTab("complete");
-      else if (permissions.canSubmitConsultations) setActiveTab("case_guide");
-      else setActiveTab("logs");
+      if (roleCodes.includes("clinician") || roleCodes.includes("lecturer") || roleCodes.includes("supervisor")) {
+        setActiveTab("complete");
+      } else if (roleCodes.includes("student")) {
+        setActiveTab("case_guide");
+      } else {
+        setActiveTab("logs");
+      }
+    } catch (error) {
+      console.error("❌ Save failed:", error);
+      showToast("Save failed ❌", "error");
     } catch (error) {
       console.error("❌ Save failed:", error);
       showToast("Save failed ❌", "error");
