@@ -57,7 +57,7 @@ const CaseHistory = ({
 
   const isLoading = loadingCaseHistory || loadingConditions;
 
-  console.log("🩺 Consultation Context:", { appointmentId, versionId });
+  // console.log("🩺 Consultation Context:", { appointmentId, versionId });
 
   // -------------------------------------------------------------------------
   // 🔹 Populate state when data is fetched
@@ -213,7 +213,7 @@ const CaseHistory = ({
       condition_details: observations,
     };
 
-    console.log("🧾 Final Case History Payload:", payload);
+    // console.log("🧾 Final Case History Payload:", payload);
 
     if (initialPayload && !hasFormChanged(initialPayload, payload)) {
       showToast("No changes detected", "info");

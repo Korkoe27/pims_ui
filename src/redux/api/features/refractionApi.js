@@ -36,7 +36,7 @@ export const refractionApi = apiClient.injectEndpoints({
           appointment: appointmentId,
           consultation_version,
         };
-        console.log("🔹 refractionApi mutation body:", payload);
+        // console.log("🔹 refractionApi mutation body:", payload);
         return {
           url: createRefractionUrl(appointmentId),
           method: "POST",
