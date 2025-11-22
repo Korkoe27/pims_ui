@@ -1,3 +1,14 @@
+# Patient Information Management System - Robots.txt
 # https://www.robotstxt.org/robotstxt.html
+
 User-agent: *
-Disallow:
+Allow: /
+
+# Disallow sensitive areas
+Disallow: /admin
+Disallow: /api
+Disallow: /private
+Disallow: /dashboard
+
+# Sitemap location
+Sitemap: https://optometry-clinic-one.vercel.app/sitemap.xml

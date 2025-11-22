@@ -78,13 +78,6 @@ const CompleteTab = ({
           >
             Back to Management
           </button>
-
-          <button
-            onClick={() => navigate("/")}
-            className="px-4 py-2 rounded-md border"
-          >
-            Go to Dashboard
-          </button>
         </div>
       </div>
 

@@ -223,5 +223,5 @@
  */
 
 export const REVIEW_ENDPOINT = "/consultations/versions/{version_id}/initiate-review/";
-export const REVIEW_VERSION_TYPE = "review";
+export const REVIEW_VERSION_TYPE = "reviewed";
 export const FLOW_TYPE_LECTURER = "lecturer_reviewing";

@@ -25,10 +25,10 @@ const AddPatientButton = ({ onClick }) => {
 
 /**
  * 🔹 Static helper: determines if this button should appear.
- * Only frontdesk, supervisor, and coordinator can add patients.
+ * Only frontdesk can add patients.
  */
 AddPatientButton.shouldShow = (roleCodes) => {
-  const allowedRoles = ["frontdesk", "supervisor", "coordinator"];
+  const allowedRoles = ["frontdesk"];
   return roleCodes.some((code) => allowedRoles.includes(code));
 };
 

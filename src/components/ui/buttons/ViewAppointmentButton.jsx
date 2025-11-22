@@ -17,9 +17,9 @@ const ViewAppointmentButton = ({ appointment, onView }) => {
   );
 };
 
-// 🔹 Visibility logic - show only if user can view appointments
+// 🔹 Visibility logic - show only to clinical staff
 ViewAppointmentButton.shouldShow = (roleCodes = []) => {
-  const allowedRoles = ["frontdesk", "student", "clinician", "supervisor", "coordinator"];
+  const allowedRoles = ["student", "clinician", "supervisor"];
   return roleCodes.some((code) => allowedRoles.includes(code));
 };
 
