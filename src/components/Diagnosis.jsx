@@ -32,7 +32,7 @@ const Diagnosis = ({ appointmentId, setFlowStep, setActiveTab, canEdit = true })
   useEffect(() => {
     if (!appointmentDiagnosis) return;
 
-    console.log("📥 Appointment Diagnosis data received:", appointmentDiagnosis);
+    // console.log("📥 Appointment Diagnosis data received:", appointmentDiagnosis);
 
     // Handle both array and object responses
     const diagnosisData = Array.isArray(appointmentDiagnosis) 
@@ -41,7 +41,7 @@ const Diagnosis = ({ appointmentId, setFlowStep, setActiveTab, canEdit = true })
 
     if (diagnosisData) {
       setDifferentialDiagnosis(diagnosisData.differential_diagnosis || "");
-      console.log("✅ Differential diagnosis set to:", diagnosisData.differential_diagnosis);
+      // console.log("✅ Differential diagnosis set to:", diagnosisData.differential_diagnosis);
 
       if (Array.isArray(diagnosisData.final_diagnoses_info)) {
         setFinalDiagnosisEntries(
@@ -159,7 +159,7 @@ const Diagnosis = ({ appointmentId, setFlowStep, setActiveTab, canEdit = true })
             <textarea
               value={differentialDiagnosis}
               onChange={(e) => {
-                console.log("📝 Differential diagnosis changed to:", e.target.value);
+                // console.log("📝 Differential diagnosis changed to:", e.target.value);
                 setDifferentialDiagnosis(e.target.value);
               }}
               className="w-full border p-3 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"

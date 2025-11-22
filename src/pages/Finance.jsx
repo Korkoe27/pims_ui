@@ -1,7 +1,5 @@
-// pages/Finance.jsx
 import React, { useState } from "react";
 import {
-  useGetPendingBillsQuery,
   useGetPharmacyBillsQuery,
   useGetBillPaymentSummaryQuery,
   useCreatePaymentMutation,
@@ -9,7 +7,7 @@ import {
 import PageContainer from "../components/PageContainer";
 import Card from "../components/ui/card";
 import { showToast } from "../components/ToasterHelper";
-import { FaDollarSign, FaEye, FaCheckCircle } from "react-icons/fa";
+import { FaDollarSign, FaCheckCircle } from "react-icons/fa";
 
 export default function Finance() {
   const [selectedBill, setSelectedBill] = useState(null);

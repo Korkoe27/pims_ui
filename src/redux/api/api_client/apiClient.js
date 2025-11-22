@@ -18,16 +18,17 @@ export const apiClient = createApi({
       try {
         const url = typeof request === "string" ? request : request.url;
         if (typeof url === "string" && url.startsWith("/consultations")) {
-          const body = request.body;
-          const safeBody =
-            body && typeof body === "object" && !(body instanceof FormData)
-              ? JSON.stringify(body)
-              : String(body || "");
-          console.debug("[API DEBUG] Consultation request ->", {
-            method: request.method || "GET",
-            url,
-            body: safeBody,
-          });
+          // Debug logging disabled for production
+          // const body = request.body;
+          // const safeBody =
+          //   body && typeof body === "object" && !(body instanceof FormData)
+          //     ? JSON.stringify(body)
+          //     : String(body || "");
+          // console.debug("[API DEBUG] Consultation request ->", {
+          //   method: request.method || "GET",
+          //   url,
+          //   body: safeBody,
+          // });
         }
       } catch {
         /* ignore debug errors */

@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useSelector } from "react-redux";
 import PageContainer from "../components/PageContainer";
 import Card from "../components/ui/card";
 import { useGetMyStudentAppointmentsQuery } from "../redux/api/features/appointmentsApi";
@@ -12,9 +11,9 @@ const StudentPortal = () => {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [showChangesModal, setShowChangesModal] = useState(false);
-  const [selectedAppointment, setSelectedAppointment] = useState(null);
+  const [selectedAppointment] = useState(null);
   const navigate = useNavigate();
-  const user = useSelector((state) => state.auth.user);
+  // const user = useSelector((state) => state.auth.user);
 
   // ✅ Fetch student's own appointments from API
   const { data, isLoading, isError, error } = useGetMyStudentAppointmentsQuery({
@@ -102,10 +101,10 @@ const StudentPortal = () => {
     }
   };
 
-  const handleViewChanges = (appointment) => {
-    setSelectedAppointment(appointment);
-    setShowChangesModal(true);
-  };
+  // const handleViewChanges = (appointment) => {
+  //   setSelectedAppointment(appointment);
+  //   setShowChangesModal(true);
+  // };
 
   const clearDateFilters = () => {
     setStartDate("");
