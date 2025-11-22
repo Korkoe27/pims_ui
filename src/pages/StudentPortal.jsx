@@ -11,6 +11,7 @@ const StudentPortal = () => {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [showChangesModal, setShowChangesModal] = useState(false);
+  const [selectedAppointment] = useState(null);
   const navigate = useNavigate();
   // const user = useSelector((state) => state.auth.user);
 
