@@ -91,37 +91,6 @@ const Login = () => {
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    if (!username.trim() || !password.trim()) {
-      showToast("Username and password are required.", "error");
-      return;
-    }
-
-    try {
-      showToast("Logging in...", "loading");
-
-      const { accessToken, refreshToken } = await login({
-        username,
-        password,
-      }).unwrap();
-
-      localStorage.setItem("access_token", accessToken);
-      localStorage.setItem("refresh_token", refreshToken);
-
-      const { user } = await getUser().unwrap();
-      dispatch(setUser({ user }));
-
-      showToast("Login successful!", "success");
-      navigate("/");
-    } catch (err) {
-      console.error("Login error:", err);
-      const formatted = formatErrorMessage(err?.data);
-      showToast(formatted.detail || "An error occurred during login.", "error");
-    }
-  };
-
   return (
     <div className="h-screen w-screen bg-gradient-to-br from-white via-blue-50 to-blue-100 flex items-center justify-center px-4 relative">
       <div className="absolute inset-0 bg-white/30 backdrop-blur-sm z-0" />

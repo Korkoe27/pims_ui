@@ -123,8 +123,8 @@ const CreateAppointment = () => {
       payload.insurance = formData.insurance;
     }
 
-    console.log("Form Data:", formData);
-    console.log("Payload being sent:", payload);
+    // console.log("Form Data:", formData);
+    // console.log("Payload being sent:", payload);
 
     try {
       const response = await createAppointment(payload).unwrap();

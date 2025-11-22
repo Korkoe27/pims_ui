@@ -39,7 +39,7 @@ export const internalsApi = apiClient.injectEndpoints({
           observations,
           consultation_version,
         };
-        console.log("🔹 internalsApi mutation body:", body);
+        // console.log("🔹 internalsApi mutation body:", body);
         return {
           url: createInternalsUrl(appointmentId),
           method: "POST",
