@@ -1,8 +1,12 @@
 import React, { useEffect } from "react";
 import RefractiveCorrectionSection from "../RefractiveCorrectionSection";
 import MedicationForm from "../MedicationForm";
+import SupervisorGradingButton from "../ui/buttons/SupervisorGradingButton";
 
 const ManagementForm = ({
+  appointmentId,
+  section,
+  sectionLabel,
   checkboxes,
   setCheckboxes,
   prescription,
@@ -79,14 +83,25 @@ const ManagementForm = ({
   }, [managementPlan, setCheckboxes, setPrescription, setDetails, setSelectedRefractiveCorrectionTypes, setSelectedLensTypes]);
 
   return (
-    <form className="flex flex-col gap-5 w-fit">
-      <main className="flex gap-40">
-        <section className="flex flex-col gap-12 w-fit">
-          {/* ✅ Checkboxes */}
-          <div className="flex flex-col gap-2">
-            <label className="font-medium text-base">
-              Treatment / Management Option(s)
-            </label>
+    <div className="bg-white rounded-md shadow p-4 w-full">
+      {/* Header with Grading Button */}
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-2xl font-bold text-[#101928]">Management</h1>
+        <SupervisorGradingButton
+          appointmentId={appointmentId}
+          section={section}
+          sectionLabel={sectionLabel || "Grading: Management"}
+        />
+      </div>
+
+      <form className="flex flex-col gap-5 w-fit">
+        <main className="flex gap-40">
+          <section className="flex flex-col gap-12 w-fit">
+            {/* ✅ Checkboxes */}
+            <div className="flex flex-col gap-2">
+              <label className="font-medium text-base">
+                Treatment / Management Option(s)
+              </label>
             <div className="grid grid-cols-2 gap-5">
               {Object.keys(checkboxes).map((key) => (
                 <label key={key} className="flex items-center gap-1 capitalize">
@@ -195,6 +210,7 @@ const ManagementForm = ({
         </button>
       </div>
     </form>
+    </div>
   );
 };
 

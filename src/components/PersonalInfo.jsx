@@ -42,11 +42,14 @@ const PersonalInfo = () => {
     dateOfFirstVisit: "",
   });
 
+  // Insurance status state
+  const [isInsured, setIsInsured] = useState(false);
+
   // Separate state for insurance records
   const [insurances, setInsurances] = useState([
     {
-      insurance_type: "National",
-      insurance_provider: "NHIS",
+      insurance_type: "",
+      insurance_provider: "",
       insurance_number: "",
       is_active: true,
       is_primary: true,
@@ -73,7 +76,7 @@ const PersonalInfo = () => {
 
   // Initialize insurance with proper IDs when options load
   useEffect(() => {
-    if (insuranceOptions && insurances[0]?.insurance_type === "National") {
+    if (insuranceOptions && insurances[0]?.insurance_type === "") {
       const defaultType = insuranceOptions.insurance_types?.[0]?.value || "";
       const defaultProvider = insuranceOptions.insurance_providers?.find(
         p => p.insurance_type_id === defaultType
@@ -90,7 +93,7 @@ const PersonalInfo = () => {
         }]);
       }
     }
-  }, [insuranceOptions, insurances]);
+  }, [insuranceOptions]);
 
   useEffect(() => {
     if (!selectedClinic) setIsModalOpen(true);
@@ -256,8 +259,17 @@ const PersonalInfo = () => {
       return;
     }
 
-    // Validate insurance entries - at least one should have insurance_number if provided
-    const validInsurances = insurances.filter((ins) => ins.insurance_number.trim() !== "");
+    // Validate insurance entries based on insurance status
+    let validInsurances = [];
+    if (isInsured) {
+      validInsurances = insurances.filter((ins) => ins.insurance_number.trim() !== "");
+      
+      // If insured but no valid insurance entries, show error
+      if (validInsurances.length === 0) {
+        showToast("Please provide at least one insurance entry or select 'Not Insured'", "error");
+        return;
+      }
+    }
     
     try {
       showToast("Creating patient...", "info");
@@ -266,8 +278,8 @@ const PersonalInfo = () => {
         confirm_save: confirmSave ? true : undefined,
       };
       
-      // Add insurance data if any valid entries exist
-      if (validInsurances.length > 0) {
+      // Only add insurance data if patient is insured and has valid entries
+      if (isInsured && validInsurances.length > 0) {
         payload.insurance_data = validInsurances;
       }
       
@@ -562,17 +574,49 @@ const PersonalInfo = () => {
           </section>
 
           {/* ---------- Section 3: Insurance ---------- */}
-          <section className="pt-16 border-t border-[#d9d9d9]">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-semibold">Health Insurance Information</h2>
-              <button
-                type="button"
-                onClick={addInsurance}
-                className="px-4 py-2 bg-[#2f3192] text-white rounded-lg hover:bg-[#1f2170] transition"
-              >
-                + Add Insurance
-              </button>
+          <section className="pt-16 mt-8 border-t border-[#d9d9d9]">
+            <h2 className="text-xl font-semibold mb-6">Health Insurance Information</h2>
+            
+            {/* Insurance Status Radio Buttons */}
+            <div className="mb-8 p-4 bg-gray-50 rounded-lg border border-[#d0d5dd]">
+              <h3 className="text-sm font-semibold text-gray-700 mb-3">Insurance Status</h3>
+              <div className="flex gap-6">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="insurance_status"
+                    checked={!isInsured}
+                    onChange={() => setIsInsured(false)}
+                    className="w-4 h-4 text-[#2f3192] focus:ring-[#2f3192]"
+                  />
+                  <span className="text-gray-700">Not Insured</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="insurance_status"
+                    checked={isInsured}
+                    onChange={() => setIsInsured(true)}
+                    className="w-4 h-4 text-[#2f3192] focus:ring-[#2f3192]"
+                  />
+                  <span className="text-gray-700">Insured</span>
+                </label>
+              </div>
             </div>
+
+            {/* Insurance Form - Only show if insured */}
+            {isInsured && (
+              <>
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-lg font-medium">Insurance Details</h3>
+                  <button
+                    type="button"
+                    onClick={addInsurance}
+                    className="px-4 py-2 bg-[#2f3192] text-white rounded-lg hover:bg-[#1f2170] transition"
+                  >
+                    + Add Insurance
+                  </button>
+                </div>
 
             <div className="space-y-8">
               {insurances.map((insurance, index) => (
@@ -685,6 +729,8 @@ const PersonalInfo = () => {
                 </div>
               ))}
             </div>
+              </>
+            )}
           </section>
 
           {/* ---------- Actions ---------- */}
