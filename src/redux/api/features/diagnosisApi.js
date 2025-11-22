@@ -4,7 +4,6 @@ import {
   updateDiagnosisUrl,
   listAllDiagnosesUrl,
   fetchAppointmentDiagnosesUrl,
-  fetchAppointmentDiagnosesByVersionUrl,
 } from "../end_points/endpoints";
 import { TAGS } from "../tags/tags";
 
@@ -17,12 +16,12 @@ export const diagnosisApi = apiClient.injectEndpoints({
           ...data,
           consultation_version: versionId,
         };
-        console.log(
-          "🔍 API Call - createDiagnosis for appointmentId:",
-          appointmentId,
-          "with data:",
-          payload
-        );
+        // console.log(
+        //   "🔍 API Call - createDiagnosis for appointmentId:",
+        //   appointmentId,
+        //   "with data:",
+        //   payload
+        // );
         return {
           url: createDiagnosisUrl(appointmentId),
           method: "POST",
@@ -39,12 +38,12 @@ export const diagnosisApi = apiClient.injectEndpoints({
           ...data,
           consultation_version: versionId,
         };
-        console.log(
-          "🔍 API Call - updateDiagnosis for appointmentId:",
-          appointmentId,
-          "with data:",
-          payload
-        );
+        // console.log(
+        //   "🔍 API Call - updateDiagnosis for appointmentId:",
+        //   appointmentId,
+        //   "with data:",
+        //   payload
+        // );
         return {
           url: updateDiagnosisUrl(appointmentId),
           method: "POST",
@@ -57,7 +56,7 @@ export const diagnosisApi = apiClient.injectEndpoints({
     // List all diagnosis
     getAllDiagnosis: builder.query({
       query: () => {
-        console.log("🔍 API Call - getAllDiagnosis");
+        // console.log("🔍 API Call - getAllDiagnosis");
         return {
           url: listAllDiagnosesUrl,
           method: "GET",
@@ -68,7 +67,7 @@ export const diagnosisApi = apiClient.injectEndpoints({
     // Get all diagnoses linked to an appointment
     getAppointmentDiagnosis: builder.query({
       query: ({ appointmentId, versionId } = {}) => {
-        console.log("🔍 API Call - getAppointmentDiagnosis for appointmentId:", appointmentId, "versionId:", versionId);
+        // console.log("🔍 API Call - getAppointmentDiagnosis for appointmentId:", appointmentId, "versionId:", versionId);
         return {
           url: fetchAppointmentDiagnosesUrl(appointmentId),
           method: "GET",

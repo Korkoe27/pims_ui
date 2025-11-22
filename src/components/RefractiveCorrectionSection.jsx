@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { useGetRefractiveCorrectionTypesQuery, useGetLensTypesQuery } from "../redux/api/features/managementApi";
 import SPHValidator from "./validators/SPHValidator";
 import CYLValidator from "./validators/CYLValidator";

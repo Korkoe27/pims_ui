@@ -39,7 +39,7 @@ export const externalsApi = apiClient.injectEndpoints({
           observations,
           consultation_version,
         };
-        console.log("🔹 externalsApi mutation body:", body);
+        // console.log("🔹 externalsApi mutation body:", body);
         return {
           url: createExternalObservationUrl(appointmentId),
           method: "POST",

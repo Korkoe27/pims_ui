@@ -10,7 +10,6 @@ import {
 import { setCurrentConsultation } from "../redux/slices/consultationSlice";
 import { ManagementForm, SubmitTab, CompleteTab, LogsTab } from "./Management/";
 import CaseManagementGuide from "./CaseManagementGuide";
-import SupervisorGradingButton from "./ui/buttons/SupervisorGradingButton";
 import useComponentGrading from "../hooks/useComponentGrading";
 
 const Management = ({ setFlowStep, appointmentId }) => {
