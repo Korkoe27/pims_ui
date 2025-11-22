@@ -68,10 +68,11 @@ export const diagnosisApi = apiClient.injectEndpoints({
     // Get all diagnoses linked to an appointment
     getAppointmentDiagnosis: builder.query({
       query: ({ appointmentId, versionId } = {}) => {
-        // Always use the base URL - backend will fetch latest version automatically
+        console.log("🔍 API Call - getAppointmentDiagnosis for appointmentId:", appointmentId, "versionId:", versionId);
         return {
           url: fetchAppointmentDiagnosesUrl(appointmentId),
           method: "GET",
+          params: versionId ? { consultation_version: versionId } : {},
         };
       },
       skip: ({ appointmentId } = {}) => !appointmentId,

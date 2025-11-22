@@ -22,8 +22,13 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
+    "build:prod": "set REACT_APP_ENV=production && react-scripts build",
+    "build:prod:unix": "REACT_APP_ENV=production react-scripts build",
     "test": "jest --watchAll",
-    "eject": "react-scripts eject"
+    "test:ci": "jest --coverage --watchAll=false",
+    "eject": "react-scripts eject",
+    "analyze": "npm run build && npx serve -s build",
+    "preview": "npx serve -s build -l 3001"
   },
   "eslintConfig": {
     "extends": [

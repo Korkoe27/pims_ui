@@ -46,12 +46,15 @@ const ReviewModal = ({ appointmentId, studentVersionId, onClose, onSuccess }) =>
   // 🔹 Handler to navigate to reviewed version
   const handleNavigateToReviewed = useCallback((version) => {
     try {
+      console.log("🔍 [ReviewModal] Navigating to reviewed version:", version);
+      console.log("🔍 [ReviewModal] version.version_type:", version.version_type);
+      
       // Dispatch to Redux
       dispatch(
         setCurrentConsultation({
           id: version.id,
           versionId: version.id,
-          version_type: version.version_type || "review",
+          version_type: version.version_type || "reviewed",
           is_final: version.is_final || false,
           flowType: "lecturer_reviewing",
           appointmentId,
@@ -79,7 +82,7 @@ const ReviewModal = ({ appointmentId, studentVersionId, onClose, onSuccess }) =>
 
         // 1️⃣ Check if reviewed version already exists
         const existingReviewed = versions.find(
-          (v) => v.version_type === "review" && !v.is_final
+          (v) => v.version_type === "reviewed" && !v.is_final
         );
 
         if (existingReviewed) {

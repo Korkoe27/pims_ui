@@ -6,7 +6,7 @@
  */
 
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { baseURL } from "../base_url/baseurl";
+import { baseURL, apiBaseURL } from "../base_url/baseurl";
 import { TAGS } from "../tags/tags";
 import { clearSessionData } from "../../../utils/sessionUtils";
 
@@ -38,7 +38,7 @@ export const apiClient = createApi({
 
     // --- Primary request handler ---
     let result = await fetchBaseQuery({
-      baseUrl: baseURL,
+      baseUrl: apiBaseURL,
       credentials: "include",
       prepareHeaders: (headers) => {
         // CSRF token
@@ -84,7 +84,7 @@ export const apiClient = createApi({
         if (refreshResult?.data) {
           // ✅ Save new token and retry request
           localStorage.setItem("access_token", refreshResult.data.access);
-          result = await fetchBaseQuery({ baseUrl: baseURL })(
+          result = await fetchBaseQuery({ baseUrl: apiBaseURL })(
             args,
             api,
             extraOptions

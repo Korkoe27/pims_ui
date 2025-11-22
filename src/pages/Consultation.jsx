@@ -1,7 +1,7 @@
 // src/pages/Consultation.jsx
 import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useGetAppointmentDetailsQuery } from "../redux/api/features/appointmentsApi";
 import { setCurrentConsultation } from "../redux/slices/consultationSlice";
 
@@ -113,7 +113,15 @@ const Consultation = () => {
   }, [selectedAppointment?.status, setFlowStep]);
 
   // ✅ Sync versionId from URL to Redux on mount or when URL changes
+  // ⚠️ IMPORTANT: Only update if not already set (preserves version_type from ReviewModal)
+  const currentConsultationState = useSelector((s) => s.consultation);
   useEffect(() => {
+    // Skip if versionId already matches in Redux (preserves version_type)
+    if (currentConsultationState?.versionId === versionId) {
+      return;
+    }
+    
+    // Only update if we have appointmentId and versionId
     if (appointmentId && versionId) {
       dispatch(
         setCurrentConsultation({
@@ -122,7 +130,7 @@ const Consultation = () => {
         })
       );
     }
-  }, [appointmentId, versionId, dispatch]);
+  }, [appointmentId, versionId, currentConsultationState?.versionId, dispatch]);
 
   // -------------------------------------------------------------------
   // 🔹 Handle Loading / Error States

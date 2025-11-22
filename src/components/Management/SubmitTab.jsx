@@ -57,10 +57,10 @@ const SubmitTab = ({
           </button>
           <button
             type="button"
-            onClick={() => setActiveTab("logs")}
+            onClick={() => setActiveTab("case_guide")}
             className="px-4 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50"
           >
-            Back to Logs
+            ← Back
           </button>
         </div>
       </div>
