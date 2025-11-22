@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import {
@@ -7,10 +7,6 @@ import {
 } from "../redux/api/features/authApi";
 import { setUser } from "../redux/slices/authSlice";
 import Logo from "../components/Logo";
-import { CiLock } from "react-icons/ci";
-import { PiUserCircle } from "react-icons/pi";
-import { VscEye } from "react-icons/vsc";
-import { FiEyeOff } from "react-icons/fi";
 import { showToast } from "../components/ToasterHelper";
 
 // Test user accounts for system testing
@@ -66,16 +62,10 @@ const formatErrorMessage = (data) => {
 };
 
 const Login = () => {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [passwordVisible, setPasswordVisible] = useState(false);
-  const [showTestInterface, setShowTestInterface] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [login] = useLoginMutation();
   const [getUser] = useLazyGetUserQuery();
-
-  const togglePasswordVisibility = () => setPasswordVisible(!passwordVisible);
 
   const handleTestLogin = async (testUser) => {
     try {
