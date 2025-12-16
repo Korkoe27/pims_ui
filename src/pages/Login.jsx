@@ -12,6 +12,14 @@ import { showToast } from "../components/ToasterHelper";
 // Test user accounts for system testing
 const testUsers = [
   {
+    username: "frontdesk",
+    password: "TestP@$$",
+    role: "Frontdesk",
+    description: "Handles patient registration and appointment scheduling",
+    color: "bg-orange-500 hover:bg-orange-600",
+    icon: "🛎️",
+  },
+  {
     username: "student",
     password: "TestP@$$",
     role: "Student",

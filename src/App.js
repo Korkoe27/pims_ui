@@ -34,6 +34,7 @@ import {
   Documentation,
   StudentPortal,
   Finance,
+  DesktopSettings,
 } from "./pages";
 
 import Layout from "./pages/Layout";
@@ -243,6 +244,16 @@ const App = () => {
               element={
                 <ProtectedRoute accessKeys={["canViewBills"]}>
                   <Finance />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* ⚙️ Settings */}
+            <Route
+              path="settings"
+              element={
+                <ProtectedRoute accessKeys={["canAccessSettings"]}>
+                  <DesktopSettings />
                 </ProtectedRoute>
               }
             />

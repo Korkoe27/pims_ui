@@ -58,6 +58,7 @@ const Sidebar = () => {
     canViewBills: ["finance"], // Only finance staff
     canViewAbsentRequests: ["supervisor", "coordinator"],
     canViewReports: ["supervisor", "coordinator", "finance"],
+    canAccessSettings: ["supervisor"], // Only supervisors
   };
 
   const canAccess = (permissionKey) => {

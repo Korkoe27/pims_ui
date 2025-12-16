@@ -21,3 +21,4 @@ export { default as PharmacyOrder } from "./PharmacyOrder";
 export { default as Documentation } from "./Documentation";
 export { default as StudentPortal } from "./StudentPortal";
 export { default as Finance } from "./Finance";
+export { default as DesktopSettings } from "./DesktopSettings";
