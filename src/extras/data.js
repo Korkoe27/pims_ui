@@ -3,7 +3,7 @@ import { IoCalendarClearOutline } from "react-icons/io5";
 import { LuUsers } from "react-icons/lu";
 import { MdOutlineSchedule, MdOutlineLogout } from "react-icons/md";
 import { HiOutlineClipboardList, HiOutlineDocumentReport, HiOutlineQuestionMarkCircle } from "react-icons/hi";
-import { FaUserGraduate, FaPills, FaMoneyBillWave } from "react-icons/fa";
+import { FaUserGraduate, FaPills, FaMoneyBillWave, FaCog } from "react-icons/fa";
 
 // Each link is now controlled by backend access keys (e.g., canViewAppointments)
 export const Sidebar_links = [
@@ -54,6 +54,12 @@ export const Sidebar_links = [
     icon: <FaMoneyBillWave className="text-xl font-bold" />,
     path: "/finance",
     permissionKey: "canViewBills", // ✅ Finance/billing permission
+  },
+  {
+    name: "settings",
+    icon: <FaCog className="text-xl font-bold" />,
+    path: "/settings",
+    permissionKey: "canAccessSettings", // ✅ Supervisors only
   },
   {
     name: "absent request",

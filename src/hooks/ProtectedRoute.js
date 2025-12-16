@@ -38,6 +38,7 @@ const ProtectedRoute = ({ children, accessKeys = [] }) => {
       canStartConsultation: ["student", "clinician", "supervisor"],
       canAccessStudentPortal: ["student"],
       canViewBills: ["finance"],
+      canAccessSettings: ["supervisor"],
     };
 
     // Check if user has any of the required roles for ALL accessKeys

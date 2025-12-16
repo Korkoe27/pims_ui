@@ -22,7 +22,7 @@ const getBaseURL = () => {
   return 'http://localhost:8000';
 };
 
-export const baseURL = getBaseURL();
+export const baseURL =  "https://web-production-94f67.up.railway.app";
 
 // Add trailing slash if not present
 export const apiBaseURL = baseURL.endsWith('/') ? baseURL : `${baseURL}/`;
