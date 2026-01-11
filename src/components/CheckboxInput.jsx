@@ -7,6 +7,8 @@ const CheckboxInput = ({
   onChangeOS = () => {},
   labelOD = "OD (Right Eye)",
   labelOS = "OS (Left Eye)",
+  nameOD = "checkbox-od",
+  nameOS = "checkbox-os",
 }) => {
   return (
     <div className="grid grid-cols-2 gap-6">
@@ -17,7 +19,7 @@ const CheckboxInput = ({
           <label className="inline-flex items-center space-x-1">
             <input
               type="radio"
-              name={`checkbox-od`}
+              name={nameOD}
               checked={checkedOD === true}
               onChange={() => onChangeOD(true)}
               className="text-indigo-600"
@@ -27,7 +29,7 @@ const CheckboxInput = ({
           <label className="inline-flex items-center space-x-1">
             <input
               type="radio"
-              name={`checkbox-od`}
+              name={nameOD}
               checked={checkedOD === false}
               onChange={() => onChangeOD(false)}
               className="text-indigo-600"
@@ -44,7 +46,7 @@ const CheckboxInput = ({
           <label className="inline-flex items-center space-x-1">
             <input
               type="radio"
-              name={`checkbox-os`}
+              name={nameOS}
               checked={checkedOS === true}
               onChange={() => onChangeOS(true)}
               className="text-indigo-600"
@@ -54,7 +56,7 @@ const CheckboxInput = ({
           <label className="inline-flex items-center space-x-1">
             <input
               type="radio"
-              name={`checkbox-os`}
+              name={nameOS}
               checked={checkedOS === false}
               onChange={() => onChangeOS(false)}
               className="text-indigo-600"
