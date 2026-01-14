@@ -90,6 +90,7 @@ function ConditionCard({
 }) {
   const showGeneralNotes = !!item.has_general_notes || !!item.has_notes; // backward compat
   const showPerEyeNotes = !!item.has_text_per_eye;
+  const showPerEyeText = !!item.has_text || !!item.has_text_per_eye;
 
   return (
     <div
@@ -102,7 +103,7 @@ function ConditionCard({
         <DeleteButton onClick={() => onDelete(item.id)} />
       </div>
 
-      {item.has_text && (
+      {showPerEyeText && (
         <TextInput
           valueOD={item?.OD?.text || ""}
           valueOS={item?.OS?.text || ""}
@@ -173,7 +174,8 @@ function useConditionList() {
     const newItem = {
       id,
       name: option.name ?? option.label,
-      has_text: !!option.has_text,
+      // Backend uses `has_text_per_eye`; some older clients used `has_text`.
+      has_text: !!(option.has_text || option.has_text_per_eye),
       has_dropdown: !!option.has_dropdown,
       has_grading: !!option.has_grading,
       has_notes: !!(option.has_notes || option.has_general_notes), // compat
@@ -238,7 +240,8 @@ function useConditionList() {
         byId[cId] = {
           id: cId,
           name: entry.condition_name || meta.name || "Unknown",
-          has_text: !!meta.has_text,
+          // Backend uses `has_text_per_eye`; some older datasets used `has_text`.
+          has_text: !!(meta.has_text || meta.has_text_per_eye),
           has_dropdown: !!meta.has_dropdown,
           has_grading: !!meta.has_grading,
           has_notes: !!(meta.has_notes || meta.has_general_notes), // compat
